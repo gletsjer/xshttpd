@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.48 2001/05/22 12:18:32 johans Exp $ */
+/* $Id: cgi.c,v 1.49 2001/05/25 11:38:59 johans Exp $ */
 
 #include	"config.h"
 
@@ -67,6 +67,31 @@ skipspaces DECL1C(char *, string)
 	return(string);
 }
 
+static	int
+eat_content_length DECL0
+{
+	int		to_read, received;
+	char		buf[MYBUFSIZ];
+
+	to_read = atoi(getenv("CONTENT_LENGTH"));
+
+	while (to_read > 0)
+	{
+		if ((received = read(1, buf, MYBUFSIZ)) == -1)
+		{
+			if (errno = EINTR)
+				continue;
+			else
+			{
+				return 1;
+			}
+		}
+		to_read -= received;
+	}
+
+	return 0;
+}
+
 static	VOID
 time_is_up DECL1(int, sig)
 {
@@ -121,18 +146,20 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 	struct	stat		statbuf;
 	uid_t			savedeuid, currentuid;
 	gid_t			savedegid, currentgid;
-	long			size, received, written, writetodo,
+	long			size, received, tobewritten, writetodo,
 				totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
 				base[XS_PATH_MAX], *temp, *nextslash,
 				tempbuf[XS_PATH_MAX + 32], head[HEADSIZE];
 	const	char		*file, *argv1, *header;
-	int			p[2], nph, count, nouid, dossi, was_slash;
+	int			p[2], nph, count, nouid, dossi, was_slash,
+				written;
 	unsigned	int	left;
 #ifdef		HANDLE_SSL
-	char	inbuf[MYBUFSIZ];
-	int		q[2];
-	int		ssl_post = 0;
+	char			inbuf[MYBUFSIZ];
+	int			q[2];
+	int			ssl_post = 0;
+	int			readerror;
 #endif		/* HANDLE_SSL */
 #ifdef		USE_SETRLIMIT
 	struct	rlimit		limits;
@@ -161,7 +188,6 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 		savedeuid = geteuid(); seteuid(origeuid);
 		savedegid = getegid(); setegid(origegid);
 	}
-	p[0] = p[1] = -1;
 
 	userinfo = NULL; was_slash = 0;
 	if ((path[0] == '/') && ((path[1] == '?') || !path[1]))
@@ -388,7 +414,10 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 			if ((auth = fopen(fullpath, "r")))
 			{
 				if (check_auth(auth))
+				{
+					eat_content_length();
 					goto END;
+				}
 			}
 		}
 	}
@@ -436,6 +465,23 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 			goto END;
 		}
 	}
+
+#ifdef		HANDLE_SSL
+	if (do_ssl && (ssl_post = !strcmp("POST", getenv("REQUEST_METHOD"))))
+	{
+		if (pipe(q))
+		{
+			snprintf(errmsg, MYBUFSIZ, "500 pipe() failed: %s",
+				strerror(errno));
+			if (showheader)
+				error(errmsg);
+			else
+				secprintf("[%s]\n", errmsg);
+			goto END;
+		}
+	}
+#endif		/* HANDLE_SSL */
+
 	switch(child = fork())
 	{
 	case -1:
@@ -462,43 +508,10 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 #endif		/* USE_SETRLIMIT */
 #ifdef		HANDLE_SSL
 		/* Posting via SSL takes a lot of extra work */
-		if (do_ssl && (ssl_post = !strcmp("POST", getenv("REQUEST_METHOD"))))
-		{
-			int readerror;
-			writetodo = atoi(getenv("CONTENT_LENGTH"));
-			if (pipe(q))
-			{
-				snprintf(errmsg, MYBUFSIZ, "500 pipe() failed: %s",
-					strerror(errno));
-				if (showheader)
-					error(errmsg);
-				else
-					secprintf("[%s]\n", errmsg);
-				goto END;
-			}
-			while (writetodo > 0)
-			{
-				written = writetodo > MYBUFSIZ ? MYBUFSIZ : writetodo;
-				secread(0, inbuf, written);
-				if ((readerror = ERR_get_error())) {
-					fprintf(stderr, "SSL Error: %s\n",
-						ERR_reason_error_string(readerror));
-					goto END;
-				}
-				inbuf[written] = '\0';
-				if (write(q[1], inbuf, written) < written) {
-					fprintf(stderr, "[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
-						strerror(errno), q[1], temp, writetodo);
-					goto END;
-				}
-				writetodo -= written;
-			}
-			dup2(q[0], 0);
-		}
-#endif		/* HANDLE_SSL */
-
 		if (1 /* !nph || do_ssl */)
 			dup2(p[1], 1);
+		dup2(q[0], 0);
+#endif		/* HANDLE_SSL */
 
 #ifdef		HAVE_SETSID
 		if (setsid() == -1)
@@ -574,11 +587,42 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 		close(p[1]);
 #ifdef		HANDLE_SSL
 		if (ssl_post)
-			close(q[1]);
+			close(q[0]);
 #endif		/* HANDLE_SSL */
 		break;
 	}
 
+#ifdef		HANDLE_SSL
+	if (ssl_post)
+	{
+		writetodo = atoi(getenv("CONTENT_LENGTH"));
+		while (writetodo > 0)
+		{
+			int	offset;
+
+			tobewritten = writetodo > MYBUFSIZ ? MYBUFSIZ : writetodo;
+			tobewritten = secread(0, inbuf, tobewritten);
+			if ((tobewritten == -1) && ((readerror = ERR_get_error()))) {
+				fprintf(stderr, "SSL Error: %s\n",
+					ERR_reason_error_string(readerror));
+				goto END;
+			}
+			offset = 0;
+			while ((written = write(q[1], inbuf + offset, tobewritten - offset)) < tobewritten - offset) {
+				if ((written == -1) && (errno != EINTR))
+				{
+					fprintf(stderr, "[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
+						strerror(errno), q[1], temp, writetodo);
+					goto END;
+				} else if (written != -1)
+					offset += written;
+			}
+			writetodo -= tobewritten;
+		}
+
+		close(q[1]);
+	}
+#endif		/* HANDLE_SSL */
 	netbufind = netbufsiz = 0; readlinemode = READCHAR;
 	head[0] = '\0';
 	if (!nph)
