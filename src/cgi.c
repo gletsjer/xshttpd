@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.70 2002/11/17 22:34:32 johans Exp $ */
+/* $Id: cgi.c,v 1.71 2002/12/13 15:02:10 johans Exp $ */
 
 #include	"config.h"
 
@@ -406,7 +406,8 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 #endif		/* HANDLE_SSL */
 	netbufind = netbufsiz = 0; readlinemode = READCHAR;
 	head[0] = '\0';
-#ifndef		HANDLE_SSL
+#if			0
+	/* This failes with long PHP stuff w/o SSL compiled */
 	while (readline(r[0], errmsg) == ERR_NONE)
 		fprintf(stderr, errmsg);
 #endif		/* HANDLE_SSL */
