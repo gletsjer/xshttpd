@@ -39,9 +39,8 @@ for more information about these SSI's. */
  * We don't use the PHP library (yet), but rely on the stand-alone
  * version instead. Shouldn't matter (only slightly in performance).
  */
-#define SUPPORT_PHP
-#define HANDLE_INTERPRETED
-#define INTERPRET_METHODS "interpret.methods"
+#define HANDLE_SCRIPT
+#define SCRIPT_METHODS "interpret.methods"
 
 /* Define these if you have the respective include file. For example,
 define HAVE_SYS_SYSLIMITS_H if your system has the sys/syslimits.h

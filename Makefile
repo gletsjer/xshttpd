@@ -146,7 +146,7 @@ install:	all
 		$(CP) imagemap $(CGIDIR)/
 		$(CP) error $(CGIDIR)/
 		$(CP) gfxcount $(CGIDIR)/
-		for i in mime.types mime.index compress.methods ; \
+		for i in mime.types mime.index compress.methods script.methods ; \
 		do \
 			if [ -f "$(HTTPDIR)"/"$$i" ] ; \
 			then \
