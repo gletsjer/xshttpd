@@ -734,7 +734,6 @@ secprintf(const char *format, ...)
 size_t
 secfputs(char *buf, FILE *stream)
 {
-	fprintf(stderr, "SSL FPUTS: %s\n", buf);
 #ifdef		HANDLE_SSL
 	if (do_ssl)
 		return SSL_write(ssl, buf, strlen(buf));
