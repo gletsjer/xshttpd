@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.105 2003/01/31 13:39:53 johans Exp $ */
+/* $Id: httpd.c,v 1.106 2003/02/20 17:39:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.105 2003/01/31 13:39:53 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.106 2003/02/20 17:39:16 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -259,8 +259,7 @@ load_config DECL0
 	struct group	*grp;
 	struct virtual	*last = NULL;
 
-	if (!(confd = fopen(config_path, "r")))
-		warn("fopen(`%s' [read])", config_path);
+	confd = fopen(config_path, "r");
 
 	memset(&config, 0, sizeof config);
 
@@ -1464,9 +1463,11 @@ standalone_main DECL0
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = config.family;
 #ifdef		__linux__
-#ifdef		INET6
 	if (config.family == PF_UNSPEC)
+#ifdef		INET6
 		hints.ai_family = PF_INET6;
+#else		/* INET6 */
+		hints.ai_family = PF_INET;
 #endif		/* INET6 */
 #endif		/* __linux__ */
 	hints.ai_socktype = SOCK_STREAM;
