@@ -11,6 +11,9 @@
 #define		ERR_CONT	1
 #define		ERR_QUIT	2
 
+#define		READCHAR	0
+#define		READBLOCK	1
+
 #define		MINBYTESPERSEC	32
 
 #ifndef 	S_ISREG

@@ -87,7 +87,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				base[XS_PATH_MAX], *temp, name[XS_PATH_MAX], *nextslash,
 				tempbuf[XS_PATH_MAX + 32];
 	const	char		*file, *argv1, *header;
-	int			p[2], nph, count, nouid, was_slash;
+	int			p[2], nph, count, nouid, dossi, was_slash;
 	unsigned	int	left;
 #ifdef		HANDLE_SSL
 	char	inbuf[MYBUFSIZ];
@@ -368,6 +368,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		goto END;
 	}
 	nph = (!strncmp(name, "nph-", 4) || strstr(name, "/nph-"));
+	dossi = (!strncmp(name, "ssi-", 4) || strstr(name, "/ssi-"));
 	nouid = (strstr(name, "/nph-nid-") || strstr(name, "/nid-") ||
 		!strncmp(name, "nph-nid-", 8) || !strncmp(name, "nid-", 4));
 	p[0] = -1; p[1] = -1;
@@ -533,7 +534,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 
 	status[0] = contenttype[0] = location[0] = cachecontrol[0] = cookie[0] = 0;
 	expires[0] = 0;
-	netbufind = netbufsiz = 0; readlinemode = 1;
+	netbufind = netbufsiz = 0; readlinemode = READCHAR;
 	if (!nph)
 	{
 		while (1)
@@ -669,31 +670,17 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		}
 	}
 	fflush(stdout);
-	if ((totalwritten = netbufsiz - netbufind) > 0)
-	{
-		writetodo = totalwritten; temp = netbuf + netbufind;
-		while (writetodo > 0)
-		{
-			switch(written = secwrite(fileno(stdout), temp, writetodo))
-			{
-			case -1:
-				if (errno == EINTR)
-					break;
-				secprintf("[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
-					strerror(errno), fileno(stdout), temp,
-					writetodo);
-				goto END;
-			case 0:
-				secprintf("[Connection closed: couldn't write]\n");
-				goto END;
-			default:
-				writetodo -= written;
-				temp += written;
-			}
-		}
-	}
 
-	for (;;)
+	readlinemode = READBLOCK;
+	totalwritten = 0;
+	if (dossi)
+	{
+		size_t ttw = 0;
+		/* Parse the output of CGI script for SSI directives */
+		sendwithdirectives(p[0], &ttw);
+		totalwritten = ttw;
+	}
+	else for (;;)
 	{
 		received = read(p[0], errmsg, MYBUFSIZ);
 		if (received == -1)

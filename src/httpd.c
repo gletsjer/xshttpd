@@ -849,7 +849,7 @@ process_request DECL0
 		error("400 Unable to read begin of request line");
 		return;
 	}
-	readlinemode = strncasecmp("POST", line, 4);
+	readlinemode = strncasecmp("POST", line, 4) ? READBLOCK : READCHAR;
 	if (readline(0, line + 4) == ERR_QUIT)
 	{
 		error("400 Unable to read request line");
