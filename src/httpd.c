@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.107 2003/02/20 18:50:20 johans Exp $ */
+/* $Id: httpd.c,v 1.108 2003/02/20 18:50:56 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.107 2003/02/20 18:50:20 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.108 2003/02/20 18:50:56 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -721,8 +721,8 @@ error DECL1C(char *, message)
 	alarm(180); setcurrenttime();
 	env = getenv("QUERY_STRING");
 	fprintf((current && current->openerror) ? current->openerror : stderr,
-		"[%s:%d] httpd(pid %ld): %s [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
-		currenttime, (current && current->openerror), (long)getpid(), message,
+		"[%s] httpd(pid %ld): %s [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
+		currenttime, (long)getpid(), message,
 		remotehost[0] ? remotehost : "(none)",
 		orig[0] ? orig : "(none)", env ? env : "(none)",
 		referer[0] ? referer : "(none)");
