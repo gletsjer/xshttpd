@@ -44,7 +44,6 @@
 #include	"htconfig.h"
 #include	"setenv.h"
 
-#ifndef		NOFORWARDS
 static	int	xsc_initdummy		(void);
 static	int	xsc_initcounter		(const char *);
 static	int	xsc_counter		(int, const char *);
@@ -76,7 +75,6 @@ static	int	dir_case		(char *, size_t *);
 static	int	print_enabled		(void);
 static	int	parsedirectives		(char *, size_t *);
 static	int	sendwithdirectives_internal (int, size_t *);
-#endif		/* NOFORWARDS */
 
 static	int	ssioutput, cnt_readbefore, numincludes;
 static	char	ssiarray[16];

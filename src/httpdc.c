@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.11 2004/11/26 16:59:35 johans Exp $ */
+/* $Id: httpdc.c,v 1.12 2004/11/26 17:05:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -41,14 +41,12 @@ char		rootdir[XS_PATH_MAX];
 struct virtual			*current;
 struct configuration	config;
 
-#ifndef		NOFORWARDS
 static	void	cmd_help	(const char *);
 static	void	cmd_status	(const char *);
 static	void	cmd_kill	(const char *);
 static	void	cmd_reload	(const char *);
 static	void	cmd_restart	(const char *);
 static	void	control		(const char *);
-#endif		/* NOFORWARDS */
 
 static	command	commands[]=
 {

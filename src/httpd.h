@@ -29,7 +29,6 @@ extern	int		headers, netbufind, netbufsiz, readlinemode,
 extern	gid_t	origegid;
 extern	uid_t	origeuid;
 
-#ifndef		NOFORWARDS
 extern	void	stdheaders		(int, int, int);
 extern	void	alarm_handler		(int);
 extern	void	error			(const char *);
@@ -39,7 +38,6 @@ extern	void	server_error		(const char *, const char *);
 extern	void	logrequest		(const char *, long);
 extern	int	check_auth		(FILE *);
 extern	void	setcurrenttime		(void);
-#endif		/* NOFORWARDS */
 
 #ifdef		HANDLE_SSL
 #include <openssl/ssl.h>

@@ -1,5 +1,5 @@
 #include	"config.h"
-/* $Id: error.c,v 1.11 2004/11/26 16:59:35 johans Exp $ */
+/* $Id: error.c,v 1.12 2004/11/26 17:05:09 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -18,7 +18,6 @@
 struct virtual			*current;
 struct configuration	config;
 
-#ifndef		NOFORWARDS
 extern	void	error			(const char *);
 extern	void	redirect		(const char *, int);
 extern	void	server_error		(const char *, const char *);
@@ -39,7 +38,6 @@ static	void	precondition_failed	(void);
 static	void	local_no_page		(void);
 static	void	local_invalid_link	(void);
 static	void	local_no_pay		(void);
-#endif		/* NOFORWARDS */
 
 typedef	struct
 {

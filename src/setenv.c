@@ -11,9 +11,7 @@
 
 #include	"setenv.h"
 
-#ifndef		NOFORWARDS
 static	char	*findenv		 (const char *, int *);
-#endif		/* NOFORWARDS */
 
 extern	char	*
 getenv(const char *name)
