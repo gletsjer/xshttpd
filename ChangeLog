@@ -3,6 +3,7 @@ Changes since 3.0 beta 7
 - Added optional define BROKEN_GETNAMEINFO (no offline check yet)
 - Replaced old MAXHOSTNAMELEN by NI_MAXHOST (self-defined if needed)
 - Removed/rewritten all functions that require libnsl
+- Include files named mystring.h and mygetopt.h to prevent recursion
 - Several small bug-fixes (now compiles clean on Solaris and IRIX)
 
 Changes since 3.0 beta 6
