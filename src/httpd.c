@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.118 2003/05/06 22:05:32 johans Exp $ */
+/* $Id: httpd.c,v 1.119 2003/06/18 12:25:32 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.118 2003/05/06 22:05:32 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.119 2003/06/18 12:25:32 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1226,6 +1226,7 @@ process_request DECL0
 	unsetenv("HTTP_ACCEPT_LANGUAGE"); unsetenv("HTTP_HOST");
 	unsetenv("HTTP_NEGOTIONATE"); unsetenv("HTTP_PRAGMA");
 	unsetenv("HTTP_CLIENT_IP"); unsetenv("HTTP_VIA");
+	unsetenv("HTTP_AUTHORIZATION");
 	unsetenv("IF_MODIFIED_SINCE"); unsetenv("IF_UNMODIFIED_SINCE");
 	unsetenv("IF_RANGE");
 	unsetenv("SSL_CIPHER");
@@ -1344,8 +1345,10 @@ process_request DECL0
 					referer[strlen(referer) - 1] = 0;
 				setenv("HTTP_REFERER", referer, 1);
 			} else if (!strcasecmp("Authorization", extra))
+			{
 				setenv("AUTH_TYPE", param, 1);
-			else if (!strcasecmp("Cookie", extra))
+				setenv("HTTP_AUTHORIZATION", param, 1);
+			} else if (!strcasecmp("Cookie", extra))
 				setenv("HTTP_COOKIE", param, 1);
 			else if (!strcasecmp("Accept", extra))
 				setenv("HTTP_ACCEPT", param, 1);
