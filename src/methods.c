@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.114 2004/11/13 17:06:04 johans Exp $ */
+/* $Id: methods.c,v 1.115 2004/11/18 14:07:40 johans Exp $ */
 
 #include	"config.h"
 
@@ -122,7 +122,7 @@ typedef	struct	ctypes
 	char		prog[XS_PATH_MAX], ext[16], name[16];
 } ctypes;
 
-static	ftypes	*ftype = NULL;
+static	ftypes	*ftype = NULL, *lftype = NULL;
 static	ctypes	*ctype = NULL;
 static	ctypes	*itype = NULL, *litype = NULL;
 static	char	charset[XS_PATH_MAX];
@@ -998,6 +998,9 @@ do_get DECL1(char *, params)
 	strncpy(name, filename, XS_PATH_MAX);
 	name[XS_PATH_MAX-1] = '\0';
 
+	/* check for local file type */
+	loadfiletypes(base);
+
 	/* check litype for local and itype for global settings */
 	if ((tmp = config.uselocalscript))
 		loadscripttypes(base);
@@ -1124,21 +1127,40 @@ do_options DECL1C(char *, params)
 }
 
 extern	VOID
-loadfiletypes DECL0
+loadfiletypes DECL1(char *, base)
 {
 	char		line[MYBUFSIZ], *end, *comment;
-	const	char	*mimepath;
+	char		*mimepath;
 	FILE		*mime;
 	ftypes		*prev, *new;
 
-	while (ftype)
+	if (!base)
 	{
-		new = ftype->next;
-		free(ftype); ftype = new;
+		while (ftype)
+		{
+			new = ftype->next;
+			free(ftype); ftype = new;
+		}
 	}
-	mimepath = calcpath(MIMETYPESFILE);
-	if (!(mime = fopen(mimepath, "r")))
-		err(1, "fopen(`%s' [read])", mimepath);
+	while (lftype)
+	{
+		new = lftype->next;
+		free(lftype); lftype = new;
+	}
+	lftype = NULL;
+	if (base)
+	{
+		mimepath = (char *)malloc(strlen(base) + 12);
+		sprintf(mimepath, "%s/.mimetypes", base);
+		if (!(mime = fopen(mimepath, "r")))
+			return;
+	}
+	else
+	{
+		mimepath = (char *)calcpath(MIMETYPESFILE);
+		if (!(mime = fopen(mimepath, "r")))
+			err(1, "fopen(`%s' [read])", mimepath);
+	}
 	prev = NULL;
 	while (fgets(line, MYBUFSIZ, mime))
 	{
@@ -1153,6 +1175,8 @@ loadfiletypes DECL0
 			errx(1, "Out of memory in loadfiletypes()");
 		if (prev)
 			prev->next = new;
+		else if (base)
+			lftype = new;
 		else
 			ftype = new;
 		prev = new; new->next = NULL;
@@ -1160,6 +1184,8 @@ loadfiletypes DECL0
 			errx(1, "Unable to parse line `%s' in `%s'",
 				line, mimepath);
 	}
+	if (lftype && ftype)
+		new->next = ftype;
 	fclose(mime);
 }
 
@@ -1324,7 +1350,7 @@ getfiletype DECL1(int, print)
 		extension[count] =
 			isupper(ext[count]) ? tolower(ext[count]) : ext[count];
 	extension[count] = 0;
-	search = ftype;
+	search = lftype ? lftype : ftype;
 	while (search)
 	{
 		if (!strcmp(extension, search->ext))

@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.147 2004/11/16 18:14:10 johans Exp $ */
+/* $Id: httpd.c,v 1.148 2004/11/18 14:07:40 johans Exp $ */
 
 #include	"config.h"
 
@@ -107,7 +107,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.147 2004/11/16 18:14:10 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.148 2004/11/18 14:07:40 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -764,7 +764,7 @@ open_logs DECL1(int, sig)
 		fprintf(stderr, "[%s] httpd: Successful restart\n",
 			currenttime);
 	}
-	loadfiletypes();
+	loadfiletypes(NULL);
 	if (config.usecompressed)
 		loadcompresstypes();
 	loadscripttypes(NULL);
