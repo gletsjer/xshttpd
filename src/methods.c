@@ -739,12 +739,25 @@ do_get DECL1(char *, params)
 		{
 			http_host = getenv("HTTP_HOST");
 
-			if (strcmp(port, "http") && !http_host)
-				snprintf(total, XS_PATH_MAX, "http://%s:%s%s/",
-					thishostname, port, params);
+			if (question)
+			{
+				if (strcmp(port, "http") && !http_host)
+					snprintf(total, XS_PATH_MAX, "http://%s:%s%s/?%s",
+						thishostname, port, params, question + 1);
+				else
+					snprintf(total, XS_PATH_MAX, "http://%s%s/?%s",
+						(http_host ? http_host : thishostname),
+						params, question + 1);
+			}
 			else
-				snprintf(total, XS_PATH_MAX, "http://%s%s/",
-					(http_host ? http_host : thishostname), params);
+			{
+				if (strcmp(port, "http") && !http_host)
+					snprintf(total, XS_PATH_MAX, "http://%s:%s%s/",
+						thishostname, port, params);
+				else
+					snprintf(total, XS_PATH_MAX, "http://%s%s/",
+						(http_host ? http_host : thishostname), params);
+				}
 			total[XS_PATH_MAX-1] = '\0';
 			redirect(total, 1);
 			return;
