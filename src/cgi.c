@@ -530,8 +530,16 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				if (!cookie[0])
 					strncpy(cookie, skipspaces(header + 11), MYBUFSIZ);
 				else
-					snprintf(cookie, MYBUFSIZ, "%s, %s",
-						cookie, skipspaces(header + 11));
+				/* This is a special case. Or rather a dirty hack for
+				 * browsers that violate RFC 1945, 2068 and 2109(!)
+				 * Which includes netscape, w3m and others :(
+				 */
+				{
+					strncat(cookie, "\r\nSet-cookie: ",
+						MYBUFSIZ - strlen(cookie));
+					strncat(cookie, skipspaces(header + 11),
+						MYBUFSIZ - strlen(cookie));
+				}
 			}
 			else if (!strncasecmp(header, "X-Powered-By:", 13))
 				/* ignore */;
