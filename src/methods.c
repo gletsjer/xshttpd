@@ -572,8 +572,8 @@ do_get DECL1(char *, params)
 
 	size = strlen(HTTPD_SCRIPT_ROOT);
 	if ((*file && (!strncmp(file + 1, HTTPD_SCRIPT_ROOT, size)) &&
-		(file[size + 1] == '/')) ||
-		((file[0] == '/') && ((file[1] == '?') /* || !file[1] */ )))
+		(file[size + 1] == '/')) /* ||
+		((file[0] == '/') && ((file[1] == '?') || !file[1] )) */ )
 	{
 		do_script(params, NULL, headers);
 		return;
@@ -865,10 +865,17 @@ do_get DECL1(char *, params)
 		wasdir = 0;
 		goto RETRY;
 	}
-	else if (!strcmp(filename, INDEX_HTML_2) && strcmp(INDEX_HTML, INDEX_HTML_3))
+	else if (!strcmp(filename, INDEX_HTML_2) &&
+			strcmp(INDEX_HTML_2, INDEX_HTML_3))
 	{
 		strcpy(real_path + strlen(real_path) - strlen(INDEX_HTML_2),
 			filename = INDEX_HTML_3);
+		/* oops, lost the arguments  -  quick hack to get it back */
+		if (question)
+		{
+			strcat(real_path, "?");
+			strcat(real_path, question + 1);
+		}
 		params = file = real_path;
 		wasdir = 0;
 		goto RETRY_SCRIPT;
