@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.55 2002/02/19 12:14:18 johans Exp $ */
+/* $Id: cgi.c,v 1.56 2002/02/19 15:46:37 johans Exp $ */
 
 #include	"config.h"
 
@@ -576,7 +576,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 		}
 #ifdef		HANDLE_SCRIPT
 #ifdef		HANDLE_PERL
-		if (!strcmp(engine, "internal:perl"))
+		if (engine && !strcmp(engine, "internal:perl"))
 		{
 			perlargs[0] = fullpath;
 			perl_call_argv("Embed::Persistent::eval_file",
