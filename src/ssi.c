@@ -914,7 +914,6 @@ parsedirectives DECL2(char *, parse, size_t *, size)
 		}
 	}
 
-	/* So what _is_ this for anyway??? */
 	if (store != result)
 	{
 		if (print_enabled())
