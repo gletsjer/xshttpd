@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.61 2002/06/12 14:00:19 johans Exp $ */
+/* $Id: cgi.c,v 1.62 2002/06/20 10:25:28 johans Exp $ */
 
 #include	"config.h"
 
@@ -255,7 +255,8 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 			goto END;
 		}
 		file = path + strlen(name) + 3;
-	} else
+	}
+	else
 	{
 		if (config.usevirtualhost && getenv("HTTP_HOST"))
 		{
@@ -444,7 +445,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 			goto END;
 		}
 	}
-	if (statbuf.st_mode & (S_IWGRP | S_IWOTH))
+	if (userinfo && (statbuf.st_mode & (S_IWGRP | S_IWOTH)))
 	{
 		if (showheader)
 			error("403 CGI binary is writable");
