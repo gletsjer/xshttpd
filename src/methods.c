@@ -146,11 +146,13 @@ senduncompressed DECL1(int, fd)
 	if ((size = lseek(fd, 0, SEEK_END)) == -1)
 	{
 		error("500 Cannot lseek() to end of file");
+		close(fd);
 		return;
 	}
 	if (lseek(fd, 0, SEEK_SET))
 	{
 		error("500 Cannot lseek() to beginning of file");
+		close(fd);
 		return;
 	}
 	if (headers)
@@ -356,7 +358,8 @@ sendcompressed DECL2_C(int, fd, char *, method)
 		if (!(tmp = (char *)malloc(32 + strlen(TEMPORARYPREFIX))))
 		{
 			error("500 Out of memory in sendcompressed()");
-			close(fd); return;
+			close(fd);
+			return;
 		}
 		sprintf(tmp, "%s.%016ld", TEMPORARYPREFIX, (long)getpid());
 	}
@@ -936,6 +939,7 @@ do_get DECL1(char *, params)
 		if (script ||
 			(*cgi && !strncmp(cgi, current->execdir, size) && cgi[size] == '/'))
 		{
+			close(fd);
 			do_script(params, base, file, NULL, headers);
 			return;
 		}
@@ -945,6 +949,7 @@ do_get DECL1(char *, params)
 	{
 		server_error("403 Cannot use POST method on non-CGI",
 			"POST_ON_NON_CGI");
+		close(fd);
 		return;
 	}
 

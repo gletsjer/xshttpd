@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.76 2003/01/31 13:39:53 johans Exp $ */
+/* $Id: cgi.c,v 1.77 2003/09/29 18:53:34 johans Exp $ */
 
 #include	"config.h"
 
@@ -550,8 +550,11 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 		received = read(p[0], errmsg, MYBUFSIZ);
 		if (received == -1)
 		{
-			if (errno == EINTR)
+			if (errno == EINTR || errno == EWOULDBLOCK)
+			{
+				usleep(300);
 				continue;
+			}
 			secprintf("[read() error from CGI: %s]", strerror(errno));
 			break;
 		} else if (received == 0)
