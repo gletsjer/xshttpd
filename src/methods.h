@@ -1,19 +1,19 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
 #ifndef		NOFORWARDS
-extern	VOID	loadcompresstypes	PROTO((void));
-extern	VOID	loadscripttypes		PROTO((char *, char *));
+extern	void	loadcompresstypes	(void);
+extern	void	loadscripttypes		(char *, char *);
 #ifdef		HANDLE_SSL
-extern	VOID	loadssl				PROTO((void));
+extern	void	loadssl				(void);
 #endif		/* HANDLE_SSL */
-extern	VOID	loadfiletypes		PROTO((char *, char *));
+extern	void	loadfiletypes		(char *, char *);
 #ifdef		HANDLE_PERL
-extern	VOID	loadperl			PROTO((void));
+extern	void	loadperl			(void);
 #endif		/* HANDLE_PERL */
 
-extern	VOID	do_get			PROTO((char *));
-extern	VOID	do_post			PROTO((char *));
-extern	VOID	do_head			PROTO((char *));
-extern	VOID	do_options		PROTO((const char *));
+extern	void	do_get			(char *);
+extern	void	do_post			(char *);
+extern	void	do_head			(char *);
+extern	void	do_options		(const char *);
 #endif		/* NOFORWARDS */
 

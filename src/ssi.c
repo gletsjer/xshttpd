@@ -45,37 +45,37 @@
 #include	"setenv.h"
 
 #ifndef		NOFORWARDS
-static	int	xsc_initdummy		PROTO((void));
-static	int	xsc_initcounter		PROTO((const char *));
-static	int	xsc_counter		PROTO((int, const char *));
-static	int	call_counter		PROTO((int, const char *));
-static	int	dir_count_total		PROTO((char *, size_t *));
-static	int	dir_count_total_gfx	PROTO((char *, size_t *));
-static	int	dir_count_today		PROTO((char *, size_t *));
-static	int	dir_count_today_gfx	PROTO((char *, size_t *));
-static	int	dir_count_month		PROTO((char *, size_t *));
-static	int	dir_count_month_gfx	PROTO((char *, size_t *));
-static	int	dir_count_reset		PROTO((char *, size_t *));
-static	int	dir_date		PROTO((char *, size_t *));
-static	int	dir_date_format		PROTO((char *, size_t *));
-static	int	dir_include_file	PROTO((char *, size_t *));
-static	int	dir_last_mod		PROTO((char *, size_t *));
-static	int	dir_remote_host		PROTO((char *, size_t *));
-static	int	dir_run_cgi		PROTO((char *, size_t *));
-static	int	dir_agent_long		PROTO((char *, size_t *));
-static	int	dir_agent_short		PROTO((char *, size_t *));
-static	int	dir_argument	PROTO((char *, size_t *));
-static	int	dir_referer		PROTO((char *, size_t *));
-static	int	dir_if			PROTO((char *, size_t *));
-static	int	dir_if_not		PROTO((char *, size_t *));
-static	int	dir_else		PROTO((char *, size_t *));
-static	int	dir_endif		PROTO((char *, size_t *));
-static	int	dir_switch		PROTO((char *, size_t *));
-static	int	dir_endswitch	PROTO((char *, size_t *));
-static	int	dir_case		PROTO((char *, size_t *));
-static	int	print_enabled		PROTO((void));
-static	int	parsedirectives		PROTO((char *, size_t *));
-static	int	sendwithdirectives_internal PROTO((int, size_t *));
+static	int	xsc_initdummy		(void);
+static	int	xsc_initcounter		(const char *);
+static	int	xsc_counter		(int, const char *);
+static	int	call_counter		(int, const char *);
+static	int	dir_count_total		(char *, size_t *);
+static	int	dir_count_total_gfx	(char *, size_t *);
+static	int	dir_count_today		(char *, size_t *);
+static	int	dir_count_today_gfx	(char *, size_t *);
+static	int	dir_count_month		(char *, size_t *);
+static	int	dir_count_month_gfx	(char *, size_t *);
+static	int	dir_count_reset		(char *, size_t *);
+static	int	dir_date		(char *, size_t *);
+static	int	dir_date_format		(char *, size_t *);
+static	int	dir_include_file	(char *, size_t *);
+static	int	dir_last_mod		(char *, size_t *);
+static	int	dir_remote_host		(char *, size_t *);
+static	int	dir_run_cgi		(char *, size_t *);
+static	int	dir_agent_long		(char *, size_t *);
+static	int	dir_agent_short		(char *, size_t *);
+static	int	dir_argument	(char *, size_t *);
+static	int	dir_referer		(char *, size_t *);
+static	int	dir_if			(char *, size_t *);
+static	int	dir_if_not		(char *, size_t *);
+static	int	dir_else		(char *, size_t *);
+static	int	dir_endif		(char *, size_t *);
+static	int	dir_switch		(char *, size_t *);
+static	int	dir_endswitch	(char *, size_t *);
+static	int	dir_case		(char *, size_t *);
+static	int	print_enabled		(void);
+static	int	parsedirectives		(char *, size_t *);
+static	int	sendwithdirectives_internal (int, size_t *);
 #endif		/* NOFORWARDS */
 
 static	int	ssioutput, cnt_readbefore, numincludes;

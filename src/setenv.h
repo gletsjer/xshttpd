@@ -2,9 +2,9 @@
 
 #ifndef		HAVE_SETENV
 #ifndef		NOFORWARDS
-extern	char	*getenv		PROTO((const char *));
-extern	int	setenv		PROTO((const char *, const char *, int));
-extern	VOID	unsetenv	PROTO((const char *));
+extern	char	*getenv		(const char *);
+extern	int	setenv		(const char *, const char *, int);
+extern	void	unsetenv	(const char *);
 #endif		/* NOFORWARDS */
 #endif		/* HAVE_SETENV */
 

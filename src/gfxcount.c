@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: gfxcount.c,v 1.6 2004/11/26 16:45:09 johans Exp $ */
+/* $Id: gfxcount.c,v 1.7 2004/11/26 16:59:35 johans Exp $ */
 
 #include	"config.h"
 
@@ -19,10 +19,10 @@
 
 #ifdef		PATH_PPMTOGIF
 #ifndef		NOFORWARDS
-static	void	error			PROTO((const char *, const char *));
-static	void	loaddigit		PROTO((int));
-static	void	loadfont		PROTO((void));
-static	void	buildpicture		PROTO((void));
+static	void	error			(const char *, const char *);
+static	void	loaddigit		(int);
+static	void	loadfont		(void);
+static	void	buildpicture		(void);
 #endif		/* NOFORWARDS */
 
 typedef	struct

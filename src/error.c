@@ -1,5 +1,5 @@
 #include	"config.h"
-/* $Id: error.c,v 1.10 2004/11/26 16:45:09 johans Exp $ */
+/* $Id: error.c,v 1.11 2004/11/26 16:59:35 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -19,26 +19,26 @@ struct virtual			*current;
 struct configuration	config;
 
 #ifndef		NOFORWARDS
-extern	void	error			PROTO((const char *));
-extern	void	redirect		PROTO((const char *, int));
-extern	void	server_error		PROTO((const char *, const char *));
-static	int	difference		PROTO((const char *, const char *));
-static	int	check_user		PROTO((const struct passwd *));
-static	void	user_unknown		PROTO((void));
-static	void	post_on_non_cgi		PROTO((void));
-static	void	invalid_path		PROTO((void));
-static	void	dir_not_avail		PROTO((void));
-static	void	not_regular		PROTO((void));
-static	void	permission		PROTO((void));
-static	void	not_found		PROTO((void));
-static	void	no_relative_urls	PROTO((void));
-static	void	bad_request		PROTO((void));
-static	void	unknown_method		PROTO((void));
-static	void	unauthorized		PROTO((void));
-static	void	precondition_failed	PROTO((void));
-static	void	local_no_page		PROTO((void));
-static	void	local_invalid_link	PROTO((void));
-static	void	local_no_pay		PROTO((void));
+extern	void	error			(const char *);
+extern	void	redirect		(const char *, int);
+extern	void	server_error		(const char *, const char *);
+static	int	difference		(const char *, const char *);
+static	int	check_user		(const struct passwd *);
+static	void	user_unknown		(void);
+static	void	post_on_non_cgi		(void);
+static	void	invalid_path		(void);
+static	void	dir_not_avail		(void);
+static	void	not_regular		(void);
+static	void	permission		(void);
+static	void	not_found		(void);
+static	void	no_relative_urls	(void);
+static	void	bad_request		(void);
+static	void	unknown_method		(void);
+static	void	unauthorized		(void);
+static	void	precondition_failed	(void);
+static	void	local_no_page		(void);
+static	void	local_invalid_link	(void);
+static	void	local_no_pay		(void);
 #endif		/* NOFORWARDS */
 
 typedef	struct

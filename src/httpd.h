@@ -30,15 +30,15 @@ extern	gid_t	origegid;
 extern	uid_t	origeuid;
 
 #ifndef		NOFORWARDS
-extern	VOID	stdheaders		PROTO((int, int, int));
-extern	VOID	alarm_handler		PROTO((int));
-extern	VOID	error			PROTO((const char *));
-extern	VOID	redirect		PROTO((const char *, int));
-extern	int	readline		PROTO((int, char *));
-extern	VOID	server_error		PROTO((const char *, const char *));
-extern	VOID	logrequest		PROTO((const char *, long));
-extern	int	check_auth		PROTO((FILE *));
-extern	VOID	setcurrenttime		PROTO((void));
+extern	void	stdheaders		(int, int, int);
+extern	void	alarm_handler		(int);
+extern	void	error			(const char *);
+extern	void	redirect		(const char *, int);
+extern	int	readline		(int, char *);
+extern	void	server_error		(const char *, const char *);
+extern	void	logrequest		(const char *, long);
+extern	int	check_auth		(FILE *);
+extern	void	setcurrenttime		(void);
 #endif		/* NOFORWARDS */
 
 #ifdef		HANDLE_SSL

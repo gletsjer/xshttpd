@@ -7,9 +7,9 @@
 #endif		/* HAVE_VFORK */
 
 #ifndef		NOPROTOS
-#define		PROTO(a)	a
+#define		a	a
 #else
-#define		PROTO(a)	()
+#define		a	()
 #endif
 
 #ifndef		NONEWSTYLE
@@ -75,11 +75,11 @@
 #define		extern
 #endif		/* NOEXTERN */
 
-#ifdef		NOVOID
-#define		VOID
-#else		/* Not NOVOID */
-#define		VOID		void
-#endif		/* NOVOID */
+#ifdef		NOvoid
+#define		void
+#else		/* Not NOvoid */
+#define		void		void
+#endif		/* NOvoid */
 
 #ifdef		NOPID_T
 #define		pid_t		long

@@ -19,11 +19,11 @@
 #include	"mystring.h"
 
 #ifndef		NOFORWARDS
-static	void	error			PROTO((const char *, ...));
-static	void	urldecode		PROTO((char *));
-static	void	changepasswd		PROTO((const char *, int));
-static	void	generateform		PROTO((void));
-extern	int	main			PROTO((int, char *[]));
+static	void	error			(const char *, ...);
+static	void	urldecode		(char *);
+static	void	changepasswd		(const char *, int);
+static	void	generateform		(void);
+extern	int	main			(int, char *[]);
 #endif		/* NOFORWARDS */
 
 #ifndef		NONEWSTYLE

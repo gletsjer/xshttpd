@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.150 2004/11/26 16:45:09 johans Exp $ */
+/* $Id: httpd.c,v 1.151 2004/11/26 16:59:35 johans Exp $ */
 
 #include	"config.h"
 
@@ -94,7 +94,7 @@ extern	char	*tempnam(const char *, const char *);
 /* This is for HP/UX */
 #ifdef		HPUX
 #ifndef		NOFORWARDS
-extern	int	setpriority PROTO((int, int, int));
+extern	int	setpriority (int, int, int);
 #endif		/* NOFORWARDS */
 #endif		/* HPUX */
 
@@ -107,7 +107,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.150 2004/11/26 16:45:09 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.151 2004/11/26 16:59:35 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -146,26 +146,26 @@ static	char	six2pr[64] =
 /* Prototypes */
 
 #ifndef		NOFORWARDS
-static	void	filedescrs		PROTO((void));
-static	void	detach			PROTO((void));
-static	void	child_handler		PROTO((int));
-static	void	term_handler		PROTO((int));
-static	void	load_config		PROTO((void));
-static	void	open_logs		PROTO((int));
-static	void	core_handler		PROTO((int));
-static	void	set_signals		PROTO((void));
+static	void	filedescrs		(void);
+static	void	detach			(void);
+static	void	child_handler		(int);
+static	void	term_handler		(int);
+static	void	load_config		(void);
+static	void	open_logs		(int);
+static	void	core_handler		(int);
+static	void	set_signals		(void);
 
-static	int	hexdigit		PROTO((int));
-static	int	decode			PROTO((char *));
+static	int	hexdigit		(int);
+static	int	decode			(char *);
 
-static	void	uudecode		PROTO((char *));
-extern	char	*escape			PROTO((const char *));
+static	void	uudecode		(char *);
+extern	char	*escape			(const char *);
 
-static	void	process_request		PROTO((void));
+static	void	process_request		(void);
 
-static	void	setup_environment	PROTO((void));
-static	void	standalone_main		PROTO((void));
-static	void	standalone_socket	PROTO((char));
+static	void	setup_environment	(void);
+static	void	standalone_main		(void);
+static	void	standalone_socket	(char);
 #endif		/* NOFORWARDS */
 
 extern	void

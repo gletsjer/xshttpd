@@ -15,7 +15,7 @@
 
 	This version by Sven Berkvens (sven@stack.nl).
 */
-/* $Id: imagemap.c,v 1.6 2004/11/26 16:45:09 johans Exp $ */
+/* $Id: imagemap.c,v 1.7 2004/11/26 16:59:35 johans Exp $ */
 
 #include	"config.h"
 
@@ -33,12 +33,12 @@
 #define		Y		1
 
 #ifndef		NOFORWARDS
-static	int	isname			PROTO((int));
-static	void	servererr		PROTO((const char *));
-static	int	pointinpoly		PROTO((void));
-static	int	pointincircle		PROTO((void));
-static	int	pointinrect		PROTO((void));
-static	void	sendmesg		PROTO((const char *));
+static	int	isname			(int);
+static	void	servererr		(const char *);
+static	int	pointinpoly		(void);
+static	int	pointincircle		(void);
+static	int	pointinrect		(void);
+static	void	sendmesg		(const char *);
 #endif		/* NOFORWARDS */
 
 static	double	testpoint[2], pointarray[MAXVERTS][2];

@@ -30,11 +30,11 @@ static	char	mimefile[XS_PATH_MAX];
 static	mime	*mimes;
 
 #ifndef		NOFORWARDS
-static	void	usage			PROTO((void));
-static	void	loadmime		PROTO((const char *));
-static	const	char	*encode		PROTO((const char *));
-static	const	char	*neatsize	PROTO((long));
-static	const	mime	*findmime	PROTO((const char *));
+static	void	usage			(void);
+static	void	loadmime		(const char *);
+static	const	char	*encode		(const char *);
+static	const	char	*neatsize	(long);
+static	const	mime	*findmime	(const char *);
 #endif		/* NOFORWARDS */
 
 static	void

@@ -2,15 +2,15 @@
 
 #ifndef		NOFORWARDS
 #ifndef		HAVE_STRCASESTR
-extern	const	char	*strcasestr		PROTO((const char *, const char *));
+extern	const	char	*strcasestr		(const char *, const char *);
 #endif		/* HAVE_STRCASESTR */
-extern	int	mysleep			PROTO((int));
+extern	int	mysleep			(int);
 #ifndef		HAVE_KILLPG
-extern	int	killpg			PROTO((pid_t, int));
+extern	int	killpg			(pid_t, int);
 #endif		/* HAVE_KILLPG */
-extern	int	match			PROTO((const char *, const char *));
-extern	int	match_list		PROTO((char *, const char *));
+extern	int	match			(const char *, const char *);
+extern	int	match_list		(char *, const char *);
 #ifndef		HAVE_STRERROR
-extern	const	char	*strerror	PROTO((int));
+extern	const	char	*strerror	(int);
 #endif		/* HAVE_STRERROR */
 #endif		/* NOFORWARDS */

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.118 2004/11/26 16:53:01 johans Exp $ */
+/* $Id: methods.c,v 1.119 2004/11/26 16:59:35 johans Exp $ */
 
 #include	"config.h"
 
@@ -98,14 +98,14 @@
 #include	"htconfig.h"
 
 #ifndef		NOFORWARDS
-static int	getfiletype		PROTO((int));
+static int	getfiletype		(int);
 #ifdef	INET6
-static int	v6masktonum		PROTO((int, struct in6_addr *));
+static int	v6masktonum		(int, struct in6_addr *);
 #endif	/* INET6 */
-static int	allowxs			PROTO((FILE *));
-static void	senduncompressed	PROTO((int));
-static void	sendcompressed		PROTO((int, const char *));
-static FILE *	find_file		PROTO((const char *, const char *, const char *));
+static int	allowxs			(FILE *);
+static void	senduncompressed	(int);
+static void	sendcompressed		(int, const char *);
+static FILE *	find_file		(const char *, const char *, const char *);
 #endif		/* NOFORWARDS */
 
 /* Global structures */
