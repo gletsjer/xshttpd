@@ -119,8 +119,8 @@ relative to \fISystemRoot\fP - if the setting is omited then
 \fIVirtualHostDir\fP will be the same as \fISystemRoot\fP.
 .TP
 .B UseLocalScript [true|false]
-If enabled all directories will be checked for the presence of a
-\.xsscripts file. This can be used to specify how files with certain
+If enabled all directories will be checked for the presence of a .xsscripts
+file. This can be used to specify how files with certain
 extensions should be handled by the webserver. These files use the exact
 same syntax as the global script.methods file, see
 .BR httpd(1)
@@ -148,6 +148,7 @@ http and https, or IPv4 and IPv6), using multiple <Socket> blocks
 in the configuration. The following options are valid within a
 Socket-block:
 
+.TP
 .B ListenAddress <hostname>
 The hostname or IP-address the webserver should bind on. If the
 hostname resolves to multiple IP-addresses, the webserver will only
@@ -174,7 +175,6 @@ support is enabled at compile time. If this option is set then the
 'https' (443) port will be used by default, instead of 'http' (80). This
 option is disabled by default. Note that you may include both blocks with
 and without UseSSL.
-.TP
 
 .LP
 .SH SECTION OPTIONS
@@ -216,7 +216,7 @@ Logfile or program to use for HTTP requests that trigger errors (like
 file not found, 4xx responses).
 .TP
 .B LogReferer <filename>
-Logfile or progrma to use for HTTP referrer information. Note that this
+Logfile or program to use for HTTP referrer information. Note that this
 is only used when LogStyle traditional is selected - otherwise referrer
 information will be included in the standard LogAccess file.
 .TP
