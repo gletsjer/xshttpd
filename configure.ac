@@ -69,8 +69,8 @@ AC_ARG_WITH(ssl,
 	  AC_CHECK_LIB(ssl, SSL_version,
        httpd_ldflags="${httpd_ldflags} -lcrypto -lssl"
 	   httpd_cflags="${httpd_cflags} -I/usr/local/include -I/usr/local/ssl/include"
-	   AC_DEFINE(HANDLE_SSL),,
-	    -lcrypto)),
+	   AC_DEFINE(HANDLE_SSL), AC_MSG_ERROR(SSL support requires libssl),
+	    -lcrypto), AC_MSG_ERROR(SSL support requires libcrypto)),
 	AC_MSG_RESULT(no))
 
 AC_SHOW_HELP(--disable options (enabled by default):)
