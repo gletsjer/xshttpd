@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.57 2002/03/12 14:17:30 johans Exp $ */
+/* $Id: cgi.c,v 1.58 2002/05/09 09:16:42 johans Exp $ */
 
 #include	"config.h"
 
@@ -54,6 +54,7 @@
 #include	"path.h"
 #include	"convert.h"
 #include	"setenv.h"
+#include	"htconfig.h"
 
 #ifndef		NOFORWARDS
 static	const	char	*skipspaces	PROTO((const char *));
@@ -235,7 +236,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 		if (!engine)
 #endif		/* HANDLE_SCRIPT */
 		{
-			strncpy(base + size, HTTPD_SCRIPT_ROOT, XS_PATH_MAX-size-1);
+			strncpy(base + size, config.system->execdir, XS_PATH_MAX-size-1);
 			base[XS_PATH_MAX-2] = '\0';
 			strcat(base + size, "/");
 		}
@@ -263,7 +264,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 			base[XS_PATH_MAX-2] = '\0';
 			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
 				strncpy(base, calcpath(engine
-					? HTTPD_DOCUMENT_ROOT : rootdir), XS_PATH_MAX-1);
+					? config.system->htmldir : rootdir), XS_PATH_MAX-1);
 #ifdef		VIRTUAL_UID
 			else
 			{
@@ -287,7 +288,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 		}
 		else
 #endif		/* SIMPLE_VIRTUAL_HOSTING */
-			strncpy(base, calcpath(engine ? HTTPD_DOCUMENT_ROOT : rootdir),
+			strncpy(base, calcpath(engine ? config.system->htmldir : rootdir),
 				XS_PATH_MAX-1);
 		strcat(base, "/");
 		base[XS_PATH_MAX-2] = '\0';
@@ -298,7 +299,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 		else if (!was_slash)
 		{
 			file = path + 1;
-			strncat(base, HTTPD_SCRIPT_ROOT_P, XS_PATH_MAX-strlen(base)-1);
+			strncat(base, config.system->phexecdir, XS_PATH_MAX-strlen(base)-1);
 			base[XS_PATH_MAX-2] = '\0';
 			strcat(base, "/");
 		} else
@@ -306,16 +307,16 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 			snprintf(tempbuf, sizeof(tempbuf), "cgi/nph-slash%s", path + 1);
 			tempbuf[sizeof(tempbuf)-1] = '\0';
 			file = tempbuf;
-			strncat(base, HTTPD_SCRIPT_ROOT_P, XS_PATH_MAX-strlen(base)-1);
+			strncat(base, config.system->phexecdir, XS_PATH_MAX-strlen(base)-1);
 			base[XS_PATH_MAX-2] = '\0';
 			strcat(base, "/");
 		}
 
 		if (!origeuid)
 		{
-			setegid(currentgid = group_id);
-			setgroups(1, &group_id);
-			seteuid(user_id);
+			setegid(currentgid = config.groupid);
+			setgroups(1, &config.groupid);
+			seteuid(config.userid);
 		}
 		if (!(currentuid = geteuid()))
 		{
@@ -327,13 +328,13 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 		}
 	}
 
-	size = strlen(HTTPD_SCRIPT_ROOT);
+	size = strlen(config.system->execdir);
 #ifdef		HANDLE_SCRIPT
 	if (engine)
 		size = -1;
 	else
 #endif		/* HANDLE_SCRIPT */
-	if (strncmp(file, HTTPD_SCRIPT_ROOT, size) || (file[size] != '/'))
+	if (strncmp(file, config.system->execdir, size) || (file[size] != '/'))
 	{
 		if (showheader)
 			error("403 Not a CGI path");
@@ -401,9 +402,9 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 #endif		/* HANDLE_SCRIPT */
 	if (userinfo)
 		snprintf(fullpath, XS_PATH_MAX, "/~%s/%s/%s", userinfo->pw_name,
-			HTTPD_SCRIPT_ROOT, name);
+			config.system->execdir, name);
 	else
-		snprintf(fullpath, XS_PATH_MAX, "/%s/%s", HTTPD_SCRIPT_ROOT, name);
+		snprintf(fullpath, XS_PATH_MAX, "/%s/%s", config.system->execdir, name);
 	fullpath[XS_PATH_MAX-1] = '\0';
 	if (was_slash)
 		setenv("SCRIPT_NAME", "/", 1);
@@ -435,9 +436,9 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 	if (stat(fullpath, &statbuf))
 	{
 		snprintf(base, XS_PATH_MAX-1, "%s/%s",
-			calcpath(HTTPD_ROOT), HTTPD_SCRIPT_ROOT);
+			calcpath(HTTPD_ROOT), config.system->execdir);
 		snprintf(fullpath, XS_PATH_MAX-1, "%s/%s/%s",
-			calcpath(HTTPD_ROOT), HTTPD_SCRIPT_ROOT, name);
+			calcpath(HTTPD_ROOT), config.system->execdir, name);
 		if (stat(fullpath, &statbuf))
 		{
 			if (showheader)
@@ -482,7 +483,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 	}
 
 #ifdef		HANDLE_SSL
-	if (do_ssl && (ssl_post = !strcmp("POST", getenv("REQUEST_METHOD"))))
+	if (config.usessl && (ssl_post = !strcmp("POST", getenv("REQUEST_METHOD"))))
 	{
 		if (pipe(q))
 		{
@@ -551,8 +552,8 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 			seteuid(origeuid);
 			if (nouid)
 			{
-				currentuid = user_id;
-				currentgid = group_id;
+				currentuid = config.userid;
+				currentgid = config.groupid;
 			}
 			setgid(currentgid); setuid(currentuid);
 			if (!getuid() || !geteuid() ||
@@ -698,20 +699,18 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 				switch(location[0])
 				{
 				case '/':
-					if (!strcmp(port, "http"))
+					if (!strcmp(config.port, "http"))
 						append(head, 0, "Location: http://%s%s\r\n",
-							thishostname, location);
-#ifdef		HANDLE_SSL
-					else if (do_ssl && !strcmp(port, "https"))
+							config.system->hostname, location);
+					else if (config.usessl && !strcmp(config.port, "https"))
 						append(head, 0, "Location: https://%s%s\r\n",
-							thishostname, location);
-					else if (do_ssl)
+							config.system->hostname, location);
+					else if (config.usessl)
 						append(head, 0, "Location: https://%s:%s%s\r\n",
-							thishostname, port, location);
-#endif		/* HANDLE_SSL */
+							config.system->hostname, config.port, location);
 					else
 						append(head, 0, "Location: http://%s:%s%s\r\n",
-							thishostname, port, location);
+							config.system->hostname, config.port, location);
 					break;
 				case 0:
 					break;

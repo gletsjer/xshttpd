@@ -89,8 +89,6 @@ AC_ARG_DEFAULT(compress, HANDLE_COMPRESSED, yes,
 	[  --disable-compress      disable auto-extraction of compressed files])
 AC_ARG_DEFAULT(charset, HANDLE_CHARSET, yes,
 	[  --disable-charset       disable font information via .charset files])
-AC_ARG_DEFAULT(eclf, LOG_COMBINED, yes,
-	[  --disable-eclf          disable extended log format, use CLF instead])
 if test x${ac_cv_func_setrlimit} = xyes
 then
 	AC_ARG_DEFAULT(setrlimit, USE_SETRLIMIT, yes,

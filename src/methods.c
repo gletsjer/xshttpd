@@ -87,6 +87,7 @@
 #include	"setenv.h"
 #include	"mygetopt.h"
 #include	"mystring.h"
+#include	"htconfig.h"
 
 #ifdef		__linux__
 extern	char	*tempnam(const char *, const char *);
@@ -529,7 +530,7 @@ do_get DECL1(char *, params)
 			strncpy(base, calcpath(http_host), XS_PATH_MAX-1);
 			base[XS_PATH_MAX-2] = '\0';
 			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
-				strncpy(base, calcpath(HTTPD_DOCUMENT_ROOT), XS_PATH_MAX-1);
+				strncpy(base, calcpath(config.system->htmldir), XS_PATH_MAX-1);
 #ifdef		VIRTUAL_UID
 			else
 			{
@@ -550,14 +551,14 @@ do_get DECL1(char *, params)
 		}
 		else
 #endif		/* SIMPLE_VIRTUAL_HOSTING */
-			strncpy(base, calcpath(HTTPD_DOCUMENT_ROOT), XS_PATH_MAX-1);
+			strncpy(base, calcpath(config.system->htmldir), XS_PATH_MAX-1);
 		base[XS_PATH_MAX-2] = '\0';
 		strcat(base, "/");
 		if (!origeuid)
 		{
-			setegid(group_id);
-			setgroups(1, &group_id);
-			seteuid(user_id);
+			setegid(config.groupid);
+			setgroups(1, &config.groupid);
+			seteuid(config.userid);
 		}
 		if (!geteuid())
 		{
@@ -647,9 +648,9 @@ do_get DECL1(char *, params)
 		if (!origeuid)
 		{
 			seteuid(origeuid);
-			setegid(group_id);
-			setgroups(1, &group_id);
-			seteuid(user_id);
+			setegid(config.groupid);
+			setgroups(1, &config.groupid);
+			seteuid(config.userid);
 		}
 		if (!geteuid())
 		{
@@ -809,22 +810,24 @@ do_get DECL1(char *, params)
 
 			if (question)
 			{
-				if (strcmp(port, "http") && !http_host)
+				if (strcmp(config.port, "http") && !http_host)
 					snprintf(total, XS_PATH_MAX, "http://%s:%s%s/?%s",
-						thishostname, port, params, question + 1);
+						config.system->hostname, config.port,
+						params, question + 1);
 				else
 					snprintf(total, XS_PATH_MAX, "http://%s%s/?%s",
-						(http_host ? http_host : thishostname),
+						(http_host ? http_host : config.system->hostname),
 						params, question + 1);
 			}
 			else
 			{
-				if (strcmp(port, "http") && !http_host)
+				if (strcmp(config.port, "http") && !http_host)
 					snprintf(total, XS_PATH_MAX, "http://%s:%s%s/",
-						thishostname, port, params);
+						config.system->hostname, config.port, params);
 				else
 					snprintf(total, XS_PATH_MAX, "http://%s%s/",
-						(http_host ? http_host : thishostname), params);
+						(http_host ? http_host : config.system->hostname),
+						params);
 				}
 			total[XS_PATH_MAX-1] = '\0';
 			redirect(total, 1);
@@ -1039,7 +1042,7 @@ loadscripttypes DECL0
 extern	VOID
 loadssl	DECL0
 {
-	if (do_ssl) {
+	if (config.usessl) {
 		SSLeay_add_all_algorithms();
 		SSL_load_error_strings();
 		ssl_ctx = SSL_CTX_new(SSLv23_server_method());

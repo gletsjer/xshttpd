@@ -44,6 +44,7 @@
 #include	"convert.h"
 #include	"xscounter.h"
 #include	"mystring.h"
+#include	"htconfig.h"
 
 #ifndef		NOFORWARDS
 static	int	xsc_initdummy		PROTO((void));
@@ -311,10 +312,11 @@ reopen:
 		close(fd); return(1);
 	}
 ALREADY:
-	if (strcmp(port, "80"))
-		snprintf(host, sizeof(host), "http://%s:%s/", thishostname, port);
+	if (strcmp(config.port, "80"))
+		snprintf(host, sizeof(host), "http://%s:%s/",
+			config.system->hostname, config.port);
 	else
-		snprintf(host, sizeof(host), "http://%s/", thishostname);
+		snprintf(host, sizeof(host), "http://%s/", config.system->hostname);
 	host[sizeof(host)-1] = '\0';
 	switch(mode)
 	{

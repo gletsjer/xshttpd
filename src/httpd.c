@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.72 2002/04/28 15:08:02 johans Exp $ */
+/* $Id: httpd.c,v 1.73 2002/05/09 09:16:42 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,29 +100,28 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.72 2002/04/28 15:08:02 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.73 2002/05/09 09:16:42 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
 
 int		headers, localmode, netbufind, netbufsiz, readlinemode,
 		headonly, postonly, forcehost;
-static	int	sd, reqs, number, mainhttpd = 1;
-gid_t		group_id, origegid;
-uid_t		user_id, origeuid;
+static	int	sd, reqs, mainhttpd = 1;
+gid_t		origegid;
+uid_t		origeuid;
 char		netbuf[MYBUFSIZ], remotehost[NI_MAXHOST], orig[MYBUFSIZ],
 		currenttime[80], dateformat[MYBUFSIZ], real_path[XS_PATH_MAX],
-		thishostname[NI_MAXHOST], version[16], error_path[XS_PATH_MAX],
+		version[16], error_path[XS_PATH_MAX],
 		access_path[XS_PATH_MAX], refer_path[XS_PATH_MAX], rootdir[XS_PATH_MAX],
 		currentdir[XS_PATH_MAX], config_path[XS_PATH_MAX],
-		name[XS_PATH_MAX], port[NI_MAXSERV];
+		name[XS_PATH_MAX];
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[SENDBUFSIZE],
 		thisdomain[NI_MAXHOST], message503[MYBUFSIZ],
 		*startparams;
 FILE		*access_log = NULL, *refer_log = NULL;
 time_t		modtime;
 #ifdef		HANDLE_SSL
-int		do_ssl;
 SSL_CTX	*ssl_ctx;
 SSL		*ssl;
 #endif		/* HANDLE_SSL */
@@ -252,15 +251,20 @@ load_config DECL0
 {
 	int	subtype = 0;
 	FILE	*confd;
-	char	line[MYBUFSIZ], key[MYBUFSIZ], value[MYBUFSIZ];
-	char	*comment, *end;
+	char	line[MYBUFSIZ], key[MYBUFSIZ], value[MYBUFSIZ],
+			thishostname[NI_MAXHOST];
+	char	*comment, *end, *username, *groupname;
+	struct passwd	*pwd;
+	struct group	*grp;
 	struct virtual	*current = NULL, *last = NULL;
 
 	if (!(confd = fopen(config_path, "r")))
-		err(1, "fopen(`%s' [read])", config_path);
+		warn("fopen(`%s' [read])", config_path);
 
 	memset(&config, 0, sizeof config);
 
+	if (confd)
+	/* skip this loop if there is no config file and use defaults below */
 	while (fgets(line, MYBUFSIZ, confd))
 	{
 		if ((comment = strchr(line, '#')))
@@ -283,9 +287,9 @@ load_config DECL0
 			else if (!strcasecmp("PidFile", key))
 				config.pidfile = strdup(value);
 			else if (!strcasecmp("UserId", key))
-				config.userid = strdup(value);
+				username = strdup(value);
 			else if (!strcasecmp("GroupId", key))
-				config.groupid = strdup(value);
+				groupname = strdup(value);
 			else if (!strcasecmp("ExecAsUser", key))
 				if (!strcasecmp("true", value))
 					config.execasuser = 1;
@@ -293,23 +297,38 @@ load_config DECL0
 					config.execasuser = 0;
 			else if (!strcasecmp("UseSSL", key))
 				if (!strcasecmp("true", value))
+#ifdef		HANDLE_SSL
 					config.usessl = 1;
+#else		/* HANDLE_SSL */
+					errx(1, "SSL support not enabled at compile-time");
+#endif		/* HANDLE_SSL */
 				else
 					config.usessl = 0;
 			else if (!current)
-				err(1, "illegal directive: '%s'", key);
+				errx(1, "illegal directive: '%s'", key);
 			else if (!strcasecmp("Hostname", key))
 				current->hostname = strdup(value);
 			else if (!strcasecmp("HtmlDir", key))
 				current->htmldir = strdup(value);
 			else if (!strcasecmp("ExecDir", key))
 				current->execdir = strdup(value);
+			else if (!strcasecmp("PhExecDir", key))
+				current->phexecdir = strdup(value);
 			else if (!strcasecmp("LogAccess", key))
 				current->logaccess = strdup(value);
 			else if (!strcasecmp("LogError", key))
 				current->logerror = strdup(value);
 			else if (!strcasecmp("LogReferer", key))
 				current->logreferer = strdup(value);
+			else if (!strcasecmp("LogStyle", key))
+				if (!strcasecmp("common", value) ||
+						!strcasecmp("traditional", value))
+					current->logstyle = traditional;
+				else if (!strcasecmp("combined", value) ||
+						 !strcasecmp("extended", value))
+					current->logstyle = combined;
+				else
+					errx(1, "illegal logstyle: '%s'", value);
 			else
 				err(1, "illegal directive: '%s'", key);
 		}
@@ -386,35 +405,53 @@ load_config DECL0
 	/* Fill in missing defaults */
 	if (!config.systemroot)
 		config.systemroot = strdup(HTTPD_ROOT);
-	if (!config.address)
-		config.address = strdup("*");
 	if (!config.port)
-		config.port = strdup("http");
+		config.port = config.usessl ? strdup("https") : strdup("http");
 	if (!config.instances)
 		config.instances = HTTPD_NUMBER;
 	if (!config.pidfile)
 		config.pidfile = strdup(PID_PATH);
-	if (!config.userid)
-		config.userid = strdup(HTTPD_USERID);
-	if (!config.groupid)
-		config.groupid = strdup(HTTPD_GROUPID);
+	if (!username)
+		username = strdup(HTTPD_USERID);
+	if (!(config.userid = atoi(username)))
+	{
+		if (!(pwd = getpwnam(username)))
+			errx(1, "Invalid username: %s", username);
+		config.userid = pwd->pw_uid;
+	}
+	if (!groupname)
+		groupname = strdup(HTTPD_GROUPID);
+	if (!(config.groupid = atoi(groupname)))
+	{
+		if (!(grp = getgrnam(groupname)))
+			errx(1, "Invalid groupname: %s", groupname);
+		config.groupid = grp->gr_gid;
+	}
 	if (!config.system)
 	{
 		config.system = malloc(sizeof(struct virtual));
 		memset(config.system, 0, sizeof(struct virtual));
 	}
 	if (!config.system->hostname)
+	{
+		if (gethostname(thishostname, NI_MAXHOST) == -1)
+			errx(1, "gethostname() failed");
 		config.system->hostname = strdup(thishostname);
+	}
 	if (!config.system->htmldir)
 		config.system->htmldir = strdup(HTTPD_DOCUMENT_ROOT);
 	if (!config.system->execdir)
 		config.system->execdir = strdup(HTTPD_SCRIPT_ROOT);
+	if (!config.system->phexecdir)
+		config.system->phexecdir = strdup(HTTPD_SCRIPT_ROOT_P);
 	if (!config.system->logaccess)
 		config.system->logaccess = strdup(BITBUCKETNAME);
 	if (!config.system->logerror)
 		config.system->logerror = strdup(BITBUCKETNAME);
 	if (!config.system->logreferer)
 		config.system->logreferer = strdup(BITBUCKETNAME);
+	if (!config.system->logstyle)
+		config.system->logstyle = combined;
 	if (!config.users)
 	{
 		config.users = malloc(sizeof(struct virtual));
@@ -424,6 +461,8 @@ load_config DECL0
 		config.users->htmldir = strdup(".html");
 	if (!config.users->execdir)
 		config.users->execdir = strdup(".html/cgi-bin");
+	if (!config.users->phexecdir)
+		config.users->phexecdir = strdup(".html/cgi-bin");
 	current = config.virtual;
 	while (current)
 	{
@@ -453,7 +492,7 @@ open_logs DECL1(int, sig)
 	}
 	if (mainhttpd)
 	{
-		snprintf(buffer, XS_PATH_MAX, calcpath(PID_PATH));
+		snprintf(buffer, XS_PATH_MAX, calcpath(config.pidfile));
 		buffer[XS_PATH_MAX-1] = '\0';
 		remove(buffer);
 		if ((pidlog = fopen(buffer, "w")))
@@ -462,12 +501,14 @@ open_logs DECL1(int, sig)
 			fprintf(pidlog, "%s\n", startparams);
 			fclose(pidlog);
 		}
+		else
+			warn("cannot open pidfile %s", config.pidfile);
 		signal(SIGHUP, SIG_IGN); killpg(0, SIGHUP);
 	}
 
 	if (access_log)
 		fclose(access_log);
-	if (!(access_log = fopen(access_path, "a")))
+	if (!(access_log = fopen(calcpath(config.system->logaccess), "a")))
 		err(1, "fopen(`%s' [append])", access_path);
 #ifndef		SETVBUF_REVERSED
 	setvbuf(access_log, NULL, _IOLBF, 0);
@@ -477,8 +518,9 @@ open_logs DECL1(int, sig)
 
 	fflush(stderr);
 	close(2);
-	if ((tempfile = open(error_path, O_CREAT | O_APPEND | O_WRONLY,
-		S_IWUSR | S_IRUSR | S_IROTH | S_IRGRP)) < 0)
+	if ((tempfile = open(calcpath(config.system->logerror),
+		    O_CREAT | O_APPEND | O_WRONLY,
+		    S_IWUSR | S_IRUSR | S_IROTH | S_IRGRP)) < 0)
 		err(1, "open(`%s' [append])", error_path);
 	if (tempfile != 2)
 	{
@@ -487,17 +529,18 @@ open_logs DECL1(int, sig)
 		close(tempfile);
 	}
 
-#ifndef		LOG_COMBINED
-	if (refer_log)
-		fclose(refer_log);
-	if (!(refer_log = fopen(refer_path, "a")))
-		err(1, "fopen(`%s' [append])", refer_path);
+	if (config.system->logstyle == traditional)
+	{
+		if (refer_log)
+			fclose(refer_log);
+		if (!(refer_log = fopen(calcpath(config.system->logreferer), "a")))
+			err(1, "fopen(`%s' [append])", refer_path);
 #ifndef		SETVBUF_REVERSED
-	setvbuf(refer_log, NULL, _IOLBF, 0);
+		setvbuf(refer_log, NULL, _IOLBF, 0);
 #else		/* Not not SETVBUF_REVERSED */
-	setvbuf(refer_log, _IOLBF, NULL, 0);
+		setvbuf(refer_log, _IOLBF, NULL, 0);
 #endif		/* SETVBUF_REVERSED */
-#endif		/* LOG_COMBINED */
+	}
 
 	if (mainhttpd)
 	{
@@ -864,13 +907,13 @@ server_error DECL2CC(char *, readable, char *, cgi)
 			if (!transform_user_dir(base, userinfo, 0))
 			{
 				snprintf(cgipath, XS_PATH_MAX, "%s/%s/error",
-					base, HTTPD_SCRIPT_ROOT);
+					base, config.system->execdir);
 				cgipath[XS_PATH_MAX-1] = '\0';
 				if (!stat(cgipath, &statbuf))
 				{
 					snprintf(cgipath, XS_PATH_MAX, "/~%s/%s/error",
 						userinfo->pw_name,
-						HTTPD_SCRIPT_ROOT);
+						config.system->execdir);
 					cgipath[XS_PATH_MAX-1] = '\0';
 					goto EXECUTE;
 				}
@@ -879,7 +922,7 @@ server_error DECL2CC(char *, readable, char *, cgi)
 		if (search)
 			*search = '/';
 	}
-	strncpy(base, calcpath(HTTPD_SCRIPT_ROOT_P), XS_PATH_MAX);
+	strncpy(base, calcpath(config.system->phexecdir), XS_PATH_MAX);
 	base[XS_PATH_MAX-1] = '\0';
 	snprintf(cgipath, XS_PATH_MAX, "%s/error", base);
 	cgipath[XS_PATH_MAX-1] = '\0';
@@ -887,7 +930,7 @@ server_error DECL2CC(char *, readable, char *, cgi)
 		error(readable);
 	else
 	{
-		snprintf(cgipath, XS_PATH_MAX, "/%s/error", HTTPD_SCRIPT_ROOT);
+		snprintf(cgipath, XS_PATH_MAX, "/%s/error", config.system->execdir);
 		cgipath[XS_PATH_MAX-1] = '\0';
 		EXECUTE:
 		setcurrenttime();
@@ -909,29 +952,28 @@ logrequest DECL2(const char *, request, long, size)
 	time(&theclock);
 	strftime(buffer, 80, "%d/%b/%Y:%H:%M:%S", localtime(&theclock));
 
-#ifndef		LOG_COMBINED
-	fprintf(access_log, "%s - - [%s +0000] \"%s %s %s\" 200 %ld\n",
-		remotehost,
-		buffer, 
-		getenv("REQUEST_METHOD"), request, version,
-		size > 0 ? (long)size : (long)0);
-#else		/* LOG_COMBINED */
-	fprintf(access_log, "%s - - [%s +0000] \"%s %s %s\" 200 %ld "
-			"\"%s\" \"%s\"\n",
-		remotehost,
-		buffer, 
-		getenv("REQUEST_METHOD"), request, version,
-		size > 0 ? (long)size : (long)0,
-		referer,
-		getenv("USER_AGENT"));
-#endif		/* LOG_COMBINED */
+	if (config.system->logstyle == traditional)
+		fprintf(access_log, "%s - - [%s +0000] \"%s %s %s\" 200 %ld\n",
+			remotehost,
+			buffer, 
+			getenv("REQUEST_METHOD"), request, version,
+			size > 0 ? (long)size : (long)0);
+	else
+		fprintf(access_log, "%s - - [%s +0000] \"%s %s %s\" 200 %ld "
+				"\"%s\" \"%s\"\n",
+			remotehost,
+			buffer, 
+			getenv("REQUEST_METHOD"), request, version,
+			size > 0 ? (long)size : (long)0,
+			referer,
+			getenv("USER_AGENT"));
 }
 
 int
 secread DECL3(int, fd, void *, buf, size_t, count)
 {
 #ifdef		HANDLE_SSL
-	if (do_ssl && fd == 0)
+	if (config.usessl && fd == 0)
 		return SSL_read(ssl, buf, count);
 	else
 #endif		/* HANDLE_SSL */
@@ -942,7 +984,7 @@ int
 secwrite DECL3(int, fd, void *, buf, size_t, count)
 {
 #ifdef		HANDLE_SSL
-	if (do_ssl)
+	if (config.usessl)
 		return SSL_write(ssl, buf, count);
 	else
 #endif		/* HANDLE_SSL */
@@ -953,7 +995,7 @@ int
 secfwrite DECL4(void *, buf, size_t, size, size_t, count, FILE *, stream)
 {
 #ifdef		HANDLE_SSL
-	if (do_ssl)
+	if (config.usessl)
 		return SSL_write(ssl, buf, size), count;
 	else
 #endif		/* HANDLE_SSL */
@@ -971,7 +1013,7 @@ secprintf(const char *format, ...)
 	vsnprintf(buf, 4096, format, ap);
 	va_end(ap);
 #ifdef		HANDLE_SSL
-	if (do_ssl)
+	if (config.usessl)
 		return SSL_write(ssl, buf, strlen(buf));
 	else
 #endif		/* HANDLE_SSL */
@@ -990,7 +1032,7 @@ va_dcl
 	vsnprintf(buf, 4096, format, ap);
 	va_end(ap);
 #ifdef		HANDLE_SSL
-	if (do_ssl)
+	if (config.usessl)
 		return SSL_write(ssl, buf, strlen(buf));
 	else
 #endif		/* HANDLE_SSL */
@@ -1002,7 +1044,7 @@ int
 secfputs DECL2(char *, buf, FILE *, stream)
 {
 #ifdef		HANDLE_SSL
-	if (do_ssl)
+	if (config.usessl)
 		return SSL_write(ssl, buf, strlen(buf));
 	else
 #endif		/* HANDLE_SSL */
@@ -1084,7 +1126,7 @@ process_request DECL0
 
 	alarm(180); errno = 0;
 #ifdef		HANDLE_SSL
-	if (do_ssl)
+	if (config.usessl)
 		setenv("SSL_CIPHER", SSL_get_cipher(ssl), 1);
 	if ((readerror = ERR_get_error())) {
 		fprintf(stderr, "SSL Error: %s\n", ERR_reason_error_string(readerror));
@@ -1252,11 +1294,10 @@ process_request DECL0
 	bzero(params + size, 16);
 	bcopy(params, orig, size + 16);
 
-#ifndef		LOG_COMBINED
-	if (referer[0] &&
-		(!thisdomain[0] || !strcasestr(referer, thisdomain)))
+	if (config.system->logstyle == traditional &&
+			referer[0] &&
+			(!thisdomain[0] || !strcasestr(referer, thisdomain)))
 		fprintf(refer_log, "%s -> %s\n", referer, params);
-#endif		/* LOG_COMBINED */
 
 	if ((temp = getenv("HTTP_HOST")) &&
 		(temp = strncpy(http_host, temp, NI_MAXHOST)))
@@ -1278,11 +1319,7 @@ process_request DECL0
 		temp = http_host + strlen(http_host);
 		while (*(--temp) == '.')
 			*temp = '\0';
-#ifdef		HANDLE_SSL
-		if (strcmp(port, do_ssl ? "https" : "http"))
-#else		/* HANDLE_SSL */
-		if (strcmp(port, "http"))
-#endif		/* HANDLE_SSL */
+		if (strcmp(config.port, config.usessl ? "https" : "http"))
 		{
 			if (strlen(http_host) >= NI_MAXHOST - 6)
 			{
@@ -1290,7 +1327,7 @@ process_request DECL0
 				return;
 			}
 			strcat(http_host, ":");
-			strcat(http_host, port);
+			strcat(http_host, config.port);
 		}
 		unsetenv("HTTP_HOST");
 		/* Ignore unqualified names - it could be a subdirectory! */
@@ -1370,7 +1407,8 @@ standalone_main DECL0
 #endif		/* __linux__ */
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
-	if ((getaddrinfo(forcehost ? thishostname : NULL, port, &hints, &res)))
+	if ((getaddrinfo(config.address ? config.address : NULL, config.port,
+			&hints, &res)))
 		err(1, "getaddrinfo()");
 
 	/* only look at the first address */
@@ -1406,12 +1444,12 @@ standalone_main DECL0
 	/* Quick patch to run on old systems */
 	memset(&saddr, 0, sizeof(struct sockaddr));
 	saddr.sa_family = PF_INET;
-	if (!strcmp(port, "http"))
+	if (!strcmp(config.port, "http"))
 		sport = 80;
-	else if (!strcmp(port, "https"))
+	else if (!strcmp(config.port, "https"))
 		sport = 443;
 	else
-		sport = atoi(port) || 80;
+		sport = atoi(config.port) || 80;
 	((struct sockaddr_in *)&saddr)->sin_port = htons(sport);
 
 	if (bind(sd, &saddr, sizeof(struct sockaddr)) == -1)
@@ -1433,10 +1471,10 @@ standalone_main DECL0
 #endif		/* HAVE_SETRLIMIT */
 
 	set_signals(); reqs = 0;
-	if (!(childs = (pid_t *)malloc(sizeof(pid_t) * number)))
+	if (!(childs = (pid_t *)malloc(sizeof(pid_t) * config.instances)))
 		errx(1, "malloc() failed");
 
-	for (count = 0; count < number; count++)
+	for (count = 0; count < config.instances; count++)
 	{
 		switch(pid = fork())
 		{
@@ -1459,7 +1497,7 @@ standalone_main DECL0
 		while (mysleep(30))
 			/* NOTHING HERE */;
 		setprocname("xs(MAIN): Searching for dead children");
-		for (count = 0; count < number; count++)
+		for (count = 0; count < config.instances; count++)
 		{
 			if (kill(childs[count], 0))
 			{
@@ -1492,7 +1530,7 @@ standalone_main DECL0
 		struct	linger	sl;
 
 		/* (in)sanity check */
-		if (count > number || count < 0)
+		if (count > config.instances || count < 0)
 		{
 			const	char	*env;
 
@@ -1540,9 +1578,7 @@ standalone_main DECL0
 #endif		/* 0 */
 
 		dup2(csd, 0); dup2(csd, 1);
-#ifdef		HANDLE_SSL
-		if (!do_ssl)
-#endif		/* HANDLE_SSL */
+		if (!config.usessl)
 			close(csd);
 
 #ifndef		SETVBUF_REVERSED
@@ -1604,7 +1640,7 @@ standalone_main DECL0
 #endif		/* HAVE_GETADDRINFO */
 #endif		/* HAVE GETNAMEINFO */
 #ifdef		HANDLE_SSL
-		if (do_ssl) {
+		if (config.usessl) {
 			ssl = SSL_new(ssl_ctx);
 			SSL_set_verify(ssl, SSL_VERIFY_NONE, NULL);
 			SSL_set_fd(ssl, csd);
@@ -1642,12 +1678,12 @@ setup_environment DECL0
 	char		buffer[16];
 
 	setenv("SERVER_SOFTWARE", SERVER_IDENT, 1);
-	setenv("SERVER_NAME", thishostname, 1);
+	setenv("SERVER_NAME", config.system->hostname, 1);
 	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
 	setenv("SERVER_PORT",
-		!strcmp(port, "http") ? "80" :
-		!strcmp(port, "https") ? "443" :
-		port,
+		!strcmp(config.port, "http") ? "80" :
+		!strcmp(config.port, "https") ? "443" :
+		config.port,
 		1);
 	snprintf(buffer, 16, "%d", localmode);
 	buffer[15] = '\0';
@@ -1658,8 +1694,6 @@ setup_environment DECL0
 int
 main DECL3(int, argc, char **, argv, char **, envp)
 {
-	const	struct	passwd	*userinfo;
-	const	struct	group	*groupinfo;
 	int			option, num;
 	enum { optionp, optionaa, optionrr, optionee };
 	char *longopt[4] = { NULL, NULL, NULL, NULL, };
@@ -1685,10 +1719,9 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			strcat(startparams, " ");
 	}
 
-	number = HTTPD_NUMBER; localmode = 1;
+	localmode = 1;
 	strncpy(rootdir, HTTPD_ROOT, XS_PATH_MAX);
 	rootdir[XS_PATH_MAX-1] = '\0';
-	strcpy(port, "http");
 	message503[0] = 0;
 #ifdef		THISDOMAIN
 	strncpy(thisdomain, THISDOMAIN, NI_MAXHOST);
@@ -1696,20 +1729,6 @@ main DECL3(int, argc, char **, argv, char **, envp)
 #else		/* Not THISDOMAIN */
 	thisdomain[0] = 0;
 #endif		/* THISDOMAIN */
-	if (gethostname(thishostname, NI_MAXHOST) == -1)
-		errx(1, "gethostname() failed");
-	if ((userinfo = getpwnam(HTTPD_USERID)))
-		user_id = userinfo->pw_uid;
-	else
-		user_id = 32767;
-	if ((groupinfo = getgrnam(HTTPD_GROUPID)))
-		group_id = groupinfo->gr_gid;
-	else
-		group_id = 32766;
-	if ((short)user_id == -1)
-		warnx("Check your password file: nobody may not have UID -1 or 65535.");
-	if ((short)group_id == -1)
-		warnx("Check your group file: nogroup should not have GID -1 or 65535.");
 	snprintf(access_path, XS_PATH_MAX, "%s/access_log", calcpath(HTTPD_LOG_ROOT));
 	snprintf(error_path, XS_PATH_MAX, "%s/error_log", calcpath(HTTPD_LOG_ROOT));
 	snprintf(refer_path, XS_PATH_MAX, "%s/referer_log", calcpath(HTTPD_LOG_ROOT));
@@ -1723,7 +1742,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 		switch(option)
 		{
 		case 'n':
-			if ((number = atoi(optarg)) <= 0)
+			if ((config.instances = atoi(optarg)) <= 0)
 				errx(1, "Invalid number of processes");
 			break;
 		case 'p':
@@ -1731,8 +1750,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			break;
 		case 's':
 #ifdef		HANDLE_SSL
-			strcpy(port, "https");
-			do_ssl = 1;
+			config.usessl = 1;
 			/* override defaults */
 			snprintf(access_path, XS_PATH_MAX,
 				"%s/ssl_access_log", calcpath(HTTPD_LOG_ROOT));
@@ -1747,20 +1765,6 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			errx(1, "SSL support not enabled at compile-time");
 #endif		/* HANDLE_SSL */
 			break;
-		case 'u':
-			if ((user_id = atoi(optarg)) > 0)
-				break;
-			if (!(userinfo = getpwnam(optarg)))
-				errx(1, "Invalid user ID");
-			user_id = userinfo->pw_uid;
-			break;
-		case 'g':
-			if ((group_id = atoi(optarg)) > 0)
-				break;
-			if (!(groupinfo = getgrnam(optarg)))
-				errx(1, "Invalid group ID");
-			group_id = groupinfo->gr_gid;
-			break;
 		case 'd':
 			if (*optarg != '/')
 				errx(1, "The -d directory must start with a /");
@@ -1768,8 +1772,8 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			rootdir[XS_PATH_MAX-1] = 0;
 			break;
 		case 'a':
-			strncpy(thishostname, optarg, NI_MAXHOST);
-			thishostname[NI_MAXHOST-1] = '\0';
+			strncpy(config.system->hostname, optarg, NI_MAXHOST);
+			config.system->hostname[NI_MAXHOST-1] = '\0';
 			break;
 		case 'f':
 			/* This breaks backwards compatibility with documentation */
@@ -1804,12 +1808,13 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number] [-d rootdir]\n[-r refer-ignore-domain] [-l localmode] [-a address] [-m service-message]\n[-f] [-s] [-A access-log-path] [-E error-log-path] [-R referer-log-path]");
 		}
 	}
+	load_config();
 
 	/* Explicity set these, overriding default or implicit setting */
 	if (longopt[optionp])
 	{
-		strncpy(port, longopt[optionp], NI_MAXSERV);
-		port[NI_MAXSERV-1] = '\0';
+		strncpy(config.port, longopt[optionp], NI_MAXSERV);
+		config.port[NI_MAXSERV-1] = '\0';
 	}
 	if (longopt[optionaa])
 	{
