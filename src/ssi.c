@@ -500,6 +500,11 @@ dir_include_file DECL2(char *, here, size_t *, size)
 		secprintf("[Incomplete directive in include-file]\n");
 		return(ERR_CONT);
 	}
+	if (!strncmp(here, "virtual=\"", 9))
+	{
+		here += 9;
+		search -= 1;
+	}
 	*search = 0;
 	path = convertpath(here);
 	fd = open(path, O_RDONLY, 0);
@@ -798,6 +803,7 @@ static	directivestype	directives[] =
 	{ "count-reset",	dir_count_reset,	0	},
 	{ "date",		dir_date,		0	},
 	{ "date-format",	dir_date_format,	1	},
+	{ "include",		dir_include_file,	1	},
 	{ "include-file",	dir_include_file,	1	},
 	{ "last-modified",	dir_last_mod,		1	},
 	{ "last-mod",		dir_last_mod,		1	},
