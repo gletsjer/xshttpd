@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/httpd.c)
-AM_INIT_AUTOMAKE(xshttpd, 32b21)
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.2 beta/0.21")
+AM_INIT_AUTOMAKE(xshttpd, 32b22)
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.2 beta/0.22", [Server version])
 AM_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
@@ -10,7 +10,8 @@ AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PATH_PROG(ppmtogif, ppmtogif, /bin/true)
-AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "$ppmtogif")
+AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "$ppmtogif",
+	[ppmtogif-like program used to create graphic counters])
 
 dnl Checks for libraries.
 
@@ -46,7 +47,8 @@ then
 	prefix=/usr/local
 fi
 AC_ARG_WITH(rootdir,
-	[  --with-rootdir=PATH     directory to install data files [LIBDIR/httpd]],
+	AC_HELP_STRING([--with-rootdir=PATH],
+		[directory to install data files (LIBDIR/httpd)]),
 	rootdir=${withval},
 	rootdir=${prefix}/lib/httpd)
 miscdir=${rootdir}
@@ -64,35 +66,65 @@ AC_REPLACE_FUNCS(setgroups strptime snprintf)
 
 AC_MSG_CHECKING(if you want SSL support)
 AC_ARG_WITH(ssl,
-	[  --with-ssl              crypto support],
-	AC_MSG_RESULT($with_ssl)
-	 AC_CHECK_LIB(crypto, SSLeay_version,
-	  AC_CHECK_LIB(ssl, SSL_version,
-       httpd_ldflags="${httpd_ldflags} -lcrypto -lssl"
-	   httpd_cflags="${httpd_cflags} -I/usr/local/include -I/usr/local/ssl/include"
-	   AC_DEFINE(HANDLE_SSL), AC_MSG_ERROR(SSL support requires libssl),
-	    -lcrypto), AC_MSG_ERROR(SSL support requires libcrypto)),
-	AC_MSG_RESULT(no))
+	AC_HELP_STRING([--with-ssl], [crypto support (yes)]),
+	AC_MSG_RESULT($with_ssl),
+	with_ssl=yes
+	AC_MSG_RESULT(yes))
 
-AC_SHOW_HELP(--disable options (enabled by default):)
+if test x${with_ssl} = xyes
+then
+	AC_CHECK_LIB(crypto, SSLeay_version,
+		ac_cv_lib_crypto=yes,
+		AC_MSG_ERROR(SSL support requires libcrypto))
+	if test x${ac_cv_lib_crypto} = xyes
+	then
+	AC_CHECK_LIB(ssl, SSL_version,
+		ac_cv_lib_ssl=yes,
+		AC_MSG_ERROR(SSL support requires libssl),
+		-lcrypto)
+	fi
+	if test x${ac_cv_lib_ssl} = xyes
+	then
+		httpd_ldflags="${httpd_ldflags} -lcrypto -lssl"
+		httpd_cflags="${httpd_cflags} -I/usr/local/include -I/usr/local/ssl/include"
+		AC_DEFINE(HANDLE_SSL,,
+			[Enable SSL support, you must have UseSSL in your config to enable this])
+		AC_DEFINE(CERT_FILE, "cert.pem",
+			[File containing public SSL certificate])
+		AC_DEFINE(KEY_FILE, "key.pem",
+			[File containing private SSL server key])
+	fi
+fi
+
+AC_SHOW_HELP([--enable options (default in brackets):])
 AC_ARG_DEFAULT(ssi, WANT_SSI, yes,
-	[  --disable-ssi           disable server-side includes])
+	[enable server-side includes])
 AC_ARG_DEFAULT(ipv6, INET6, yes,
-	[  --disable-ipv6          disable ipv6 support])
+	[enable ipv6 support])
 AC_ARG_DEFAULT(script, HANDLE_SCRIPT, yes,
-	[  --disable-script        disable scripting support (PHP)])
+	[enable scripting support e.g. PHP])
+if test x${enable_script} = xyes
+then
+	AC_DEFINE(SCRIPT_METHODS, "script.methods",
+		[File describing script extensions and interpreters])
+fi
 AC_ARG_DEFAULT(compress, HANDLE_COMPRESSED, yes,
-	[  --disable-compress      disable auto-extraction of compressed files])
+	[enable auto-extraction of compressed files])
+if test x${enable_compress} = xyes
+then
+	AC_DEFINE(COMPRESS_METHODS, "compress.methods",
+		[File describing compression extensions and programs])
+fi
 if test x${ac_cv_func_setrlimit} = xyes
 then
 	AC_ARG_DEFAULT(setrlimit, USE_SETRLIMIT, yes,
-		[  --disable-setrlimit     disable resource limits for CGI scripts])
+		[enable resource limits for CGI scripts])
 fi
 AC_SHOW_HELP(--enable options (disabled by default):)
 AC_ARG_DEFAULT(perl, HANDLE_PERL, no,
-	[  --enable-perl           enable persistent perl interpreter])
-AC_ARG_DEFAULT(warnings, , no,
-	[  --enable-warnings       show extra compiler warnings])
+	[enable persistent perl interpreter])
+AC_ARG_DEFAULT(warnings, DUMMY, no,
+	[enable extra compiler warnings])
 
 if test x${enable_warnings} = xyes
 then
@@ -125,7 +157,8 @@ dnl AC_EGREP_HEADER(sys_errlist, stdio.h,, AC_DEFINE(NEED_SYS_ERRLIST_DECL))
 dnl AC_EGREP_HEADER(optarg, getopt.h,, AC_DEFINE(NEED_OPTARG_AND_OPTIND))
 dnl AC_EGREP_HEADER(eniviron, unistd.h,, AC_DEFINE(NEED_DECL_ENVIRON))
 
-AC_DEFINE_UNQUOTED(HTTPD_ROOT, "$rootdir")
+AC_DEFINE_UNQUOTED(HTTPD_ROOT, "$rootdir",
+	[Default root directory for the server. This is were the subdirs /logs, /htdocs and /cgi-bin reside. This can be overriden from RootDir config.])
 AC_SUBST(miscdir)
 AC_SUBST(cgidir)
 AC_SUBST(fontdir)
@@ -141,12 +174,12 @@ then
 else
 	domain=".${hostname#*.}"
 fi
-AC_DEFINE_UNQUOTED(THISDOMAIN, "$domain")
+AC_DEFINE_UNQUOTED(THISDOMAIN, "$domain",
+	[The name of your domain, including leading dot. This is used to strip out referrers from your own site.])
 AC_MSG_RESULT($domain)
 
-AC_SUBST(LIBOBJS)
+AC_SUBST(AC_LIBOBJ)
 AC_SUBST(ldcrypt)
 AC_SUBST(httpd_ldflags)
 AC_SUBST(httpd_cflags)
-AC_OUTPUT([Makefile fonts/Makefile icons/Makefile man/Makefile
-	misc/Makefile src/Makefile])
+AC_OUTPUT([Makefile fonts/Makefile icons/Makefile man/Makefile misc/Makefile src/Makefile])
