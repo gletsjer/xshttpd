@@ -485,7 +485,7 @@ do_get DECL1(char *, params)
 		(file[size + 1] == '/')) ||
 		((file[0] == '/') && ((file[1] == '?') /* || !file[1] */ )))
 	{
-		do_script(params, 1);
+		do_script(params, headers);
 		return;
 	}
 

@@ -82,7 +82,7 @@ do_script DECL2C_(char *, path, int, headers)
 	long			size, received, written, writetodo,
 				totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
-				status[MYBUFSIZ], contenttype[MYBUFSIZ],
+				status[MYBUFSIZ], contenttype[MYBUFSIZ], cachecontrol[MYBUFSIZ],
 				location[MYBUFSIZ], base[XS_PATH_MAX], *temp,
 				name[XS_PATH_MAX], *nextslash,
 				tempbuf[XS_PATH_MAX + 32];
@@ -419,7 +419,7 @@ do_script DECL2C_(char *, path, int, headers)
 	if (nph)
 		exit(0);
 
-	status[0] = contenttype[0] = location[0] = 0;
+	status[0] = contenttype[0] = location[0] = cachecontrol[0] = 0;
 	netbufind = netbufsiz = 0; readlinemode = 1;
 	if (!nph)
 	{
@@ -445,6 +445,8 @@ do_script DECL2C_(char *, path, int, headers)
 				strcpy(location, skipspaces(header + 9));
 			else if (!strncasecmp(header, "Content-type:", 13))
 				strcpy(contenttype, skipspaces(header + 13));
+			else if (!strncasecmp(header, "Cache-control:", 14))
+				strcpy(cachecontrol, skipspaces(header + 14));
 			else
 			{
 				fprintf(stderr, "[%s] httpd: Invalid header `%s' from script `%s'\n",
@@ -462,6 +464,13 @@ do_script DECL2C_(char *, path, int, headers)
 				(location[0] ? "302 Moved" : "200 OK"));
 			printf("Content-type: %s\r\n",
 				(!contenttype[0]) ? "text/html" : contenttype);
+			if (cachecontrol[0])
+			{
+				if (headers >= 11)
+					printf("Cache-control: %s\r\n", cachecontrol);
+				else
+					printf("Pragma: no-cache\r\n");
+			}
 			switch(location[0])
 			{
 			case '/':

@@ -366,9 +366,7 @@ if it does not understand forwards. Read above about GCC! */
 #include	<unistd.h>
 #include	<getopt.h>
 #include	<sys/types.h>
-#define		time_t		__time_t
-#define		gid_t		__gid_t
-#define		uid_t		__uid_t
+#include	<sys/time.h>
 #undef		HAVE_SYS_SYSLIMITS_H
 #undef		HAVE_SYS_EXEC_H 
 #undef		HAVE_VM_VM_H 
