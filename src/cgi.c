@@ -465,7 +465,6 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 		{
 			int readerror;
 			writetodo = atoi(getenv("CONTENT_LENGTH"));
-			fprintf(stderr, "SECPOST: %ld\n", writetodo);
 			if (pipe(q))
 			{
 				snprintf(errmsg, MYBUFSIZ, "500 pipe() failed: %s",
@@ -486,7 +485,6 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 					goto END;
 				}
 				inbuf[written] = '\0';
-				fprintf(stderr, "SECREAD: %s\n", inbuf);
 				if (write(q[1], inbuf, written) < written) {
 					fprintf(stderr, "[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
 						strerror(errno), q[1], temp,

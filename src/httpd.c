@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.57 2001/05/18 09:01:59 johans Exp $ */
+/* $Id: httpd.c,v 1.58 2001/05/18 18:43:52 johans Exp $ */
 
 #include	"config.h"
 
@@ -1594,7 +1594,9 @@ main DECL3(int, argc, char **, argv, char **, envp)
 {
 	const	struct	passwd	*userinfo;
 	const	struct	group	*groupinfo;
-	int			option, num, fport = 0;
+	int			option, num;
+	enum { optionp, optionaa, optionrr, optionee, };
+	char *longopt[4] = { NULL, NULL, NULL, NULL, };
 
 	origeuid = geteuid(); origegid = getegid();
 #ifdef		HAVE_SETPRIORITY
@@ -1659,14 +1661,11 @@ main DECL3(int, argc, char **, argv, char **, envp)
 				errx(1, "Invalid number of processes");
 			break;
 		case 'p':
-			strncpy(port, optarg, NI_MAXSERV);
-			port[NI_MAXSERV-1] = '\0';
-			fport = 1;
+			longopt[optionp] = optarg;
 			break;
 		case 's':
 #ifdef		HANDLE_SSL
-			if (!fport)
-				strcpy(port, "https");
+			strcpy(port, "https");
 			do_ssl = 1;
 			/* override defaults */
 			snprintf(access_path, XS_PATH_MAX,
@@ -1723,16 +1722,13 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			message503[MYBUFSIZ-1] = '\0';
 			break;
 		case 'A':
-			strncpy(access_path, optarg, XS_PATH_MAX);
-			access_path[XS_PATH_MAX-1] = '\0';
+			longopt[optionaa] = optarg;
 			break;
 		case 'R':
-			strncpy(refer_path, optarg, XS_PATH_MAX);
-			refer_path[XS_PATH_MAX-1] = '\0';
+			longopt[optionrr] = optarg;
 			break;
 		case 'E':
-			strncpy(error_path, optarg, XS_PATH_MAX);
-			error_path[XS_PATH_MAX-1] = '\0';
+			longopt[optionee] = optarg;
 			break;
 		case 'c':
 			strncpy(config_path, optarg, XS_PATH_MAX);
@@ -1742,6 +1738,29 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number] [-d rootdir]\n[-r refer-ignore-domain] [-l localmode] [-a address] [-m service-message]\n[-f] [-s] [-A access-log-path] [-E error-log-path] [-R referer-log-path]");
 		}
 	}
+
+	/* Explicity set these, overriding default or implicit setting */
+	if (longopt[optionp])
+	{
+		strncpy(port, optarg, NI_MAXSERV);
+		port[NI_MAXSERV-1] = '\0';
+	}
+	if (longopt[optionaa])
+	{
+		strncpy(access_path, optarg, XS_PATH_MAX);
+		access_path[XS_PATH_MAX-1] = '\0';
+	}
+	if (longopt[optionrr])
+	{
+		strncpy(refer_path, optarg, XS_PATH_MAX);
+		refer_path[XS_PATH_MAX-1] = '\0';
+	}
+	if (longopt[optionee])
+	{
+		strncpy(error_path, optarg, XS_PATH_MAX);
+		error_path[XS_PATH_MAX-1] = '\0';
+	}
+
 	initsetprocname(argc, argv, envp);
 	setup_environment();
 	standalone_main();
