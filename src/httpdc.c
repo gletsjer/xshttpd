@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.8 2003/10/03 13:31:06 johans Exp $ */
+/* $Id: httpdc.c,v 1.9 2004/03/06 12:47:31 johans Exp $ */
 
 #include	"config.h"
 
@@ -14,6 +14,7 @@
 #include	"err.h"
 #endif		/* HAVE_ERR_H */
 #include	<errno.h>
+#include	<ctype.h>
 
 #include	"mygetopt.h"
 #include	"mystring.h"
@@ -181,6 +182,31 @@ control DECL1C(char *, args)
 }
 
 static	VOID
+getpidfilename DECL1(char **, pidfilename)
+{
+	char		*p, buffer[BUFSIZ], config_path[XS_PATH_MAX];
+	FILE		*conffile;
+
+	snprintf(config_path, XS_PATH_MAX, "%s/httpd.conf", calcpath(rootdir));
+	if (!(conffile = fopen(config_path, "r")))
+		return;
+
+	while (fgets(buffer, BUFSIZ, conffile))
+	{
+		if (strncasecmp(buffer, "PidFile", 7))
+			continue;
+		for (p = buffer + 7; *p && isspace((int)*p); p++)
+			/* DO NOTHING */;
+		*pidfilename = strdup(p);
+		for (p = *pidfilename; *p; p++)
+			if (isspace((int)*p))
+				*p = '\0';
+		break;
+	}
+	fclose(conffile);
+}
+
+static	VOID
 loadpidfile DECL1C(char *, pidfilename)
 {
 	char		buffer[BUFSIZ], pidname[XS_PATH_MAX];
@@ -226,6 +252,9 @@ main DECL2(int, argc, char **, argv)
 			err(1, "Usage: %s [-d rootdir] [-p pidfile]", argv[0]);
 		}
 	}
+	if (!pidfilename)
+		getpidfilename(&pidfilename);
+
 	if (argc != optind)
 	{
 		loadpidfile(pidfilename);
