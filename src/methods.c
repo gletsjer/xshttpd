@@ -838,6 +838,13 @@ do_get DECL1(char *, params)
 		wasdir = 0;
 		goto RETRY;
 	}
+	else if (!strcmp(filename, INDEX_HTML_2) && strcmp(INDEX_HTML, INDEX_HTML_3))
+	{
+		strcpy(real_path + strlen(real_path) - strlen(INDEX_HTML_2),
+			filename = INDEX_HTML_3);
+		wasdir = 0;
+		goto RETRY;
+	}
 	server_error("404 Requested URL not found", "NOT_FOUND");
 }
 

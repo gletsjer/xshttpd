@@ -65,6 +65,7 @@ Both these names are checked. */
   
 #define INDEX_HTML "index.html"
 #define INDEX_HTML_2 "index.htm"
+#define INDEX_HTML_3 "index.php"
   
 /* The name of the mime.types file which the server uses to determine
 the content-type of the file that it is going to send. Again,
