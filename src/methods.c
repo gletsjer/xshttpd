@@ -696,8 +696,8 @@ do_get DECL1(char *, params)
 		{
 			char *http_host = getenv("HTTP_HOST");
 
-			if (port != 80 && !http_host)
-				snprintf(total, XS_PATH_MAX, "http://%s:%d%s/",
+			if (strcmp(port, "80") && !http_host)
+				snprintf(total, XS_PATH_MAX, "http://%s:%s%s/",
 					thishostname, port, orig);
 			else
 				snprintf(total, XS_PATH_MAX, "http://%s%s/",

@@ -313,8 +313,8 @@ reopen:
 		close(fd); return(1);
 	}
 ALREADY:
-	if (port != 80)
-		snprintf(host, sizeof(host), "http://%s:%d/", thishostname, port);
+	if (strcmp(port, "80"))
+		snprintf(host, sizeof(host), "http://%s:%s/", thishostname, port);
 	else
 		snprintf(host, sizeof(host), "http://%s/", thishostname);
 	host[sizeof(host)-1] = '\0';

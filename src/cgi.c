@@ -618,19 +618,19 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			switch(location[0])
 			{
 			case '/':
-				if (port == 80)
+				if (!strcmp(port, "80"))
 					secprintf("Location: http://%s%s\r\n",
 						thishostname, location);
 #ifdef		HANDLE_SSL
-				else if (do_ssl && port == 443)
+				else if (do_ssl && !strcmp(port, "443"))
 					secprintf("Location: https://%s%s\r\n",
 						thishostname, location);
 				else if (do_ssl)
-					secprintf("Location: https://%s:%d%s\r\n",
+					secprintf("Location: https://%s:%s%s\r\n",
 						thishostname, port, location);
 #endif		/* HANDLE_SSL */
 				else
-					secprintf("Location: http://%s:%d%s\r\n",
+					secprintf("Location: http://%s:%s%s\r\n",
 						thishostname, port, location);
 				break;
 			case 0:
