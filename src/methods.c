@@ -615,6 +615,13 @@ do_get DECL1(char *, params)
 		server_error("403 Directory is not available", "DIR_NOT_AVAIL");
 		return;
 	}
+	/* Check after redirection */
+	sprintf(auth, "%s/%s", base, AUTHFILE);
+	if ((authfile = fopen(auth, "r")))
+	{
+		if (check_auth(authfile))
+			return;
+	}
 
 #ifdef		HANDLE_COMPRESSED
 	search = NULL;
@@ -669,13 +676,6 @@ do_get DECL1(char *, params)
 			redirect(total, 1);
 			return;
 		}
-	}
-
-	sprintf(auth, "%s/%s", base, AUTHFILE);
-	if ((authfile = fopen(auth, "r")))
-	{
-		if (check_auth(authfile))
-			return;
 	}
 
 	modtime = statbuf.st_mtime;
