@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.3 beta 8
+- Added IndexFiles configuration directive
+
 Changes since 3.3 beta 7
 - Style cleanup and minor bug fixes (thanks Janjaap)
 - Document recently introduced features

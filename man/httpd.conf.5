@@ -222,6 +222,18 @@ information will be included in the standard LogAccess file.
 Defines the logfile format. Traditionally access and referrer logs will
 be split over two different files, but using a combined accesslog is
 more common nowadays.
+.TP
+.B IndexFiles <filename> [filename ...]
+Defines the filename that should be used when the user asks for a
+directory. The webserver will never autogenerate a directory index: you
+can use \fBxsindex(1)\fP for that. You can specify multiple filenames
+seperated by commas or whitespace. The default value is \fBindex.html,
+index.htm, index.php\fP (meaning that index.htm will only be tried if
+index.html is not present, etc.).
+.br
+If this option is omitted for the <Virtual> or <User> section, it will
+default to the definition in the <System> block. Or the previously
+mentioned default if this is also unspecified.
 
 .SH EXAMPLE
 Still needs to be written.
