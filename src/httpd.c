@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.163 2004/12/03 11:45:35 johans Exp $ */
+/* $Id: httpd.c,v 1.164 2004/12/03 13:54:26 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.163 2004/12/03 11:45:35 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.164 2004/12/03 13:54:26 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -381,8 +381,6 @@ load_config()
 					current->execdir = strdup(value);
 				else if (!strcasecmp("PhExecDir", key))
 					current->phexecdir = strdup(value);
-				else if (!strcasecmp("VirtualId", key))
-					current->virtualid = !strcasecmp("true", value);
 				else if (!strcasecmp("LogAccess", key))
 					current->logaccess = strdup(value);
 				else if (!strcasecmp("LogError", key))

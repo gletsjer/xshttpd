@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.3 beta 7
+- Style cleanup and minor bugfixes (thanks Janjaap)
+
 Changes since 3.3 beta 6
 - Finally got rid of all the DECL* macros (thanks Janjaap)
 - Also removed VOID, PROTO, NOFORWARDS, NONEWSTYLE
