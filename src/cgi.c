@@ -305,6 +305,7 @@ do_script DECL2C_(char *, path, int, headers)
 		setenv("PATH_INFO", fullpath, 1);
 		setenv("PATH_TRANSLATED", convertpath(fullpath), 1);
 	}
+	setenv("REDIRECT_STATUS", "200", 1);
 
 	if (headers)
 	{
@@ -444,15 +445,10 @@ do_script DECL2C_(char *, path, int, headers)
 		}
 #ifdef		SUPPORT_PHP3
 		if (php3)
-		{
-			/* PHP's CGI mode sucks big time */
-			unsetenv("SERVER_SOFTWARE"); unsetenv("SERVER_NAME");
-			unsetenv("GATEWAY_INTERFACE"); unsetenv("REQUEST_METHOD");
 			execl(PHP3_PATH, "php", fullpath, argv1, NULL);
-		}
 		else
 #endif		/* SUPPORT_PHP3 */
-		execl(fullpath, name, argv1, NULL);
+			execl(fullpath, name, argv1, NULL);
 		if (nph)
 		{
 			sprintf(errmsg, "500 execl(`%s'): %s",
@@ -502,6 +498,8 @@ do_script DECL2C_(char *, path, int, headers)
 				strcpy(cachecontrol, skipspaces(header + 14));
 			else if (!strncasecmp(header, "Set-cookie:", 11))
 				strcpy(cachecontrol, skipspaces(header + 11));
+			else if (!strncasecmp(header, "X-Powered-By:", 13))
+				/* ignore */;
 			else
 			{
 				fprintf(stderr, "[%s] httpd: Invalid header `%s' from script `%s'\n",
