@@ -453,7 +453,7 @@ do_get DECL1(char *, params)
 {
 	char			*temp, *file, auth[XS_PATH_MAX], base[XS_PATH_MAX],
 			total[XS_PATH_MAX];
-	const	char		*filename, *question;
+	const	char		*filename, *question, *host;
 	int			fd, wasdir, permanent;
 	size_t			size;
 	struct	stat		statbuf;
@@ -512,9 +512,14 @@ do_get DECL1(char *, params)
 	{
 		file = params;
 #ifdef		SIMPLE_VIRTUAL_HOSTING
-		if (getenv("HTTP_HOST"))
+		if ((host = getenv("HTTP_HOST")))
 		{
-			strncpy(base, calcpath(getenv("HTTP_HOST")), XS_PATH_MAX-1);
+			if (strstr(host, "/"))
+			{
+				server_error("403 Invalid path specified", "INVALID_PATH");
+				return;
+			}
+			strncpy(base, calcpath(host), XS_PATH_MAX-1);
 			base[XS_PATH_MAX-2] = '\0';
 			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
 				strncpy(base, calcpath(HTTPD_DOCUMENT_ROOT), XS_PATH_MAX-1);
