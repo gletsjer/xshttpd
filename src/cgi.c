@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.73 2003/01/22 17:19:17 johans Exp $ */
+/* $Id: cgi.c,v 1.74 2003/01/22 17:37:22 johans Exp $ */
 
 #include	"config.h"
 
@@ -307,7 +307,7 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 		/* Not required for linux where uid is fixed */
 		if (!origeuid)
 		{
-			if (setuid(geteuid()) < 0 || setgid(getegid() < 0))
+			if (setuid(geteuid()) || setgid(getegid()))
 			{
 				secprintf("Content-type: text/plain\r\n\r\n");
 				secprintf("[Invalid UID setting]\n");
@@ -318,7 +318,7 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 				exit(1);
 			}
 		}
-#endif		__linux__
+#endif		/* __linux__ */
 		setenv("PATH", SCRIPT_PATH, 1);
 		if (chdir(base))
 		{
