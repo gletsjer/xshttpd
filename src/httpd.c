@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.140 2004/09/22 18:30:17 johans Exp $ */
+/* $Id: httpd.c,v 1.141 2004/09/24 11:26:35 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.140 2004/09/22 18:30:17 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.141 2004/09/24 11:26:35 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1161,14 +1161,15 @@ logrequest DECL2(const char *, request, long, size)
 	else
 		alog = current->openaccess;
 
-	dynrequest = strdup(request);
-	for (p = dynrequest; *p; p++)
-		if ('\"' == *p)
-			*p = '\'';
-	dynagent = strdup(getenv("USER_AGENT"));
-	for (p = dynagent; *p; p++)
-		if ('\"' == *p)
-			*p = '\'';
+	dynrequest = dynagent = NULL;
+	if (request && (dynrequest = strdup(request)))
+		for (p = dynrequest; *p; p++)
+			if ('\"' == *p)
+				*p = '\'';
+	if (getenv("USER_AGENT") && (dynagent = strdup(getenv("USER_AGENT"))))
+		for (p = dynagent; *p; p++)
+			if ('\"' == *p)
+				*p = '\'';
 	if (current->logstyle == traditional)
 	{
 		FILE	*rlog = current->openreferer
