@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/httpd.c)
-AM_INIT_AUTOMAKE(xshttpd, 30b10)
+AM_INIT_AUTOMAKE(xshttpd, 30b11)
 AM_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
@@ -72,25 +72,28 @@ AC_ARG_WITH(ssl,
 	   AC_DEFINE(HANDLE_SSL),,
 	    -lcrypto)),
 	AC_MSG_RESULT(no))
-AC_ARG_DEFAULT(ssi, WANT_SSI,
+
+AC_SHOW_HELP(--disable options (enabled by default):)
+AC_ARG_DEFAULT(ssi, WANT_SSI, yes,
 	[  --disable-ssi           disable server-side includes])
-AC_ARG_DEFAULT(ipv6, INET6,
+AC_ARG_DEFAULT(ipv6, INET6, yes,
 	[  --disable-ipv6          disable ipv6 support])
-AC_ARG_DEFAULT(virtual, SIMPLE_VIRTUAL_HOSTING,
+AC_ARG_DEFAULT(virtual, SIMPLE_VIRTUAL_HOSTING, yes,
 	[  --disable-virtual       disable simple virtual hosting])
-AC_ARG_DEFAULT(virtual, VIRTUAL_UID,
-	[  --disable-virtual-uid   disable variable euid for virtual hosting])
-AC_ARG_DEFAULT(restrict, RESTRICTXS,
+AC_ARG_DEFAULT(restrict, RESTRICTXS, yes,
 	[  --disable-restrict      disable restricted .noxs access])
-AC_ARG_DEFAULT(script, HANDLE_SCRIPT,
+AC_ARG_DEFAULT(script, HANDLE_SCRIPT, yes,
 	[  --disable-script        disable scripting support (PHP)])
-AC_ARG_DEFAULT(compress, HANDLE_COMPRESSED,
+AC_ARG_DEFAULT(compress, HANDLE_COMPRESSED, yes,
 	[  --disable-compress      disable auto-extraction of compressed files])
 if test x${ac_cv_func_setrlimit} = xyes
 then
-	AC_ARG_DEFAULT(setrlimit, USE_SETRLIMIT,
+	AC_ARG_DEFAULT(setrlimit, USE_SETRLIMIT, yes,
 		[  --disable-setrlimit     disable resource limits for CGI scripts])
 fi
+AC_SHOW_HELP(--enable options (disabled by default):)
+AC_ARG_DEFAULT(virtualuid, VIRTUAL_UID, no,
+	[  --enable-virtualuid     enable variable euid for virtual hosting])
 
 dnl Test runs for required global variables
 
