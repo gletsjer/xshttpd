@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.166 2005/01/01 22:08:16 johans Exp $ */
+/* $Id: httpd.c,v 1.167 2005/01/06 13:40:22 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.166 2005/01/01 22:08:16 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.167 2005/01/06 13:40:22 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -433,6 +433,8 @@ load_config()
 					else if (!strcasecmp("combined", value) ||
 							 !strcasecmp("extended", value))
 						current->logstyle = combined;
+					else if (!strcasecmp("virtual", value))
+						current->logstyle = virtual;
 					else
 						errx(1, "illegal logstyle: '%s'", value);
 				else if (!strcasecmp("UserId", key))
@@ -1247,7 +1249,20 @@ logrequest(const char *request, long size)
 			(!thisdomain[0] || !strcasestr(referer, thisdomain)))
 			fprintf(rlog, "%s -> %s\n", referer, request);
 	}
-	else
+	else if (current->logstyle == virtual)
+		/* this is combined format + virtual hostname */
+		fprintf(alog, "%s %s - - [%s +0000] \"%s %s %s\" 200 %ld "
+				"\"%s\" \"%s\"\n",
+			getenv("HTTP_HOST")
+				? getenv("HTTP_HOST")
+				: config.system->hostname,
+			remotehost,
+			buffer,
+			getenv("REQUEST_METHOD"), dynrequest, version,
+			size > 0 ? (long)size : (long)0,
+			referer,
+			dynagent);
+	else /* logstyle = combined */
 		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" 200 %ld "
 				"\"%s\" \"%s\"\n",
 			remotehost,

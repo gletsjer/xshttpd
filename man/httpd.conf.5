@@ -218,10 +218,12 @@ Logfile or program to use for HTTP referrer information. Note that this
 is only used when LogStyle traditional is selected - otherwise referrer
 information will be included in the standard LogAccess file.
 .TP
-.B LogStyle [traditional|combined]
+.B LogStyle [traditional|combined|virtual]
 Defines the logfile format. Traditionally access and referrer logs will
-be split over two different files, but using a combined accesslog is
-more common nowadays.
+be split over two different files (common logfile format), but using a
+combined accesslog is more common nowadays (extended logfile format).
+The virtual format is basically an combined log with an extra first field
+indicating the virtual hostname that was accessed on the webserver.
 .TP
 .B IndexFiles <filename> [filename ...]
 Defines the filename that should be used when the user asks for a
