@@ -9,8 +9,6 @@ extern struct virtual {
 	char *		logaccess;
 	char *		logerror;
 	char *		logreferer;
-	char *		sslcertificate;
-	char *		sslprivatekey;
 	uid_t		userid;
 	gid_t		groupid;
 	FILE *		openaccess;
@@ -53,6 +51,8 @@ extern struct configuration {
 	unsigned	uselocalscript: 1;
 	unsigned	usecompressed: 1;
 	/* unsigned	padding: 8; */
+	char *		sslcertificate;
+	char *		sslprivatekey;
 	struct virtual *	system;
 	struct virtual *	users;
 	struct virtual *	virtual;

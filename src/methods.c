@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.108 2004/09/25 14:39:08 johans Exp $ */
+/* $Id: methods.c,v 1.109 2004/10/08 08:51:17 johans Exp $ */
 
 #include	"config.h"
 
@@ -1187,13 +1187,15 @@ loadssl	DECL0
 		SSL_load_error_strings();
 		ssl_ctx = SSL_CTX_new(SSLv23_server_method());
 		if (!SSL_CTX_use_certificate_file(ssl_ctx,
-				calcpath(config.system->sslcertificate),
+				calcpath(config.sslcertificate),
 				SSL_FILETYPE_PEM) ||
 			!SSL_CTX_use_PrivateKey_file(ssl_ctx,
-				calcpath(config.system->sslprivatekey),
+				calcpath(config.sslprivatekey),
 				SSL_FILETYPE_PEM) ||
 			!SSL_CTX_check_private_key(ssl_ctx))
-			errx(1, "Cannot initialise SSL");
+			errx(1, "Cannot initialise SSL %s %s",
+				calcpath(config.sslcertificate),
+				calcpath(config.sslprivatekey));
 		ERR_print_errors_fp(stderr);
 	}
 }
@@ -1244,12 +1246,19 @@ getfiletype DECL1(int, print)
 			if (print)
 			{
 				if (*charset)
-					secprintf("Content-type: %s; charset=%s\r\n",
+					secprintf("Content-type: %s; "
+							"charset=%s\r\n",
 						search->name, charset);
+				else if (!strncmp(search->name, "text/", 5))
+					secprintf("Content-type: %s; "
+							"charset=US-ASCII\r\n",
+						search->name);
 				else
-					secprintf("Content-type: %s\r\n", search->name);
+					secprintf("Content-type: %s\r\n",
+						search->name);
 			}
-			return(!strcmp(search->name, "text/html"));
+			return !strcmp(search->name, "text/html");
+
 		}
 		search = search->next;
 	}

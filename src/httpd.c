@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.141 2004/09/24 11:26:35 johans Exp $ */
+/* $Id: httpd.c,v 1.142 2004/10/08 08:51:17 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.141 2004/09/24 11:26:35 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.142 2004/10/08 08:51:17 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -331,6 +331,10 @@ load_config DECL0
 						errx(1, "SSL support not enabled at compile-time");
 #endif		/* HANDLE_SSL */
 				}
+				else if (!strcasecmp("SSLCertificate", key))
+						config.sslcertificate = strdup(value);
+				else if (!strcasecmp("SSLPrivateKey", key))
+						config.sslprivatekey = strdup(value);
 				else if (!strcasecmp("UseCharset", key))
 					config.usecharset = !strcasecmp("true", value);
 				else if (!strcasecmp("UseRestrictAddr", key))
@@ -404,10 +408,6 @@ load_config DECL0
 						current->groupid = grp->gr_gid;
 					}
 				}
-				else if (!strcasecmp("SSLCertificate", key))
-						current->sslcertificate = strdup(value);
-				else if (!strcasecmp("SSLPrivateKey", key))
-						current->sslprivatekey = strdup(value);
 				else
 					err(1, "illegal directive: '%s'", key);
 			}
@@ -516,11 +516,17 @@ load_config DECL0
 		if (!lsock->instances)
 			lsock->instances = HTTPD_NUMBER;
 		config.usessl |= lsock->usessl;
+#ifdef		HANDLE_SSL
+#endif		/* HANDLE_SSL */
 	}
 	if (!config.pidfile)
 		config.pidfile = strdup(PID_PATH);
 	if (!config.localmode)
 		config.localmode = 1;
+	if (!config.sslcertificate)
+		config.sslcertificate = strdup(CERT_FILE);
+	if (!config.sslprivatekey)
+		config.sslprivatekey = strdup(KEY_FILE);
 	/* Set up system section */
 	if (!config.system)
 	{
@@ -563,12 +569,6 @@ load_config DECL0
 			errx(1, "Invalid groupname: %s", groupname);
 		config.system->groupid = grp->gr_gid;
 	}
-#ifdef		HANDLE_SSL
-	if (!config.system->sslcertificate)
-		config.system->sslcertificate = strdup(CERT_FILE);
-	if (!config.system->sslprivatekey)
-		config.system->sslprivatekey = strdup(KEY_FILE);
-#endif		/* HANDLE_SSL */
 	/* Set up users section */
 	if (!config.users)
 	{
@@ -588,8 +588,6 @@ load_config DECL0
 			err(1, "illegal virtual block without hostname");
 		if (!current->htmldir)
 			err(1, "illegal virtual block without directory");
-		if (current->sslcertificate)
-			err(1, "virtual host certificates not supported");
 		if (!current->execdir)
 			current->execdir = strdup(HTTPD_SCRIPT_ROOT);
 		if (!current->phexecdir)
