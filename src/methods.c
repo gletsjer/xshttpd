@@ -605,7 +605,9 @@ do_get DECL1(char *, params)
 			break; /* error later */
 		if ((statbuf.st_mode & S_IFMT) == S_IFREG)
 		{
-			setenv("PATH_INFO", temp + 1, 1);
+			*temp = '/';
+			setenv("PATH_INFO", temp, 1);
+			*temp = 0;
 			break;
 		}
 		*(temp++) = '/';
