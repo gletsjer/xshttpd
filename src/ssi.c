@@ -144,7 +144,7 @@ xsc_initcounter(const char *filename)
 		return(1);
 	}
 	if ((fd2 = open(lockfile = calcpath(CNT_LOCK),
-		O_WRONLY | O_CREAT | O_TRUNC, 
+		O_WRONLY | O_CREAT | O_TRUNC,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
 	{
 		secprintf("[Failed to create temporary file: %s]\n",
@@ -223,7 +223,7 @@ xsc_counter(int mode, const char *args)
 	counterfile[XS_PATH_MAX-1] = '\0';
 
 reopen:
-	if ((fd = open(counterfile, O_RDWR, 
+	if ((fd = open(counterfile, O_RDWR,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
 	{
 		if (xsc_initdummy())
@@ -241,7 +241,7 @@ reopen:
 	total /= sizeof(countstr);
 	if (total < 2)
 	{
-		close(fd); 
+		close(fd);
 		if (xsc_initdummy())
 			return(1);
 		goto reopen;
@@ -551,7 +551,7 @@ dir_last_mod(char *here, size_t *size)
 		thetime = localtime(&statbuf.st_mtime);
 	} else {
 		/* previous SSI's may have broken $modtime */
-		if ((path = getenv("ORIG_PATH_TRANSLATED")) && 
+		if ((path = getenv("ORIG_PATH_TRANSLATED")) &&
 				!stat(path, &statbuf))
 			thetime = localtime(&statbuf.st_mtime);
 		else

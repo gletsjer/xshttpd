@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.158 2004/11/26 21:33:38 johans Exp $ */
+/* $Id: httpd.c,v 1.159 2004/12/02 13:27:10 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.158 2004/11/26 21:33:38 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.159 2004/12/02 13:27:10 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -362,7 +362,7 @@ load_config()
 					warn("LocalMode is deprecated and will be ignored");
 				}
 				else if (!current &&
-						(!strcasecmp("UserId", key) || 
+						(!strcasecmp("UserId", key) ||
 						 !strcasecmp("GroupId", key)))
 					errx(1, "%s directive should be in <System> section", key);
 				else if (!strcasecmp("Priority", key))
@@ -980,7 +980,7 @@ uudecode(char *buffer)
 			(pr2six[(int)bufin[3]]));
 		bufin += 4; nprbytes -= 4;
 	}
-   
+
 	if (nprbytes & 3)
 	{
 		if (pr2six[(int)*(bufin - 2)] > 63)
@@ -1183,7 +1183,7 @@ logrequest(const char *request, long size)
 			: config.system->openreferer;
 		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" 200 %ld\n",
 			remotehost,
-			buffer, 
+			buffer,
 			getenv("REQUEST_METHOD"), dynrequest, version,
 			size > 0 ? (long)size : (long)0);
 		if (rlog &&
@@ -1194,7 +1194,7 @@ logrequest(const char *request, long size)
 		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" 200 %ld "
 				"\"%s\" \"%s\"\n",
 			remotehost,
-			buffer, 
+			buffer,
 			getenv("REQUEST_METHOD"), dynrequest, version,
 			size > 0 ? (long)size : (long)0,
 			referer,

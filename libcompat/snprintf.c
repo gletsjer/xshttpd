@@ -43,9 +43,9 @@
  *    original.  Also, there is now a builtin-test, just compile with:
  *           gcc -DTEST_SNPRINTF -o snprintf snprintf.c -lm
  *    and run snprintf for results.
- * 
+ *
  *  Thomas Roessler <roessler@guug.de> 01/27/98 for mutt 0.89i
- *    The PGP code was using unsigned hexadecimal formats. 
+ *    The PGP code was using unsigned hexadecimal formats.
  *    Unfortunately, unsigned formats simply didn't work.
  *
  **************************************************************/
@@ -74,7 +74,7 @@
 int snprintf (char *str, size_t count, const char *fmt, ...);
 int vsnprintf (char *str, size_t count, const char *fmt, va_list arg);
 
-static void dopr (char *buffer, size_t maxlen, const char *format, 
+static void dopr (char *buffer, size_t maxlen, const char *format,
                   va_list args);
 static void fmtstr (char *buffer, size_t *currlen, size_t maxlen,
                     char *value, int flags, int min, int max);
@@ -104,7 +104,7 @@ int snprintf (va_alist) va_dcl
   char *fmt;
 #endif
   VA_LOCAL_DECL;
-    
+
   VA_START (fmt);
   VA_SHIFT (str, char *);
   VA_SHIFT (count, size_t );
@@ -158,7 +158,7 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args
   int flags;
   int cflags;
   size_t currlen;
-  
+
   state = DP_S_DEFAULT;
   currlen = flags = cflags = min = 0;
   max = -1;
@@ -166,20 +166,20 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args
 
   while (state != DP_S_DONE)
   {
-    if ((ch == '\0') || (currlen >= maxlen)) 
+    if ((ch == '\0') || (currlen >= maxlen))
       state = DP_S_DONE;
 
-    switch(state) 
+    switch(state)
     {
     case DP_S_DEFAULT:
-      if (ch == '%') 
+      if (ch == '%')
         state = DP_S_FLAGS;
-      else 
+      else
         dopr_outch (buffer, &currlen, maxlen, ch);
       ch = *format++;
       break;
     case DP_S_FLAGS:
-      switch (ch) 
+      switch (ch)
       {
       case '-':
         flags |= DP_F_MINUS;
@@ -207,49 +207,49 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args
       }
       break;
     case DP_S_MIN:
-      if (isdigit(ch)) 
+      if (isdigit(ch))
       {
         min = 10*min + char_to_int (ch);
         ch = *format++;
-      } 
-      else if (ch == '*') 
+      }
+      else if (ch == '*')
       {
         min = va_arg (args, int);
         ch = *format++;
         state = DP_S_DOT;
-      } 
-      else 
+      }
+      else
         state = DP_S_DOT;
       break;
     case DP_S_DOT:
-      if (ch == '.') 
+      if (ch == '.')
       {
         state = DP_S_MAX;
         ch = *format++;
-      } 
-      else 
+      }
+      else
         state = DP_S_MOD;
       break;
     case DP_S_MAX:
-      if (isdigit(ch)) 
+      if (isdigit(ch))
       {
         if (max < 0)
           max = 0;
         max = 10*max + char_to_int (ch);
         ch = *format++;
-      } 
-      else if (ch == '*') 
+      }
+      else if (ch == '*')
       {
         max = va_arg (args, int);
         ch = *format++;
         state = DP_S_MOD;
-      } 
-      else 
+      }
+      else
         state = DP_S_MOD;
       break;
     case DP_S_MOD:
       /* Currently, we don't support Long Long, bummer */
-      switch (ch) 
+      switch (ch)
       {
       case 'h':
         cflags = DP_C_SHORT;
@@ -269,11 +269,11 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args
       state = DP_S_CONV;
       break;
     case DP_S_CONV:
-      switch (ch) 
+      switch (ch)
       {
       case 'd':
       case 'i':
-        if (cflags == DP_C_SHORT) 
+        if (cflags == DP_C_SHORT)
           value = va_arg (args, short int);
         else if (cflags == DP_C_LONG)
           value = va_arg (args, long int);
@@ -342,7 +342,7 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args
         break;
       case 's':
         strvalue = va_arg (args, char *);
-        if (max < 0) 
+        if (max < 0)
           max = maxlen; /* ie, no max */
         fmtstr (buffer, &currlen, maxlen, strvalue, flags, min, max);
         break;
@@ -352,19 +352,19 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args
 ;
         break;
       case 'n':
-        if (cflags == DP_C_SHORT) 
+        if (cflags == DP_C_SHORT)
         {
           short int *num;
           num = va_arg (args, short int *);
           *num = currlen;
-        } 
-        else if (cflags == DP_C_LONG) 
+        }
+        else if (cflags == DP_C_LONG)
         {
           long int *num;
           num = va_arg (args, long int *);
           *num = currlen;
-        } 
-        else 
+        }
+        else
         {
           int *num;
           num = va_arg (args, int *);
@@ -394,9 +394,9 @@ static void dopr (char *buffer, size_t maxlen, const char *format, va_list args
       break; /* some picky compilers need this */
     }
   }
-  if (currlen < maxlen - 1) 
+  if (currlen < maxlen - 1)
     buffer[currlen] = '\0';
-  else 
+  else
     buffer[maxlen - 1] = '\0';
 }
 
@@ -405,7 +405,7 @@ static void fmtstr (char *buffer, size_t *currlen, size_t maxlen,
 {
   int padlen, strln;     /* amount to pad */
   int cnt = 0;
-  
+
   if (value == 0)
   {
     value = "<NULL>";
@@ -413,23 +413,23 @@ static void fmtstr (char *buffer, size_t *currlen, size_t maxlen,
 
   for (strln = 0; value[strln]; ++strln); /* strlen */
   padlen = min - strln;
-  if (padlen < 0) 
+  if (padlen < 0)
     padlen = 0;
-  if (flags & DP_F_MINUS) 
+  if (flags & DP_F_MINUS)
     padlen = -padlen; /* Left Justify */
 
-  while ((padlen > 0) && (cnt < max)) 
+  while ((padlen > 0) && (cnt < max))
   {
     dopr_outch (buffer, currlen, maxlen, ' ');
     --padlen;
     ++cnt;
   }
-  while (*value && (cnt < max)) 
+  while (*value && (cnt < max))
   {
     dopr_outch (buffer, currlen, maxlen, *value++);
     ++cnt;
   }
-  while ((padlen < 0) && (cnt < max)) 
+  while ((padlen < 0) && (cnt < max))
   {
     dopr_outch (buffer, currlen, maxlen, ' ');
     ++padlen;
@@ -449,7 +449,7 @@ static void fmtint (char *buffer, size_t *currlen, size_t maxlen,
   int spadlen = 0; /* amount to space pad */
   int zpadlen = 0; /* amount to zero pad */
   int caps = 0;
-  
+
   if (max < 0)
     max = 0;
 
@@ -468,7 +468,7 @@ static void fmtint (char *buffer, size_t *currlen, size_t maxlen,
       if (flags & DP_F_SPACE)
         signvalue = ' ';
   }
-  
+
   if (flags & DP_F_UP) caps = 1; /* Should characters be upper case? */
 
   do {
@@ -489,7 +489,7 @@ static void fmtint (char *buffer, size_t *currlen, size_t maxlen,
     zpadlen = SNMAX(zpadlen, spadlen);
     spadlen = 0;
   }
-  if (flags & DP_F_MINUS) 
+  if (flags & DP_F_MINUS)
     spadlen = -spadlen; /* Left Justifty */
 
 #ifdef DEBUG_SNPRINTF
@@ -498,18 +498,18 @@ static void fmtint (char *buffer, size_t *currlen, size_t maxlen,
 #endif
 
   /* Spaces */
-  while (spadlen > 0) 
+  while (spadlen > 0)
   {
     dopr_outch (buffer, currlen, maxlen, ' ');
     --spadlen;
   }
 
   /* Sign */
-  if (signvalue) 
+  if (signvalue)
     dopr_outch (buffer, currlen, maxlen, signvalue);
 
   /* Zeros */
-  if (zpadlen > 0) 
+  if (zpadlen > 0)
   {
     while (zpadlen > 0)
     {
@@ -519,9 +519,9 @@ static void fmtint (char *buffer, size_t *currlen, size_t maxlen,
   }
 
   /* Digits */
-  while (place > 0) 
+  while (place > 0)
     dopr_outch (buffer, currlen, maxlen, convert[--place]);
-  
+
   /* Left Justified spaces */
   while (spadlen < 0) {
     dopr_outch (buffer, currlen, maxlen, ' ');
@@ -548,7 +548,7 @@ static long double pow10 (int exp)
     result *= 10;
     exp--;
   }
-  
+
   return result;
 }
 
@@ -574,12 +574,12 @@ static void fmtfp (char *buffer, size_t *currlen, size_t maxlen,
   int iplace = 0;
   int fplace = 0;
   int padlen = 0; /* amount to pad */
-  int zpadlen = 0; 
+  int zpadlen = 0;
   int caps = 0;
   long intpart;
   long fracpart;
-  
-  /* 
+
+  /*
    * AIX manpage says the default is 0, but Solaris says the default
    * is 6, and sprintf on AIX defaults to 6
    */
@@ -599,8 +599,8 @@ static void fmtfp (char *buffer, size_t *currlen, size_t maxlen,
 
   intpart = ufvalue;
 
-  /* 
-   * Sorry, we only support 9 digits past the decimal because of our 
+  /*
+   * Sorry, we only support 9 digits past the decimal because of our
    * conversion method
    */
   if (max > 9)
@@ -640,18 +640,18 @@ static void fmtfp (char *buffer, size_t *currlen, size_t maxlen,
   fconvert[fplace] = 0;
 
   /* -1 for decimal point, another -1 if we are printing a sign */
-  padlen = min - iplace - max - 1 - ((signvalue) ? 1 : 0); 
+  padlen = min - iplace - max - 1 - ((signvalue) ? 1 : 0);
   zpadlen = max - fplace;
   if (zpadlen < 0)
     zpadlen = 0;
-  if (padlen < 0) 
+  if (padlen < 0)
     padlen = 0;
-  if (flags & DP_F_MINUS) 
+  if (flags & DP_F_MINUS)
     padlen = -padlen; /* Left Justifty */
 
-  if ((flags & DP_F_ZERO) && (padlen > 0)) 
+  if ((flags & DP_F_ZERO) && (padlen > 0))
   {
-    if (signvalue) 
+    if (signvalue)
     {
       dopr_outch (buffer, currlen, maxlen, signvalue);
       --padlen;
@@ -668,10 +668,10 @@ static void fmtfp (char *buffer, size_t *currlen, size_t maxlen,
     dopr_outch (buffer, currlen, maxlen, ' ');
     --padlen;
   }
-  if (signvalue) 
+  if (signvalue)
     dopr_outch (buffer, currlen, maxlen, signvalue);
 
-  while (iplace > 0) 
+  while (iplace > 0)
     dopr_outch (buffer, currlen, maxlen, iconvert[--iplace]);
 
   /*
@@ -680,7 +680,7 @@ static void fmtfp (char *buffer, size_t *currlen, size_t maxlen,
    */
   dopr_outch (buffer, currlen, maxlen, '.');
 
-  while (fplace > 0) 
+  while (fplace > 0)
     dopr_outch (buffer, currlen, maxlen, fconvert[--fplace]);
 
   while (zpadlen > 0)
@@ -689,7 +689,7 @@ static void fmtfp (char *buffer, size_t *currlen, size_t maxlen,
     --zpadlen;
   }
 
-  while (padlen < 0) 
+  while (padlen < 0)
   {
     dopr_outch (buffer, currlen, maxlen, ' ');
     ++padlen;

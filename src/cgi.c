@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.88 2004/11/26 21:33:38 johans Exp $ */
+/* $Id: cgi.c,v 1.89 2004/12/02 13:27:10 johans Exp $ */
 
 #include	"config.h"
 
@@ -440,7 +440,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			if (!strncasecmp(header, "Location:", 9))
 			{
 				char location[MYBUFSIZ];
-				
+
 				strncpy(location, skipspaces(header + 9), MYBUFSIZ);
 				switch(location[0])
 				{

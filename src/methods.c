@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.122 2004/11/26 21:33:38 johans Exp $ */
+/* $Id: methods.c,v 1.123 2004/12/02 13:27:10 johans Exp $ */
 
 #include	"config.h"
 
@@ -816,7 +816,7 @@ do_get(char *params)
 		return;
 #endif
 	}
-	
+
 	/* Check for *.noxs permissions */
 	if ((authfile = find_file(orgbase, base, ".noxs")) &&
 		!allowxs(authfile))

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
- 
+
 /* This file contains the backup definitions for old systems. */
 
 #ifndef		HAVE_VFORK
