@@ -22,11 +22,22 @@ extern struct virtual {
 	struct virtual *	next;
 } *current;
 
+struct socket_config {
+	char *		address;
+	char *		port;
+	int		family;
+	unsigned short	instances;
+	unsigned	usessl: 1;
+	unsigned	padding: 7;
+	struct socket_config *	next;
+};
+
 extern struct configuration {
 	char *		systemroot;
 	char *		address;
 	char *		port;
-	int			family;
+	int		family;
+	int		num_sockets;
 	unsigned short	instances;
 	unsigned short	localmode;
 	char *		pidfile;
@@ -41,4 +52,5 @@ extern struct configuration {
 	struct virtual *	system;
 	struct virtual *	users;
 	struct virtual *	virtual;
+	struct socket_config *	sockets;
 } config;

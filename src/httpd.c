@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.129 2004/05/29 13:55:28 johans Exp $ */
+/* $Id: httpd.c,v 1.130 2004/05/31 18:16:00 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.129 2004/05/29 13:55:28 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.130 2004/05/31 18:16:00 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -260,13 +260,19 @@ load_config DECL0
 	struct passwd	*pwd;
 	struct group	*grp;
 	struct virtual	*last = NULL;
+	struct socket_config	*lsock;
 
 	confd = fopen(config_path, "r");
+
+	/* default socket for backwards compatibility */
+	lsock = malloc(sizeof(struct socket_config));
+	memset(lsock, 0, sizeof(struct socket_config));
 
 	/* Set simple defaults - others follow the parsing */
 	config.usecharset = 1;
 	config.userestrictaddr = 1;
 	config.usevirtualhost = 1;
+	config.sockets = NULL;
 
 	if (confd)
 	{
@@ -289,11 +295,11 @@ load_config DECL0
 						config.systemroot = strdup(value);
 				}
 				else if (!strcasecmp("ListenAddress", key))
-					config.address = strdup(value);
+					lsock->address = strdup(value);
 				else if (!strcasecmp("ListenPort", key))
-					config.port = strdup(value);
+					lsock->port = strdup(value);
 				else if (!strcasecmp("ListenFamily", key))
-					config.family =
+					lsock->family =
 						!strcasecmp("IPv4", value) ? PF_INET :
 #ifdef		INET6
 						!strcasecmp("IPv6", value) ? PF_INET6 :
@@ -301,8 +307,8 @@ load_config DECL0
 						PF_UNSPEC;
 				else if (!strcasecmp("Instances", key))
 				{
-					if (!config.instances)
-						config.instances = atoi(value);
+					if (!lsock->instances)
+						lsock->instances = atoi(value);
 				}
 				else if (!strcasecmp("PidFile", key))
 					config.pidfile = strdup(value);
@@ -315,7 +321,7 @@ load_config DECL0
 				{
 					if (!strcasecmp("true", value))
 #ifdef		HANDLE_SSL
-						config.usessl = 1;
+						lsock->usessl = 1;
 #else		/* HANDLE_SSL */
 						errx(1, "SSL support not enabled at compile-time");
 #endif		/* HANDLE_SSL */
@@ -417,6 +423,22 @@ load_config DECL0
 					current = malloc(sizeof(struct virtual));
 					memset(current, 0, sizeof(struct virtual));
 				}
+				else if (!strcasecmp("<Socket>", key))
+				{
+					if (subtype)
+						err(1, "illegal <Socket> nesting");
+					subtype = 4;
+					if (!config.sockets)
+					{
+						config.sockets = lsock;
+					}
+					else
+					{
+						lsock->next = malloc(sizeof(struct socket_config));
+						lsock = lsock->next;
+						memset(lsock, 0, sizeof(struct socket_config));
+					}
+				}
 				else if (!strcasecmp("</System>", key))
 				{
 					if (subtype != 1)
@@ -454,6 +476,12 @@ load_config DECL0
 					}
 					current = NULL;
 				}
+				else if (!strcasecmp("</Socket>", key))
+				{
+					if (subtype != 4)
+						err(1, "</Socket> end without start");
+					subtype = 0;
+				}
 				else
 					err(1, "illegal directive: '%s'", key);
 			}
@@ -465,10 +493,16 @@ load_config DECL0
 	/* Fill in missing defaults */
 	if (!config.systemroot)
 		config.systemroot = strdup(HTTPD_ROOT);
-	if (!config.port)
-		config.port = config.usessl ? strdup("https") : strdup("http");
-	if (!config.instances)
-		config.instances = HTTPD_NUMBER;
+	if (!config.sockets)
+		config. sockets = lsock;
+	for (lsock = config.sockets; lsock; lsock = lsock->next)
+	{
+		if (!lsock->port)
+			lsock->port = lsock->usessl ? strdup("https") : strdup("http");
+		if (!lsock->instances)
+			lsock->instances = HTTPD_NUMBER;
+		config.usessl |= lsock->usessl;
+	}
 	if (!config.pidfile)
 		config.pidfile = strdup(PID_PATH);
 	if (!config.localmode)
@@ -1582,6 +1616,7 @@ standalone_main DECL0
 #ifdef		HAVE_SETRLIMIT
 	struct	rlimit		limit;
 #endif		/* HAVE_SETRLIMIT */
+	struct	socket_config	*sock;
 
 	/* Speed hack
 	 * gethostbyname("localhost");
@@ -1590,6 +1625,14 @@ standalone_main DECL0
 	detach(); open_logs(0);
 
 	setprocname("xs(MAIN): Initializing deamons...");
+
+	for (sock = config.sockets; sock; sock = sock->next)
+	{
+		config.family	= sock->family;
+		config.address	= sock->address;
+		config.port	= sock->port;
+		config.instances= sock->instances;
+		config.usessl	= sock->usessl;
 
 #ifdef		HAVE_GETADDRINFO
 	memset(&hints, 0, sizeof(hints));
@@ -1686,6 +1729,8 @@ standalone_main DECL0
 			childs[count] = pid;
 		}
 	}
+
+	} /* next config.sockets */
 
 	fflush(stdout);
 	while (1)
@@ -1878,7 +1923,9 @@ setup_environment DECL0
 	setenv("SERVER_SOFTWARE", SERVER_IDENT, 1);
 	setenv("SERVER_NAME", config.system->hostname, 1);
 	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
+	setenv("SERVER_PORT", "80", 1);
 	setenv("SERVER_PORT",
+		!config.port ? "80" :
 		!strcmp(config.port, "http") ? "80" :
 		!strcmp(config.port, "https") ? "443" :
 		config.port,
