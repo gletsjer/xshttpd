@@ -468,7 +468,10 @@ do_get DECL1(char *, params)
 	while ((temp = strstr(params, "//")))
 	{
 		if (!question || (temp < question))
+		{
 			bcopy(temp + 1, temp, strlen(temp));
+			question--;
+		}
 		else
 			break;
 	}
