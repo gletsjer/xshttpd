@@ -166,7 +166,7 @@ senduncompressed DECL1(int, fd)
 
 			/* fgets is better: read() may split HTML tags! */
 			while (read(fd, input, MYBUFSIZ))
-				if (!strstr(input, "<!--#"))
+				if (strstr(input, "<!--#"))
 				{
 					dynamic = 1;
 					break;
@@ -321,16 +321,7 @@ senduncompressed DECL1(int, fd)
 #endif		/* WANT_SSI */
 
 	DONE:
-	{
-		char		buffer[80];
-		time_t		theclock;
-
-		time(&theclock);
-		strftime(buffer, 80, "%d/%b/%Y:%H:%M:%S", localtime(&theclock));
-		fprintf(access_log, "%s - - [%s +0000] \"%s %s %s\" 200 %ld\n",
-			remotehost, buffer, headonly ? "HEAD" : "GET", real_path,
-			version, size > 0 ? (long)size : (long)0);
-	}
+	logrequest(real_path, size);
 	close(fd);
 }
 

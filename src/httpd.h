@@ -37,6 +37,7 @@ extern	VOID	error			PROTO((const char *));
 extern	VOID	redirect		PROTO((const char *, int));
 extern	int	readline		PROTO((int, char *));
 extern	VOID	server_error		PROTO((const char *, const char *));
+extern	VOID	logrequest		PROTO((const char *, long));
 extern	VOID	error			PROTO((const char *));
 extern	char	*escape			PROTO((const char *));
 extern	int	check_auth		PROTO((FILE *));

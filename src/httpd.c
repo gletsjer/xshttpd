@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.69 2002/02/26 17:18:20 johans Exp $ */
+/* $Id: httpd.c,v 1.70 2002/03/12 14:17:30 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.69 2002/02/26 17:18:20 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.70 2002/03/12 14:17:30 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -487,6 +487,7 @@ open_logs DECL1(int, sig)
 		close(tempfile);
 	}
 
+#ifndef		LOG_COMBINED
 	if (refer_log)
 		fclose(refer_log);
 	if (!(refer_log = fopen(refer_path, "a")))
@@ -496,6 +497,7 @@ open_logs DECL1(int, sig)
 #else		/* Not not SETVBUF_REVERSED */
 	setvbuf(refer_log, _IOLBF, NULL, 0);
 #endif		/* SETVBUF_REVERSED */
+#endif		/* LOG_COMBINED */
 
 	if (mainhttpd)
 	{
@@ -898,6 +900,33 @@ server_error DECL2CC(char *, readable, char *, cgi)
 	}
 }
 
+extern	void
+logrequest DECL2(const char *, request, long, size)
+{
+	char		buffer[80];
+	time_t		theclock;
+
+	time(&theclock);
+	strftime(buffer, 80, "%d/%b/%Y:%H:%M:%S", localtime(&theclock));
+
+#ifndef		LOG_COMBINED
+	fprintf(access_log, "%s - - [%s +0000] \"%s %s %s\" 200 %ld\n",
+		remotehost,
+		buffer, 
+		getenv("REQUEST_METHOD"), request, version,
+		size > 0 ? (long)size : (long)0);
+#else		/* LOG_COMBINED */
+	fprintf(access_log, "%s - - [%s +0000] \"%s %s %s\" 200 %ld "
+			"\"%s\" \"%s\"\n",
+		remotehost,
+		buffer, 
+		getenv("REQUEST_METHOD"), request, version,
+		size > 0 ? (long)size : (long)0,
+		referer,
+		getenv("USER_AGENT"));
+#endif		/* LOG_COMBINED */
+}
+
 int
 secread DECL3(int, fd, void *, buf, size_t, count)
 {
@@ -1223,9 +1252,11 @@ process_request DECL0
 	bzero(params + size, 16);
 	bcopy(params, orig, size + 16);
 
+#ifndef		LOG_COMBINED
 	if (referer[0] &&
 		(!thisdomain[0] || !strcasestr(referer, thisdomain)))
 		fprintf(refer_log, "%s -> %s\n", referer, params);
+#endif		/* LOG_COMBINED */
 
 	if ((temp = getenv("HTTP_HOST")) &&
 		(temp = strncpy(http_host, temp, NI_MAXHOST)))

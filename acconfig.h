@@ -62,6 +62,12 @@ from .charset files. Define HANDLE_CHARSET if that is what you want */
   
 #undef HANDLE_CHARSET
 
+/* Define this if you want to use the Extended (combined) Common Log File
+(ECLF) format. Previous versions used the (NCSA standard) CLF */
+  
+#undef LOG_COMBINED
+
+
 /* Persistent perl interpreter
  * This extension allows perl files to be interpreted by a built-in
  * interpreter. This is only available if SCRIPT_METHODS is enabled.

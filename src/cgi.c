@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.56 2002/02/19 15:46:37 johans Exp $ */
+/* $Id: cgi.c,v 1.57 2002/03/12 14:17:30 johans Exp $ */
 
 #include	"config.h"
 
@@ -820,16 +820,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 		totalwritten += received;
 	}
 
-	{
-		char		buffer[80];
-		time_t		theclock;
-
-		time(&theclock);
-		strftime(buffer, 80, "%d/%b/%Y:%H:%M:%S", localtime(&theclock));
-		fprintf(access_log, "%s - - [%s +0000] \"%s %s %s\" 200 %ld\n",
-			remotehost, buffer, getenv("REQUEST_METHOD"), path,
-			version, totalwritten > 0 ? totalwritten : (long)0);
-	}
+	logrequest(path, totalwritten);
 	END:
 	close(p[0]); close(p[1]); fflush(stdout);
 #ifdef		HANDLE_SSL

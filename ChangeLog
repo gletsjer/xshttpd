@@ -1,3 +1,7 @@
+Changes since 3.1 beta 4
+- Pragma: no-cache would be omitted when required and vice versa
+- Use Extended CLF logging format by default
+
 Changes since 3.1 beta 3
 - Use SO_REUSEPORT instead of SO_REUSEADDR
 - Be RFC2324 compatible... well, sortof...
