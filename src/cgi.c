@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.49 2001/05/25 11:38:59 johans Exp $ */
+/* $Id: cgi.c,v 1.50 2001/05/30 10:33:18 johans Exp $ */
 
 #include	"config.h"
 
@@ -672,11 +672,11 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 				switch(location[0])
 				{
 				case '/':
-					if (!strcmp(port, "80"))
+					if (!strcmp(port, "http"))
 						append(head, 0, "Location: http://%s%s\r\n",
 							thishostname, location);
 #ifdef		HANDLE_SSL
-					else if (do_ssl && !strcmp(port, "443"))
+					else if (do_ssl && !strcmp(port, "https"))
 						append(head, 0, "Location: https://%s%s\r\n",
 							thishostname, location);
 					else if (do_ssl)

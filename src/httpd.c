@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.59 2001/05/18 19:02:35 johans Exp $ */
+/* $Id: httpd.c,v 1.60 2001/05/30 10:33:18 johans Exp $ */
 
 #include	"config.h"
 
@@ -384,7 +384,7 @@ load_config DECL0
 	if (!config.address)
 		config.address = strdup("*");
 	if (!config.port)
-		config.port = strdup("www");
+		config.port = strdup("http");
 	if (!config.instances)
 		config.instances = HTTPD_NUMBER;
 	if (!config.pidfile)
@@ -1582,7 +1582,11 @@ setup_environment DECL0
 	setenv("SERVER_SOFTWARE", SERVER_IDENT, 1);
 	setenv("SERVER_NAME", thishostname, 1);
 	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
-	setenv("SERVER_PORT", port, 1);
+	setenv("SERVER_PORT",
+		!strcmp(port, "http") ? "80" :
+		!strcmp(port, "https") ? "443" :
+		port,
+		1);
 	snprintf(buffer, 16, "%d", localmode);
 	buffer[15] = '\0';
 	setenv("LOCALMODE", buffer, 1);
