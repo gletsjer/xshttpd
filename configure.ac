@@ -15,6 +15,7 @@ AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "$ppmtogif",
 	[ppmtogif-like program used to create graphic counters])
 
 dnl Checks for libraries.
+LDFLAGS="-L/usr/local/lib"
 
 dnl Checks for header files.
 AC_HEADER_STDC
