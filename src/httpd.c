@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.56 2001/05/17 09:01:45 johans Exp $ */
+/* $Id: httpd.c,v 1.57 2001/05/18 09:01:59 johans Exp $ */
 
 #include	"config.h"
 
@@ -1242,7 +1242,6 @@ process_request DECL0
 		/* Ignore unqualified names - it could be a subdirectory! */
 		if (http_host && strchr(http_host, '.'))
 			setenv("HTTP_HOST", http_host, 1);
-		free(http_host);
 	}
 	else if (headers >= 11)
 	{
