@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.125 2004/02/22 15:11:17 johans Exp $ */
+/* $Id: httpd.c,v 1.126 2004/03/06 11:15:40 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.125 2004/02/22 15:11:17 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.126 2004/03/06 11:15:40 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -292,7 +292,9 @@ load_config DECL0
 				else if (!strcasecmp("ListenFamily", key))
 					config.family =
 						!strcasecmp("IPv4", value) ? PF_INET :
+#ifdef		INET6
 						!strcasecmp("IPv6", value) ? PF_INET6 :
+#endif		/* INET6 */
 						PF_UNSPEC;
 				else if (!strcasecmp("Instances", key))
 				{
@@ -510,10 +512,12 @@ load_config DECL0
 			errx(1, "Invalid groupname: %s", groupname);
 		config.system->groupid = grp->gr_gid;
 	}
+#ifdef		HANDLE_SSL
 	if (!config.system->sslcertificate)
 		config.system->sslcertificate = strdup(CERT_FILE);
 	if (!config.system->sslprivatekey)
 		config.system->sslprivatekey = strdup(KEY_FILE);
+#endif		/* HANDLE_SSL */
 	/* Set up users section */
 	if (!config.users)
 	{
@@ -1059,7 +1063,7 @@ logrequest DECL2(const char *, request, long, size)
 	if (!current->openaccess)
 		if (!config.system->openaccess)
 		{
-			warnx("Logfile disappeared???");
+			fprintf(stderr, "Logfile disappeared???\n");
 			return;
 		}
 		else

@@ -492,7 +492,8 @@ extern	VOID
 do_get DECL1(char *, params)
 {
 	char			*temp, *cgi, *file, *question,
-			auth[XS_PATH_MAX], base[XS_PATH_MAX], total[XS_PATH_MAX];
+			auth[XS_PATH_MAX], base[XS_PATH_MAX], total[XS_PATH_MAX],
+			temppath[XS_PATH_MAX];
 	const	char		*filename, *http_host;
 	int			fd, wasdir, permanent, script = 0, tmp;
 	size_t			size;
@@ -643,7 +644,7 @@ do_get DECL1(char *, params)
 	cgi = file;
 
 	/* look for file on disk */
-	asprintf(&temp, "%s%s", base, file);
+	snprintf(temppath, XS_PATH_MAX, "%s%s", base, file);
 	if (!stat(temp, &statbuf) &&
 		(statbuf.st_mode & S_IFMT) == S_IFREG)
 	{
@@ -663,14 +664,12 @@ do_get DECL1(char *, params)
 				break; /* error later */
 			if ((statbuf.st_mode & S_IFMT) == S_IFREG)
 			{
-				char	*fp;
 				*temp = '/';
 				setenv("PATH_INFO", temp, 1);
-				asprintf(&fp, "%s%s", fullpath, temp);
-				setenv("PATH_TRANSLATED", fp, 1);
-				setenv("SCRIPT_FILENAME", fp, 1);
+				snprintf(temppath, XS_PATH_MAX, "%s%s", fullpath, temp);
+				setenv("PATH_TRANSLATED", temppath, 1);
+				setenv("SCRIPT_FILENAME", temppath, 1);
 				*temp = 0;
-				free(fp);
 				break;
 			}
 			*(temp++) = '/';
@@ -1121,22 +1120,27 @@ loadcompresstypes DECL0
 extern	VOID
 loadscripttypes PROTO((char *base))
 {
-	char		line[MYBUFSIZ], *end, *comment;
-	char		*path = NULL;
+	char		line[MYBUFSIZ], *end, *comment, *path;
 	FILE		*methods;
 	ctypes		*prev, *new;
 
 	if (base)
 	{
-		while (litype) { new = litype->next; free(litype); litype = new; }
-		asprintf(&path, "%s/.xsscripts", base);
+		while (litype)
+			{ new = litype->next; free(litype); litype = new; }
+		path = (char *)malloc(strlen(base) + 12);
+		sprintf(path, "%s/.xsscripts", base);
 		if (!(methods = fopen(path, "r")))
+		{
+			free(path);
 			return;
+		}
 	}
 	else
 	{
-		while (itype) { new = itype->next; free(itype); itype = new; }
-		path = (char *)calcpath(SCRIPT_METHODS);
+		while (itype)
+			{ new = itype->next; free(itype); itype = new; }
+		path = strdup(calcpath(SCRIPT_METHODS));
 		if (!(methods = fopen(path, "r")))
 			err(1, "fopen(`%s' [read])", path);
 	}
@@ -1166,6 +1170,7 @@ loadscripttypes PROTO((char *base))
 		if (sscanf(line, "%s %s", new->prog, new->ext) != 2)
 			errx(1, "Unable to parse `%s' in `%s'", line, path);
 	}
+	free(path);
 	fclose(methods);
 }
 #endif		/* HANDLE_SCRIPT */
