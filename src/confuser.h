@@ -3,19 +3,6 @@
 /* This is where all the user preferences are defined. You may probably
 want to edit something in this file. At least have a good look at it. */
 
-/* The path in which `ppmtogif' (part of the NetPBM package) can be found.
-If you do not have this, the graphical counter will not work (I'm
-working on this...). In that case, #undef this line. */
-  
-#define PATH_PPMTOGIF "/usr/local/bin/ppmtogif"
-  
-/* The default root directory for the server. This is where the subdirs
-'logs', 'htdocs' and 'cgi-bin' go. This is used as a base directory
-for other directories (see below). It can be overridden from the
-command line. */
-  
-#define HTTPD_ROOT "/usr/local/lib/httpd"
-  
 /* The default number of servers. This is the maximum number of requests
 that the server will be able to handle concurrently. Watch out though:
 it also forks this number of processes (once only). You can change this
@@ -72,13 +59,6 @@ line. */
 a relative or an absolute path. */
   
 #define PID_PATH "/var/run/httpd.pid"
-  
-/* Fill in the name of your domain here, including the leading dot.
-This is used to strip out refers that come from your own site
-(which are usually not interesting). If you want all refers,
-undefine THISDOMAIN. This can be overridden on the command line. */
-  
-#define THISDOMAIN ".stack.nl"
   
 /* The name of the default WWW page if a directory is specified.
 Both these names are checked. */

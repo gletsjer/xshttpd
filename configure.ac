@@ -8,6 +8,8 @@ AC_PROG_CC
 AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
+AC_PATH_PROG(ppmtogif, ppmtogif, /bin/true)
+AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "$ppmtogif")
 
 dnl Checks for libraries.
 
@@ -38,12 +40,15 @@ dnl SEPERATOR
 AC_CHECK_FUNCS(bcopy bzero getaddrinfo getnameinfo killpg mkstemp mmap setenv seteuid setegid setresuid setresgid setsid setpriority sigemptyset tempnam vfork)
 
 dnl Prog specific checks
+if test x$prefix = xNONE
+then
+	prefix=/usr/local
+fi
 AC_ARG_WITH(rootdir,
 	[  --with-rootdir=PATH     directory to install data files [LIBDIR/httpd]],
 	rootdir=${withval},
-	rootdir=${libdir}/httpd)
+	rootdir=${prefix}/lib/httpd)
 miscdir=${rootdir}
-miscdir=${libdir}/httpd
 AC_ARG_DIR(cgidir, cgi-bin)
 AC_ARG_DIR(fontdir, gfxcount)
 AC_ARG_DIR(icondir, icons)
@@ -85,7 +90,7 @@ dnl Test runs for required global variables
 AC_NEED_CONST(sys_errlist, NEED_SYS_ERRLIST_DECL, stdio.h)
 AC_NEED_CONST(optarg, NEED_OPTARG_AND_OPTIND, unistd.h)
 AC_NEED_CONST(environ, NEED_DECL_ENVIRON, unistd.h)
-if test "${ac_cv_func_setpriority}" = yes
+if test x${ac_cv_func_setpriority} = xyes
 then
 	AC_NEED_CONST2(PRIO_MAX, NEED_PRIO_MAX, sys/time.h, sys/resource.h)
 fi
@@ -93,12 +98,24 @@ dnl AC_EGREP_HEADER(sys_errlist, stdio.h,, AC_DEFINE(NEED_SYS_ERRLIST_DECL))
 dnl AC_EGREP_HEADER(optarg, getopt.h,, AC_DEFINE(NEED_OPTARG_AND_OPTIND))
 dnl AC_EGREP_HEADER(eniviron, unistd.h,, AC_DEFINE(NEED_DECL_ENVIRON))
 
+AC_DEFINE_UNQUOTED(HTTPD_ROOT, "$rootdir")
 AC_SUBST(miscdir)
 AC_SUBST(cgidir)
 AC_SUBST(fontdir)
 AC_SUBST(icondir)
 AC_SUBST(docdir)
 AC_SUBST(logdir)
+
+AC_MSG_CHECKING(for local domain)
+hostname=`( hostname -f || hostname || cat /etc/HOSTNAME ) 2> /dev/null`
+if test x$hostname = x -o x$hostname = x${hostname#*.}
+then
+	domain=".stack.nl"
+else
+	domain=".${hostname#*.}"
+fi
+AC_DEFINE_UNQUOTED(THISDOMAIN, "$domain")
+AC_MSG_RESULT($domain)
 
 dnl I just get tired of typing this
 dnl Should be replaced by a decent check some day...

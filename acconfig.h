@@ -52,6 +52,26 @@ default compress.methods for more details. */
 #undef HANDLE_COMPRESSED 
 #define COMPRESS_METHODS "compress.methods"
 
+/* The path in which `ppmtogif' (part of the NetPBM package) can be found.
+If you do not have this, the graphical counter will not work (I'm
+working on this...). In that case, #undef this line. */
+  
+#define PATH_PPMTOGIF "/usr/local/bin/ppmtogif"
+  
+/* The default root directory for the server. This is where the subdirs
+'logs', 'htdocs' and 'cgi-bin' go. This is used as a base directory
+for other directories (see below). It can be overridden from the
+command line. */
+  
+#define HTTPD_ROOT "/usr/local/lib/httpd"
+
+/* Fill in the name of your domain here, including the leading dot.
+This is used to strip out refers that come from your own site
+(which are usually not interesting). If you want all refers,
+undefine THISDOMAIN. This can be overridden on the command line. */
+  
+#define THISDOMAIN ".stack.nl"
+  
 /* Do we want to use setrlimit() to limit CGI programs in what they do? */
  
 #undef USE_SETRLIMIT 
