@@ -760,7 +760,8 @@ do_get DECL1(char *, params)
 #ifdef		HANDLE_COMPRESSED
 	if (search)
 	{
-		if ((temp = strstr(getenv("HTTP_ACCEPT_ENCODING"), search->name)))
+		if (search->name &&
+			strstr(getenv("HTTP_ACCEPT_ENCODING"), search->name))
 		{
 			setenv("CONTENT_ENCODING", search->name, 1);
 			senduncompressed(fd);
