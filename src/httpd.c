@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.46 2001/02/11 17:36:55 johans Exp $ */
+/* $Id: httpd.c,v 1.47 2001/02/12 12:36:48 johans Exp $ */
 
 #include	"config.h"
 
@@ -691,7 +691,7 @@ server_error DECL2CC(char *, readable, char *, cgi)
 }
 
 int
-secread(int fd, void *buf, size_t count)
+secread DECL3(int, fd, void *, buf, size_t, count)
 {
 #ifdef		HANDLE_SSL
 	if (do_ssl && fd == 0)
@@ -702,7 +702,7 @@ secread(int fd, void *buf, size_t count)
 }
 
 int
-secwrite(int fd, void *buf, size_t count)
+secwrite DECL3(int, fd, void *, buf, size_t, count)
 {
 #ifdef		HANDLE_SSL
 	if (do_ssl)
@@ -713,7 +713,7 @@ secwrite(int fd, void *buf, size_t count)
 }
 
 int
-secfwrite(void *buf, size_t size, size_t count, FILE *stream)
+secfwrite DECL4(void *, buf, size_t, size, size_t, count, FILE *, stream)
 {
 #ifdef		HANDLE_SSL
 	if (do_ssl)
@@ -762,7 +762,7 @@ va_dcl
 #endif		/* NONEWSTYLE */
 
 int
-secfputs(char *buf, FILE *stream)
+secfputs DECL2(char *, buf, FILE *, stream)
 {
 #ifdef		HANDLE_SSL
 	if (do_ssl)
