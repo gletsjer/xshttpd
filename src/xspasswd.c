@@ -2,6 +2,7 @@
 #include	"config.h"
 
 #include	<stdio.h>
+#include	<stdlib.h>
 #include	<unistd.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>

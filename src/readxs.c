@@ -9,6 +9,7 @@
 #include	<errno.h>
 #include	<fcntl.h>
 #include	<signal.h>
+#include	<string.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
 #else		/* Not HAVE_ERR_H */

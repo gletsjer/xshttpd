@@ -69,7 +69,7 @@ static struct dtconv    En_US = {
           "Thursday", "Friday", "Saturday" },
         "%H:%M:%S",
         "%m/%d/%y",
-        "%a %b %e %T %Z %Y",
+        "%a %b %e %H:%M:%S %Z %Y",
         "AM",
         "PM",
         "%A, %B, %e, %Y"

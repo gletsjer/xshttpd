@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.93 2002/11/12 18:05:38 johans Exp $ */
+/* $Id: httpd.c,v 1.94 2002/11/27 18:34:52 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.93 2002/11/12 18:05:38 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.94 2002/11/27 18:34:52 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -114,7 +114,7 @@ uid_t		origeuid;
 char		netbuf[MYBUFSIZ], remotehost[NI_MAXHOST], orig[MYBUFSIZ],
 		currenttime[80], dateformat[MYBUFSIZ], real_path[XS_PATH_MAX],
 		version[16], error_path[XS_PATH_MAX],
-		access_path[XS_PATH_MAX], refer_path[XS_PATH_MAX], rootdir[XS_PATH_MAX],
+		access_path[XS_PATH_MAX], refer_path[XS_PATH_MAX],
 		currentdir[XS_PATH_MAX], config_path[XS_PATH_MAX],
 		name[XS_PATH_MAX];
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[SENDBUFSIZE],
@@ -213,7 +213,7 @@ setcurrenttime DECL0
 
 	time(&thetime);
 	strftime(currenttime, sizeof(currenttime),
-		"%a, %d %b %Y %T GMT", gmtime(&thetime));
+		"%a, %d %b %Y %H:%M:%S GMT", gmtime(&thetime));
 }
 
 static	VOID
@@ -477,35 +477,33 @@ load_config DECL0
 		config.system->logreferer = strdup(BITBUCKETNAME);
 	if (!config.system->logstyle)
 		config.system->logstyle = combined;
+	/* Set up users section */
 	if (!config.users)
 	{
 		config.users = malloc(sizeof(struct virtual));
 		memset(config.users, 0, sizeof(struct virtual));
 	}
+	if (!config.users->hostname)
+		config.users->hostname = strdup(config.system->hostname);
 	if (!config.users->htmldir)
-		config.users->htmldir = strdup(".");
-	if (!config.users->execdir)
-		config.users->execdir = strdup("cgi-bin");
-	if (!config.users->phexecdir)
-		config.users->phexecdir = strdup("cgi-bin");
-	if (config.users->logerror)
-		warnx("error logs not implemented for users section");
-	if (config.users->logreferer)
-		warnx("referer logs not implemented for users section");
+		config.users->htmldir = strdup(HTTPD_USERDOC_ROOT);
 	config.system->next = config.users;
 	config.users->next = config.virtual;
-	current = config.virtual;
-	while (current)
+	/* Check users and virtual sections */
+	for (current = config.users; current; current = current->next)
 	{
 		if (!current->hostname)
 			err(1, "illegal virtual block without hostname");
 		if (!current->htmldir)
 			err(1, "illegal virtual block without directory");
-		if (config.users->logerror)
+		if (!current->execdir)
+			current->execdir = strdup(HTTPD_SCRIPT_ROOT);
+		if (!current->phexecdir)
+			current->phexecdir = strdup(HTTPD_SCRIPT_ROOT_P);
+		if (current->logerror)
 			warnx("error logs not implemented for virtual section");
-		if (config.users->logreferer)
+		if (current->logreferer)
 			warnx("referer logs not implemented for virtual section");
-		current = current->next;
 	}
 }
 
@@ -1766,7 +1764,7 @@ setup_environment DECL0
 	snprintf(buffer, 16, "%d", config.localmode);
 	buffer[15] = '\0';
 	setenv("LOCALMODE", buffer, 1);
-	setenv("HTTPD_ROOT", rootdir, 1);
+	setenv("HTTPD_ROOT", config.systemroot, 1);
 }
 
 int
@@ -1797,8 +1795,6 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			strcat(startparams, " ");
 	}
 
-	strncpy(rootdir, HTTPD_ROOT, XS_PATH_MAX);
-	rootdir[XS_PATH_MAX-1] = '\0';
 	message503[0] = 0;
 #ifdef		THISDOMAIN
 	strncpy(thisdomain, THISDOMAIN, NI_MAXHOST);
@@ -1845,8 +1841,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 		case 'd':
 			if (*optarg != '/')
 				errx(1, "The -d directory must start with a /");
-			strncpy(rootdir, optarg, XS_PATH_MAX-1);
-			rootdir[XS_PATH_MAX-1] = 0;
+			strncpy(config.systemroot, optarg, XS_PATH_MAX-1);
 			break;
 		case 'a':
 			strncpy(config.system->hostname, optarg, NI_MAXHOST);

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: local.c,v 1.7 2002/06/12 13:14:19 johans Exp $ */
+/* $Id: local.c,v 1.8 2002/11/27 18:34:53 johans Exp $ */
 
 #include	"config.h"
 
@@ -52,7 +52,11 @@ static	int
 transform_user_dir1 DECL3_C_(char *, base, struct passwd *, userinfo,
 			int, errors)
 {
-	sprintf(base, "%s/.html/", userinfo->pw_dir);
+#ifdef		BUILD_HTTPD
+	sprintf(base, "%s/%s/", userinfo->pw_dir, config.users->htmldir);
+#else		/* BUILD_HTTPD */
+	sprintf(base, "%s/%s/", userinfo->pw_dir, HTTPD_USERDOC_ROOT);
+#endif		/* BUILD_HTTPD */
 	(void)errors;
 	return(0);
 }

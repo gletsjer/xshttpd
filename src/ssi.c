@@ -324,7 +324,7 @@ ALREADY:
 		break;
 	case MODE_GFX_ALL:
 		secprintf("<IMG SRC=\"/%s/gfxcount%s?%d\" ALT=\"%d\">",
-			HTTPD_SCRIPT_ROOT,
+			current->execdir,
 			args ? args : "", counter.total, counter.total);
 		break;
 	case MODE_TODAY:
@@ -332,7 +332,7 @@ ALREADY:
 		break;
 	case MODE_GFX_TODAY:
 		secprintf("<IMG SRC=\"/%s/gfxcount%s?%d\" ALT=\"%d\">",
-			HTTPD_SCRIPT_ROOT,
+			current->execdir,
 			args ? args : "", counter.today, counter.today);
 		break;
 	case MODE_MONTH:
@@ -340,7 +340,7 @@ ALREADY:
 		break;
 	case MODE_GFX_MONTH:
 		secprintf("<IMG SRC=\"/%s/gfxcount%s?%d\" ALT=\"%d\">",
-			HTTPD_SCRIPT_ROOT,
+			current->execdir,
 			args ? args : "", counter.month, counter.month);
 		break;
 	case MODE_RESET:

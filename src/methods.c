@@ -175,7 +175,7 @@ senduncompressed DECL1(int, fd)
 #endif		/* WANT_SSI */
 		if ((env = getenv("IF_MODIFIED_SINCE")))
 		{
-			strptime(env, "%a, %d %b %Y %T", &reqtime);
+			strptime(env, "%a, %d %b %Y %H:%M:%S", &reqtime);
 			if (!dynamic && (mktime(&reqtime) > modtime))
 			{
 				headonly = 1;
@@ -186,7 +186,7 @@ senduncompressed DECL1(int, fd)
 		}
 		else if ((env = getenv("IF_UNMODIFIED_SINCE")))
 		{
-			strptime(env, "%a, %d %b %Y %T", &reqtime);
+			strptime(env, "%a, %d %b %Y %H:%M:%S", &reqtime);
 			if (dynamic || (mktime(&reqtime) > modtime))
 			{
 				server_error("412 Precondition failed", "PRECONDITION_FAILED");
@@ -224,7 +224,7 @@ senduncompressed DECL1(int, fd)
 			unsetenv("CONTENT_ENCODING");
 		}
 		strftime(modified, sizeof(modified),
-			"%a, %d %b %Y %T GMT", gmtime(&modtime));
+			"%a, %d %b %Y %H:%M:%S GMT", gmtime(&modtime));
 		secprintf("Last-modified: %s\r\n\r\n", modified);
 	}
 #ifdef		WANT_SSI
@@ -550,7 +550,9 @@ do_get DECL1(char *, params)
 	} else
 	{
 		file = params;
-		if (config.usevirtualhost && (http_host = getenv("HTTP_HOST")))
+		if (config.usevirtualhost &&
+			current == config.system &&
+			(http_host = getenv("HTTP_HOST")))
 		{
 			strncpy(base, calcpath(http_host), XS_PATH_MAX-1);
 			base[XS_PATH_MAX-2] = '\0';
@@ -572,7 +574,6 @@ do_get DECL1(char *, params)
 				}
 			}
 		}
-		else
 		{
 			size = strlen(current->execdir);
 			if (!strncmp(params + 1, current->execdir, size))

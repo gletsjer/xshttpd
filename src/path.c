@@ -7,6 +7,7 @@
 #include	<sys/stat.h>
 
 #include	"httpd.h"
+#include	"htconfig.h"
 #include	"local.h"
 #include	"path.h"
 #include	"mystring.h"
@@ -21,7 +22,10 @@ calcpath DECL1C(char *, filename)
 		strncpy(buffer, filename, XS_PATH_MAX - 1);
 	else
 	{
-		strncpy(buffer, rootdir, XS_PATH_MAX - 1);
+		if (config.systemroot)
+			strncpy(buffer, config.systemroot, XS_PATH_MAX - 1);
+		else
+			strncpy(buffer, HTTPD_ROOT, XS_PATH_MAX - 1);
 		buffer[XS_PATH_MAX - 2] = 0;
 		len = strlen(buffer);
 		buffer[len++] = '/';

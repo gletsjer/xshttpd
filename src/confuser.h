@@ -27,6 +27,10 @@ absolute path. If it does not start with a slash, it is assumed
 to be relative to HTTPD_ROOT. */
   
 #define HTTPD_DOCUMENT_ROOT "htdocs"
+
+/* Subdir in which users html pages are stored. Eg .html or public_html */
+ 
+#define HTTPD_USERDOC_ROOT ".html"
   
 /* You can change the name of the directory that contains CGI binaries.
 When the server encounters requests for either /cgi-bin/something or
