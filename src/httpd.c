@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.40 2001/01/28 17:59:51 johans Exp $ */
+/* $Id: httpd.c,v 1.41 2001/01/28 19:04:19 johans Exp $ */
 
 #include	"config.h"
 
@@ -83,7 +83,8 @@
 #include	"path.h"
 #include	"convert.h"
 #include	"setenv.h"
-#include	"getopt.h"
+#include	"mystring.h"
+#include	"mygetopt.h"
 
 #ifdef		__linux__
 extern	char	*tempnam(const char *, const char *);

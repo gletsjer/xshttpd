@@ -43,6 +43,7 @@
 #include	"path.h"
 #include	"convert.h"
 #include	"setenv.h"
+#include	"mystring.h"
 
 #ifndef		NOFORWARDS
 static	const	char	*skipspaces	PROTO((const char *));

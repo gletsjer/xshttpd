@@ -11,6 +11,7 @@
 #include	"local.h"
 #include	"setenv.h"
 #include	"path.h"
+#include	"mystring.h"
 
 #ifndef		NOFORWARDS
 extern	VOID	error			PROTO((const char *));

@@ -43,6 +43,7 @@
 #include	"path.h"
 #include	"convert.h"
 #include	"xscounter.h"
+#include	"mystring.h"
 
 #ifndef		NOFORWARDS
 static	int	xsc_initdummy		PROTO((void));

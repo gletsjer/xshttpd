@@ -81,7 +81,8 @@
 #include	"path.h"
 #include	"convert.h"
 #include	"setenv.h"
-#include	"getopt.h"
+#include	"mygetopt.h"
+#include	"mystring.h"
 
 #ifdef		__linux__
 extern	char	*tempnam(const char *, const char *);

@@ -17,7 +17,7 @@
 #include	<pwd.h>
 
 #include	"xscounter.h"
-#include	"getopt.h"
+#include	"mygetopt.h"
 
 #define		MODE_TODAY	0
 #define		MODE_MONTH	1

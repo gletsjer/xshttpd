@@ -19,5 +19,5 @@ xspasswd_LDFLAGS = @ldcrypt@
 xschpass_LDFLAGS = @ldcrypt@
 
 EXTRA_DIST = cgi.h confdetect.h config.h confpatch.h confuser.h convert.h \
-	err.h extra.h getopt.h httpd.h local.h methods.h path.h procname.h \
-	setenv.h ssi.h xscounter.h xscrypt.h
+	err.h extra.h httpd.h local.h methods.h mygetopt.h mystring.h path.h \
+	procname.h setenv.h ssi.h xscounter.h xscrypt.h

@@ -118,10 +118,3 @@
 #define		setegid(a)	setregid(-1, (a))
 #endif		/* HAVE_SETRESGID */
 #endif		/* HAVE_SETEGID */
-
-#ifdef		HAVE_STRING_H
-#include	<string.h>
-#endif		/* HAVE_STRING_H */
-#ifdef		HAVE_STRINGS_H
-#include	<strings.h>
-#endif		/* HAVE_STRINGS_H */
