@@ -1,3 +1,12 @@
+Changes since 3.0 beta 9
+- Critical: check for valid Host: header before using $HTTP_HOST
+  pointed out by Mark Huizer and Martijn van Buul
+- Remove the obsolete '#include virtual' server-side include
+- Allow relative paths in '#include-file' SSI
+- Only use tolower(c) iff isupper(c): critical on 2.11BSD
+- Collapse // and /./ in requested path, but not in $QUERY_STRING
+- Several small bug-fixes
+
 Changes since 3.0 beta 8
 - Several portability patches (compiles even on Cygwin/MS Windows)
 - Detect more "features" (now including the domainname ;)
