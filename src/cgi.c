@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.85 2004/11/26 16:45:09 johans Exp $ */
+/* $Id: cgi.c,v 1.86 2004/11/26 16:53:01 johans Exp $ */
 
 #include	"config.h"
 
@@ -56,6 +56,7 @@
 
 static	const	char	*skipspaces(const char *);
 static	void		time_is_up(int);
+static	int		eat_content_length(void);
 
 #ifdef		HANDLE_PERL
 const	char *	perlargs[] = { "", NULL };
@@ -73,7 +74,7 @@ skipspaces(const char *string)
 }
 
 static	int
-eat_content_length()
+eat_content_length(void)
 {
 	int		to_read, received;
 	char		buf[MYBUFSIZ];

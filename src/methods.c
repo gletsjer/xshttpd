@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.117 2004/11/26 16:45:09 johans Exp $ */
+/* $Id: methods.c,v 1.118 2004/11/26 16:53:01 johans Exp $ */
 
 #include	"config.h"
 
@@ -1130,9 +1130,9 @@ extern	void
 loadfiletypes(char *orgbase, char *base)
 {
 	char		line[MYBUFSIZ], *end, *comment;
-	char		*mimepath;
+	const char	*mimepath;
 	FILE		*mime;
-	ftypes		*prev, *new;
+	ftypes		*prev = NULL, *new = NULL;
 
 	if (!base)
 	{
@@ -1150,12 +1150,13 @@ loadfiletypes(char *orgbase, char *base)
 	lftype = NULL;
 	if (base)
 	{
+		mimepath = NULL;
 		if (!(mime = find_file(orgbase, base, ".mimetypes")))
 			return;
 	}
 	else
 	{
-		mimepath = (char *)calcpath(MIMETYPESFILE);
+		mimepath = calcpath(MIMETYPESFILE);
 		if (!(mime = fopen(mimepath, "r")))
 			err(1, "fopen(`%s' [read])", mimepath);
 	}
@@ -1180,7 +1181,7 @@ loadfiletypes(char *orgbase, char *base)
 		prev = new; new->next = NULL;
 		if (sscanf(line, "%s %s", new->name, new->ext) != 2)
 			errx(1, "Unable to parse line `%s' in `%s'",
-				line, mimepath);
+				line, mimepath ? mimepath : "local .mimetypes");
 	}
 	if (lftype && ftype)
 		new->next = ftype;
