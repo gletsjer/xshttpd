@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.43 2001/02/02 12:36:28 johans Exp $ */
+/* $Id: httpd.c,v 1.44 2001/02/02 12:43:43 johans Exp $ */
 
 #include	"config.h"
 
@@ -1060,7 +1060,9 @@ standalone_main DECL0
 	unsigned	long	laddr;
 #endif		/* HAVE_GETNAMEINFO */
 	pid_t			*childs, pid;
+#ifdef		HAVE_SETRLIMIT
 	struct	rlimit		limit;
+#endif		/* HAVE_SETRLIMIT */
 
 	/* Speed hack
 	 * gethostbyname("localhost");
@@ -1123,6 +1125,7 @@ standalone_main DECL0
 	if (listen(sd, MAXLISTEN))
 		err(1, "listen()");
 
+#ifdef		HAVE_SETRLIMIT
 #ifdef		RLIMIT_NPROC
 	limit.rlim_max = limit.rlim_cur = RLIM_INFINITY;
 	setrlimit(RLIMIT_NPROC, &limit);
@@ -1131,6 +1134,7 @@ standalone_main DECL0
 	limit.rlim_max = limit.rlim_cur = RLIM_INFINITY;
 	setrlimit(RLIMIT_CPU, &limit);
 #endif		/* RLIMIT_CPU */
+#endif		/* HAVE_SETRLIMIT */
 
 	set_signals(); reqs = 0;
 	if (!(childs = (pid_t *)malloc(sizeof(pid_t) * number)))

@@ -37,7 +37,7 @@ AC_FUNC_WAIT3
 AC_CHECK_FUNCS(gethostname mktime select strerror strstr)
 
 dnl SEPERATOR
-AC_CHECK_FUNCS(bcopy bzero getaddrinfo getnameinfo killpg mkstemp mmap setenv seteuid setegid setresuid setresgid setsid setpriority sigemptyset tempnam vfork)
+AC_CHECK_FUNCS(bcopy bzero getaddrinfo getnameinfo killpg mkstemp mmap setenv seteuid setegid setresuid setresgid setrlimit setsid setpriority sigemptyset tempnam vfork)
 
 dnl Prog specific checks
 if test x$prefix = xNONE
@@ -83,8 +83,11 @@ AC_ARG_DEFAULT(script, HANDLE_SCRIPT,
 	[  --disable-script        disable scripting support (PHP)])
 AC_ARG_DEFAULT(compress, HANDLE_COMPRESSED,
 	[  --disable-compress      disable auto-extraction of compressed files])
-AC_ARG_DEFAULT(setrlimit, USE_SETRLIMIT,
-	[  --disable-setrlimit     disable resource limits for CGI scripts])
+if test x${ac_cv_func_setrlimit} = xyes
+then
+	AC_ARG_DEFAULT(setrlimit, USE_SETRLIMIT,
+		[  --disable-setrlimit     disable resource limits for CGI scripts])
+fi
 
 dnl Test runs for required global variables
 
