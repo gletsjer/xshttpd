@@ -1,4 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
+/* $Id: httpd.c,v 1.33 2001/01/23 20:12:13 johans Exp $ */
 
 #include	"config.h"
 
