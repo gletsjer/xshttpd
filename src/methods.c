@@ -223,9 +223,14 @@ senduncompressed DECL1(int, fd)
 			secprintf("Content-encoding: %s\r\n", getenv("CONTENT_ENCODING"));
 			unsetenv("CONTENT_ENCODING");
 		}
-		strftime(modified, sizeof(modified),
-			"%a, %d %b %Y %H:%M:%S GMT", gmtime(&modtime));
-		secprintf("Last-modified: %s\r\n\r\n", modified);
+		if (!dynamic)
+		{
+			strftime(modified, sizeof(modified),
+				"%a, %d %b %Y %H:%M:%S GMT", gmtime(&modtime));
+			secprintf("Last-modified: %s\r\n\r\n", modified);
+		}
+		else
+			secprintf("\r\n");
 	}
 #ifdef		WANT_SSI
 	else

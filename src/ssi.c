@@ -568,7 +568,7 @@ dir_remote_host DECL2(char *, here, size_t *, size)
 static	int
 dir_run_cgi DECL2(char *, here, size_t *, size)
 {
-	char	*search, *querystring, *qs;
+	char	*search, *querystring, *qs, *cgi;
 	int		oldhead;
 
 	if ((qs = getenv("QUERY_STRING")))
@@ -579,7 +579,7 @@ dir_run_cgi DECL2(char *, here, size_t *, size)
 		else
 			querystring = NULL;
 
-	if (*(here++) != ' ')
+	if (*here != ' ')
 	{
 		secprintf("[No parameter for run-cgi]\n");
 		return(ERR_CONT);
@@ -589,10 +589,12 @@ dir_run_cgi DECL2(char *, here, size_t *, size)
 		secprintf("[Incomplete directive in run-cgi]\n");
 		return(ERR_CONT);
 	}
-	*search = 0;
 	oldhead = headers;
 	headers = 0;
-	do_get(here);
+	*search = 0;
+	cgi = strdup(here + 1);
+	*search = '-';
+	do_get(cgi);
 	headers = oldhead;
 	/* used to do something like this - which is way more efficient
 	 *
@@ -603,7 +605,6 @@ dir_run_cgi DECL2(char *, here, size_t *, size)
 		setenv("QUERY_STRING", querystring, 1);
 		free(querystring);
 	}
-	*search = '-';
 	(void)size;
 	return(ERR_NONE);
 }
@@ -863,37 +864,35 @@ parsedirectives DECL2(char *, parse, size_t *, size)
 		{
 			if (printable)
 			{
-				if (secfwrite(result, store - result,
-					1, stdout) != 1)
+				if (secfwrite(result, store - result, 1, stdout) != 1)
 					return(ERR_QUIT);
 				*size += (store - result);
 			}
 			store = result;
 		}
 		here += 5;
-		directive = directives;
-		while (directive->name)
+		for (directive = directives; directive->name; directive++)
 		{
 			len = strlen(directive->name);
-			if (!strncasecmp(directive->name, here, len) &&
-			   (!strncmp(here+len, "-->", 3) || here[len] == ' '))
+			if (strncasecmp(directive->name, here, len) ||
+					(strncmp(here+len, "-->", 3) && here[len] != ' '))
+				continue;
+
+			if (!directive->params &&
+				strncmp(here+len, "-->", 3))
 			{
-				if (!directive->params &&
-					strncmp(here+len, "-->", 3))
-				{
-					secprintf("[Garbage after `%s']",
-						directive->name);
-					goto SKIPDIR;
-				}
-				if (!printable &&
-					(directive->func != dir_if) &&
-					(directive->func != dir_if_not) &&
-					(directive->func != dir_else) &&
-					(directive->func != dir_endif) &&
-					(directive->func != dir_switch) &&
-					(directive->func != dir_endswitch) &&
-					(directive->func != dir_case))
-					goto SKIPDIR;
+				secprintf("[Garbage after `%s']",
+					directive->name);
+			}
+			else if (printable ||
+				(directive->func == dir_if) ||
+				(directive->func == dir_if_not) ||
+				(directive->func == dir_else) ||
+				(directive->func == dir_endif) ||
+				(directive->func == dir_switch) ||
+				(directive->func == dir_endswitch) ||
+				(directive->func == dir_case))
+			{
 				switch(directive->func(here + len, size))
 				{
 				case ERR_QUIT:
@@ -902,21 +901,20 @@ parsedirectives DECL2(char *, parse, size_t *, size)
 					secprintf("[Error parsing directive]\n");
 					break;
 				}
-				SKIPDIR:
-				if ((search = strstr(here, "-->")))
-					here = search + 3;
-				goto LOOPNEXT;
 			}
-			directive++;
+			if ((search = strstr(here, "-->")))
+				here = search + 3;
+			break;
 		}
-		secprintf("[Unknown directive]\n");
-		if ((search = strstr(here, "-->")))
-			here = search + 3;
-		LOOPNEXT: ;
+		if (!directive->name)
+		{
+			secprintf("[Unknown directive]\n");
+			if ((search = strstr(here, "-->")))
+				here = search + 3;
+		}
 	}
 
 	/* So what _is_ this for anyway??? */
-#if		0
 	if (store != result)
 	{
 		if (print_enabled())
@@ -926,7 +924,6 @@ parsedirectives DECL2(char *, parse, size_t *, size)
 			*size += (store - result);
 		}
 	}
-#endif
 	return(ERR_NONE);
 }
 
