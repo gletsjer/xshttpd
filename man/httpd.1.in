@@ -585,6 +585,12 @@ For example, if you name your CGI binary \fInid\-form.cgi\fP,
 it will run that binary under nobody/nogroup instead of your own
 UID (this is to protect yourself from accidental damage).
 .LP
+By default the output of a CGI script is not parsed for server-side
+includes. Usually there is no point, because CGI allows you to do all
+the fancy stuff SSI offers and more. But for some features (like
+the built-in counters) this may be desired. If the name of the CGI
+starts with \fBssi\-\fP then the output will be parsed.
+.LP
 There is one \fIreserved\fP CGI binary name known as \fBerror\fP.
 This binary gets called whenever something goes wrong. Users may have
 their own personal \fBerror\fP CGI binary. This binary gets called
