@@ -94,8 +94,11 @@ AC_SUBST(icondir)
 AC_SUBST(docdir)
 AC_SUBST(logdir)
 
-AC_DEFINE(NEED_DECL_ENVIRON)
-AC_DEFINE(NEED_OPTARG_AND_OPTIND)
+dnl I just get tired of typing this
+dnl Should be replaced by a decent check some day...
+test -f /etc/HOSTNAME && \
+	grep vwww /etc/HOSTNAME && \
+	AC_DEFINE(BROKEN_GETNAMEINFO)
 AC_SUBST(ldcrypt)
 AC_SUBST(httpd_ldflags)
 AC_SUBST(httpd_cflags)

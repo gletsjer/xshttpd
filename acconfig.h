@@ -73,3 +73,8 @@ then #define NEED_DECL_ENVIRON. */
  
 #undef NEED_DECL_ENVIRON 
 
+/* Does your system have a broken getnameinfo() function?
+Note: Linux distributions are well know for this feature */
+
+#undef BROKEN_GETNAMEINFO
+

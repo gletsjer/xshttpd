@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.36 2001/01/26 22:10:27 johans Exp $ */
+/* $Id: httpd.c,v 1.37 2001/01/27 17:57:07 johans Exp $ */
 
 #include	"config.h"
 
@@ -1233,7 +1233,7 @@ standalone_main DECL0
 		setvbuf(stdin, _IONBF, NULL, 0);
 #endif		/* SETVBUF_REVERSED */
 
-#ifdef		HAVE_GETADDRINFO
+#ifdef		HAVE_GETNAMEINFO
 		if (!getnameinfo((struct sockaddr *)&saddr, clen,
 			remotehost, sizeof(remotehost), NULL, 0, NI_NUMERICHOST))
 		{
@@ -1246,7 +1246,25 @@ standalone_main DECL0
 			else
 				setenv("REMOTE_ADDR", remotehost + 7, 1);
 		}
-#ifndef		HAVE_GETNAMEINFO
+#else		/* HAVE_GETNAMEINFO */
+		if (strncpy(remotehost,
+			inet_ntoa(((struct sockaddr_in *)&saddr)->sin_addr),
+			MAXHOSTNAMELEN))
+		{
+			remotehost[MAXHOSTNAMELEN-1] = '\0';
+			setenv("REMOTE_HOST", remotehost, 1);
+		}
+#endif		/* HAVE_GETNAMEINFO */
+
+#if			defined(HAVE_GETNAMEINFO) && !defined(BROKEN_GETNAMEINFO)
+		if (!getnameinfo((struct sockaddr *)&saddr, clen,
+			remotehost, sizeof(remotehost), NULL, 0, 0))
+		{
+			remotehost[MAXHOSTNAMELEN-1] = '\0';
+			setenv("REMOTE_HOST", remotehost, 1);
+		}
+#else		/* HAVE GETNAMEINFO and not BROKEN_GETNAMEINFO */
+#ifdef		HAVE_GETADDRINFO
 		/* This is especially for broken Linux distro's
 		 * that don't understand what getnameinfo() does
 		 * Let's abuse getaddrinfo() instead...
@@ -1260,23 +1278,10 @@ standalone_main DECL0
 			setenv("REMOTE_HOST", res->ai_canonname, 1);
 			freeaddrinfo(res);
 		}
-#else		/* HAVE_GETNAMEINFO */
-		if (!getnameinfo((struct sockaddr *)&saddr, clen,
-			remotehost, sizeof(remotehost), NULL, 0, 0))
-		{
-			remotehost[MAXHOSTNAMELEN-1] = '\0';
-			setenv("REMOTE_HOST", remotehost, 1);
-		}
-#endif		/* HAVE_GETNAMEINFO */
 #else		/* HAVE_GETADDRINFO */
-		if (strncpy(remotehost,
-			inet_ntoa(((struct sockaddr_in *)&saddr)->sin_addr),
-			MAXHOSTNAMELEN))
-		{
-			remotehost[MAXHOSTNAMELEN-1] = '\0';
-			setenv("REMOTE_HOST", remotehost, 1);
-		}
+		/* Loooser! You will just have to use the IP-adres... */
 #endif		/* HAVE_GETADDRINFO */
+#endif		/* HAVE GETNAMEINFO and not BROKEN_GETNAMEINFO */
 #ifdef		HANDLE_SSL
 		if (do_ssl) {
 			ssl = SSL_new(ssl_ctx);

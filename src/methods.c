@@ -405,16 +405,17 @@ extern	int
 allowxs DECL1(char *, file)
 {
 	char	*remotehost;
-	char	*allowhost = malloc(256);
+	char	allowhost[256];
 	FILE	*rfile;
 
-	if (!(remotehost = getenv("REMOTE_ADDR"), 255))
+	if (!(remotehost = getenv("REMOTE_ADDR")))
 		return 0; /* access denied */
 	if (!(rfile = fopen(file, "r")))
 		return 0; /* access denied */
 
 	while (fgets(allowhost, 256, rfile))
 	{
+		allowhost[255] = '\0';
 		if (strlen(allowhost) &&
 			allowhost[strlen(allowhost) - 1] == '\n')
 		    allowhost[strlen(allowhost) - 1] = '\0';
