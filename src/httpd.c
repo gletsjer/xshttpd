@@ -1032,7 +1032,11 @@ standalone_main DECL0
 
 	setprocname("xs(MAIN): Initializing deamons...");
 	memset(&hints, 0, sizeof(hints));
+#if		defined(__linux__) && defined(INET6)
+	hints.ai_family = PF_INET6;
+#else
 	hints.ai_family = PF_UNSPEC;
+#endif	/* __linux__ && INET6 */
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 	if ((getaddrinfo(forcehost ? thishostname : NULL, port, &hints, &res)))
@@ -1055,6 +1059,8 @@ standalone_main DECL0
 
 	if (listen(sd, MAXLISTEN))
 		err(1, "listen()");
+
+	freeaddrinfo(res);
 
 #ifdef		RLIMIT_NPROC
 	limit.rlim_max = limit.rlim_cur = RLIM_INFINITY;
