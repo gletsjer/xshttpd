@@ -9,6 +9,8 @@ extern struct virtual {
 	char *		logaccess;
 	char *		logerror;
 	char *		logreferer;
+	uid_t		userid;
+	gid_t		groupid;
 	FILE *		openaccess;
 	FILE *		openreferer;
 	FILE *		openerror;
@@ -26,8 +28,6 @@ extern struct configuration {
 	unsigned short	instances;
 	unsigned short	localmode;
 	char *		pidfile;
-	uid_t		userid;
-	gid_t 		groupid;
 	unsigned	execasuser: 1;
 	unsigned	usecharset: 1;
 	unsigned	usessl: 1;

@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.114 2003/03/02 11:09:54 johans Exp $ */
+/* $Id: httpd.c,v 1.115 2003/03/16 12:29:43 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.114 2003/03/02 11:09:54 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.115 2003/03/16 12:29:43 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -299,10 +299,6 @@ load_config DECL0
 				}
 				else if (!strcasecmp("PidFile", key))
 					config.pidfile = strdup(value);
-				else if (!strcasecmp("UserId", key))
-					username = strdup(value);
-				else if (!strcasecmp("GroupId", key))
-					groupname = strdup(value);
 				else if (!strcasecmp("ExecAsUser", key))
 					if (!strcasecmp("true", value))
 						config.execasuser = 1;
@@ -359,6 +355,24 @@ load_config DECL0
 						current->logstyle = combined;
 					else
 						errx(1, "illegal logstyle: '%s'", value);
+				else if (!strcasecmp("UserId", key))
+				{
+					if (!current->userid && !(current->userid = atoi(value)))
+					{
+						if (!(pwd = getpwnam(value)))
+							errx(1, "Invalid username: %s", value);
+						current->userid = pwd->pw_uid;
+					}
+				}
+				else if (!strcasecmp("GroupId", key))
+				{
+					if (!current->groupid && !(current->groupid = atoi(value)))
+					{
+						if (!(grp = getgrnam(value)))
+							errx(1, "Invalid groupname: %s", value);
+						current->groupid = grp->gr_gid;
+					}
+				}
 				else
 					err(1, "illegal directive: '%s'", key);
 			}
@@ -383,7 +397,7 @@ load_config DECL0
 				else if (!strcasecmp("<Virtual>", key))
 				{
 					if (subtype)
-						err(1, "illegal <Users> nesting");
+						err(1, "illegal <Virtual> nesting");
 					subtype = 3;
 					current = malloc(sizeof(struct virtual));
 					memset(current, 0, sizeof(struct virtual));
@@ -442,24 +456,9 @@ load_config DECL0
 		config.instances = HTTPD_NUMBER;
 	if (!config.pidfile)
 		config.pidfile = strdup(PID_PATH);
-	if (!username)
-		username = strdup(HTTPD_USERID);
 	if (!config.localmode)
 		config.localmode = 1;
-	if (!config.userid && !(config.userid = atoi(username)))
-	{
-		if (!(pwd = getpwnam(username)))
-			errx(1, "Invalid username: %s", username);
-		config.userid = pwd->pw_uid;
-	}
-	if (!groupname)
-		groupname = strdup(HTTPD_GROUPID);
-	if (!config.groupid && !(config.groupid = atoi(groupname)))
-	{
-		if (!(grp = getgrnam(groupname)))
-			errx(1, "Invalid groupname: %s", groupname);
-		config.groupid = grp->gr_gid;
-	}
+	/* Set up system section */
 	if (!config.system)
 	{
 		config.system = malloc(sizeof(struct virtual));
@@ -485,6 +484,22 @@ load_config DECL0
 		config.system->logreferer = strdup(BITBUCKETNAME);
 	if (!config.system->logstyle)
 		config.system->logstyle = combined;
+	if (!username)
+		username = strdup(HTTPD_USERID);
+	if (!config.system->userid && !(config.system->userid = atoi(username)))
+	{
+		if (!(pwd = getpwnam(username)))
+			errx(1, "Invalid username: %s", username);
+		config.system->userid = pwd->pw_uid;
+	}
+	if (!groupname)
+		groupname = strdup(HTTPD_GROUPID);
+	if (!config.system->groupid && !(config.system->groupid = atoi(groupname)))
+	{
+		if (!(grp = getgrnam(groupname)))
+			errx(1, "Invalid groupname: %s", groupname);
+		config.system->groupid = grp->gr_gid;
+	}
 	/* Set up users section */
 	if (!config.users)
 	{
@@ -510,6 +525,10 @@ load_config DECL0
 			current->phexecdir = strdup(HTTPD_SCRIPT_ROOT_P);
 		if (!current->logstyle)
 			current->logstyle = config.system->logstyle;
+		if (!current->userid)
+			current->userid = config.system->userid;
+		if (!current->groupid)
+			current->groupid = config.system->groupid;
 	}
 }
 
@@ -1787,7 +1806,9 @@ main DECL3(int, argc, char **, argv, char **, envp)
 {
 	int			option, num;
 	enum { optionp, optiond, optionhd, optionhn, optionaa, optionrr, optionee };
-	char *longopt[7] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
+	char *		longopt[7] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
+	uid_t		uid = 0;
+	gid_t		gid = 0;
 	const struct passwd	*userinfo;
 	const struct group	*groupinfo;
 
@@ -1845,18 +1866,18 @@ main DECL3(int, argc, char **, argv, char **, envp)
 #endif		/* HANDLE_SSL */
 			break;
 		case 'u':
-			if ((config.userid = atoi(optarg)) > 0)
+			if ((uid = atoi(optarg)) > 0)
 				break;
 			if (!(userinfo = getpwnam(optarg)))
 				errx(1, "Invalid user ID");
-			config.userid = userinfo->pw_uid;
+			uid = userinfo->pw_uid;
 			break;
 		case 'g':
-			if ((config.groupid = atoi(optarg)) > 0)
+			if ((gid = atoi(optarg)) > 0)
 				break;
 			if (!(groupinfo = getgrnam(optarg)))
 				errx(1, "Invalid group ID");
-			config.groupid = groupinfo->gr_gid;
+			gid = groupinfo->gr_gid;
 			break;
 		case 'd':
 			if (*optarg != '/')
@@ -1915,6 +1936,10 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	SET_OPTION(optionaa, config.system->logaccess);
 	SET_OPTION(optionrr, config.system->logreferer);
 	SET_OPTION(optionee, config.system->logerror);
+	if (uid)
+		config.system->userid = uid;
+	if (gid)
+		config.system->groupid = gid;
 
 	initsetprocname(argc, argv, envp);
 	setup_environment();

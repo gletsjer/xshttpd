@@ -598,11 +598,18 @@ do_get DECL1(char *, params)
 		}
 		base[XS_PATH_MAX-2] = '\0';
 		strcat(base, "/");
-		if (!origeuid)
+
+		if (config.usevirtualuid && current->userid && current->groupid)
 		{
-			setegid(config.groupid);
-			setgroups(1, &config.groupid);
-			seteuid(config.userid);
+			setegid(current->groupid);
+			setgroups(1, (const gid_t *)&current->groupid);
+			seteuid(current->userid);
+		}
+		else if (!origeuid)
+		{
+			setegid(config.system->groupid);
+			setgroups(1, &config.system->groupid);
+			seteuid(config.system->userid);
 		}
 		if (!geteuid())
 		{
@@ -690,9 +697,9 @@ do_get DECL1(char *, params)
 		if (!origeuid)
 		{
 			seteuid(origeuid);
-			setegid(config.groupid);
-			setgroups(1, &config.groupid);
-			seteuid(config.userid);
+			setegid(config.system->groupid);
+			setgroups(1, &config.system->groupid);
+			seteuid(config.system->userid);
 		}
 		if (!geteuid())
 		{

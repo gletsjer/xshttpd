@@ -1,6 +1,10 @@
 This file is terribly out of date. However the manual pages should
 be (mostly) accurate. For a list of changes, please see cvs comments.
 
+Patch peters@stack.nl
+- When nesting <virtual>, complain about nesting <virtual> instead of <users>
+- Added support for Username and Groupname directives inside <virtual>
+
 Changes since 3.1 beta 4
 - Pragma: no-cache would be omitted when required and vice versa
 - Use Extended CLF logging format by default

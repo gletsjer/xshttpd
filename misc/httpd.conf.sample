@@ -8,13 +8,13 @@ SystemRoot	/usr/local/lib/httpd
 ListenPort	http
 Instances	20
 PidFile		/var/run/httpd.pid
-UserId		nobody
-GroupId		nogroup
 
 ExecAsUser	true
 UseSSL		false
 
 <System>
+UserId		nobody
+GroupId		nogroup
 #Hostname	www.stack.nl
 #HtmlDir	htdocs
 #PhExecDir	cgi-bin
