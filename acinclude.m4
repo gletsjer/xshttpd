@@ -56,6 +56,7 @@ AC_DEFUN([XS_FUNC_IN_LIB], [
 		[AC_CHECK_LIB($3,
 			$1,
 			AC_DEFINE($2) $4_ldflags="${$4_ldflags} -l$3",
+			,
 			$5)
 		])
 	])

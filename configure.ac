@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/httpd.c)
-AM_INIT_AUTOMAKE(xshttpd, 33b15)
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.15", [Server version])
+AM_INIT_AUTOMAKE(xshttpd, 33b16)
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.16", [Server version])
 AM_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
@@ -17,6 +17,10 @@ AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "$ppmtogif",
 dnl Checks for libraries.
 CFLAGS="${CFLAGS} -I/usr/local/include"
 LDFLAGS="${LDFLAGS} -L/usr/local/lib"
+httpd_cflags="${CFLAGS}"
+libxs_cflags="${CFLAGS}"
+httpd_ldlags="${LDLAGS}"
+libxs_ldlags="${LDLAGS}"
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -94,8 +98,7 @@ then
 	XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, httpd, -lcrypto)
 	if test x${ac_cv_lib_ssl_SSL_version} = xyes
 	then
-		httpd_ldflags="${httpd_ldflags} -lcrypto -lssl"
-		httpd_cflags="${httpd_cflags} -I/usr/local/include -I/usr/local/ssl/include"
+		httpd_cflags="${httpd_cflags} -I/usr/local/ssl/include"
 		AC_DEFINE(HANDLE_SSL,,
 			[Enable SSL support, you must have UseSSL in your config to enable this])
 		AC_DEFINE(CERT_FILE, "cert.pem",
