@@ -1,8 +1,15 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.3 beta 2
+- Make default charset configurable
+- Recursive check for .noxs and .charset files as well
+- Parse IP or IPv6 prefix (CIDR-notation) in .noxs
+
 Changes since 3.3 beta 1
 - Recursive check for .xsauth files (probably not air-tight)
+- SSL certificate files are a global setting
+- Add charset=US-ASCII for text documents if unspecified
 
 Changes since 3.2 gamma 1
 - Remove superfluous double quotes from logs (rewrite as single quote)

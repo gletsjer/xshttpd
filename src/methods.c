@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.111 2004/10/23 11:59:59 johans Exp $ */
+/* $Id: methods.c,v 1.112 2004/10/23 14:53:54 johans Exp $ */
 
 #include	"config.h"
 
@@ -71,6 +71,18 @@
 #include	<EXTERN.h>
 #include	<perl.h>
 #endif		/* HANDLE_PERL */
+#ifndef		s6_addr16
+#define		s6_addr8	__u6_addr.__u6_addr8
+#define		s6_addr16	__u6_addr.__u6_addr16
+#define		s6_addr32	__u6_addr.__u6_addr32
+#endif		/* s6_addr16 */
+#ifndef		IN6_ARE_MASKED_ADDR_EQUAL
+#define IN6_ARE_MASKED_ADDR_EQUAL(d, a, m)      (       \
+	(((d)->s6_addr32[0] ^ (a)->s6_addr32[0]) & (m)->s6_addr32[0]) == 0 && \
+	(((d)->s6_addr32[1] ^ (a)->s6_addr32[1]) & (m)->s6_addr32[1]) == 0 && \
+	(((d)->s6_addr32[2] ^ (a)->s6_addr32[2]) & (m)->s6_addr32[2]) == 0 && \
+	(((d)->s6_addr32[3] ^ (a)->s6_addr32[3]) & (m)->s6_addr32[3]) == 0 )
+#endif		/* IN6_ARE_MASKED_ADDR_EQUAL */
 
 #include	"httpd.h"
 #include	"methods.h"
@@ -88,6 +100,7 @@
 
 #ifndef		NOFORWARDS
 static int	getfiletype		PROTO((int));
+static int	v6masktonum		PROTO((int, struct in6_addr *));
 static int	allowxs			PROTO((FILE *));
 static VOID	senduncompressed	PROTO((int));
 static VOID	sendcompressed		PROTO((int, const char *));
@@ -412,6 +425,30 @@ sendcompressed DECL2_C(int, fd, char *, method)
 	senduncompressed(processed);
 }
 
+static	int
+v6masktonum	DECL2(int, mask, struct in6_addr *, addr6)
+{
+	int		x, y, z;
+
+	for (x = 0; x < 4; x++)
+		addr6->s6_addr32[x] = 0;
+
+	y = 0;
+	z = 0;
+	for (x = 0; x < mask; x++)
+	{
+		addr6->s6_addr8[y] |= (1 << (7 - z));
+		z++;
+		if (z == 8)
+		{
+			z = 0;
+			y++;
+		}
+	}
+
+	return 0;
+}
+
 extern	int
 allowxs DECL1(FILE *, rfile)
 {
@@ -443,19 +480,37 @@ allowxs DECL1(FILE *, rfile)
 			strchr(allowhost, '.') &&
 			strchr(remoteaddr, '.'))
 		{
-#if 0
 			struct	in_addr		allow, remote;
 			unsigned int		subnet;
 
 			*slash = '\0';
-			subnet = atoi(slash + 1);
-			inet_aton(allowhost, allow);
-			inet_aton(remotehost, remote);
+			if ((subnet = atoi(slash + 1)) > 32)
+				subnet = 32;
+			inet_aton(remoteaddr, &remote);
+			inet_aton(allowhost, &allow);
 
-			if ((remotehost.addr & !(1 << subnet)) == allow)
+#define	IPMASK(addr, sub) (addr.s_addr & htonl(~((1 << (32 - subnet)) - 1)))
+			if (IPMASK(remote, subnet) == IPMASK(allow, subnet))
 				return 1;
-#endif
 		}
+#ifdef		INET6
+		if ((slash = strchr(allowhost, '/')) &&
+			strchr(allowhost, ':') &&
+			strchr(remoteaddr, ':'))
+		{
+			struct	in6_addr	allow, remote, mask;
+			unsigned int		subnet;
+
+			*slash = '\0';
+			if ((subnet = atoi(slash + 1)) > 128)
+				subnet = 128;
+			inet_pton(AF_INET6, remoteaddr, &remote);
+			inet_pton(AF_INET6, allowhost, &allow);
+			v6masktonum(subnet, &mask);
+			if (IN6_ARE_MASKED_ADDR_EQUAL(&remote, &allow, &mask))
+				return 1;
+		}
+#endif		/* INET6 */
 
 		/* allow any host if the local port matches :port in .noxs */
 #ifdef		HAVE_GETADDRINFO

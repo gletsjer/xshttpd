@@ -87,12 +87,12 @@ The chacterset to be used if no user-defined charset is specified.
 If this is not specified, then US-ASCII will be used.
 .TP
 .B UseRestrictAddr [true|false]
-If enabled then .noxs files may contain one or more IP addresses (or
-prefixes of IP addresses). Only clients with matching addresses will be
-able to retreive files from this directory. If disabled then access to
-the directory will denied to everyone if a .noxs is present and the
-contents of the .noxs file is ignored. UseRestrictAddr is enabled by
-default.
+If enabled then .noxs files may contain one or more IP addresses - or
+string prefixes of IP addresses - or IP subnets in CIDR notation. Only
+clients with matching addresses will be able to retreive files from this
+directory. If disabled then access to the directory will denied to
+everyone if a .noxs is present and the contents of the .noxs file is
+ignored. UseRestrictAddr is enabled by default.
 .TP
 .B UseVirtualHost [true|false]
 If enabled then virtual websites can be used based on the requested
