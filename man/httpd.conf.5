@@ -148,6 +148,11 @@ be suffering too much from broken scripts.
 The time a CGI script is allowed to run before it will be considered runaway
 and killed by the server. The time should be specified in minutes (default is 6).
 Note that several browsers will kill a connection even earlier than this.
+.TP
+.B ScriptCpuLimit <minutes>
+The amount of CPU time a CGI script is allowed to use before it will be
+considered runaway and killed by the server. The time should be specified
+in minutes (default is 2).
 
 .LP
 .SH SOCKET OPTIONS
@@ -189,9 +194,12 @@ and without UseSSL.
 The following options can be set in the System, Virtual and User sections:
 
 .TP
-.B Hostname <hostname>
+.B HostName <hostname>
 The hostname of the server. This is required for a Virtual section.
 For the System en User sections it defaults to the name of the machine.
+.TP
+.B HostAlias <hostname> [hostname ...]
+One or more aliases for the previously mentioned hostname.
 .TP
 .B HtmlDir <directory>
 The main directory containing all the HTML files. This defaults to

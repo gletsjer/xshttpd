@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/httpd.c)
-AM_INIT_AUTOMAKE(xshttpd, 33b12)
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.12", [Server version])
+AM_INIT_AUTOMAKE(xshttpd, 33b13)
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.13", [Server version])
 AM_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
@@ -113,11 +113,6 @@ AC_DEFINE(SCRIPT_METHODS, "script.methods",
 # This is now enabled by default
 AC_DEFINE(COMPRESS_METHODS, "compress.methods",
 	[File describing compression extensions and programs])
-if test x${ac_cv_func_setrlimit} = xyes
-then
-	AC_ARG_DEFAULT(setrlimit, USE_SETRLIMIT, yes,
-		[enable resource limits for CGI scripts])
-fi
 # AC_SHOW_HELP([--enable options], [disabled by default:])
 AC_ARG_DEFAULT(perl, HANDLE_PERL, no,
 	[enable persistent perl interpreter])

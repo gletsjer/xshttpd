@@ -11,6 +11,7 @@ extern struct virtual {
 	char *		logerror;
 	char *		logreferer;
 	char **		indexfiles;
+	char **		aliases;
 	uid_t		userid;
 	gid_t		groupid;
 	FILE *		openaccess;
@@ -38,6 +39,7 @@ extern struct configuration {
 	char *		port;
 	int		family;
 	int		num_sockets;
+	int		script_cpu_limit;
 	int		script_timeout;
 	unsigned short	instances;
 	unsigned short	localmode;

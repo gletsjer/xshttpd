@@ -1,6 +1,10 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.3 beta 13
+- Add HostAlias option to define multiple hostnames with the same settings
+- Add ScriptCpuLimit option to limit CPU abuse of CGI scripts (in mins)
+
 Changes since 3.3 beta 12
 - Pathnames containing // or /./ will now generate a redirect
 - DNS lookups for logging can be disabled with UseDnsLookup

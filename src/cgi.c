@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.92 2005/01/22 11:31:24 johans Exp $ */
+/* $Id: cgi.c,v 1.93 2005/03/21 20:24:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -153,9 +153,9 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	int			readerror;
 	long		tobewritten;
 #endif		/* HANDLE_SSL */
-#ifdef		USE_SETRLIMIT
+#ifdef		HAVE_SETRLIMIT
 	struct	rlimit		limits;
-#endif		/* USE_SETRLIMIT */
+#endif		/* HAVE_SETRLIMIT */
 	FILE			*auth;
 	struct	sigaction	action;
 
@@ -245,9 +245,10 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			secprintf("[%s]\n", errmsg);
 		goto END;
 	case 0:
-#ifdef		USE_SETRLIMIT
+#ifdef		HAVE_SETRLIMIT
 #ifdef		RLIMIT_CPU
-		limits.rlim_cur = 120; limits.rlim_max = 128;
+		limits.rlim_cur = 60 * config.script_cpu_limit;
+		limits.rlim_max = 10 + 60 * config.script_cpu_limit;
 		setrlimit(RLIMIT_CPU, &limits);
 #endif		/* RLIMIT_CPU */
 #ifdef		RLIMIT_CORE
@@ -258,7 +259,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		limits.rlim_cur = limits.rlim_max = 1;
 		setrlimit(RLIMIT_MEMLOCK, &limits);
 #endif		/* RLIMIT_MEMLOCK */
-#endif		/* USE_SETRLIMIT */
+#endif		/* HAVE_SETRLIMIT */
 
 		dup2(p[1], 1);
 		dup2(r[1], 2);

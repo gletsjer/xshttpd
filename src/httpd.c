@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.171 2005/03/10 16:34:54 johans Exp $ */
+/* $Id: httpd.c,v 1.172 2005/03/21 20:24:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,9 +101,11 @@ typedef	size_t	socklen_t;
 #define		PRIO_MAX	20
 #endif
 
+#define		MAXVHOSTALIASES		32
+
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.171 2005/03/10 16:34:54 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.172 2005/03/21 20:24:09 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -259,6 +261,7 @@ load_config()
 	config.usevirtualhost = 1;
 	config.usecompressed = 1;
 	config.usednslookup = 1;
+	config.script_cpu_limit = 2;
 	config.script_timeout = 6;
 	config.sockets = NULL;
 	config.priority = 0;
@@ -358,6 +361,8 @@ load_config()
 					config.virtualhostdir = strdup(value);
 				else if (!strcasecmp("UseLocalScript", key))
 					config.uselocalscript = !strcasecmp("true", value);
+				else if (!strcasecmp("ScriptCpuLimit", key))
+					config.script_cpu_limit = atoi(value);
 				else if (!strcasecmp("ScriptTimeout", key))
 					config.script_timeout = atoi(value);
 				else if (!strcasecmp("UseCompressed", key))
@@ -380,6 +385,23 @@ load_config()
 					errx(1, "illegal directive: '%s'", key);
 				else if (!strcasecmp("Hostname", key))
 					current->hostname = strdup(value);
+				else if (!strcasecmp("HostAlias", key))
+				{
+					int		i;
+					char	*prev = NULL, *next = value;
+
+					current->aliases = malloc(MAXVHOSTALIASES);
+					for (i = 0; i < MAXVHOSTALIASES; )
+					{
+						if ((prev = strsep(&next, ", \t")) && *prev)
+							current->aliases[i++] = strdup(prev);
+						else if (!prev)
+						{
+							current->aliases[i] = NULL;
+							break;
+						}
+					}
+				}
 				else if (!strcasecmp("HtmlDir", key))
 					current->htmldir = strdup(value);
 				else if (!strcasecmp("ExecDir", key))
@@ -1398,6 +1420,15 @@ process_request()
 	for (current = config.virtual; current; current = current->next)
 		if (!strcasecmp(http_host, current->hostname))
 			break;
+		else if (current->aliases)
+		{
+			char	**aliasp;
+			for (aliasp = current->aliases; *aliasp; aliasp++)
+				if (!strcasecmp(http_host, *aliasp))
+					break;
+			if (*aliasp)
+				break;
+		}
 	if (params[0] && params[1] == '~')
 		current = config.users;
 	else if (!current)
