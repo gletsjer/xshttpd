@@ -139,10 +139,11 @@ senduncompressed DECL1(int, fd)
 		int	dynamic = 0;
 
 #ifdef		WANT_SSI
-		if (headonly && getfiletype(0))
+		/* This is extra overhead, overhead, overhead! */
+		if (getfiletype(0))
 		{
 			errval = sendwithdirectives(fd, &size, 1);
-			close(fd);
+			lseek(fd, SEEK_SET, 0);
 			if (errval == ERR_QUIT)
 				dynamic = 1;
 		}
