@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.96 2002/12/18 15:07:42 johans Exp $ */
+/* $Id: httpd.c,v 1.97 2003/01/03 17:53:14 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.96 2002/12/18 15:07:42 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.97 2003/01/03 17:53:14 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -504,8 +504,8 @@ load_config DECL0
 			current->phexecdir = strdup(HTTPD_SCRIPT_ROOT_P);
 		if (current->logerror)
 			warnx("error logs not implemented for virtual section");
-		if (current->logreferer)
-			warnx("referer logs not implemented for virtual section");
+		if (!current->logstyle)
+			current->logstyle = config.system->logstyle;
 	}
 }
 
@@ -557,7 +557,25 @@ open_logs DECL1(int, sig)
 			setvbuf(current->openaccess, _IOLBF, NULL, 0);
 #endif		/* SETVBUF_REVERSED */
 		}
-		/* TODO: error and referer logs */
+
+		/* XXX: evil code duplication */
+		if (current->logstyle == traditional)
+		{
+			/* referer */
+			if (current->openreferer)
+				fclose(current->openreferer);
+			if (current->logreferer)
+			{
+				if (!(current->openreferer =
+						fopen(calcpath(current->logreferer), "a")))
+					err(1, "fopen(`%s' [append])", current->logreferer);
+#ifndef		SETVBUF_REVERSED
+				setvbuf(current->openreferer, NULL, _IOLBF, 0);
+#else		/* Not not SETVBUF_REVERSED */
+				setvbuf(current->openreferer, _IOLBF, NULL, 0);
+#endif		/* SETVBUF_REVERSED */
+			}
+		}
 	}
 
 	fflush(stderr);
@@ -571,19 +589,6 @@ open_logs DECL1(int, sig)
 		if (dup2(tempfile, 2) == -1)
 			err(1, "dup2() failed");
 		close(tempfile);
-	}
-
-	if (config.system->logstyle == traditional)
-	{
-		if (refer_log)
-			fclose(refer_log);
-		if (!(refer_log = fopen(calcpath(config.system->logreferer), "a")))
-			err(1, "fopen(`%s' [append])", refer_path);
-#ifndef		SETVBUF_REVERSED
-		setvbuf(refer_log, NULL, _IOLBF, 0);
-#else		/* Not not SETVBUF_REVERSED */
-		setvbuf(refer_log, _IOLBF, NULL, 0);
-#endif		/* SETVBUF_REVERSED */
 	}
 
 	if (mainhttpd)
@@ -845,12 +850,12 @@ check_auth DECL1(FILE *, authfile)
 		secprintf("understand authentication.\n</BODY></HTML>\n");
 		fclose(authfile); return(1);
 	}
-	strncpy(line, env, MYBUFSIZ - 1); line[MYBUFSIZ - 1] = 0;
+	strncpy(line, env, MYBUFSIZ); line[MYBUFSIZ - 1] = 0;
 	find = line + strlen(line);
 	while ((find > line) && (*(find - 1) < ' '))
 		*(--find) = 0;
-	for (search = line; *search && (*search != ' ') &&
-		(*search != 9); search++) ;
+	for (search = line; *search && (*search != ' ') && (*search != 9); search++)
+		/* DO NOTHING */ ;
 	while ((*search == 9) || (*search == ' '))
 		search++;
 	uudecode(search);
@@ -858,16 +863,16 @@ check_auth DECL1(FILE *, authfile)
 	{
 		*find = 0;
 		setenv("REMOTE_USER", search, 1);
-		*find = ':';
-		setenv("REMOTE_PASSWORD", find + 1, 1);
-		xs_encrypt(find + 1);
+		*find++ = ':';
+		setenv("REMOTE_PASSWORD", find, 1);
+		xs_encrypt(find);
 	}
 	while (fgets(compare, MYBUFSIZ, authfile))
 	{
-		compare[strlen(compare) - 1] = 0;
 		if (!strcmp(compare + 1, search))
 		{
-			fclose(authfile); return(0);
+			fclose(authfile);
+			return 0;
 		}
 	}
 	if (headers)
@@ -993,7 +998,7 @@ logrequest DECL2(const char *, request, long, size)
 {
 	char		buffer[80];
 	time_t		theclock;
-	FILE *		alog;
+	FILE		*alog;
 
 	time(&theclock);
 	strftime(buffer, 80, "%d/%b/%Y:%H:%M:%S", localtime(&theclock));
@@ -1008,13 +1013,20 @@ logrequest DECL2(const char *, request, long, size)
 			alog = config.system->openaccess;
 	else
 		alog = current->openaccess;
-	 
+
 	if (current->logstyle == traditional)
+	{
+		FILE	*rlog = current->openreferer
+			? current->openreferer
+			: config.system->openreferer;
 		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" 200 %ld\n",
 			remotehost,
 			buffer, 
 			getenv("REQUEST_METHOD"), request, version,
 			size > 0 ? (long)size : (long)0);
+		if (rlog)
+			fprintf(rlog, "%s -> %s\n", referer, request);
+	}
 	else
 		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" 200 %ld "
 				"\"%s\" \"%s\"\n",
