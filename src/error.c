@@ -52,24 +52,24 @@ int			localmode;
 extern	VOID
 error DECL1C(char *, what)
 {
-	printf("Content-type: text/html\r\n\r\n");
-	printf("<HTML><HEAD><TITLE>500 Error occurred</TITLE></HEAD\n");
-	printf("<BODY><H1>500 Error occurred</H1>\n");
-	printf("The <TT>error</TT> utility encountered the following\n");
-	printf("error: <B>%s</B></BODY></HTML>\n", what);
+	secprintf("Content-type: text/html\r\n\r\n");
+	secprintf("<HTML><HEAD><TITLE>500 Error occurred</TITLE></HEAD\n");
+	secprintf("<BODY><H1>500 Error occurred</H1>\n");
+	secprintf("The <TT>error</TT> utility encountered the following\n");
+	secprintf("error: <B>%s</B></BODY></HTML>\n", what);
 	exit(0);
 }
 
 extern	VOID
 redirect DECL2C_(char *, redir, int, code)
 {
-	printf("[redirect() called - transform_user_dir() is broken]\n");
+	secprintf("[redirect() called - transform_user_dir() is broken]\n");
 }
 
 extern	VOID
 server_error DECL2CC(char *, readable, char *, code)
 {
-	printf("[server_error() called - transform_user_dir() is broken]\n");
+	secprintf("[server_error() called - transform_user_dir() is broken]\n");
 }
 
 static	int
@@ -126,7 +126,7 @@ user_unknown DECL0
 	strcpy(buffer, error_url_escaped + 2);
 	if ((temp = strchr(buffer, '/')))
 		*temp = 0;
-	printf("The user <B>%s</B> is unknown to this system.<P>\n", buffer);
+	secprintf("The user <B>%s</B> is unknown to this system.<P>\n", buffer);
 	strcpy(buffer, error_url + 2);
 	if ((temp = strchr(buffer, '/')))
 		*(temp++) = 0;
@@ -156,45 +156,45 @@ user_unknown DECL0
 	{
 		if (!said)
 		{
-			printf("There are a few usernames that look similar\n");
-			printf("to what you typed. Perhaps you meant one of\n");
-			printf("these users:\n<UL>\n");
+			secprintf("There are a few usernames that look similar\n");
+			secprintf("to what you typed. Perhaps you meant one of\n");
+			secprintf("these users:\n<UL>\n");
 			said = 1;
 		}
-		printf("<LI><A HREF=\"/%%7E%s/\">%s</A>\n",
+		secprintf("<LI><A HREF=\"/%%7E%s/\">%s</A>\n",
 			top[count].username, top[count].username);
 	}
 	if (said)
-		printf("</UL>\n");
+		secprintf("</UL>\n");
 	else
 	{
-		printf("There are no usernames here that even look like\n");
-		printf("what you typed...<P>\n");
+		secprintf("There are no usernames here that even look like\n");
+		secprintf("what you typed...<P>\n");
 	}
-	printf("You may look at the <A HREF=\"/\">main index page</A>");
-	sprintf(filename, "%s/users.html", HTTPD_DOCUMENT_ROOT);
+	secprintf("You may look at the <A HREF=\"/\">main index page</A>");
+	ssecprintf(filename, "%s/users.html", HTTPD_DOCUMENT_ROOT);
 	if (!access(calcpath(filename), F_OK))
-		printf(" or the <A HREF=\"/users.html\">user list</A>\n");
-	printf(".\n");
+		secprintf(" or the <A HREF=\"/users.html\">user list</A>\n");
+	secprintf(".\n");
 }
 
 static	VOID
 post_on_non_cgi DECL0
 {
-	printf("You or your browser has attempted to use the <B>POST</B>\n");
-	printf("method on something that is not a CGI binary. <B>POST</B>\n");
-	printf("may only be used on CGI binaries. You can try using the\n");
-	printf("<B>GET</B> and/or <B>HEAD</B> methods instead.<P>\n");
-	printf("<A HREF=\"/\">Get out of here!</A>\n");
+	secprintf("You or your browser has attempted to use the <B>POST</B>\n");
+	secprintf("method on something that is not a CGI binary. <B>POST</B>\n");
+	secprintf("may only be used on CGI binaries. You can try using the\n");
+	secprintf("<B>GET</B> and/or <B>HEAD</B> methods instead.<P>\n");
+	secprintf("<A HREF=\"/\">Get out of here!</A>\n");
 }
 
 static	VOID
 invalid_path DECL0
 {
-	printf("You have asked for a URL that the server does not like.\n");
-	printf("In particular, the server does not accept paths with\n");
-	printf("<B>..</B> in them. Please retry using another URL.<P>\n");
-	printf("<A HREF=\"/\">Get out of here!</A>\n");
+	secprintf("You have asked for a URL that the server does not like.\n");
+	secprintf("In particular, the server does not accept paths with\n");
+	secprintf("<B>..</B> in them. Please retry using another URL.<P>\n");
+	secprintf("<A HREF=\"/\">Get out of here!</A>\n");
 }
 
 static	VOID
@@ -205,7 +205,7 @@ not_found DECL0
 	int		len;
 	struct	stat	statbuf;
 
-	printf("The file <B>%s</B> does not exist on this server.\n",
+	secprintf("The file <B>%s</B> does not exist on this server.\n",
 		error_url_escaped);
 	if (error_url[1] == '~')
 	{
@@ -222,19 +222,19 @@ not_found DECL0
 	} else
 	{
 		prefix[0] = 0;
-		sprintf(base, "%s/%s/", HTTPD_ROOT, HTTPD_DOCUMENT_ROOT);
+		ssecprintf(base, "%s/%s/", HTTPD_ROOT, HTTPD_DOCUMENT_ROOT);
 		begin = error_url;
 	}
 
 	len = strlen(begin);
 	while (len >= 0)
 	{
-		sprintf(buffer, "%s%*.*s", base, -len, len, begin);
+		ssecprintf(buffer, "%s%*.*s", base, -len, len, begin);
 		if (!stat(buffer, &statbuf))
 		{
 			if (S_ISREG(statbuf.st_mode))
 			{
-				sprintf(buffer, "%s%*.*s", prefix,
+				ssecprintf(buffer, "%s%*.*s", prefix,
 					-len, len, begin);
 				break;
 			}
@@ -243,20 +243,20 @@ not_found DECL0
 				len--;
 				continue;
 			}
-			sprintf(buffer, "%s%*.*s%s%s", base, -len, len, begin,
+			ssecprintf(buffer, "%s%*.*s%s%s", base, -len, len, begin,
 				(begin[len-1] == '/') ? "" : "/", INDEX_HTML);
 			if (!stat(buffer, &statbuf) && S_ISREG(statbuf.st_mode))
 			{
-				sprintf(buffer, "%s%*.*s%s", prefix,
+				ssecprintf(buffer, "%s%*.*s%s", prefix,
 					-len, len, begin,
 					(begin[len - 1] == '/') ? "" : "/");
 				break;
 			}
-			sprintf(buffer, "%s%*.*s%s%s", base, -len, len, begin,
+			ssecprintf(buffer, "%s%*.*s%s%s", base, -len, len, begin,
 				(begin[len-1] == '/') ? "" : "/", INDEX_HTML_2);
 			if (!stat(buffer, &statbuf) && S_ISREG(statbuf.st_mode))
 			{
-				sprintf(buffer, "%s%*.*s%s", prefix,
+				ssecprintf(buffer, "%s%*.*s%s", prefix,
 					-len, len, begin,
 					(begin[len - 1] == '/') ? "" : "/");
 				break;
@@ -266,55 +266,55 @@ not_found DECL0
 	}
 	if ((len >= 0) && strcmp(buffer, error_url) && strcmp(buffer, "/"))
 	{
-		printf("The path does seem to partially exist.\n");
-		printf("Perhaps the path <A HREF=\"%s\">%s</A> will help.\n",
+		secprintf("The path does seem to partially exist.\n");
+		secprintf("Perhaps the path <A HREF=\"%s\">%s</A> will help.\n",
 			buffer, buffer);
-		printf("<P>Alternatively, y");
+		secprintf("<P>Alternatively, y");
 	} else
-		printf("Y");
-	printf("ou may take a look at <A HREF=\"/\">the main index</A>");
-	sprintf(filename, "%s/users.html", HTTPD_DOCUMENT_ROOT);
+		secprintf("Y");
+	secprintf("ou may take a look at <A HREF=\"/\">the main index</A>");
+	ssecprintf(filename, "%s/users.html", HTTPD_DOCUMENT_ROOT);
 	if (!access(calcpath(filename), F_OK))
-		printf(" or the <A HREF=\"/users.html\">user list</A>\n");
-	printf(".\n");
+		secprintf(" or the <A HREF=\"/users.html\">user list</A>\n");
+	secprintf(".\n");
 }
 
 static	VOID
 not_regular DECL0
 {
-	printf("What you requested is neither a directory nor a file.\n");
-	printf("This error should never occur. Please notify the\n");
-	printf("system administration of this machine.\n");
+	secprintf("What you requested is neither a directory nor a file.\n");
+	secprintf("This error should never occur. Please notify the\n");
+	secprintf("system administration of this machine.\n");
 }
 
 static	VOID
 permission DECL0
 {
-	printf("The file <B>%s</B>, which you tried to retrieve from\n",
+	secprintf("The file <B>%s</B>, which you tried to retrieve from\n",
 		error_url_escaped);
-	printf("this server, is protected. You are not allowed to\n");
-	printf("retrieve it. If this seems to be in error, please\n");
-	printf("contact the person that created the file.\n");
-	printf("<P><A HREF=\"/\">Get out of here!</A>\n");
+	secprintf("this server, is protected. You are not allowed to\n");
+	secprintf("retrieve it. If this seems to be in error, please\n");
+	secprintf("contact the person that created the file.\n");
+	secprintf("<P><A HREF=\"/\">Get out of here!</A>\n");
 }
 
 static	VOID
 dir_not_avail DECL0
 {
-	printf("The directory in which the file <B>%s</B> is located\n",
+	secprintf("The directory in which the file <B>%s</B> is located\n",
 		error_url_escaped);
-	printf("is currently not available for retrieval. Perhaps you\n");
-	printf("can try later.\n");
-	printf("<P><A HREF=\"/\">Get out of here!</A>\n");
+	secprintf("is currently not available for retrieval. Perhaps you\n");
+	secprintf("can try later.\n");
+	secprintf("<P><A HREF=\"/\">Get out of here!</A>\n");
 }
 
 static	VOID
 no_relative_urls DECL0
 {
-	printf("Your browser has made a <EM>relative</EM> request to\n");
-	printf("this server. This server, however, does not support\n");
-	printf("relative URLs.\n");
-	printf("<P><A HREF=\"/\">Get out of here!</A>\n");
+	secprintf("Your browser has made a <EM>relative</EM> request to\n");
+	secprintf("this server. This server, however, does not support\n");
+	secprintf("relative URLs.\n");
+	secprintf("<P><A HREF=\"/\">Get out of here!</A>\n");
 }
 
 static	VOID
@@ -323,10 +323,10 @@ bad_request DECL0
 	const	char	*env;
 
 	env = getenv("SERVER_PROTOCOL");
-	printf("Your browser has made a <EM>%s</EM> request to\n", env);
-	printf("this server, which is not valid according to the specification.\n");
-	printf("The server can not possibly give you a sensible answer.\n");
-	printf("<P><A HREF=\"/\">Get out of here!</A>\n");
+	secprintf("Your browser has made a <EM>%s</EM> request to\n", env);
+	secprintf("this server, which is not valid according to the specification.\n");
+	secprintf("The server can not possibly give you a sensible answer.\n");
+	secprintf("<P><A HREF=\"/\">Get out of here!</A>\n");
 }
 
 static	VOID
@@ -335,27 +335,27 @@ unknown_method DECL0
 	const	char	*env;
 
 	env = getenv("REQUEST_METHOD");
-	printf("Your browser has used a retrieval method other than\n");
-	printf("<B>GET</B>, <B>POST</B>, <B>HEAD</B> and <B>OPTIONS</B>.\n");
-	printf("In fact it used the method <B>%s</B>,\n",
+	secprintf("Your browser has used a retrieval method other than\n");
+	secprintf("<B>GET</B>, <B>POST</B>, <B>HEAD</B> and <B>OPTIONS</B>.\n");
+	secprintf("In fact it used the method <B>%s</B>,\n",
 		env ? env : "(unknown)");
-	printf("which this server does not understand.\n");
-	printf("<P><A HREF=\"/\">Get out of here!</A>\n");
+	secprintf("which this server does not understand.\n");
+	secprintf("<P><A HREF=\"/\">Get out of here!</A>\n");
 }
 
 static	VOID
 unauthorized DECL0
 {
-	printf("You have entered a usercode/password combination\n");
-	printf("which is not valid for the URL that you have requested\n");
-	printf("Please try again with another usercode and/or password.\n");
+	secprintf("You have entered a usercode/password combination\n");
+	secprintf("which is not valid for the URL that you have requested\n");
+	secprintf("Please try again with another usercode and/or password.\n");
 }
 
 static	VOID
 precondition_failed DECL0
 {
-	printf("You have asked for a certain precondition which is not met\n");
-	printf("by the requested data. So this data will not be shown.\n");
+	secprintf("You have asked for a certain precondition which is not met\n");
+	secprintf("by the requested data. So this data will not be shown.\n");
 }
 
 static	VOID
@@ -367,21 +367,21 @@ local_no_page DECL0
 	strcpy(buffer, error_url_escaped + 2);
 	if ((temp = strchr(buffer, '/')))
 		*temp = 0;
-	printf("The user <B>%s</B>, whom you specified in your URL,\n", buffer);
-	printf("exists on this system, but has no home page.\n");
+	secprintf("The user <B>%s</B>, whom you specified in your URL,\n", buffer);
+	secprintf("exists on this system, but has no home page.\n");
 	if ((env = getenv("REMOTE_ADDR")) && !strncmp(env, "131.155.140.", 12))
 	{
-		printf("If you would like to start a home page,\n");
-		printf("please mail to <A HREF=\"mailto:");
-		printf("www@stack.nl\">");
-		printf("www@stack.nl</A> for details.\n");
+		secprintf("If you would like to start a home page,\n");
+		secprintf("please mail to <A HREF=\"mailto:");
+		secprintf("www@stack.nl\">");
+		secprintf("www@stack.nl</A> for details.\n");
 	}
-	printf("<P>Perhaps you meant somebody else; in this case, please\n");
-	printf("have a look at the <A HREF=\"/\">main index</A>");
-	sprintf(filename, "%s/users.html", HTTPD_DOCUMENT_ROOT);
+	secprintf("<P>Perhaps you meant somebody else; in this case, please\n");
+	secprintf("have a look at the <A HREF=\"/\">main index</A>");
+	ssecprintf(filename, "%s/users.html", HTTPD_DOCUMENT_ROOT);
 	if (!access(calcpath(filename), F_OK))
-		printf(" or the <A HREF=\"/users.html\">user list</A>\n");
-	printf(".\n");
+		secprintf(" or the <A HREF=\"/users.html\">user list</A>\n");
+	secprintf(".\n");
 }
 
 static	VOID
@@ -390,11 +390,11 @@ local_invalid_link DECL0
 	strcpy(buffer, error_url_escaped + 2);
 	if ((temp = strchr(buffer, '/')))
 		*temp = 0;
-	printf("An error has been made in linking <B>/www/%s</B> to\n", buffer);
-	printf("a correct location. Please contact\n");
-	printf("<A HREF=\"mailto:www@stack.nl\">");
-	printf("www@stack.nl</A>.\n");
-	printf("The problem will then be corrected as soon as possible.\n");
+	secprintf("An error has been made in linking <B>/www/%s</B> to\n", buffer);
+	secprintf("a correct location. Please contact\n");
+	secprintf("<A HREF=\"mailto:www@stack.nl\">");
+	secprintf("www@stack.nl</A>.\n");
+	secprintf("The problem will then be corrected as soon as possible.\n");
 }
 
 static	VOID
@@ -405,16 +405,16 @@ local_no_pay DECL0
 	strcpy(buffer, error_url_escaped + 2);
 	if ((temp = strchr(buffer, '/')))
 		*temp = 0;
-	printf("The user <B>%s</B>, whom you specified in your URL,\n", buffer);
-	printf("has not payed his/her member fee to our computer society\n");
-	printf("this year. The pages will be online again once the author\n");
-	printf("has decided that he/she wants to remain a member.\n");
-	printf("<P>Return to the <A HREF=\"/\">main index</A>\n");
-	printf("for more information about our society");
-	sprintf(filename, "%s/users.html", HTTPD_DOCUMENT_ROOT);
+	secprintf("The user <B>%s</B>, whom you specified in your URL,\n", buffer);
+	secprintf("has not payed his/her member fee to our computer society\n");
+	secprintf("this year. The pages will be online again once the author\n");
+	secprintf("has decided that he/she wants to remain a member.\n");
+	secprintf("<P>Return to the <A HREF=\"/\">main index</A>\n");
+	secprintf("for more information about our society");
+	ssecprintf(filename, "%s/users.html", HTTPD_DOCUMENT_ROOT);
 	if (!access(calcpath(filename), F_OK))
-		printf(" or the <A HREF=\"/users.html\">user list</A>\n");
-	printf(".\n");
+		secprintf(" or the <A HREF=\"/users.html\">user list</A>\n");
+	secprintf(".\n");
 }
 
 extern	int
@@ -433,10 +433,10 @@ main DECL2(int, argc, char **, argv)
 		!(local_mode_str = getenv("LOCALMODE")))
 		error("Not called properly - the server must call me");
 	localmode = atoi(local_mode_str);
-	printf("Content-type: text/html\r\n");
-	printf("Status: %s\r\n\r\n", error_readable);
-	printf("<HTML><HEAD><TITLE>%s</TITLE></HEAD>", error_readable);
-	printf("<BODY><H1>%s</H1>\n", error_readable);
+	secprintf("Content-type: text/html\r\n");
+	secprintf("Status: %s\r\n\r\n", error_readable);
+	secprintf("<HTML><HEAD><TITLE>%s</TITLE></HEAD>", error_readable);
+	secprintf("<BODY><H1>%s</H1>\n", error_readable);
 	if (!strcmp(error_code, "USER_UNKNOWN"))
 		user_unknown();
 	else if (!strcmp(error_code, "POST_ON_NON_CGI"))
@@ -467,6 +467,6 @@ main DECL2(int, argc, char **, argv)
 		local_invalid_link();
 	else if (!strcmp(error_code, "LOCAL_NO_PAY"))
 		local_no_pay();
-	printf("</BODY></HTML>\n");
+	secprintf("</BODY></HTML>\n");
 	exit(0);
 }

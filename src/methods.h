@@ -9,6 +9,9 @@ extern	VOID	loadcompresstypes	PROTO((void));
 #ifdef		HANDLE_SCRIPT
 extern	VOID	loadscripttypes		PROTO((void));
 #endif		/* HANDLE_SCRIPT */
+#ifdef		HANDLE_SSL
+extern	VOID	loadssl				PROTO((void));
+#endif		/* HANDLE_SSL */
 extern	VOID	loadfiletypes		PROTO((void));
 extern	int	getfiletype		PROTO((int));
 

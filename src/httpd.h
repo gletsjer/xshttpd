@@ -39,3 +39,17 @@ extern	char	*escape			PROTO((const char *));
 extern	int	check_auth		PROTO((FILE *));
 extern	VOID	setcurrenttime		PROTO((void));
 #endif		/* NOFORWARDS */
+
+#ifdef		HANDLE_SSL
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+extern	int do_ssl;
+extern	SSL_CTX *ssl_ctx;
+extern	SSL *ssl;
+#endif		/* HANDLE_SSL */
+/* Wrapper functions are used even if SSL is not enabled */
+extern	size_t secread(int, void *, size_t);
+extern	size_t secwrite(int, void *, size_t);
+extern	size_t secfwrite(void *, size_t, size_t, FILE *);
+extern	size_t secprintf(const char *format, ...);
+extern	size_t secfputs(char *, FILE *);

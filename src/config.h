@@ -19,6 +19,13 @@ for more information about these SSI's. */
 
 #define INET6
 
+/* SSL support. This requires the OpenSSL library.
+ * To use https, start an extra deamon with the '-s' option. */
+
+#define HANDLE_SSL
+#define CERT_FILE	"cert.pem"
+#define KEY_FILE	"key.pem"
+
 /* Simple virtual hosting: when receiving requests for a virtual hostname,
  * the server will try to access files from the HTTPD_ROOT/hostname/
  * directory instead of HTTPD_DOCUMENT_ROOT. This doesn't effect the

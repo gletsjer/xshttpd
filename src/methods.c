@@ -67,6 +67,9 @@
 #ifdef		HAVE_MEMORY_H
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
+#ifdef		HANDLE_SSL
+#include	<openssl/ssl.h>
+#endif		/* HANDLE_SSL */
 
 #include	"httpd.h"
 #include	"methods.h"
@@ -117,7 +120,7 @@ senduncompressed DECL1(int, fd)
 	int		errval, html;
 #endif		/* WANT_SSI */
 #ifndef		HAVE_MMAP
-	size_t		readtotal, writetotal;
+	size_t		secreadtotal, writetotal;
 #endif		/* HAVE_MMAP */
 	size_t		size, written;
 	char		modified[32];
@@ -161,10 +164,10 @@ senduncompressed DECL1(int, fd)
 			if (!dynamic && (mktime(&reqtime) > modtime))
 			{
 				headonly = 1;
-				printf("%s 304 Not modified\r\n", version);
+				secprintf("%s 304 Not modified\r\n", version);
 			}
 			else
-				printf("%s 200 OK\r\n", version);
+				secprintf("%s 200 OK\r\n", version);
 		}
 		else if ((env = getenv("IF_UNMODIFIED_SINCE")))
 		{
@@ -176,37 +179,37 @@ senduncompressed DECL1(int, fd)
 				return;
 			}
 			else
-				printf("%s 200 OK\r\n", version);
+				secprintf("%s 200 OK\r\n", version);
 		}
 		else
-			printf("%s 200 OK\r\n", version);
+			secprintf("%s 200 OK\r\n", version);
 		stdheaders(0, 0, 0);
 		if (dynamic)
 		{
 			if (headers >= 11)
-				printf("Cache-control: no-cache\r\n");
+				secprintf("Cache-control: no-cache\r\n");
 			else
-				printf("Pragma: no-cache\r\n");
+				secprintf("Pragma: no-cache\r\n");
 		}
 
 #ifndef		WANT_SSI
 		getfiletype(1);
-		printf("Content-length: %ld\r\n", (long)size);
+		secprintf("Content-length: %ld\r\n", (long)size);
 #else		/* Not WANT_SSI */
 		html = getfiletype(1);
 		if (!html)
-			printf("Content-length: %ld\r\n", (long)size);
+			secprintf("Content-length: %ld\r\n", (long)size);
 #endif		/* WANT_SSI */
 		strftime(modified, sizeof(modified),
 			"%a, %d %b %Y %T GMT", gmtime(&modtime));
-		printf("Last-modified: %s\r\n\r\n", modified);
+		secprintf("Last-modified: %s\r\n\r\n", modified);
 	}
 #ifdef		WANT_SSI
 	else
 	{
 		html = getfiletype(0);
 		if (html)
-			printf("\r\n");
+			secprintf("\r\n");
 	}
 #endif		/* WANT_SSI */
 
@@ -230,7 +233,7 @@ senduncompressed DECL1(int, fd)
 		}
 		alarm((size / MINBYTESPERSEC) + 20);
 		fflush(stdout);
-		if ((written = write(fileno(stdout), buffer, size)) != size)
+		if ((written = secwrite(fileno(stdout), buffer, size)) != size)
 		{
 			if (written != -1)
 				fprintf(stderr, "[%s] httpd: Aborted for `%s' (%ld of %ld bytes sent)\n",
@@ -252,10 +255,10 @@ senduncompressed DECL1(int, fd)
 		writetotal = 0;
 		alarm((size / MINBYTESPERSEC) + 20);
 		fflush(stdout);
-		while ((readtotal = read(fd, buffer, SENDBUFSIZE)) > 0)
+		while ((secreadtotal = secread(fd, buffer, SENDBUFSIZE)) > 0)
 		{
-			if ((written = write(fileno(stdout), buffer,
-				readtotal)) != readtotal)
+			if ((written = secwrite(fileno(stdout), buffer,
+				secreadtotal)) != secreadtotal)
 			{
 				fprintf(stderr,
 					"[%s] httpd: Aborted for `%s' (No mmap) (%ld of %ld bytes sent)\n",
@@ -730,10 +733,10 @@ do_head DECL1(char *, params)
 extern	VOID
 do_options DECL1(char *, params)
 {
-	printf("%s 200 OK\r\n", version);
+	secprintf("%s 200 OK\r\n", version);
 	stdheaders(0, 0, 0);
-	printf("Content-length: 0\r\n");
-	printf("Allow: GET, HEAD, POST, OPTIONS\r\n\r\n");
+	secprintf("Content-length: 0\r\n");
+	secprintf("Allow: GET, HEAD, POST, OPTIONS\r\n\r\n");
 }
 
 extern	VOID
@@ -858,6 +861,25 @@ loadscripttypes DECL0
 }
 #endif		/* HANDLE_SCRIPT */
 
+#ifdef		HANDLE_SSL
+extern	VOID
+loadssl	DECL0
+{
+	if (do_ssl) {
+		SSLeay_add_ssl_algorithms();
+		SSL_load_error_strings();
+		ssl_ctx = SSL_CTX_new(SSLv23_server_method());
+		if (!SSL_CTX_use_certificate_file(ssl_ctx, calcpath(CERT_FILE),
+				SSL_FILETYPE_PEM) ||
+			!SSL_CTX_use_PrivateKey_file(ssl_ctx, calcpath(KEY_FILE),
+				SSL_FILETYPE_PEM) ||
+			!SSL_CTX_check_private_key(ssl_ctx))
+			errx(1, "Cannot initialise SSL");
+		ERR_print_errors_fp(stderr);
+	}
+}
+#endif		/* HANDLE_SSL */
+
 extern	int
 getfiletype DECL1(int, print)
 {
@@ -869,7 +891,7 @@ getfiletype DECL1(int, print)
 	if (!(ext = strrchr(name, '.')) || !(*(++ext)))
 	{
 		if (print)
-			printf("Content-type: text/plain\r\n");
+			secprintf("Content-type: text/plain\r\n");
 		return(0);
 	}
 	for (count = 0; ext[count] && (count < 16); count++)
@@ -881,13 +903,13 @@ getfiletype DECL1(int, print)
 		if (!strcmp(extension, search->ext))
 		{
 			if (print)
-				printf("Content-type: %s\r\n", search->name);
+				secprintf("Content-type: %s\r\n", search->name);
 			return(!strcmp(search->name, "text/html"));
 		}
 		search = search->next;
 	}
 	if (print)
-		printf("Content-type: application/octet-stream\r\n");
+		secprintf("Content-type: application/octet-stream\r\n");
 	return(0);
 }
 

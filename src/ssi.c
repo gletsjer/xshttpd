@@ -105,7 +105,7 @@ xsc_initdummy DECL0
 		if ((fd = open(calcpath(CNT_DATA), O_WRONLY | O_CREAT,
 			S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
 		{
-			printf("[Failed to create dummies: %s]\n",
+			secprintf("[Failed to create dummies: %s]\n",
 				strerror(errno));
 			return(1);
 		}
@@ -116,7 +116,7 @@ xsc_initdummy DECL0
 	dummy.total = dummy.today = dummy.month = 0;
 	if (write(fd, &dummy, sizeof(dummy)) != sizeof(dummy))
 	{
-		printf("[Failed to write dummy file: %s]\n", strerror(errno));
+		secprintf("[Failed to write dummy file: %s]\n", strerror(errno));
 		return(1);
 	}
 
@@ -124,7 +124,7 @@ xsc_initdummy DECL0
 	dummy.filename[sizeof(dummy.filename) - 1] = 0;
 	if (write(fd, &dummy, sizeof(dummy)) != sizeof(dummy))
 	{
-		printf("[Failed to write dummy file: %s]\n", strerror(errno));
+		secprintf("[Failed to write dummy file: %s]\n", strerror(errno));
 		return(1);
 	}
 	close(fd); return(0);
@@ -142,7 +142,7 @@ xsc_initcounter DECL1C(char *, filename)
 	if ((fd = open(datafile, O_RDONLY,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
 	{
-		printf("[Could not open the counter file: %s]\n",
+		secprintf("[Could not open the counter file: %s]\n",
 			strerror(errno));
 		return(1);
 	}
@@ -150,7 +150,7 @@ xsc_initcounter DECL1C(char *, filename)
 		O_WRONLY | O_CREAT | O_TRUNC, 
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
 	{
-		printf("[Failed to create temporary file: %s]\n",
+		secprintf("[Failed to create temporary file: %s]\n",
 			strerror(errno));
 		close(fd2); return(1);
 	}
@@ -166,7 +166,7 @@ xsc_initcounter DECL1C(char *, filename)
 			if (write(fd2, &counter2, sizeof(counter2)) !=
 				sizeof(counter2))
 			{
-				printf("[Failed to write temp file: %s]\n",
+				secprintf("[Failed to write temp file: %s]\n",
 					strerror(errno));
 				close(fd); close(fd2); remove(lockfile);
 				return(1);
@@ -175,7 +175,7 @@ xsc_initcounter DECL1C(char *, filename)
 		}
 		if (write(fd2, &counter, sizeof(counter)) != sizeof(counter))
 		{
-			printf("[Failed to write temp file: %s]\n",
+			secprintf("[Failed to write temp file: %s]\n",
 				strerror(errno));
 			close(fd); close(fd2); remove(lockfile); return(1);
 		}
@@ -184,13 +184,13 @@ xsc_initcounter DECL1C(char *, filename)
 	if (!done)
 	{
 		if (write(fd2, &counter2, sizeof(counter2)) != sizeof(counter2))
-			printf("[Failed to write temp file: %s]\n",
+			secprintf("[Failed to write temp file: %s]\n",
 				strerror(errno));
 	}
 	close(fd); close(fd2);
 	if (rename(lockfile, datafile))
 	{
-		printf("[Could not rename counter file: %s]\n",
+		secprintf("[Could not rename counter file: %s]\n",
 			strerror(errno));
 		remove(lockfile); return(1);
 	}
@@ -217,7 +217,7 @@ xsc_counter DECL2_C(int, mode, char *, args)
 		mysleep(1);
 		if ((timer++) == 180)
 		{
-			printf("[Warning! Lock file timed out! Removing it!]\n");
+			secprintf("[Warning! Lock file timed out! Removing it!]\n");
 			remove(lockfile); return(1);
 		}
 	}
@@ -236,7 +236,7 @@ reopen:
 
 	if ((total = lseek(fd, 0, SEEK_END)) == -1)
 	{
-		printf("[Could not find end of the counter file: %s]\n",
+		secprintf("[Could not find end of the counter file: %s]\n",
 			strerror(errno));
 		return(1);
 	}
@@ -256,13 +256,13 @@ reopen:
 		y = (x + z) / 2;
 		if (lseek(fd, y * sizeof(countstr), SEEK_SET) == -1)
 		{
-			printf("[Could not seek in counter file: %s]\n",
+			secprintf("[Could not seek in counter file: %s]\n",
 				strerror(errno));
 			return(1);
 		}
 		if (read(fd, &counter, sizeof(countstr)) != sizeof(countstr))
 		{
-			printf("[Could not read counter file: %s]\n",
+			secprintf("[Could not read counter file: %s]\n",
 				strerror(errno));
 			return(1);
 		}
@@ -277,7 +277,7 @@ reopen:
 		close(fd);
 		if (already)
 		{
-			printf("[Failed to create new counter]\n");
+			secprintf("[Failed to create new counter]\n");
 			return(1);
 		}
 		already = 1;
@@ -289,7 +289,7 @@ reopen:
 	counter.total++; counter.today++; counter.month++;
 	if (lseek(fd, y * sizeof(countstr), SEEK_SET) == -1)
 	{
-		printf("[Could not seek in counter file: %s]\n",
+		secprintf("[Could not seek in counter file: %s]\n",
 			strerror(errno));
 		close(fd); return(1);
 	}
@@ -298,14 +298,14 @@ reopen:
 		counter.total = counter.month = counter.today = 0;
 		if (write(fd, &counter, sizeof(countstr)) != sizeof(countstr))
 		{
-			printf("[Could not update counter file: %s]\n",
+			secprintf("[Could not update counter file: %s]\n",
 				strerror(errno));
 			close(fd); return(1);
 		}
 	}
 	if (write(fd, &counter, sizeof(countstr)) != sizeof(countstr))
 	{
-		printf("[Could not update counter file: %s]\n",
+		secprintf("[Could not update counter file: %s]\n",
 			strerror(errno));
 		close(fd); return(1);
 	}
@@ -317,26 +317,26 @@ ALREADY:
 	switch(mode)
 	{
 	case MODE_ALL:
-		printf("%d", counter.total);
+		secprintf("%d", counter.total);
 		break;
 	case MODE_GFX_ALL:
-		printf("<IMG SRC=\"/%s/gfxcount%s?%d\" ALT=\"%d\">",
+		secprintf("<IMG SRC=\"/%s/gfxcount%s?%d\" ALT=\"%d\">",
 			HTTPD_SCRIPT_ROOT,
 			args ? args : "", counter.total, counter.total);
 		break;
 	case MODE_TODAY:
-		printf("%d", counter.today);
+		secprintf("%d", counter.today);
 		break;
 	case MODE_GFX_TODAY:
-		printf("<IMG SRC=\"/%s/gfxcount%s?%d\" ALT=\"%d\">",
+		secprintf("<IMG SRC=\"/%s/gfxcount%s?%d\" ALT=\"%d\">",
 			HTTPD_SCRIPT_ROOT,
 			args ? args : "", counter.today, counter.today);
 		break;
 	case MODE_MONTH:
-		printf("%d", counter.month);
+		secprintf("%d", counter.month);
 		break;
 	case MODE_GFX_MONTH:
-		printf("<IMG SRC=\"/%s/gfxcount%s?%d\" ALT=\"%d\">",
+		secprintf("<IMG SRC=\"/%s/gfxcount%s?%d\" ALT=\"%d\">",
 			HTTPD_SCRIPT_ROOT,
 			args ? args : "", counter.month, counter.month);
 		break;
@@ -344,7 +344,7 @@ ALREADY:
 		if (counter.total > 0)
 			/* This is quite redundant... Let's think of a better way */
 			goto reopen;
-		printf("[reset stats counter]");
+		secprintf("[reset stats counter]");
 		break;
 	}
 	close(fd);
@@ -370,7 +370,7 @@ call_counter DECL2_C(int, mode, char *, args)
 	{
 		if (!(search = strstr(args, "-->")))
 		{
-			printf("[Incomplete counter directive]\n");
+			secprintf("[Incomplete counter directive]\n");
 			return(ERR_CONT);
 		}
 		*search = 0;
@@ -435,13 +435,13 @@ dir_date_format DECL2(char *, here, size_t *, size)
 
 	if (*(here++) != ' ')
 	{
-		printf("[No parameter to date-format]\n");
+		secprintf("[No parameter to date-format]\n");
 		return(ERR_CONT);
 	}
 
 	if (!(search = strstr(here, "-->")))
 	{
-		printf("[Incomplete directive in date-format]\n");
+		secprintf("[Incomplete directive in date-format]\n");
 		return(ERR_CONT);
 	}
 	*search = 0;
@@ -460,7 +460,7 @@ dir_date DECL2(char *, here, size_t *, size)
 	time(&theclock);
 	strftime(buffer, MYBUFSIZ - 1, dateformat, localtime(&theclock));
 	*size += strlen(buffer);
-	return(fputs(buffer, stdout) == EOF ? ERR_QUIT : ERR_NONE);
+	return(secfputs(buffer, stdout) == EOF ? ERR_QUIT : ERR_NONE);
 }
 
 static	int
@@ -472,18 +472,18 @@ dir_include_file DECL2(char *, here, size_t *, size)
 
 	if ((numincludes++) > 16)
 	{
-		printf("[Too many include files]\n");
+		secprintf("[Too many include files]\n");
 		return(ERR_CONT);
 	}
 	if (*(here++) != ' ')
 	{
-		printf("[No parameter for include-file]\n");
+		secprintf("[No parameter for include-file]\n");
 		return(ERR_CONT);
 	}
 
 	if (!(search = strstr(here, "-->")))
 	{
-		printf("[Incomplete directive in include-file]\n");
+		secprintf("[Incomplete directive in include-file]\n");
 		return(ERR_CONT);
 	}
 	*search = 0;
@@ -492,7 +492,7 @@ dir_include_file DECL2(char *, here, size_t *, size)
 	*search = '-';
 	if (fd < 0)
 	{
-		printf("[Error opening file `%s': %s]\n",
+		secprintf("[Error opening file `%s': %s]\n",
 			path, strerror(errno));
 		return(ERR_CONT);
 	}
@@ -511,23 +511,23 @@ dir_include_virtual DECL2(char *, here, size_t *, size)
 
 	if ((numincludes++) > 16)
 	{
-		printf("[Too many include files]\n");
+		secprintf("[Too many include files]\n");
 		return(ERR_CONT);
 	}
 	if (strncmp(here, " virtual=\"", 10))
 	{
-		printf("[No virtual parameter for include]\n");
+		secprintf("[No virtual parameter for include]\n");
 		return(ERR_CONT);
 	}
 	here += 10;
 	if (!(search = strstr(here, "-->")))
 	{
-		printf("[Incomplete directive in include-file]\n");
+		secprintf("[Incomplete directive in include-file]\n");
 		return(ERR_CONT);
 	}
 	if (!(search = strstr(here, "\"")))
 	{
-		printf("[Incomplete virtual in include virtual]\n");
+		secprintf("[Incomplete virtual in include virtual]\n");
 		return(ERR_CONT);
 	}
 	*search = 0;
@@ -536,7 +536,7 @@ dir_include_virtual DECL2(char *, here, size_t *, size)
 	fd = open(path, O_RDONLY, 0);
 	if (fd < 0)
 	{
-		printf("[Error opening file `%s': %s]\n",
+		secprintf("[Error opening file `%s': %s]\n",
 		path, strerror(errno));
 		return(ERR_CONT);
 	}
@@ -559,7 +559,7 @@ dir_last_mod DECL2(char *, here, size_t *, size)
 		here++;
 		if (!(search = strstr(here, "-->")))
 		{
-			printf("[Incomplete directive in last-mod]\n");
+			secprintf("[Incomplete directive in last-mod]\n");
 			return(ERR_CONT);
 		}
 		*search = 0;
@@ -567,7 +567,7 @@ dir_last_mod DECL2(char *, here, size_t *, size)
 		*search = '-';
 		if (stat(path, &statbuf))
 		{
-			printf("[Cannot stat file '%s': %s]\n",
+			secprintf("[Cannot stat file '%s': %s]\n",
 				path, strerror(errno));
 			return(ERR_CONT);
 		}
@@ -577,14 +577,14 @@ dir_last_mod DECL2(char *, here, size_t *, size)
 
 	strftime(buffer, MYBUFSIZ - 1, dateformat, thetime);
 	*size += strlen(buffer);
-	return(fputs(buffer, stdout) == EOF ? ERR_QUIT : ERR_NONE);
+	return(secfputs(buffer, stdout) == EOF ? ERR_QUIT : ERR_NONE);
 }
 
 static	int
 dir_remote_host DECL2(char *, here, size_t *, size)
 {
 	*size += strlen(remotehost);
-	return(fputs(remotehost, stdout) == EOF ? ERR_QUIT : ERR_NONE);
+	return(secfputs(remotehost, stdout) == EOF ? ERR_QUIT : ERR_NONE);
 }
 
 static	int
@@ -594,12 +594,12 @@ dir_run_cgi DECL2(char *, here, size_t *, size)
 
 	if (*(here++) != ' ')
 	{
-		printf("[No parameter for run-cgi]\n");
+		secprintf("[No parameter for run-cgi]\n");
 		return(ERR_CONT);
 	}
 	if (!(search = strstr(here, "-->")))
 	{
-		printf("[Incomplete directive in run-cgi]\n");
+		secprintf("[Incomplete directive in run-cgi]\n");
 		return(ERR_CONT);
 	}
 	*search = 0;
@@ -611,9 +611,9 @@ static	int
 dir_agent_long DECL2(char *, here, size_t *, size)
 {
 	if (getenv("USER_AGENT"))
-		printf("%s", getenv("USER_AGENT"));
+		secprintf("%s", getenv("USER_AGENT"));
 	else
-		printf("Unknown browser");
+		secprintf("Unknown browser");
 	return(ERR_NONE);
 }
 
@@ -621,9 +621,9 @@ static	int
 dir_agent_short DECL2(char *, here, size_t *, size)
 {
 	if (getenv("USER_AGENT_SHORT"))
-		printf("%s", getenv("USER_AGENT_SHORT"));
+		secprintf("%s", getenv("USER_AGENT_SHORT"));
 	else
-		printf("Unknown browser");
+		secprintf("Unknown browser");
 	return(ERR_NONE);
 }
 
@@ -631,10 +631,10 @@ static	int
 dir_argument DECL2(char *, here, size_t *, size)
 {
 	if (getenv("QUERY_STRING")) {
-		printf("%s", getenv("QUERY_STRING"));
+		secprintf("%s", getenv("QUERY_STRING"));
 		return(ERR_NONE);
 	} else {
-		printf("[Document missing arguments]\n");
+		secprintf("[Document missing arguments]\n");
 		return(ERR_CONT);
 	}
 }
@@ -643,9 +643,9 @@ static	int
 dir_referer DECL2(char *, here, size_t *, size)
 {
 	if (getenv("HTTP_REFERER"))
-		printf("%s", getenv("HTTP_REFERER"));
+		secprintf("%s", getenv("HTTP_REFERER"));
 	else
-		printf("No refering URL");
+		secprintf("No refering URL");
 	return(ERR_NONE);
 }
 
@@ -656,17 +656,17 @@ dir_if DECL2(char *, here, size_t *, size)
 
 	if (*(here++) != ' ')
 	{
-		printf("[No parameter for if]\n");
+		secprintf("[No parameter for if]\n");
 		return(ERR_CONT);
 	}
 	if (!(search = strstr(here, "-->")))
 	{
-		printf("[Incomplete directive in if]\n");
+		secprintf("[Incomplete directive in if]\n");
 		return(ERR_CONT);
 	}
 	if (ssioutput == 15)
 	{
-		printf("[Too many nested if statements]\n");
+		secprintf("[Too many nested if statements]\n");
 		return(ERR_CONT);
 	}
 	*search = 0;
@@ -691,7 +691,7 @@ dir_if DECL2(char *, here, size_t *, size)
 			getenv("HTTP_REFERER"));
 	else
 	{
-		printf("[Unknown if subtype]\n");
+		secprintf("[Unknown if subtype]\n");
 		*search = '-'; return(ERR_CONT);
 	}
 	*search = '-'; return(ERR_NONE);
@@ -718,7 +718,7 @@ dir_endif DECL2(char *, here, size_t *, size)
 {
 	if (!ssioutput)
 	{
-		printf("[No if's to endif]\n");
+		secprintf("[No if's to endif]\n");
 		return(ERR_CONT);
 	}
 	ssioutput--;
@@ -732,12 +732,12 @@ dir_switch DECL2(char *, here, size_t *, size)
 
 	if (*(here++) != ' ')
 	{
-		printf("[No parameter for switch]\n");
+		secprintf("[No parameter for switch]\n");
 		return(ERR_CONT);
 	}
 	if (!(search = strstr(here, "-->")))
 	{
-		printf("[Incomplete directive in switch]\n");
+		secprintf("[Incomplete directive in switch]\n");
 		return(ERR_CONT);
 	}
 	ssiarray[++ssioutput] = 0;
@@ -849,7 +849,7 @@ parsedirectives DECL2(char *, parse, size_t *, size)
 		{
 			if (printable)
 			{
-				if (fwrite(result, store - result,
+				if (secfwrite(result, store - result,
 					1, stdout) != 1)
 					return(ERR_QUIT);
 				*size += (store - result);
@@ -867,7 +867,7 @@ parsedirectives DECL2(char *, parse, size_t *, size)
 				if (!directive->params &&
 					strncmp(here+len, "-->", 3))
 				{
-					printf("[Garbage after `%s']",
+					secprintf("[Garbage after `%s']",
 						directive->name);
 					goto SKIPDIR;
 				}
@@ -885,7 +885,7 @@ parsedirectives DECL2(char *, parse, size_t *, size)
 				case ERR_QUIT:
 					return(ERR_QUIT);
 				case ERR_CONT:
-					printf("[Error parsing directive]\n");
+					secprintf("[Error parsing directive]\n");
 					break;
 				}
 				SKIPDIR:
@@ -895,7 +895,7 @@ parsedirectives DECL2(char *, parse, size_t *, size)
 			}
 			directive++;
 		}
-		printf("[Unknown directive]\n");
+		secprintf("[Unknown directive]\n");
 		if ((search = strstr(here, "-->")))
 			here = search + 3;
 		LOOPNEXT: ;
@@ -905,7 +905,7 @@ parsedirectives DECL2(char *, parse, size_t *, size)
 	{
 		if (print_enabled())
 		{
-			if (fwrite(result, store - result, 1, stdout) != 1)
+			if (secfwrite(result, store - result, 1, stdout) != 1)
 				return(ERR_QUIT);
 			*size += (store - result);
 		}
@@ -932,7 +932,7 @@ sendwithdirectives_internal DECL2(int, fd, size_t *, size)
 		{
 			if (print_enabled())
 			{
-				if (fputs(input, stdout) == EOF)
+				if (secfputs(input, stdout) == EOF)
 				{
 					alarm(0); fclose(parse);
 					return(ERR_QUIT);

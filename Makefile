@@ -26,6 +26,9 @@ CC	= gcc
 #CFLAGS	= -O3 -Wall -pedantic -ansi
 CFLAGS	= -g -Wall -pedantic -ansi
 
+# Enable when using SSL
+CFLAGS	+= -I/usr/local/include -I/usr/local/ssl/include
+
 # If you have Linux, you need to uncomment the following line, otherwise
 # your screen will be cluttered with warnings.
 
@@ -39,6 +42,9 @@ CFLAGS	= -g -Wall -pedantic -ansi
 
 #LDFLAGS	= -s -lcrypt
 LDFLAGS	= -lcrypt
+
+# Enable when using SSL
+LDFLAGS	+= -L/usr/local/lib -L /usr/local/ssl/lib -lcrypto -lssl
 
 # Where should systemwide user-usable binaries be installed? This includes
 # the WWW server itself, the controller (httpdc) and also the authentication

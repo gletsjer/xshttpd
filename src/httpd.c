@@ -115,6 +115,11 @@ static	struct	in6_addr	thisaddress6;
 #else		/* INET6 */
 static	struct	in_addr	thisaddress;
 #endif		/* INET6 */
+#ifdef		HANDLE_SSL
+int		do_ssl;
+SSL_CTX	*ssl_ctx;
+SSL		*ssl;
+#endif		/* HANDLE_SSL */
 
 /* Static arrays */
 
@@ -153,16 +158,16 @@ extern	VOID
 stdheaders DECL3(int, lastmod, int, texthtml, int, endline)
 {
 	setcurrenttime();
-	printf("Date: %s\r\nServer: %s\r\n", currenttime, SERVER_IDENT);
+	secprintf("Date: %s\r\nServer: %s\r\n", currenttime, SERVER_IDENT);
 	if (headers >= 11)
-		printf("Connection: close\r\n");
+		secprintf("Connection: close\r\n");
 	if (lastmod)
-		printf("Last-modified: %s\r\nExpires: %s\r\n",
+		secprintf("Last-modified: %s\r\nExpires: %s\r\n",
 			currenttime, currenttime);
 	if (texthtml)
-		printf("Content-type: text/html\r\n");
+		secprintf("Content-type: text/html\r\n");
 	if (endline)
-		printf("\r\n");
+		secprintf("\r\n");
 }
 
 static	VOID
@@ -307,6 +312,9 @@ open_logs DECL1(int, sig)
 #ifdef		HANDLE_SCRIPT
 	loadscripttypes();
 #endif		/* HANDLE_SCRIPT */
+#ifdef		HANDLE_SSL
+	loadssl();
+#endif		/* HANDLE_SSL */
 	set_signals();
 	if (!origeuid)
 	{
@@ -403,14 +411,14 @@ error DECL1C(char *, message)
 		referer[0] ? referer : "(none)");
 	if (headers)
 	{
-		printf("%s %s\r\n", version, message);
+		secprintf("%s %s\r\n", version, message);
 		stdheaders(1, 1, 1);
 	}
 	if (!headonly)
 	{
-		printf("\r\n<HTML><HEAD><TITLE>%s</TITLE></HEAD><BODY>\n",
+		secprintf("\r\n<HTML><HEAD><TITLE>%s</TITLE></HEAD><BODY>\n",
 			message);
-		printf("<H1>%s</H1></BODY></HTML>\n", message);
+		secprintf("<H1>%s</H1></BODY></HTML>\n", message);
 	}
 	fflush(stdout); fflush(stderr); alarm(0);
 }
@@ -423,16 +431,16 @@ redirect DECL2C_(char *, redir, int, permanent)
 	env = getenv("QUERY_STRING");
 	if (headers)
 	{
-		printf("%s %s moved\r\nLocation: %s\r\n", version,
+		secprintf("%s %s moved\r\nLocation: %s\r\n", version,
 			permanent ? "301 Permanently" : "302 Temporarily",
 			redir);
 		stdheaders(1, 1, 1);
 	}
 	if (!headonly)
 	{
-		printf("\r\n<HTML><HEAD><TITLE>Document has moved</TITLE></HEAD>");
-		printf("<BODY>\n<H1>Document has moved</H1>This document has ");
-		printf("%smoved to <A HREF=\"%s%s%s\">%s</A>.</BODY></HTML>\n",
+		secprintf("\r\n<HTML><HEAD><TITLE>Document has moved</TITLE></HEAD>");
+		secprintf("<BODY>\n<H1>Document has moved</H1>This document has ");
+		secprintf("%smoved to <A HREF=\"%s%s%s\">%s</A>.</BODY></HTML>\n",
 			permanent ? "permanently " : "", redir,
 			env ? "?" : "", env ? env : "", redir);
 	}
@@ -536,13 +544,13 @@ check_auth DECL1(FILE *, authfile)
 	{
 		if (headers)
 		{
-			printf("%s 401 Unauthorized\r\n", version);
-			printf("WWW-authenticate: basic realm=\"this page\"\r\n");
+			secprintf("%s 401 Unauthorized\r\n", version);
+			secprintf("WWW-authenticate: basic realm=\"this page\"\r\n");
 			stdheaders(1, 1, 1);
 		}
-		printf("\r\n<HTML><HEAD><TITLE>Unauthorized</TITLE></HEAD>\n");
-		printf("<BODY><H1>Unauthorized</H1>\nYour client does not ");
-		printf("understand authentication.\n</BODY></HTML>\n");
+		secprintf("\r\n<HTML><HEAD><TITLE>Unauthorized</TITLE></HEAD>\n");
+		secprintf("<BODY><H1>Unauthorized</H1>\nYour client does not ");
+		secprintf("understand authentication.\n</BODY></HTML>\n");
 		fclose(authfile); return(1);
 	}
 	strncpy(line, env, MYBUFSIZ - 1); line[MYBUFSIZ - 1] = 0;
@@ -673,6 +681,67 @@ server_error DECL2CC(char *, readable, char *, cgi)
 	}
 }
 
+size_t
+secread(int fd, void *buf, size_t count)
+{
+#ifdef		HANDLE_SSL
+	if (do_ssl)
+		return SSL_read(ssl, buf, count);
+	else
+#endif		/* HANDLE_SSL */
+		return read(fd, buf, count);
+}
+
+size_t
+secwrite(int fd, void *buf, size_t count)
+{
+#ifdef		HANDLE_SSL
+	if (do_ssl)
+		return SSL_write(ssl, buf, count);
+	else
+#endif		/* HANDLE_SSL */
+		return write(fd, buf, count);
+}
+
+size_t
+secfwrite(void *buf, size_t size, size_t count, FILE *stream)
+{
+#ifdef		HANDLE_SSL
+	if (do_ssl)
+		return SSL_write(ssl, buf, size);
+	else
+#endif		/* HANDLE_SSL */
+		return fwrite(buf, size, count, stream);
+}
+
+size_t
+secprintf(const char *format, ...)
+{
+	va_list	ap;
+	char	buf[4096];
+
+	va_start(ap, format);
+	vsnprintf(buf, 4096, format, ap);
+	va_end(ap);
+#ifdef		HANDLE_SSL
+	if (do_ssl)
+		return SSL_write(ssl, buf, strlen(buf));
+	else
+#endif		/* HANDLE_SSL */
+		return write(1, buf, strlen(buf));
+}
+
+size_t
+secfputs(char *buf, FILE *stream)
+{
+#ifdef		HANDLE_SSL
+	if (do_ssl)
+		return SSL_write(ssl, buf, strlen(buf));
+	else
+#endif		/* HANDLE_SSL */
+		return fputs(buf, stream);
+}
+
 extern	int
 readline DECL2(int, sd, char *, buf)
 {
@@ -684,7 +753,7 @@ readline DECL2(int, sd, char *, buf)
 		if (netbufind >= netbufsiz)
 		{
 			TRYAGAIN:
-			netbufsiz = read(sd, netbuf,
+			netbufsiz = secread(sd, netbuf,
 				readlinemode ? MYBUFSIZ : 1);
 			if (netbufsiz == -1)
 			{
@@ -743,16 +812,26 @@ process_request DECL0
 	unsetenv("HTTP_CLIENT_IP"); unsetenv("HTTP_VIA");
 	unsetenv("IF_MODIFIED_SINCE"); unsetenv("IF_UNMODIFIED_SINCE");
 	unsetenv("IF_RANGE");
+	unsetenv("SSL_CIPHER");
 
 
 	alarm(180); errno = 0;
-	readerror = read(0, line, 1);
+#ifdef		HANDLE_SSL
+	if (do_ssl)
+		setenv("SSL_CIPHER", SSL_get_cipher(ssl), 1);
+	if (readerror = ERR_get_error()) {
+		fprintf(stderr, "SSL Error: %s\n", ERR_reason_error_string(readerror));
+		error("400 SSL Error");
+		return;
+	}
+#endif		/* HANDLE_SSL */
+	readerror = secread(0, line, 1);
 	if (readerror == 1)
-		readerror = read(0, line + 1, 1);
+		readerror = secread(0, line + 1, 1);
 	if (readerror == 1)
-		readerror = read(0, line + 2, 1);
+		readerror = secread(0, line + 2, 1);
 	if (readerror == 1)
-		readerror = read(0, line + 3, 1);
+		readerror = secread(0, line + 3, 1);
 	if (readerror != 1)
 	{
 		if (readerror == -1)
@@ -1115,7 +1194,7 @@ standalone_main DECL0
 #endif		/* __linux__ */
 #endif		/* 0 */
 
-		dup2(csd, 0); dup2(csd, 1); close(csd);
+		dup2(csd, 0); dup2(csd, 1); /* close(csd); */
 
 #ifndef		SETVBUF_REVERSED
 		setvbuf(stdin, NULL, _IONBF, 0);
@@ -1150,16 +1229,34 @@ standalone_main DECL0
 #endif		/* INET 6 */
 			unsetenv("REMOTE_HOST");
 		}
+#ifdef		HANDLE_SSL
+		if (do_ssl) {
+			ssl = SSL_new(ssl_ctx);
+			SSL_set_verify(ssl, SSL_VERIFY_NONE, NULL);
+			SSL_set_fd(ssl, csd);
+			if (!SSL_accept(ssl)) {
+				fprintf(stderr, "SSL flipped\n");
+				secprintf("%s 500 Failed\r\nContent-type: text/plain\r\n\r\n",
+					version);
+				secprintf("SSL Flipped...\n");
+				return;
+			}
+		}
+#endif		/* HANDLE_SSL */
 		setprocname("xs(%d): Connect from `%s'", count + 1, remotehost);
 		setcurrenttime();
 		if (message503[0])
 		{
 			alarm(180);
-			printf("%s 503 Busy\r\nContent-type: text/plain\r\n\r\n", version);
-			printf("%s\n", message503);
+			secprintf("%s 503 Busy\r\nContent-type: text/plain\r\n\r\n", version);
+			secprintf("%s\n", message503);
 		} else
 			process_request();
 		alarm(0); reqs++;
+#ifdef		HANDLE_SSL
+		SSL_free(ssl);
+		close(csd);
+#endif		/* HANDLE_SSL */
 		fflush(stdout); fflush(stdin); fflush(stderr);
 	}
 	/* NOTREACHED */
@@ -1185,7 +1282,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 {
 	const	struct	passwd	*userinfo;
 	const	struct	group	*groupinfo;
-	int			option, num;
+	int			option, num, fport = 0;
 #ifndef 	INET6
 	const	struct	hostent	*hp;
 #endif		/* INET6 */
@@ -1237,7 +1334,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	sprintf(access_path, "%s/access_log", calcpath(HTTPD_LOG_ROOT));
 	sprintf(error_path, "%s/error_log", calcpath(HTTPD_LOG_ROOT));
 	sprintf(refer_path, "%s/referer_log", calcpath(HTTPD_LOG_ROOT));
-	while ((option = getopt(argc, argv, "a:d:g:l:m:n:p:r:u:A:R:E:")) != EOF)
+	while ((option = getopt(argc, argv, "a:d:g:l:m:n:p:r:su:A:R:E:")) != EOF)
 	{
 		switch(option)
 		{
@@ -1248,6 +1345,16 @@ main DECL3(int, argc, char **, argv, char **, envp)
 		case 'p':
 			if ((port = atoi(optarg)) <= 0)
 				errx(1, "Invalid port number");
+			fport = 1;
+			break;
+		case 's':
+#ifdef		HANDLE_SSL
+			if (!fport)
+				port = 443;
+			do_ssl = 1;
+#else		/* HANDLE_SSL */
+			errx(1, "SSL support not enabled at compile-time");
+#endif		/* HANDLE_SSL */
 			break;
 		case 'u':
 			if ((user_id = atoi(optarg)) > 0)
