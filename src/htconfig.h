@@ -9,6 +9,7 @@ struct virtual {
 	char *		logaccess;
 	char *		logerror;
 	char *		logreferer;
+	FILE *		openaccess;
 	enum	{ none, traditional, combined }		logstyle;
 	unsigned	virtualid: 1;
 	unsigned	padding: 7;

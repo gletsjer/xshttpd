@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.85 2002/08/08 10:50:45 johans Exp $ */
+/* $Id: httpd.c,v 1.86 2002/08/16 11:28:40 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.85 2002/08/08 10:50:45 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.86 2002/08/16 11:28:40 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -119,7 +119,7 @@ char		netbuf[MYBUFSIZ], remotehost[NI_MAXHOST], orig[MYBUFSIZ],
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[SENDBUFSIZE],
 		thisdomain[NI_MAXHOST], message503[MYBUFSIZ],
 		*startparams;
-FILE		*access_log = NULL, *refer_log = NULL;
+FILE		*refer_log = NULL;
 time_t		modtime;
 #ifdef		HANDLE_SSL
 SSL_CTX	*ssl_ctx;
@@ -487,6 +487,8 @@ load_config DECL0
 		config.users->execdir = strdup("cgi-bin");
 	if (!config.users->phexecdir)
 		config.users->phexecdir = strdup("cgi-bin");
+	config.system->next = config.users;
+	config.users->next = config.virtual;
 	current = config.virtual;
 	while (current)
 	{
@@ -530,15 +532,24 @@ open_logs DECL1(int, sig)
 		signal(SIGHUP, SIG_IGN); killpg(0, SIGHUP);
 	}
 
-	if (access_log)
-		fclose(access_log);
-	if (!(access_log = fopen(calcpath(config.system->logaccess), "a")))
-		err(1, "fopen(`%s' [append])", access_path);
+	for (current = config.system; current; current = current->next)
+	{
+		/* access */
+		if (current->openaccess)
+			fclose(current->openaccess);
+		if (current->logaccess)
+		{
+			if (!(current->openaccess =
+					fopen(calcpath(current->logaccess), "a")))
+				err(1, "fopen(`%s' [append])", current->logaccess);
 #ifndef		SETVBUF_REVERSED
-	setvbuf(access_log, NULL, _IOLBF, 0);
+			setvbuf(current->openaccess, NULL, _IOLBF, 0);
 #else		/* Not not SETVBUF_REVERSED */
-	setvbuf(access_log, _IOLBF, NULL, 0);
+			setvbuf(current->openaccess, _IOLBF, NULL, 0);
 #endif		/* SETVBUF_REVERSED */
+		}
+		/* TODO: error and referer logs */
+	}
 
 	fflush(stderr);
 	close(2);
@@ -978,13 +989,13 @@ logrequest DECL2(const char *, request, long, size)
 	strftime(buffer, 80, "%d/%b/%Y:%H:%M:%S", localtime(&theclock));
 
 	if (current->logstyle == traditional)
-		fprintf(access_log, "%s - - [%s +0000] \"%s %s %s\" 200 %ld\n",
+		fprintf(current->openaccess, "%s - - [%s +0000] \"%s %s %s\" 200 %ld\n",
 			remotehost,
 			buffer, 
 			getenv("REQUEST_METHOD"), request, version,
 			size > 0 ? (long)size : (long)0);
 	else
-		fprintf(access_log, "%s - - [%s +0000] \"%s %s %s\" 200 %ld "
+		fprintf(current->openaccess, "%s - - [%s +0000] \"%s %s %s\" 200 %ld "
 				"\"%s\" \"%s\"\n",
 			remotehost,
 			buffer, 
