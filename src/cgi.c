@@ -487,16 +487,19 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		else
 #endif		/* HANDLE_SCRIPT */
 			execl(fullpath, name, argv1, NULL);
+		/* no need to give local path info to the visitor */
 		if (nph)
 		{
-			snprintf(errmsg, MYBUFSIZ, "500 execl(`%s'): %s",
-				fullpath, strerror(errno));
+			snprintf(errmsg, MYBUFSIZ, "500 execl(): %s",
+				/* fullpath, */ strerror(errno));
 			error(errmsg);
 		} else
 		{
 			secprintf("Content-type: text/plain\r\n\r\n");
-			secprintf("[execl(`%s') failed: %s]",
-				engine ? engine : fullpath, strerror(errno));
+			secprintf("[execl() failed: %s]",
+				strerror(errno));
+			fprintf(stderr, "[%s] execl(`%s') failed: %s]",
+				currenttime, engine ? engine : fullpath, strerror(errno));
 		}
 		exit(1);
 	default:
