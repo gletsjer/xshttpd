@@ -37,6 +37,7 @@
 #include	"extra.h"
 #include	"local.h"
 #include	"path.h"
+#include	"ssl.h"
 #include	"convert.h"
 #include	"xscounter.h"
 #include	"methods.h"

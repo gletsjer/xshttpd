@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.168 2005/01/08 13:25:35 johans Exp $ */
+/* $Id: httpd.c,v 1.169 2005/01/17 20:41:19 johans Exp $ */
 
 #include	"config.h"
 
@@ -70,10 +70,12 @@
 #endif		/* HAVE_MEMORY_H */
 
 #include	"httpd.h"
+#include	"decode.h"
 #include	"methods.h"
 #include	"procname.h"
 #include	"extra.h"
 #include	"cgi.h"
+#include	"ssl.h"
 #include	"xscrypt.h"
 #include	"path.h"
 #include	"convert.h"
@@ -101,13 +103,12 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.168 2005/01/08 13:25:35 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.169 2005/01/17 20:41:19 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
 
-int		headers, netbufind, netbufsiz, readlinemode,
-		headonly, postonly;
+int		headers, headonly, postonly;
 static	int	sd, reqs, mainhttpd = 1;
 gid_t		origegid;
 uid_t		origeuid;
@@ -116,26 +117,11 @@ char		remotehost[NI_MAXHOST],
 		version[16], currentdir[XS_PATH_MAX], name[XS_PATH_MAX];
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[SENDBUFSIZE],
 		thisdomain[NI_MAXHOST], message503[MYBUFSIZ], orig[MYBUFSIZ],
-		config_path[XS_PATH_MAX], netbuf[MYBUFSIZ],
+		config_path[XS_PATH_MAX], 
 		*startparams;
 time_t		modtime;
-#ifdef		HANDLE_SSL
-SSL_CTX			*ssl_ctx;
-static SSL		*ssl;
-#endif		/* HANDLE_SSL */
 struct virtual			*current;
 struct configuration	config;
-
-/* Static arrays */
-
-static	char	six2pr[64] =
-{
-	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-	'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-	'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-	'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'
-};
 
 /* Prototypes */
 
@@ -147,12 +133,6 @@ static	void	load_config		(void);
 static	void	open_logs		(int);
 static	void	core_handler		(int);
 static	void	set_signals		(void);
-
-static	int	hexdigit		(int);
-static	int	decode			(char *);
-
-static	void	uudecode		(char *);
-char	*escape			(const char *);
 
 static	void	process_request		(void);
 
@@ -965,93 +945,6 @@ redirect(const char *redir, int permanent)
 	fflush(stdout);
 }
 
-static	int
-hexdigit(int ch)
-{
-	const	char	*temp, *hexdigits = "0123456789ABCDEF";
-
-	if ((temp = strchr(hexdigits, islower(ch) ? toupper(ch) : ch)))
-		return (temp - hexdigits);
-	else
-	{
-		error("500 Invalid `percent' parameters");
-		return (-1);
-	}
-}
-
-static	int
-decode(char *str)
-{
-	char		*posd, chr;
-	const	char	*poss;
-	int		top, bottom;
-
-	poss = posd = str;
-	while ((chr = *poss))
-	{
-		if (chr != '%')
-		{
-			if (chr == '?')
-			{
-				bcopy(poss, posd, strlen(poss) + 1);
-				return(ERR_NONE);
-			}
-			*(posd++) = chr;
-			poss++;
-		} else
-		{
-			if ((top = hexdigit((int)poss[1])) < 0)
-				return(ERR_QUIT);
-			if ((bottom = hexdigit((int)poss[2])) < 0)
-				return(ERR_QUIT);
-			*(posd++) = (top << 4) + bottom;
-			poss += 3;
-		}
-	}
-	*posd = 0;
-	return(ERR_NONE);
-}
-
-static	void
-uudecode(char *buffer)
-{
-	unsigned char	pr2six[256], bufplain[32], *bufout = bufplain;
-	int		nbytesdecoded, j, nprbytes;
-	char		*bufin = buffer;
-
-	for (j = 0; j < 256; j++)
-		pr2six[j] = 64;
-	for (j = 0; j < 64; j++)
-		pr2six[(int)six2pr[j]] = (unsigned char)j;
-	bufin = buffer;
-	while (pr2six[(int)*(bufin++)] <= 63)
-		/* NOTHING HERE */;
-	nprbytes = (bufin - buffer) - 1;
-	nbytesdecoded = ((nprbytes + 3) / 4) * 3;
-	bufin = buffer;
-	while (nprbytes > 0)
-	{
-		*(bufout++) = (unsigned char) ((pr2six[(int)*bufin] << 2) |
-			(pr2six[(int)bufin[1]] >> 4));
-		*(bufout++) = (unsigned char) ((pr2six[(int)bufin[1]] << 4) |
-			(pr2six[(int)bufin[2]] >> 2));
-		*(bufout++) = (unsigned char) ((pr2six[(int)bufin[2]] << 6) |
-			(pr2six[(int)bufin[3]]));
-		bufin += 4; nprbytes -= 4;
-	}
-
-	if (nprbytes & 3)
-	{
-		if (pr2six[(int)*(bufin - 2)] > 63)
-			nbytesdecoded -= 2;
-		else
-			nbytesdecoded--;
-	}
-	if (nbytesdecoded)
-		bcopy((char *)bufplain, buffer, nbytesdecoded);
-	buffer[nbytesdecoded] = 0;
-}
-
 int
 check_auth(FILE *authfile)
 {
@@ -1107,39 +1000,6 @@ check_auth(FILE *authfile)
 	secprintf("</BODY></HTML>\n");
 	fclose(authfile);
 	return(1);
-}
-
-char	*
-escape(const char *what)
-{
-	char		*escapebuf, *w;
-
-	if (!(w = escapebuf = (char *)malloc(BUFSIZ)))
-		return(NULL);
-	while (*what && ((w - escapebuf) < (BUFSIZ - 10)))
-	{
-		switch(*what)
-		{
-		case '<':
-			strcpy(w, "&lt;"); w += 4;
-			break;
-		case '>':
-			strcpy(w, "&gt;"); w += 4;
-			break;
-		case '&':
-			strcpy(w, "&amp;"); w += 5;
-			break;
-		case '"':
-			strcpy(w, "&quot;"); w += 6;
-			break;
-		default:
-			*(w++) = *what;
-			break;
-		}
-		what++;
-	}
-	*w = 0;
-	return(escapebuf);
 }
 
 void
@@ -1276,111 +1136,6 @@ logrequest(const char *request, long size)
 	free(dynagent);
 }
 
-int
-secread(int fd, void *buf, size_t count)
-{
-#ifdef		HANDLE_SSL
-	if (config.usessl && fd == 0)
-		return SSL_read(ssl, buf, count);
-	else
-#endif		/* HANDLE_SSL */
-		return read(fd, buf, count);
-}
-
-int
-secwrite(int fd, void *buf, size_t count)
-{
-#ifdef		HANDLE_SSL
-	if (config.usessl)
-		return SSL_write(ssl, buf, count);
-	else
-#endif		/* HANDLE_SSL */
-		return write(fd, buf, count);
-}
-
-int
-secfwrite(void *buf, size_t size, size_t count, FILE *stream)
-{
-#ifdef		HANDLE_SSL
-	if (config.usessl)
-		return SSL_write(ssl, buf, size), count;
-	else
-#endif		/* HANDLE_SSL */
-		return fwrite(buf, size, count, stream);
-}
-
-int
-secprintf(const char *format, ...)
-{
-	va_list	ap;
-	char	buf[4096];
-
-	va_start(ap, format);
-	vsnprintf(buf, 4096, format, ap);
-	va_end(ap);
-#ifdef		HANDLE_SSL
-	if (config.usessl)
-		return SSL_write(ssl, buf, strlen(buf));
-	else
-#endif		/* HANDLE_SSL */
-		return printf("%s", buf);
-}
-
-int
-secfputs(char *buf, FILE *stream)
-{
-#ifdef		HANDLE_SSL
-	if (config.usessl)
-		return SSL_write(ssl, buf, strlen(buf));
-	else
-#endif		/* HANDLE_SSL */
-		return fputs(buf, stream);
-}
-
-int
-readline(int rd, char *buf)
-{
-	char		ch, *buf2;
-
-	buf2 = buf; *buf2 = 0;
-	do
-	{
-		if (netbufind >= netbufsiz)
-		{
-			TRYAGAIN:
-			netbufsiz = secread(rd, netbuf,
-				readlinemode ? MYBUFSIZ : 1);
-			if (netbufsiz == -1)
-			{
-				if ((errno == EAGAIN) || (errno == EINTR))
-				{
-					mysleep(1); goto TRYAGAIN;
-				}
-				fprintf(stderr, "[%s] httpd: readline(): %s [%d]\n",
-					currenttime, strerror(errno), rd);
-				if (rd == 0)
-					error("503 Unexpected network error");
-				return(ERR_QUIT);
-			}
-			if (netbufsiz == 0)
-			{
-				if (*buf)
-				{
-					*buf2 = 0;
-					return(ERR_NONE);
-				}
-				if (rd == 0)
-					error("503 You closed the connection!");
-				return(ERR_QUIT);
-			}
-			netbufind = 0;
-		}
-		ch = *(buf2++) = netbuf[netbufind++];
-	} while ((ch != '\n') && (buf2 < (buf + MYBUFSIZ - 64)));
-	*buf2 = 0;
-	return(ERR_NONE);
-}
-
 static	void
 process_request()
 {
@@ -1393,7 +1148,7 @@ process_request()
 	strcpy(dateformat, "%a %b %e %H:%M:%S %Y");
 	orig[0] = referer[0] = line[0] =
 		real_path[0] = browser[0] = 0;
-	netbufsiz = netbufind = headonly = postonly = headers = 0;
+	headonly = postonly = headers = 0;
 	unsetenv("SERVER_NAME");
 	unsetenv("CONTENT_LENGTH"); unsetenv("AUTH_TYPE");
 	unsetenv("CONTENT_TYPE"); unsetenv("QUERY_STRING");
@@ -1418,8 +1173,6 @@ process_request()
 
 	alarm(180); errno = 0;
 #ifdef		HANDLE_SSL
-	if (config.usessl)
-		setenv("SSL_CIPHER", SSL_get_cipher(ssl), 1);
 	if ((readerror = ERR_get_error())) {
 		fprintf(stderr, "SSL Error: %s\n", ERR_reason_error_string(readerror));
 		error("400 SSL Error");
@@ -1979,21 +1732,7 @@ standalone_socket(char id)
 		/* Loooser! You will just have to use the IP-adres... */
 #endif		/* HAVE_GETADDRINFO */
 #endif		/* HAVE GETNAMEINFO */
-#ifdef		HANDLE_SSL
-		if (config.usessl) {
-			ssl = SSL_new(ssl_ctx);
-			SSL_set_verify(ssl, SSL_VERIFY_NONE, NULL);
-			SSL_set_fd(ssl, csd);
-			if (!SSL_accept(ssl)) {
-				fprintf(stderr, "SSL flipped\n");
-				secprintf("%s 500 Failed\r\nContent-type: text/plain\r\n\r\n",
-					version);
-				secprintf("SSL Flipped...\n");
-				free(childs);
-				return;
-			}
-		}
-#endif		/* HANDLE_SSL */
+		initssl(csd);
 		setprocname("xs(%d): Connect from `%s'", count + 1, remotehost);
 		setcurrenttime();
 		if (message503[0])
@@ -2005,7 +1744,6 @@ standalone_socket(char id)
 			process_request();
 		alarm(0); reqs++;
 #ifdef		HANDLE_SSL
-		SSL_free(ssl);
 		close(csd);
 #endif		/* HANDLE_SSL */
 		fflush(stdout); fflush(stdin); fflush(stderr);

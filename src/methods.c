@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.126 2005/01/01 22:08:16 johans Exp $ */
+/* $Id: methods.c,v 1.127 2005/01/17 20:41:19 johans Exp $ */
 
 #include	"config.h"
 
@@ -84,6 +84,7 @@
 #include	"local.h"
 #include	"procname.h"
 #include	"ssi.h"
+#include	"ssl.h"
 #include	"extra.h"
 #include	"cgi.h"
 #include	"xscrypt.h"
