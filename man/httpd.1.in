@@ -302,14 +302,10 @@ included files may be nested and that directives are parsed in them.
 Note also that counters and such always count the
 \fBoriginal\fP file, so you can use the
 \fBcount\-*\fP directives in your standard headers and
-footers. The argument should be an absolute path, e.g.
-\fI<!\-\-#include\-file /home/username/.html/file\-to\-include.html\-\->\fP
-.TP
-\fBinclude virtual="\fP\fIfile\fP\fB"\fP
-The same as include\-file, however here the argument should be a
-path relative to the WWW's root directory, e.g.
-\fI<!\-\-#include\ virtual="/~username/file\-to\-include.html"\-\->\fP
-This is compatible with the Apache webserver (I am told).
+footers. The argument can be an absolute path
+(\fI/home/username/.html/file.html\fP), a virtual path relative to the
+user's html directory (\fI/~username/file.html\fP) or a relative path
+(\fIfile.html\fP).
 .TP
 \fBlast\-mod\fP
 \fB[\fP\fIfile\fP\fB]\fP
