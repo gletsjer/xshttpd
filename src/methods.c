@@ -316,19 +316,28 @@ sendcompressed DECL2_C(int, fd, char *, method)
 {
 	pid_t		pid;
 	int		count, processed;
+
+#ifdef		HAVE_MKSTEMP
+	if (!(processed = mkstemp(TEMPORARYPREFIX)))
+	{
+		fprintf(stderr, "[%s] httpd: Cannot create temporary file: %s\n",
+			currenttime, strerror(errno));
+		error("500 Unable to open temporary file");
+		exit(1);
+	}
+#else		/* HAVE_MKSTEMP */
 	char		*tmp;
 
-#ifdef		HAVE_TEMPNAM
-	if (!(tmp = tempnam(TEMPORARYPATH, "xs-www")))
-#endif		/* HAVE_TEMPNAM */
+	/* Removed obsolete tempnam() call
+	 * if (!(tmp = tempnam(TEMPORARYPATH, "xs-www")))
+	 */
 	{
-		if (!(tmp = (char *)malloc(32 + strlen(TEMPORARYPATH))))
+		if (!(tmp = (char *)malloc(32 + strlen(TEMPORARYPREFIX))))
 		{
 			error("500 Out of memory in sendcompressed()");
 			close(fd); return;
 		}
-		sprintf(tmp, "%s/.xs-www.%016ld",
-			TEMPORARYPATH, (long)getpid());
+		sprintf(tmp, "%s.%016ld", TEMPORARYPREFIX, (long)getpid());
 	}
 	remove(tmp);
 	if ((processed = open(tmp, O_CREAT | O_TRUNC | O_RDWR | O_EXCL,
@@ -340,6 +349,7 @@ sendcompressed DECL2_C(int, fd, char *, method)
 		exit(1);
 	}
 	remove(tmp); free(tmp); fflush(stdout);
+#endif		/* HAVE_MKSTEMP */
 	switch(pid = fork())
 	{
 	case -1:

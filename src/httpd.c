@@ -1074,7 +1074,7 @@ standalone_main DECL0
 	freeaddrinfo(res);
 #else		/* HAVE_GETADDRINFO */
 	/* Quick patch to run on old systems */
-	memset(&saddr, '\0', sizeof(struct sockaddr));
+	memset(&saddr, 0, sizeof(struct sockaddr));
 	saddr.sa_family = PF_INET;
 	((struct sockaddr_in *)&saddr)->sin_port = htons(atoi(port));
 
