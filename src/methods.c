@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.102 2004/05/07 14:12:45 johans Exp $ */
+/* $Id: methods.c,v 1.103 2004/05/07 14:26:14 johans Exp $ */
 
 #include	"config.h"
 
@@ -677,8 +677,6 @@ do_get DECL1(char *, params)
 			{
 				*temp = '/';
 				setenv("PATH_INFO", temp, 1);
-				if ('\0' == temp[1])
-					*temp = '\0';
 				snprintf(temppath, XS_PATH_MAX, "%s%s", fullpath, temp);
 				setenv("PATH_TRANSLATED", temppath, 1);
 				setenv("SCRIPT_FILENAME", temppath, 1);
