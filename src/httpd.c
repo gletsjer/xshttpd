@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.94 2002/11/27 18:34:52 johans Exp $ */
+/* $Id: httpd.c,v 1.95 2002/12/13 13:08:18 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.94 2002/11/27 18:34:52 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.95 2002/12/13 13:08:18 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -323,6 +323,8 @@ load_config DECL0
 				config.usevirtualhost = !strcasecmp("true", value);
 			else if (!strcasecmp("UseVirtualUid", key))
 				config.usevirtualuid = !strcasecmp("true", value);
+			else if (!strcasecmp("UseLocalScript", key))
+				config.uselocalscript = !strcasecmp("true", value);
 			else if (!strcasecmp("LocalMode", key))
 				config.localmode = atoi(value);
 			else if (!current)
@@ -595,7 +597,7 @@ open_logs DECL1(int, sig)
 	loadcompresstypes();
 #endif		/* HANDLE_COMPRESSED */
 #ifdef		HANDLE_SCRIPT
-	loadscripttypes();
+	loadscripttypes(NULL);
 #endif		/* HANDLE_SCRIPT */
 #ifdef		HANDLE_SSL
 	loadssl();

@@ -66,9 +66,6 @@
 #ifdef		HAVE_MEMORY_H
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
-#ifdef		HAVE_FNMATCH_H
-#include	<fnmatch.h>
-#endif		/* HAVE_FNMATCH_H */
 #ifdef		HANDLE_SSL
 #include	<openssl/ssl.h>
 #endif		/* HANDLE_SSL */
@@ -124,21 +121,12 @@ static	ftypes	*ftype = NULL;
 static	ctypes	*ctype = NULL;
 #endif		/* HANDLE_COMPRESSED */
 #ifdef		HANDLE_SCRIPT
-static	ctypes	*itype = NULL;
+static	ctypes	*itype = NULL, *litype = NULL;
 #endif		/* HANDLE_SCRIPT */
 static	char	charset[XS_PATH_MAX];
 #ifdef		HANDLE_PERL
 static	PerlInterpreter *	perl = NULL;
 #endif		/* HANDLE_PERL */
-
-/* user configurable file handlers */
-#define		HANDLER_NAMES		{ "default", "file", "cgi" }
-#define		NUM_HANDLER_TYPES	3
-enum { handler_default, handler_file, handler_cgi } handler_types;
-
-static const	char	*handler_names[] = HANDLER_NAMES;
-static			int		gethandlertype PROTO((char *, char *));
-/* end of user configurable file handlers */
 
 extern	VOID
 senduncompressed DECL1(int, fd)
@@ -496,13 +484,13 @@ do_get DECL1(char *, params)
 	char			*temp, *cgi, *file, *question,
 			auth[XS_PATH_MAX], base[XS_PATH_MAX], total[XS_PATH_MAX];
 	const	char		*filename, *http_host;
-	int			fd, wasdir, permanent, script = 0;
+	int			fd, wasdir, permanent, script = 0, tmp;
 	size_t			size;
 	struct	stat		statbuf;
 	const	struct	passwd	*userinfo;
 	FILE			*authfile;
 #ifdef		WANT_CTYPES
-	const	ctypes		*search = NULL;
+	const	ctypes		*csearch = NULL, *isearch = NULL;
 #endif		/* WANT_CTYPES */
 
 	alarm(240);
@@ -794,20 +782,20 @@ do_get DECL1(char *, params)
 	if (stat(total, &statbuf))
 #ifdef		HANDLE_COMPRESSED
 	{
-		search = ctype;
+		csearch = ctype;
 		temp = total + strlen(total);
-		while (search)
+		while (csearch)
 		{
-			strcpy(temp, search->ext);
+			strcpy(temp, csearch->ext);
 			if (!stat(total, &statbuf))
 				break;
-			search = search->next;
+			csearch = csearch->next;
 		}
-		if (!search)
+		if (!csearch)
 			goto NOTFOUND;
 	}
 	else
-		search = NULL;
+		csearch = NULL;
 #else		/* Not HANDLE_COMPRESSED */
 		goto NOTFOUND;
 #endif		/* HANDLE_COMPRESSED */
@@ -876,45 +864,49 @@ do_get DECL1(char *, params)
 	strncpy(name, filename, XS_PATH_MAX);
 	name[XS_PATH_MAX-1] = '\0';
 
-	/* user-configurable settings before defaults */
-	switch(gethandlertype(base, file)) {
-		case handler_file:
-			goto NOSCRIPT;
-		case handler_cgi:
-			script = 1;
-			break;
-		case handler_default:
-			break;
-	}
-
-	/* Do this only after all the security checks */
-	size = strlen(current->execdir);
-	if (script ||
-		(*cgi && !strncmp(cgi, current->execdir, size) && cgi[size] == '/'))
-	{
-		do_script(params, base, file, NULL, headers);
-		return;
-	}
-
 #ifdef		HANDLE_SCRIPT
-	search = itype;
-	while (search)
+	loadscripttypes(base);
+	/* check litype for local and itype for global settings */
+	tmp = config.uselocalscript;
+	for (isearch = tmp ? litype : itype; isearch; isearch = isearch->next)
 	{
-		size = strlen(search->ext);
-		if ((temp = strstr(file, search->ext)) &&
-			strlen(temp) == strlen(search->ext))
+		size = strlen(isearch->ext);
+		if ((temp = strstr(file, isearch->ext)) &&
+			strlen(temp) == strlen(isearch->ext))
 		{
-			if (!strcmp(search->prog, "internal:404"))
+			if (!strcmp(isearch->prog, "internal:404"))
 				error("404 Requested URL not found");
+			else if (!strcmp(isearch->prog, "internal:text"))
+			{
+				script = -1;
+				break;
+			}
+			else if (!strcmp(isearch->prog, "internal:exec"))
+				do_script(params, base, file, NULL, headers);
 			else
-				do_script(params, base, file, search->prog, headers);
+				do_script(params, base, file, isearch->prog, headers);
 			return;
 		}
-		search = search->next;
+		/* hack to browse global itype after local litype */
+		if (tmp && !isearch->next)
+		{
+			tmp = 0;
+			isearch = itype;
+		}
 	}
 #endif		/* HANDLE_SCRIPT */
 
-NOSCRIPT:
+	/* Do this only after all the security checks */
+	if (script >= 0)
+	{
+		size = strlen(current->execdir);
+		if (script ||
+			(*cgi && !strncmp(cgi, current->execdir, size) && cgi[size] == '/'))
+		{
+			do_script(params, base, file, NULL, headers);
+			return;
+		}
+	}
 
 	if (postonly)
 	{
@@ -924,16 +916,16 @@ NOSCRIPT:
 	}
 
 #ifdef		HANDLE_COMPRESSED
-	if (search)
+	if (csearch)
 	{
-		if (strlen(search->name) &&
-			strstr(getenv("HTTP_ACCEPT_ENCODING"), search->name))
+		if (strlen(csearch->name) &&
+			strstr(getenv("HTTP_ACCEPT_ENCODING"), csearch->name))
 		{
-			setenv("CONTENT_ENCODING", search->name, 1);
+			setenv("CONTENT_ENCODING", csearch->name, 1);
 			senduncompressed(fd);
 		}
 		else
-			sendcompressed(fd, search->prog);
+			sendcompressed(fd, csearch->prog);
 	}
 	else
 #endif		/* HANDLE_COMPRESSED */
@@ -1075,21 +1067,26 @@ loadcompresstypes DECL0
 
 #ifdef		HANDLE_SCRIPT
 extern	VOID
-loadscripttypes DECL0
+loadscripttypes PROTO((char *base))
 {
-	char		line[MYBUFSIZ], *end, *comment;
-	const	char	*path;
+	char		line[MYBUFSIZ], *end, *comment, *path = NULL;
 	FILE		*methods;
 	ctypes		*prev, *new;
 
-	while (itype)
+	if (base)
 	{
-		new = itype->next;
-		free(itype); itype = new;
+		while (litype) { new = litype->next; free(litype); litype = new; }
+		asprintf(&path, "%s/.xsscripts", base);
+		if (!(methods = fopen(path, "r")))
+			return;
 	}
-	path = calcpath(SCRIPT_METHODS);
-	if (!(methods = fopen(path, "r")))
-		err(1, "fopen(`%s' [read])", path);
+	else
+	{
+		while (itype) { new = itype->next; free(itype); itype = new; }
+		path = calcpath(SCRIPT_METHODS);
+		if (!(methods = fopen(path, "r")))
+			err(1, "fopen(`%s' [read])", path);
+	}
 	prev = NULL;
 	while (fgets(line, MYBUFSIZ, methods))
 	{
@@ -1108,6 +1105,8 @@ loadscripttypes DECL0
 			errx(1, "Out of memory in loadscripttypes()");
 		if (prev)
 			prev->next = new;
+		else if (base)
+			litype = new;
 		else
 			itype = new;
 		prev = new; new->next = NULL;
@@ -1194,96 +1193,5 @@ getfiletype DECL1(int, print)
 	if (print)
 		secprintf("Content-type: application/octet-stream\r\n");
 	return(0);
-}
-
-/*
- * Get the handler type for a file 'file' in the dir 'base'.
- * returns 0 for default type, -1 for internal error
- */
-extern int
-gethandlertype(char *base, char *filename)
-{
-	char xshandlers[XS_PATH_MAX];
-	FILE *file;
-	char line[80], pat[80], handstr[80], errmsg[80];
-	char *ptr;
-	int lineno = 0;
-	int i;
-	int matched, ret, eof;
-
-#ifdef		HAVE_FNMATCH
-	snprintf(xshandlers, XS_PATH_MAX, "%s/.xshandlers", base);
-	file = fopen(xshandlers, "r");
-	if (!file)
-	{
-		if (errno == ENOENT)
-			return 0;  /* .xshandlers not present, use default */
-		error("500 Cannot open .xshandlers file");
-		return -1;
-	}
-	while (!(eof = feof(file)))
-	{
-		lineno++;
-		if (fgets(line, sizeof (line), file) == NULL)
-		{
-			sprintf(errmsg, "500 Error while reading .xshandlers file, line %d",
-				lineno);
-			error(errmsg);
-			break;
-		}
-
-		for (ptr = line; *ptr != '\0'; ptr++)
-		{
-			if (*ptr == '#' || *ptr == '\r' || *ptr == '\n')
-			{
-				*ptr = '\0';
-				break;
-			}
-		}
-	
-		if (*line == '\0')
-			continue;
-		
-		ret = sscanf(line, "%s %s", pat, handstr);
-		if (ret == EOF)
-			continue;
-		
-		if (ret != 2)
-		{
-			sprintf(errmsg, "500 Error in .xshandlers file, line %d",
-				lineno);
-			error(errmsg);
-			break;
-		}
-		
-		matched = fnmatch(pat, filename, 0);
-		switch(matched)
-		{
-			case 0:  /* match */
-				break;
-			case FNM_NOMATCH:  /* no match */
-				continue;
-			default:  /* error */
-				sprintf(errmsg, "500 Error in .xshandlers pattern, line %d",
-					lineno);
-				error(errmsg);
-				break;
-		}
-		
-		for (i = 0; i < NUM_HANDLER_TYPES; i++)
-		{
-			if (strcmp(handstr, handler_names[i]) == 0)
-				return i;  /* We have found our handler */
-		}
-		sprintf(errmsg, "500 Unrecognised handler type in line %d", lineno);
-		error(errmsg);
-		break;
-	}
-	
-	fclose(file);
-	if (!eof)
-		return -1;
-#endif		/* HAVE_FNMATCH */
-	return 0;
 }
 

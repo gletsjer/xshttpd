@@ -32,7 +32,8 @@ struct configuration {
 	unsigned	userestrictaddr: 1;
 	unsigned	usevirtualhost: 1;
 	unsigned	usevirtualuid: 1;
-	unsigned	padding: 2;
+	unsigned	uselocalscript: 1;
+	unsigned	padding: 1;
 	struct virtual *	system;
 	struct virtual *	users;
 	struct virtual *	virtual;

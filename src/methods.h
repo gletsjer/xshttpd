@@ -7,7 +7,7 @@ extern	VOID	sendcompressed		PROTO((int, const char *));
 extern	VOID	loadcompresstypes	PROTO((void));
 #endif		/* HANDLE_COMPRESSED */
 #ifdef		HANDLE_SCRIPT
-extern	VOID	loadscripttypes		PROTO((void));
+extern	VOID	loadscripttypes		PROTO((char *));
 #endif		/* HANDLE_SCRIPT */
 #ifdef		HANDLE_SSL
 extern	VOID	loadssl				PROTO((void));
