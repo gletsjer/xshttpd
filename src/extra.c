@@ -52,7 +52,7 @@ strcasestr DECL2CC(char *, big, char *, little)
 		if (isupper(*search))
 			*search = tolower(*search);
 	search = strstr(newbig, newlittle);
-	result = big + (search - newbig);
+	result = search ? big + (search - newbig) : NULL;
 	free(newbig); free(newlittle);
 	return(result);
 }
