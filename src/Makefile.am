@@ -2,7 +2,7 @@ bin_PROGRAMS = httpd xspasswd clearxs readxs xsindex httpdc
 cgi_PROGRAMS = xschpass imagemap error gfxcount
 
 httpd_SOURCES = httpd.c local.c err.c procname.c extra.c ssi.c cgi.c \
-	xscrypt.c path.c setenv.c methods.c convert.c
+	xscrypt.c path.c setenv.c methods.c convert.c # digcalc.c
 xspasswd_SOURCES = xspasswd.c err.c xscrypt.c extra.c
 xschpass_SOURCES = xschpass.c xscrypt.c extra.c
 imagemap_SOURCES = imagemap.c extra.c
