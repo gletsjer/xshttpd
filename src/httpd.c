@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.99 2003/01/03 18:34:46 johans Exp $ */
+/* $Id: httpd.c,v 1.100 2003/01/13 13:56:00 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.99 2003/01/03 18:34:46 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.100 2003/01/13 13:56:00 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1823,7 +1823,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	error_path[XS_PATH_MAX-1] = '\0';
 	refer_path[XS_PATH_MAX-1] = '\0';
 	config_path[XS_PATH_MAX-1] = '\0';
-	while ((option = getopt(argc, argv, "a:c:d:fg:l:m:n:p:r:su:A:R:E:")) != EOF)
+	while ((option = getopt(argc, argv, "a:c:d:fg:l:m:n:p:r:su:A:R:E:v")) != EOF)
 	{
 		switch(option)
 		{
@@ -1889,6 +1889,9 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			strncpy(config_path, optarg, XS_PATH_MAX);
 			config_path[XS_PATH_MAX-1] = '\0';
 			break;
+		case 'v':
+			fprintf(stdout, "%s\n", SERVER_IDENT);
+			return 0;
 		default:
 			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number] [-d rootdir]\n[-r refer-ignore-domain] [-l localmode] [-a address] [-m service-message]\n[-f] [-s] [-A access-log-path] [-E error-log-path] [-R referer-log-path]");
 		}
