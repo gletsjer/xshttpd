@@ -10,8 +10,10 @@ struct virtual {
 	char *		logerror;
 	char *		logreferer;
 	enum	{ none, traditional, combined }		logstyle;
+	unsigned	virtualid: 1;
+	unsigned	padding: 7;
 	struct virtual *	next;
-};
+} *current;
 
 struct configuration {
 	char *		systemroot;

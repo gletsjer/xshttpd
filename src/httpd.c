@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.73 2002/05/09 09:16:42 johans Exp $ */
+/* $Id: httpd.c,v 1.74 2002/05/10 08:31:21 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.73 2002/05/09 09:16:42 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.74 2002/05/10 08:31:21 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -256,7 +256,7 @@ load_config DECL0
 	char	*comment, *end, *username, *groupname;
 	struct passwd	*pwd;
 	struct group	*grp;
-	struct virtual	*current = NULL, *last = NULL;
+	struct virtual	*last = NULL;
 
 	if (!(confd = fopen(config_path, "r")))
 		warn("fopen(`%s' [read])", config_path);
@@ -314,6 +314,8 @@ load_config DECL0
 				current->execdir = strdup(value);
 			else if (!strcasecmp("PhExecDir", key))
 				current->phexecdir = strdup(value);
+			else if (!strcasecmp("VirtualId", key))
+				current->virtualid = !strcasecmp("true", value);
 			else if (!strcasecmp("LogAccess", key))
 				current->logaccess = strdup(value);
 			else if (!strcasecmp("LogError", key))
@@ -907,13 +909,13 @@ server_error DECL2CC(char *, readable, char *, cgi)
 			if (!transform_user_dir(base, userinfo, 0))
 			{
 				snprintf(cgipath, XS_PATH_MAX, "%s/%s/error",
-					base, config.system->execdir);
+					base, current->execdir);
 				cgipath[XS_PATH_MAX-1] = '\0';
 				if (!stat(cgipath, &statbuf))
 				{
 					snprintf(cgipath, XS_PATH_MAX, "/~%s/%s/error",
 						userinfo->pw_name,
-						config.system->execdir);
+						current->execdir);
 					cgipath[XS_PATH_MAX-1] = '\0';
 					goto EXECUTE;
 				}
@@ -922,7 +924,7 @@ server_error DECL2CC(char *, readable, char *, cgi)
 		if (search)
 			*search = '/';
 	}
-	strncpy(base, calcpath(config.system->phexecdir), XS_PATH_MAX);
+	strncpy(base, calcpath(current->phexecdir), XS_PATH_MAX);
 	base[XS_PATH_MAX-1] = '\0';
 	snprintf(cgipath, XS_PATH_MAX, "%s/error", base);
 	cgipath[XS_PATH_MAX-1] = '\0';
@@ -930,7 +932,7 @@ server_error DECL2CC(char *, readable, char *, cgi)
 		error(readable);
 	else
 	{
-		snprintf(cgipath, XS_PATH_MAX, "/%s/error", config.system->execdir);
+		snprintf(cgipath, XS_PATH_MAX, "/%s/error", current->execdir);
 		cgipath[XS_PATH_MAX-1] = '\0';
 		EXECUTE:
 		setcurrenttime();
@@ -952,7 +954,7 @@ logrequest DECL2(const char *, request, long, size)
 	time(&theclock);
 	strftime(buffer, 80, "%d/%b/%Y:%H:%M:%S", localtime(&theclock));
 
-	if (config.system->logstyle == traditional)
+	if (current->logstyle == traditional)
 		fprintf(access_log, "%s - - [%s +0000] \"%s %s %s\" 200 %ld\n",
 			remotehost,
 			buffer, 
@@ -1294,11 +1296,6 @@ process_request DECL0
 	bzero(params + size, 16);
 	bcopy(params, orig, size + 16);
 
-	if (config.system->logstyle == traditional &&
-			referer[0] &&
-			(!thisdomain[0] || !strcasestr(referer, thisdomain)))
-		fprintf(refer_log, "%s -> %s\n", referer, params);
-
 	if ((temp = getenv("HTTP_HOST")) &&
 		(temp = strncpy(http_host, temp, NI_MAXHOST)))
 	{
@@ -1345,6 +1342,22 @@ process_request DECL0
 			"NO_RELATIVE_URLS");
 		return;
 	}
+
+	if (temp = strchr(http_host, ':'))
+		*temp = '\0';
+	for (current = config.virtual; current; current = current->next)
+	{
+		fprintf(stderr, "got %s check %s\n", http_host, current->hostname);
+		if (!strcasecmp(http_host, current->hostname))
+			break;
+	}
+	if (!current)
+		current = config.system;
+
+	if (current->logstyle == traditional &&
+			referer[0] &&
+			(!thisdomain[0] || !strcasestr(referer, thisdomain)))
+		fprintf(refer_log, "%s -> %s\n", referer, params);
 
 	setenv("REQUEST_METHOD", line, 1);
 	if (!strcmp("GET", line))

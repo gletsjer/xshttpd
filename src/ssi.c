@@ -314,9 +314,9 @@ reopen:
 ALREADY:
 	if (strcmp(config.port, "80"))
 		snprintf(host, sizeof(host), "http://%s:%s/",
-			config.system->hostname, config.port);
+			current->hostname, config.port);
 	else
-		snprintf(host, sizeof(host), "http://%s/", config.system->hostname);
+		snprintf(host, sizeof(host), "http://%s/", current->hostname);
 	host[sizeof(host)-1] = '\0';
 	switch(mode)
 	{

@@ -530,7 +530,7 @@ do_get DECL1(char *, params)
 			strncpy(base, calcpath(http_host), XS_PATH_MAX-1);
 			base[XS_PATH_MAX-2] = '\0';
 			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
-				strncpy(base, calcpath(config.system->htmldir), XS_PATH_MAX-1);
+				strncpy(base, calcpath(current->htmldir), XS_PATH_MAX-1);
 #ifdef		VIRTUAL_UID
 			else
 			{
@@ -551,7 +551,7 @@ do_get DECL1(char *, params)
 		}
 		else
 #endif		/* SIMPLE_VIRTUAL_HOSTING */
-			strncpy(base, calcpath(config.system->htmldir), XS_PATH_MAX-1);
+			strncpy(base, calcpath(current->htmldir), XS_PATH_MAX-1);
 		base[XS_PATH_MAX-2] = '\0';
 		strcat(base, "/");
 		if (!origeuid)
@@ -812,21 +812,21 @@ do_get DECL1(char *, params)
 			{
 				if (strcmp(config.port, "http") && !http_host)
 					snprintf(total, XS_PATH_MAX, "http://%s:%s%s/?%s",
-						config.system->hostname, config.port,
+						current->hostname, config.port,
 						params, question + 1);
 				else
 					snprintf(total, XS_PATH_MAX, "http://%s%s/?%s",
-						(http_host ? http_host : config.system->hostname),
+						(http_host ? http_host : current->hostname),
 						params, question + 1);
 			}
 			else
 			{
 				if (strcmp(config.port, "http") && !http_host)
 					snprintf(total, XS_PATH_MAX, "http://%s:%s%s/",
-						config.system->hostname, config.port, params);
+						current->hostname, config.port, params);
 				else
 					snprintf(total, XS_PATH_MAX, "http://%s%s/",
-						(http_host ? http_host : config.system->hostname),
+						(http_host ? http_host : current->hostname),
 						params);
 				}
 			total[XS_PATH_MAX-1] = '\0';
