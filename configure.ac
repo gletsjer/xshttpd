@@ -112,7 +112,7 @@ AC_SUBST(docdir)
 AC_SUBST(logdir)
 
 AC_MSG_CHECKING(for local domain)
-hostname=`( hostname -f || hostname || cat /etc/HOSTNAME ) 2> /dev/null`
+hostname=`( hostname || cat /etc/HOSTNAME ) 2> /dev/null`
 if test x$hostname = x -o x$hostname = x${hostname#*.}
 then
 	domain=".stack.nl"
@@ -121,12 +121,6 @@ else
 fi
 AC_DEFINE_UNQUOTED(THISDOMAIN, "$domain")
 AC_MSG_RESULT($domain)
-
-dnl I just get tired of typing this
-dnl Should be replaced by a decent check some day...
-test -f /etc/HOSTNAME && \
-	grep vwww /etc/HOSTNAME && \
-	AC_DEFINE(BROKEN_GETNAMEINFO)
 
 dnl CFLAGS="-g -Wall -W -pedantic -ansi -Wstrict-prototypes -Wtraditional -Wmissing-prototypes -Wpointer-arith -Wshadow -Waggregate-return -Wcast-qual -Wbad-function-cast -Wwrite-strings"
 CFLAGS="-g"
