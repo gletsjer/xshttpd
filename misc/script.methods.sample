@@ -1,6 +1,6 @@
 # PHP and stuff
 
-/usr/local/bin/php	.php3
-/usr/local/bin/php4-cgi	.php
+/usr/local/bin/php3	.php3
+/usr/local/bin/php	.php
 internal:404		.htmli
 internal:perl		.pl
