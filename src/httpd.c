@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.81 2002/06/12 14:32:33 johans Exp $ */
+/* $Id: httpd.c,v 1.82 2002/06/23 17:31:34 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.81 2002/06/12 14:32:33 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.82 2002/06/23 17:31:34 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -901,6 +901,8 @@ server_error DECL2CC(char *, readable, char *, cgi)
 				*escaped;
 	const	char		*env;
 
+	if (!current)
+		current = config.system;
 	if (headonly)
 	{
 		error(readable);
@@ -915,7 +917,7 @@ server_error DECL2CC(char *, readable, char *, cgi)
 	if (escaped)
 		free(escaped);
 	env = getenv("QUERY_STRING");
-	if (real_path[1] == '~')
+	if (real_path[0] && real_path[1] == '~')
 	{
 		if ((search = strchr(real_path + 2, '/')))
 			*search = 0;
@@ -1117,7 +1119,7 @@ readline DECL2(int, rd, char *, buf)
 static	VOID
 process_request DECL0
 {
-	char		line[MYBUFSIZ], extra[MYBUFSIZ], *temp,
+	char		line[MYBUFSIZ], extra[MYBUFSIZ], *temp, ch,
 			*params, *url, *ver, http_host[NI_MAXHOST];
 	int		readerror;
 	size_t		size;
@@ -1310,9 +1312,26 @@ process_request DECL0
 		return;
 
 	size = strlen(params);
-	bzero(params + size, 16);
-	bcopy(params, orig, size + 16);
+	bzero(orig, size + 16);
+	bcopy(params, orig, size);
 
+	if (size < NI_MAXHOST &&
+		sscanf(params, "http://%[^/]%c", http_host, &ch) == 2 &&
+		ch == '/')
+	{
+		/* absoluteURI's are supported by HTTP/1.1,
+		 * this syntax is preferred over Host-headers(!)
+		 */
+		setenv("HTTP_HOST", http_host, 1);
+		params += strlen(http_host) + 7;
+		bcopy(params, orig, strlen(params));
+	}
+	else if (params[0] != '/' && strcmp("OPTIONS", line))
+	{
+		server_error("400 Relative URL's are not supported",
+			"NO_RELATIVE_URLS");
+		return;
+	}
 	if ((temp = getenv("HTTP_HOST")) &&
 		(temp = strncpy(http_host, temp, NI_MAXHOST)))
 	{
@@ -1351,12 +1370,6 @@ process_request DECL0
 	else if (headers >= 11)
 	{
 		server_error("400 Missing Host Header", "BAD_REQUEST");
-		return;
-	}
-	if (params[0] != '/' && strcmp("OPTIONS", line))
-	{
-		server_error("400 Relative URL's are not supported",
-			"NO_RELATIVE_URLS");
 		return;
 	}
 
