@@ -176,13 +176,11 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	{
 		if (engine)
 		{
-			if (headers)
-				error("500 PHP not yet supported");
-			else
-				secprintf("[PHP not yet supported]\n");
-			goto END;
+			file = path + 1;
+			strcpy(base, calcpath(HTTPD_DOCUMENT_ROOT));
+			strcat(base, "/");
 		}
-		if (!was_slash)
+		else if (!was_slash)
 		{
 			file = path + 1;
 			strcpy(base, calcpath(HTTPD_SCRIPT_ROOT_P));
@@ -486,7 +484,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		{
 			secprintf("Content-type: text/plain\r\n\r\n");
 			secprintf("[execl(`%s') failed: %s]",
-				fullpath, strerror(errno));
+				engine ? engine : fullpath, strerror(errno));
 		}
 		exit(1);
 	default:
