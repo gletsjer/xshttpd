@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.88 2002/08/16 12:53:52 johans Exp $ */
+/* $Id: httpd.c,v 1.89 2002/08/16 13:31:42 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.88 2002/08/16 12:53:52 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.89 2002/08/16 13:31:42 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -487,9 +487,9 @@ load_config DECL0
 		config.users->execdir = strdup("cgi-bin");
 	if (!config.users->phexecdir)
 		config.users->phexecdir = strdup("cgi-bin");
-	if (!config.users->logerror)
+	if (config.users->logerror)
 		warnx("error logs not implemented for users section");
-	if (!config.users->logreferer)
+	if (config.users->logreferer)
 		warnx("referer logs not implemented for users section");
 	config.system->next = config.users;
 	config.users->next = config.virtual;
@@ -500,9 +500,9 @@ load_config DECL0
 			err(1, "illegal virtual block without hostname");
 		if (!current->htmldir)
 			err(1, "illegal virtual block without directory");
-		if (!config.users->logerror)
+		if (config.users->logerror)
 			warnx("error logs not implemented for virtual section");
-		if (!config.users->logreferer)
+		if (config.users->logreferer)
 			warnx("referer logs not implemented for virtual section");
 		current = current->next;
 	}
@@ -992,18 +992,27 @@ logrequest DECL2(const char *, request, long, size)
 {
 	char		buffer[80];
 	time_t		theclock;
+	FILE *		alog;
 
 	time(&theclock);
 	strftime(buffer, 80, "%d/%b/%Y:%H:%M:%S", localtime(&theclock));
 
+	if (!current->openaccess)
+		if (!config.system->openaccess)
+			warnx("Logfile disappeared???");
+		else
+			alog = config.system->openaccess;
+	else
+		alog = current->openaccess;
+	 
 	if (current->logstyle == traditional)
-		fprintf(current->openaccess, "%s - - [%s +0000] \"%s %s %s\" 200 %ld\n",
+		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" 200 %ld\n",
 			remotehost,
 			buffer, 
 			getenv("REQUEST_METHOD"), request, version,
 			size > 0 ? (long)size : (long)0);
 	else
-		fprintf(current->openaccess, "%s - - [%s +0000] \"%s %s %s\" 200 %ld "
+		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" 200 %ld "
 				"\"%s\" \"%s\"\n",
 			remotehost,
 			buffer, 
