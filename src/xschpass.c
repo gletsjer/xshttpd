@@ -124,11 +124,18 @@ changepasswd DECL2C_(char *, param, int,  cl)
 			error("404 Unknown field '%s'", search);
 		}
 		search = search2 + 1;
+		username[BUFSIZ-1] = '\0';
+		old[BUFSIZ-1] = '\0';
+		new1[BUFSIZ-1] = '\0';
+		new2[BUFSIZ-1] = '\0';
 	}
 	if (!username[0] || !old[0] || !new1[0] || !new2[0])
 		error("403 Not all fields were filled in correctly!");
 	if (strcmp(new1, new2))
 		error("403 You did not type the new password correctly two times!");
+	for (search = new1; *search; search++)
+		if (*search < 32)
+			error("403 Your password contains an invallid character!");
 	xs_encrypt(new1); xs_encrypt(old);
 
 	if (lstat(filename, &statbuf1))
