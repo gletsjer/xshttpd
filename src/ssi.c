@@ -60,7 +60,6 @@ static	int	dir_count_reset		PROTO((char *, size_t *));
 static	int	dir_date		PROTO((char *, size_t *));
 static	int	dir_date_format		PROTO((char *, size_t *));
 static	int	dir_include_file	PROTO((char *, size_t *));
-static	int	dir_include_virtual	PROTO((char *, size_t *));
 static	int	dir_last_mod		PROTO((char *, size_t *));
 static	int	dir_remote_host		PROTO((char *, size_t *));
 static	int	dir_run_cgi		PROTO((char *, size_t *));
@@ -518,50 +517,6 @@ dir_include_file DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_include_virtual DECL2(char *, here, size_t *, size)
-{
-	int	fd, ret;
-	const	char	*path;
-	char	*search;
-
-	if ((numincludes++) > 16)
-	{
-		secprintf("[Too many include files]\n");
-		return(ERR_CONT);
-	}
-	if (strncmp(here, " virtual=\"", 10))
-	{
-		secprintf("[No virtual parameter for include]\n");
-		return(ERR_CONT);
-	}
-	here += 10;
-	if (!(search = strstr(here, "-->")))
-	{
-		secprintf("[Incomplete directive in include-file]\n");
-		return(ERR_CONT);
-	}
-	if (!(search = strstr(here, "\"")))
-	{
-		secprintf("[Incomplete virtual in include virtual]\n");
-		return(ERR_CONT);
-	}
-	*search = 0;
-	path = convertpath(here);
-	*search = '"';
-	fd = open(path, O_RDONLY, 0);
-	if (fd < 0)
-	{
-		secprintf("[Error opening file `%s': %s]\n",
-		path, strerror(errno));
-		return(ERR_CONT);
-	}
-	ret = sendwithdirectives_internal(fd, size);
-	numincludes--;
-	close(fd);
-	return(ret);
-}
-
-static	int
 dir_last_mod DECL2(char *, here, size_t *, size)
 {
 	const	char	*path;
@@ -844,7 +799,6 @@ static	directivestype	directives[] =
 	{ "date",		dir_date,		0	},
 	{ "date-format",	dir_date_format,	1	},
 	{ "include-file",	dir_include_file,	1	},
-	{ "include",		dir_include_virtual,	1	},
 	{ "last-modified",	dir_last_mod,		1	},
 	{ "last-mod",		dir_last_mod,		1	},
 	{ "remote-host",	dir_remote_host,	0	},
