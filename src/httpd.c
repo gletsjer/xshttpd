@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.42 2001/01/29 21:06:19 johans Exp $ */
+/* $Id: httpd.c,v 1.43 2001/02/02 12:36:28 johans Exp $ */
 
 #include	"config.h"
 
@@ -1072,11 +1072,12 @@ standalone_main DECL0
 
 #ifdef		HAVE_GETADDRINFO
 	memset(&hints, 0, sizeof(hints));
-#if			defined(__linux__) && defined(INET6)
-	hints.ai_family = PF_INET6;
-#else
 	hints.ai_family = PF_UNSPEC;
-#endif		/* __linux__ && INET6 */
+#ifdef		__linux__
+#ifdef		INET6
+	hints.ai_family = PF_INET6;
+#endif		/* INET6 */
+#endif		/* __linux__ */
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 	if ((getaddrinfo(forcehost ? thishostname : NULL, port, &hints, &res)))
@@ -1274,14 +1275,16 @@ standalone_main DECL0
 		setenv("REMOTE_HOST", remotehost, 1);
 #endif		/* HAVE_GETNAMEINFO */
 
-#if			defined(HAVE_GETNAMEINFO) && !defined(BROKEN_GETNAMEINFO)
+#ifdef		HAVE_GETNAMEINFO
+#ifndef		BROKEN_GETNAMEINFO
 		if (!getnameinfo((struct sockaddr *)&saddr, clen,
 			remotehost, sizeof(remotehost), NULL, 0, 0))
 		{
 			remotehost[NI_MAXHOST-1] = '\0';
 			setenv("REMOTE_HOST", remotehost, 1);
 		}
-#else		/* HAVE GETNAMEINFO and not BROKEN_GETNAMEINFO */
+#endif		/* Not BROKEN_GETNAMEINFO */
+#else		/* HAVE GETNAMEINFO */
 #ifdef		HAVE_GETADDRINFO
 		/* This is especially for broken Linux distro's
 		 * that don't understand what getnameinfo() does
@@ -1299,7 +1302,7 @@ standalone_main DECL0
 #else		/* HAVE_GETADDRINFO */
 		/* Loooser! You will just have to use the IP-adres... */
 #endif		/* HAVE_GETADDRINFO */
-#endif		/* HAVE GETNAMEINFO and not BROKEN_GETNAMEINFO */
+#endif		/* HAVE GETNAMEINFO */
 #ifdef		HANDLE_SSL
 		if (do_ssl) {
 			ssl = SSL_new(ssl_ctx);

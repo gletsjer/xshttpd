@@ -59,6 +59,7 @@ AC_CHECK_FUNCS(crypt,,
 	AC_CHECK_LIB(crypt, crypt, ldcrypt="-lcrypt"))
 AC_CHECK_FUNCS(socket,,
 	AC_CHECK_LIB(socket, socket, httpd_ldflags="${httpd_ldflags} -lsocket"))
+AC_REPLACE_FUNCS(strptime)
 AC_MSG_CHECKING(if you want SSL support)
 AC_ARG_WITH(ssl,
 	[  --with-ssl              crypto support],
@@ -125,6 +126,7 @@ test -f /etc/HOSTNAME && \
 
 dnl CFLAGS="-g -Wall -W -pedantic -ansi -Wstrict-prototypes -Wtraditional -Wmissing-prototypes -Wpointer-arith -Wshadow -Waggregate-return -Wcast-qual -Wbad-function-cast -Wwrite-strings"
 CFLAGS="-g"
+AC_SUBST(LIBOBJS)
 AC_SUBST(ldcrypt)
 AC_SUBST(httpd_ldflags)
 AC_SUBST(httpd_cflags)

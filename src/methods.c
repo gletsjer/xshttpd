@@ -88,6 +88,13 @@
 extern	char	*tempnam(const char *, const char *);
 #endif		/* __linux__ */
 
+#ifdef		HANDLE_COMPRESSED
+#define		WANT_CTYPES	1
+#endif		/* HANDLE_COMPRESSED */
+#ifdef		HANDLE_SCRIPT
+#define		WANT_CTYPES	1
+#endif		/* HANDLE_SCRIPT */
+
 /* Global structures */
 
 typedef	struct	ftypes
@@ -96,13 +103,13 @@ typedef	struct	ftypes
 	char		name[32], ext[16];
 } ftypes;
 
-#if defined(HANDLE_COMPRESSED) | defined(HANDLE_SCRIPT)
+#ifdef		WANT_CTYPES
 typedef	struct	ctypes
 {
 	struct	ctypes	*next;
 	char		prog[XS_PATH_MAX], ext[16];
 } ctypes;
-#endif		/* HANDLE_COMPRESSED || HANDLE_SCRIPT */
+#endif		/* WANT_CTYPES */
 
 static	ftypes	*ftype = NULL;
 #ifdef		HANDLE_COMPRESSED
@@ -446,9 +453,9 @@ do_get DECL1(char *, params)
 	struct	stat		statbuf;
 	const	struct	passwd	*userinfo;
 	FILE			*authfile;
-#if			defined(HANDLE_COMPRESSED) || defined(HANDLE_SCRIPT)
+#ifdef		WANT_CTYPES
 	const	ctypes		*search = NULL;
-#endif		/* HANDLE_COMPRESSED */
+#endif		/* WANT_CTYPES */
 
 	alarm(240);
 	question = strchr(params, '?');

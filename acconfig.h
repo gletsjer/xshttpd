@@ -103,3 +103,9 @@ Note: Linux distributions are well know for this feature */
 
 #undef BROKEN_GETNAMEINFO
 
+/* Needed by automake/autoconf */
+
+#undef VERSION
+
+#undef PACKAGE
+

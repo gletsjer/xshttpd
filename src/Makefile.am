@@ -14,10 +14,11 @@ httpdc_SOURCES = httpdc.c path.c err.c extra.c
 xsindex_SOURCES = xsindex.c err.c extra.c
 
 httpd_CFLAGS = @httpd_cflags@
+httpd_LDADD = @LIBOBJS@
 httpd_LDFLAGS = @httpd_ldflags@ @ldcrypt@
 xspasswd_LDFLAGS = @ldcrypt@
 xschpass_LDFLAGS = @ldcrypt@
 
-EXTRA_DIST = cgi.h confdetect.h config.h confpatch.h confuser.h convert.h \
+EXTRA_DIST = cgi.h config.h confpatch.h confuser.h convert.h \
 	err.h extra.h httpd.h local.h methods.h mygetopt.h mystring.h path.h \
 	procname.h setenv.h ssi.h xscounter.h xscrypt.h
