@@ -1,6 +1,6 @@
 .TH HTTPD 1 "22 June 1998"
 .SH NAME
-httpd \- WWW server conforming to HTTP/1.0
+httpd \- WWW server conforming to HTTP/1.1
 .SH SYNOPSIS
 .ta 8n
 .B httpd
@@ -177,6 +177,12 @@ they are updating the directory and system administrators
 can use it to easily shut down a group of pages.
 Note that only the directory in which the file is present
 is blocked. Subdirectories are \fInot\fP blocked.
+.br
+It is possible to allow access to this directory for a limited
+number of hosts. You can list the IP-addresses to which access
+should be granted in this file (one address per line). Or you
+can use an IP prefix to allow an entire subnet.
+E.g. "131.155.140" will unblock 131.155.140.0 - 131.155.140.255.
 .TP
 \fB .xsuid\fP
 If this file exists in a certain directory, all files in that
@@ -648,6 +654,7 @@ The author of this WWW server and its accompanying programs is
 Sven Berkvens (sven@stack.nl). I made all the programs,
 except the imagemapper, which I took from the NCSA distribution,
 but I cleaned it up.
-Some features have been added by other people at Stack. If you have
-problems with this version please contact www@stack.nl about it and
-don't bother Sven Berkvens.
+.LP
+New features have been added by other people at Stack. If you have
+problems with this version please contact the Stack maintainers
+(xs-httpd@stack.nl) about it and don't bother Sven Berkvens.
