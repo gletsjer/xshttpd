@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.13 2004/11/26 17:17:27 johans Exp $ */
+/* $Id: httpdc.c,v 1.14 2004/12/02 14:14:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -223,7 +223,7 @@ loadpidfile(const char *pidfilename)
 		err(1, "fopen(%s)", pidname);
 }
 
-extern	int
+int
 main(int argc, char **argv)
 {
 	char		buffer[BUFSIZ];

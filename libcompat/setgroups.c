@@ -3,7 +3,7 @@
 #include	"config.h"
 #include	<sys/types.h>
 
-extern	int
+int
 setgroups(int ngroups, const gid_t *gidset)
 {
 	/* fake success */

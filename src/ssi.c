@@ -995,7 +995,7 @@ sendwithdirectives_internal(int fd, size_t *size)
 	return(ERR_NONE);
 }
 
-extern	int
+int
 sendwithdirectives(int fd, size_t *size)
 {
 	ssioutput = 0; ssiarray[0] = 1; cnt_readbefore = numincludes = 0;

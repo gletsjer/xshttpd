@@ -3,6 +3,6 @@
 #ifdef		HAVE_SETPROCTITLE
 #define setprocname	setproctitle
 #else		/* Not HAVE_SETPROCTITLE */
-extern	void	setprocname		(const char *, ...);
+void	setprocname		(const char *, ...);
 #endif		/* HAVE_SETPROCTITLE */
-extern	void	initsetprocname		(int, char **);
+void	initsetprocname		(int, char **);

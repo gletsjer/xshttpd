@@ -15,7 +15,7 @@
 
 	This version by Sven Berkvens (sven@stack.nl).
 */
-/* $Id: imagemap.c,v 1.8 2004/11/26 17:05:09 johans Exp $ */
+/* $Id: imagemap.c,v 1.9 2004/12/02 14:14:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -41,7 +41,7 @@ static	void	sendmesg		(const char *);
 
 static	double	testpoint[2], pointarray[MAXVERTS][2];
 
-extern	int
+int
 main(int argc, char **argv)
 {
 	char		input[MYBUFSIZ], *mapname, def[MYBUFSIZ],

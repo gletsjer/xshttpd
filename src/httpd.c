@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.159 2004/12/02 13:27:10 johans Exp $ */
+/* $Id: httpd.c,v 1.160 2004/12/02 14:14:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -84,12 +84,12 @@
 #include	"htconfig.h"
 
 #ifdef		__linux__
-extern	char	*tempnam(const char *, const char *);
+char	*tempnam(const char *, const char *);
 #endif		/* __linux__ */
 
 /* This is for HP/UX */
 #ifdef		HPUX
-extern	int	setpriority (int, int, int);
+int	setpriority (int, int, int);
 #endif		/* HPUX */
 
 #ifndef		HAVE_SOCKLEN_T
@@ -101,7 +101,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.159 2004/12/02 13:27:10 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.160 2004/12/02 14:14:39 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -152,7 +152,7 @@ static	int	hexdigit		(int);
 static	int	decode			(char *);
 
 static	void	uudecode		(char *);
-extern	char	*escape			(const char *);
+char	*escape			(const char *);
 
 static	void	process_request		(void);
 
@@ -160,7 +160,7 @@ static	void	setup_environment	(void);
 static	void	standalone_main		(void);
 static	void	standalone_socket	(char);
 
-extern	void
+void
 stdheaders(int lastmod, int texthtml, int endline)
 {
 	setcurrenttime();
@@ -205,7 +205,7 @@ detach()
 #endif		/* HAVE_SETSID */
 }
 
-extern	void
+void
 setcurrenttime()
 {
 	time_t		thetime;
@@ -779,7 +779,7 @@ open_logs(int sig)
 	(void)sig;
 }
 
-extern	void
+void
 alarm_handler(int sig)
 {
 	alarm(0); setcurrenttime();
@@ -852,7 +852,7 @@ set_signals()
 #endif		/* SIGSEGV */
 }
 
-extern	void
+void
 error(const char *message)
 {
 	const	char	*env;
@@ -879,7 +879,7 @@ error(const char *message)
 	fflush(stdout); fflush(stderr); alarm(0);
 }
 
-extern	void
+void
 redirect(const char *redir, int permanent)
 {
 	const	char	*env;
@@ -993,7 +993,7 @@ uudecode(char *buffer)
 	buffer[nbytesdecoded] = 0;
 }
 
-extern	int
+int
 check_auth(FILE *authfile)
 {
 	char		*search, line[MYBUFSIZ], compare[MYBUFSIZ], *find;
@@ -1083,7 +1083,7 @@ escape(const char *what)
 	return(escapebuf);
 }
 
-extern	void
+void
 server_error(const char *readable, const char *cgi)
 {
 	struct	stat		statbuf;
@@ -1146,7 +1146,7 @@ server_error(const char *readable, const char *cgi)
 	do_script(orig, cgipath, filename, NULL, 1);
 }
 
-extern	void
+void
 logrequest(const char *request, long size)
 {
 	char		buffer[80], *dynrequest, *dynagent, *p;
@@ -1265,7 +1265,7 @@ secfputs(char *buf, FILE *stream)
 		return fputs(buf, stream);
 }
 
-extern	int
+int
 readline(int rd, char *buf)
 {
 	char		ch, *buf2;

@@ -44,7 +44,7 @@ findenv(const char *name, int *offset)
 	return (NULL);
 }
 
-extern	int
+int
 setenv(char *name, char *value, int rewrite)
 {
 	static	int	alloced = 0;
@@ -100,7 +100,7 @@ setenv(char *name, char *value, int rewrite)
 	return (0);
 }
 
-extern	void
+void
 unsetenv(const char *name)
 {
 	char		**p;

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: clearxs.c,v 1.5 2004/11/26 16:45:09 johans Exp $ */
+/* $Id: clearxs.c,v 1.6 2004/12/02 14:14:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -25,7 +25,7 @@
 #define		MODE_TOTAL	2
 #define		MODE_NONE	3
 
-extern	int
+int
 main(int argc, char **argv)
 {
 	int		option, x, fd, mode = MODE_NONE;

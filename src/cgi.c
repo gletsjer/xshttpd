@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.89 2004/12/02 13:27:10 johans Exp $ */
+/* $Id: cgi.c,v 1.90 2004/12/02 14:14:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -133,7 +133,7 @@ append(char *buffer, int prepend, const char *format, ...)
 	return 1;
 }
 
-extern	void
+void
 do_script(const char *path, const char *base, const char *file, const char *engine, int showheader)
 {
 	long			received, writetodo,

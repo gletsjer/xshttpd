@@ -174,7 +174,7 @@ findmime(const char *ext)
 	return(search);
 }
 
-extern	int
+int
 main(int argc, char **argv)
 {
 	int			option, amount, count;

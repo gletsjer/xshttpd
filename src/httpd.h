@@ -29,15 +29,15 @@ extern	int		headers, netbufind, netbufsiz, readlinemode,
 extern	gid_t	origegid;
 extern	uid_t	origeuid;
 
-extern	void	stdheaders		(int, int, int);
-extern	void	alarm_handler		(int);
-extern	void	error			(const char *);
-extern	void	redirect		(const char *, int);
-extern	int	readline		(int, char *);
-extern	void	server_error		(const char *, const char *);
-extern	void	logrequest		(const char *, long);
-extern	int	check_auth		(FILE *);
-extern	void	setcurrenttime		(void);
+void	stdheaders		(int, int, int);
+void	alarm_handler		(int);
+void	error			(const char *);
+void	redirect		(const char *, int);
+int	readline		(int, char *);
+void	server_error		(const char *, const char *);
+void	logrequest		(const char *, long);
+int	check_auth		(FILE *);
+void	setcurrenttime		(void);
 
 #ifdef		HANDLE_SSL
 #include <openssl/ssl.h>
@@ -45,8 +45,8 @@ extern	void	setcurrenttime		(void);
 extern	SSL_CTX *ssl_ctx;
 #endif		/* HANDLE_SSL */
 /* Wrapper functions are used even if SSL is not enabled */
-extern	int	secread(int, void *, size_t);
-extern	int	secwrite(int, void *, size_t);
-extern	int	secfwrite(void *, size_t, size_t, FILE *);
-extern	int	secprintf(const char *format, ...);
-extern	int	secfputs(char *, FILE *);
+int	secread(int, void *, size_t);
+int	secwrite(int, void *, size_t);
+int	secfwrite(void *, size_t, size_t, FILE *);
+int	secprintf(const char *format, ...);
+int	secfputs(char *, FILE *);

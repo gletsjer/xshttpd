@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.123 2004/12/02 13:27:10 johans Exp $ */
+/* $Id: methods.c,v 1.124 2004/12/02 14:14:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -124,7 +124,7 @@ static	char	charset[XS_PATH_MAX];
 static	PerlInterpreter *	perl = NULL;
 #endif		/* HANDLE_PERL */
 
-extern	void
+void
 senduncompressed(int fd)
 {
 #ifdef		WANT_SSI
@@ -328,7 +328,7 @@ senduncompressed(int fd)
 	close(fd);
 }
 
-extern	void
+void
 sendcompressed(int fd, const char *method)
 {
 	pid_t		pid;
@@ -446,7 +446,7 @@ v6masktonum(int mask, struct in6_addr *addr6)
 }
 #endif		/* INET6 */
 
-extern	int
+int
 allowxs(FILE *rfile)
 {
 	char	*remoteaddr, *slash;
@@ -567,7 +567,7 @@ find_file(const char *orgbase, const char *base, const char *file)
 	return NULL;
 }
 
-extern	void
+void
 do_get(char *params)
 {
 	char			*temp, *file, *cgi, *question,
@@ -1090,21 +1090,21 @@ do_get(char *params)
 	goto RETRY;
 }
 
-extern	void
+void
 do_post(char *params)
 {
 	postonly = 1;
 	do_get(params);
 }
 
-extern	void
+void
 do_head(char *params)
 {
 	headonly = 1;
 	do_get(params);
 }
 
-extern	void
+void
 do_options(const char *params)
 {
 	secprintf("%s 200 OK\r\n", version);
@@ -1114,7 +1114,7 @@ do_options(const char *params)
 	(void)params;
 }
 
-extern	void
+void
 loadfiletypes(char *orgbase, char *base)
 {
 	char		line[MYBUFSIZ], *end, *comment;
@@ -1176,7 +1176,7 @@ loadfiletypes(char *orgbase, char *base)
 	fclose(mime);
 }
 
-extern	void
+void
 loadcompresstypes()
 {
 	char		line[MYBUFSIZ], *end, *comment;
@@ -1216,7 +1216,7 @@ loadcompresstypes()
 	fclose(methods);
 }
 
-extern	void
+void
 loadscripttypes(char *orgbase, char *base)
 {
 	char		line[MYBUFSIZ], *end, *comment, *path;
@@ -1277,7 +1277,7 @@ loadscripttypes(char *orgbase, char *base)
 }
 
 #ifdef		HANDLE_SSL
-extern	void
+void
 loadssl()
 {
 	if (config.usessl) {
@@ -1300,7 +1300,7 @@ loadssl()
 #endif		/* HANDLE_SSL */
 
 #ifdef		HANDLE_PERL
-extern	void
+void
 loadperl()
 {
 	const char *embedding[] = { "", HTTPD_ROOT "/persistent.pl" };
@@ -1318,7 +1318,7 @@ loadperl()
 }
 #endif		/* HANDLE_PERL */
 
-extern	int
+int
 getfiletype(int print)
 {
 	const	ftypes	*search;

@@ -15,7 +15,7 @@
 #include	"xscrypt.h"
 #include	"mystring.h"
 
-extern	int
+int
 main(int argc, char **argv)
 {
 	char		*pwd, username[32], passbak[32], total[66],

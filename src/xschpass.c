@@ -18,7 +18,7 @@ static	void	error			(const char *, ...);
 static	void	urldecode		(char *);
 static	void	changepasswd		(const char *, int);
 static	void	generateform		(void);
-extern	int	main			(int, char *[]);
+int	main			(int, char *[]);
 
 static	void
 error(const char *format, ...)
@@ -206,7 +206,7 @@ generateform()
 	printf("</PRE></BODY></HTML>\n");
 }
 
-extern	int
+int
 main(int argc, char **argv)
 {
 	const	char	*param, *cl;

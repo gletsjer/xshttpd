@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: err.c,v 1.5 2004/11/26 17:17:27 johans Exp $ */
+/* $Id: err.c,v 1.6 2004/12/02 14:14:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -9,7 +9,7 @@
 
 
 #ifndef		HAVE_ERR_H
-extern	void
+void
 err(int code, const char *format, ...)
 {
 	va_list		ap;
@@ -23,7 +23,7 @@ err(int code, const char *format, ...)
 	exit(code);
 }
 
-extern	void
+void
 errx(int code, const char *format, ...)
 {
 	va_list		ap;
@@ -35,7 +35,7 @@ errx(int code, const char *format, ...)
 	exit(code);
 }
 
-extern	void
+void
 warn(const char *format, ...)
 {
 	va_list		ap;

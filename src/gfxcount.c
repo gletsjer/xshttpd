@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: gfxcount.c,v 1.8 2004/11/26 17:05:09 johans Exp $ */
+/* $Id: gfxcount.c,v 1.9 2004/12/02 14:14:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -215,7 +215,7 @@ buildpicture()
 	exit(0);
 }
 
-extern	int
+int
 main(int argc, char **argv)
 {
 	struct	stat	statbuf;
@@ -248,7 +248,7 @@ main(int argc, char **argv)
 
 #else		/* Not PATH_PPMTOGIF */
 
-extern	int
+int
 main(int argc, char **argv)
 {
 	printf("Content-type: text/html\r\n\r\n");

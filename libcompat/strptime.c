@@ -76,7 +76,7 @@ static struct dtconv    En_US = {
 };
 
 #ifdef SUNOS4
-extern int      strncasecmp();
+int      strncasecmp();
 #endif
 
 char    *

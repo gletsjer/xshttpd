@@ -1,5 +1,5 @@
 #include	"config.h"
-/* $Id: error.c,v 1.12 2004/11/26 17:05:09 johans Exp $ */
+/* $Id: error.c,v 1.13 2004/12/02 14:14:39 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -18,9 +18,9 @@
 struct virtual			*current;
 struct configuration	config;
 
-extern	void	error			(const char *);
-extern	void	redirect		(const char *, int);
-extern	void	server_error		(const char *, const char *);
+void	error			(const char *);
+void	redirect		(const char *, int);
+void	server_error		(const char *, const char *);
 static	int	difference		(const char *, const char *);
 static	int	check_user		(const struct passwd *);
 static	void	user_unknown		(void);
@@ -52,7 +52,7 @@ static	char		buffer[BUFSIZ], *temp;
 char			rootdir[XS_PATH_MAX];
 int			localmode;
 
-extern	void
+void
 error(const char *what)
 {
 	printf("Content-type: text/html\r\n\r\n");
@@ -63,7 +63,7 @@ error(const char *what)
 	exit(0);
 }
 
-extern	void
+void
 redirect(const char *redir, int code)
 {
 	printf("[redirect() called - transform_user_dir() is broken]\n");
@@ -71,7 +71,7 @@ redirect(const char *redir, int code)
 	(void)code;
 }
 
-extern	void
+void
 server_error(const char *readable, const char *code)
 {
 	printf("[server_error() called - transform_user_dir() is broken]\n");
@@ -424,7 +424,7 @@ local_no_pay()
 	printf(".\n");
 }
 
-extern	int
+int
 main(int argc, char **argv)
 {
 	if (getenv("HTTPD_ROOT"))

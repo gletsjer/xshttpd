@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: procname.c,v 1.14 2004/11/26 19:02:11 johans Exp $ */
+/* $Id: procname.c,v 1.15 2004/12/02 14:14:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -58,7 +58,7 @@ extern	char	**environ;
 static	char	*procnamestart, *procnameend;
 
 #ifndef		HAVE_SETPROCTITLE
-extern	void
+void
 setprocname(const char *name, ...)
 {
 	va_list		ap;
@@ -110,7 +110,7 @@ setprocname(const char *name, ...)
 }
 #endif		/* HAVE_SETPROCTITLE */
 
-extern	void
+void
 initsetprocname(int argc, char **argv)
 {
 #ifndef		PS_STRINGS

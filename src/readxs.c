@@ -24,7 +24,7 @@
 #define		MODE_MONTH	1
 #define		MODE_TOTAL	2
 
-extern	int
+int
 main(int argc, char **argv)
 {
 	int			x, y, z, comp, total, fd, mode = MODE_TOTAL,

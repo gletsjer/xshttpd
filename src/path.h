@@ -1,3 +1,3 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-extern	const	char	*calcpath	(const char *);
+const	char	*calcpath	(const char *);

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: local.c,v 1.13 2004/11/26 16:45:09 johans Exp $ */
+/* $Id: local.c,v 1.14 2004/12/02 14:14:39 johans Exp $ */
 
 
 #include	"config.h"
@@ -17,7 +17,7 @@
 # include	"htconfig.h"
 #endif		/* BUILD_HTTPD */
 
-extern	int
+int
 transform_user_dir(char *base, const struct passwd *userinfo, int errors)
 {
 #ifdef		BUILD_HTTPD
