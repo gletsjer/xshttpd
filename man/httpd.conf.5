@@ -161,16 +161,21 @@ is easy to get confused (default: cgi-bin)
 t.b.d.
 .TP
 .B LogAccess <filename>
-t.b.d.
+Logfile to use for normal HTTP requests (answered with a 2xx response).
 .TP
 .B LogError <filename>
-t.b.d.
+Logfile to use for HTTP requests that trigger errors (like file not found,
+4xx responses).
 .TP
 .B LogReferer <filename>
-t.b.d.
+Logfile to use for HTTP referrer information. Note that this is only
+used when LogStyle traditional is selected - otherwise referrer
+information will be included in the standard LogAccess file.
 .TP
 .B LogStyle [traditional|combined]
-t.b.d.
+Defines the logfile format. Traditionally access and referrer logs will
+be split over two different files, but using a combined accesslog is
+more common nowadays.
 
 .SH EXAMPLE
 Still needs to be written.
