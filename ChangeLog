@@ -1,3 +1,11 @@
+Changes since 3.0 beta 8
+- Several portability patches (compiles even on Cygwin/MS Windows)
+- Detect more "features" (now including the domainname ;)
+- Include strptime() library when required
+- Send compressed files with the proper Content-Encoding headers
+- Re-introduce header parsing (using a static buffer)
+- Several small bug-fixes (thanks to Rob Essink)
+
 Changes since 3.0 beta 7
 - Fix default port selection on systems without getaddrinfo()
 - Added optional define BROKEN_GETNAMEINFO (no offline check yet)
