@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.129 2005/01/26 22:07:57 johans Exp $ */
+/* $Id: methods.c,v 1.130 2005/02/05 19:47:06 johans Exp $ */
 
 #include	"config.h"
 
@@ -574,7 +574,8 @@ do_get(char *params)
 			base[XS_PATH_MAX], orgbase[XS_PATH_MAX],
 			total[XS_PATH_MAX], temppath[XS_PATH_MAX];
 	const	char		*filename, *http_host;
-	int			fd, wasdir, permanent, script = 0, tmp;
+	int			fd, wasdir, permanent, tmp,
+				delay_redir = 0, script = 0;
 	size_t			size;
 	struct	stat		statbuf;
 	const	struct	passwd	*userinfo;
@@ -588,6 +589,7 @@ do_get(char *params)
 	while ((temp = strstr(params, "//")))
 		if (!question || (temp < question))
 		{
+			delay_redir = 1;
 			bcopy(temp + 1, temp, strlen(temp));
 			if (question)
 				question--;
@@ -597,6 +599,7 @@ do_get(char *params)
 	while ((temp = strstr(params, "/./")))
 		if (!question || (temp < question))
 		{
+			delay_redir = 1;
 			bcopy(temp + 2, temp, strlen(temp));
 			if (question)
 				question -= 2;
@@ -926,14 +929,19 @@ do_get(char *params)
 			goto NOTFOUND;
 	}
 
-	if (!S_ISREG(statbuf.st_mode))
+	if (!S_ISREG(statbuf.st_mode) || delay_redir)
 	{
-		if (!S_ISDIR(statbuf.st_mode))
+		if (delay_redir)
+		{
+			/* do nothing */;
+		}
+		else if (!S_ISDIR(statbuf.st_mode))
 		{
 			server_error("403 Not a regular filename", "NOT_REGULAR");
 			return;
 		}
-		if (!strcmp(filename, INDEX_HTML) || !strcmp(file, INDEX_HTML_2))
+		else if (!strcmp(filename, INDEX_HTML) ||
+			!strcmp(file, INDEX_HTML_2))
 		{
 			error("403 The index may not be a directory");
 			return;
@@ -946,15 +954,25 @@ do_get(char *params)
 		}
 		else
 		{
-			http_host = getenv("HTTP_HOST");
+			char	*path_info = getenv("PATH_INFO");
 
+			http_host = getenv("HTTP_HOST");
+			if (strlen(params) > 1 &&
+				'/' == params[strlen(params)-2] &&
+				'.' == params[strlen(params)-1])
+			{
+				params[strlen(params)-2] = '\0';
+				delay_redir = 0; 
+			}
 			/* pretty url with trailing slash */
-			snprintf(total, XS_PATH_MAX, "%s://%s%s%s%s/%s%s",
+			snprintf(total, XS_PATH_MAX, "%s://%s%s%s%s%s%s%s%s",
 				config.usessl ? "https" : "http",
 				http_host ? http_host : current->hostname,
 				strncmp(config.port, "http", 4) ? ":" : "",
 				strncmp(config.port, "http", 4) ? config.port : "",
 				params,
+				delay_redir ? "" : "/",
+				path_info ? path_info : "",
 				question ? "?" : "",
 				question ? question : "");
 
