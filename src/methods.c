@@ -866,8 +866,7 @@ extern	VOID
 loadssl	DECL0
 {
 	if (do_ssl) {
-		SSLeay_add_ssl_algorithms();
-		OpenSSL_add_all_algorithms();
+		SSLeay_add_all_algorithms();
 		SSL_load_error_strings();
 		ssl_ctx = SSL_CTX_new(SSLv23_server_method());
 		if (!SSL_CTX_use_certificate_file(ssl_ctx, calcpath(CERT_FILE),
