@@ -1,0 +1,160 @@
+.TH HTTPD 5 "12 June 2002"
+.SH NAME
+httpd.conf \- XS httpd configuration file
+.SH SYNOPSIS
+.ta 8n
+.B httpd.conf
+[
+.I options
+]
+.LP
+.SH HTTPD.CONF LAYOUT
+.LP
+The httpd.conf configuration file has the following general layout:
+
+ ... global options ...
+
+ <System>
+ ... options for main site ...
+ </System>
+
+ <Virtual>
+ ... options for virtual host ...
+ </Virtual>
+
+ <User>
+ ... options for user homedirs ...
+ </User>
+.LP
+Options and their values must be seperated by whitespaces.
+.br
+The file can have only one System and one User section, but multiple
+Virtual sections (one per virtual hostname).
+
+.LP
+.SH GLOBAL OPTIONS
+The following options can be set in the global section:
+
+.TP
+.B SystemRoot <directory>
+The main httpd directory which contains all the data subdirectories
+(like htdocs, cgi-bin, logs, ...).
+.TP
+.B ListenAddress <hostname>
+The hostname or IP-address the webserver should bind on.
+.TP
+.B ListenPort <port>
+The service name or port number to bind on.
+.TP
+.B Instances <number>
+The number of parallell services to run.
+.TP
+.B PidFile <filename>
+The file to store the current pid and the last startup command line.
+This will be used by
+.B httpdc(1)
+for restarting and other maintainance commands.
+.TP
+.B UserId <username>
+The username or numeric uid that will be used to process all requests.
+.TP
+.B GroupId <groupname>
+The groupname or numeric gid that will be used to process all requests.
+
+.TP
+.B ExecAsUser [true|false]
+If enabled then filenames and CGI's in a user directory will be read and
+executed with the permissions of that user. This is the default.
+.I [cannot be switched of yet]
+.TP
+.B UseSSL [true|false]
+If enabled, use SSL instead of plain text. This can only be used if SSL
+support is enabled at compile time. If this option is set then the
+'https' (443) port will be used by default, instead of 'http' (80). This
+option is disabled by default.
+.TP
+.B UseCharset [true|false]
+If enabled then character sets can be set for all files in a directory
+using
+.B .charset
+files. The .charset file should contain one line which specifies the
+character set that is used for HTML files. If this option is not set or
+no .charset file can be found, the clients should assume that plain 7bit
+text is used. This option is enabled by default.
+.TP
+.B UseRestrictAddr [true|false]
+If enabled then .noxs files may contain one or more IP addresses (or
+prefixes of IP addresses). Only clients with matching addresses will be
+able to retreive files from this directory. If disabled then access to
+the directory will denied to everyone if a .noxs is present and the
+contents of the .noxs file is ignored. UseRestrictAddr is enabled by
+default.
+.TP
+.B UseVirtualHost [true|false]
+If enabled then virtual websites can be used based on the requested
+hostname; as described in
+.BR httpd(1) .
+This is the default. When disabled only the main (default) site can be
+requested and any <Virtual> directives in the configuration file will be
+ignored.
+.TP
+.B UseVirtualUid [true|false]
+t.b.d.
+.TP
+.B LocalMode <number>
+t.b.d.
+
+.LP
+.SH SECTION OPTIONS
+The following options can be set in the System, Virtual and User sections:
+
+.TP
+.B Hostname <hostname>
+t.b.d.
+.TP
+.B HtmlDir <directory>
+t.b.d.
+.TP
+.B ExecDir <directory>
+t.b.d.
+.TP
+.B PhExecDir <directory>
+t.b.d.
+.TP
+.B VirtualId [true|false]
+t.b.d.
+.TP
+.B LogAccess <filename>
+t.b.d.
+.TP
+.B LogError <filename>
+t.b.d.
+.TP
+.B LogReferer <filename>
+t.b.d.
+.TP
+.B LogStyle [traditional|combined]
+t.b.d.
+
+.SH EXAMPLE
+Still needs to be written.
+.SH ACKNOWLEDGEMENTS
+I thank all the members at MCGV Stack who are actively involved in the
+entire WWW happening.
+.SH "SEE ALSO"
+http://www.stack.nl/~sven/xs\-httpd/
+.br
+httpd(1), xspasswd(1), imagemap(1), clearxs(1), readxs(1), gfxcount(1),
+xsindex(1), httpdc(1)
+.SH COPYRIGHT
+All the programs in the XS\-HTTPD package are copyright (C) 1995, 1996
+by Sven Berkvens, except the imagemapper.
+.SH AUTHOR
+The author of this WWW server and its accompanying programs is
+Sven Berkvens (sven@stack.nl). I made all the programs,
+except the imagemapper, which I took from the NCSA distribution,
+but I cleaned it up.
+.LP
+New features have been added by other people at Stack. If you have
+problems with this version please contact the Stack maintainers
+(xs-httpd@stack.nl) about it and don't bother Sven Berkvens.
