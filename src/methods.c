@@ -94,18 +94,21 @@ typedef	struct	ftypes
 	char		name[32], ext[16];
 } ftypes;
 
-#ifdef HANDLE_COMPRESSED
+#if defined(HANDLE_COMPRESSED) | defined(HANDLE_SCRIPT)
 typedef	struct	ctypes
 {
 	struct	ctypes	*next;
 	char		prog[XS_PATH_MAX], ext[16];
 } ctypes;
-#endif		/* HANDLE_COMPRESSED */
+#endif		/* HANDLE_COMPRESSED || HANDLE_SCRIPT */
 
 static	ftypes	*ftype = NULL;
 #ifdef		HANDLE_COMPRESSED
 static	ctypes	*ctype = NULL;
 #endif		/* HANDLE_COMPRESSED */
+#ifdef		HANDLE_SCRIPT
+static	ctypes	*itype = NULL;
+#endif		/* HANDLE_SCRIPT */
 
 extern	VOID
 senduncompressed DECL1(int, fd)
@@ -506,18 +509,24 @@ do_get DECL1(char *, params)
 		(file[size + 1] == '/')) ||
 		((file[0] == '/') && ((file[1] == '?') /* || !file[1] */ )))
 	{
-		do_script(params, headers);
+		do_script(params, NULL, headers);
 		return;
 	}
 
-#ifdef		SUPPORT_PHP3
-	if (strlen(file) > 4 &&
-		(!strcmp(file + strlen(file) - 5, ".php3") || strstr(file, ".php3?")))
+#ifdef		HANDLE_SCRIPT
+	search = itype;
+	while (search)
 	{
-		do_script(params, headers);
-		return;
+		size = strlen(search->ext);
+		if ((temp = strstr(file, search->ext)) &&
+			(*(file + temp + size) == '\0' || *(file + temp + size) == '?'))
+		{
+			do_script(params, search->prog, headers);
+			return;
+		}
+		search = search->next;
 	}
-#endif		/* SUPPORT_PHP3 */
+#endif		/* HANDLE_SCRIPT */
 
 	if (postonly)
 	{
@@ -807,6 +816,47 @@ loadcompresstypes DECL0
 	fclose(methods);
 }
 #endif		/* HANDLE_COMPRESSED */
+
+#ifdef		HANDLE_SCRIPT
+extern	VOID
+loadscripttypes DECL0
+{
+	char		line[MYBUFSIZ], *end, *comment;
+	const	char	*path;
+	FILE		*methods;
+	ctypes		*prev, *new;
+
+	while (itype)
+	{
+		new = itype->next;
+		free(itype); itype = new;
+	}
+	path = calcpath(SCRIPT_METHODS);
+	if (!(methods = fopen(path, "r")))
+		err(1, "fopen(`%s' [read])", path);
+	prev = NULL;
+	while (fgets(line, MYBUFSIZ, methods))
+	{
+		if ((comment = strchr(line, '#')))
+			*comment = 0;
+		end = line + strlen(line);
+		while ((end > line) && (*(end - 1) <= ' '))
+			*(--end) = 0;
+		if (line == end)
+			continue;
+		if (!(new = (ctypes *)malloc(sizeof(ctypes))))
+			errx(1, "Out of memory in loadscripttypes()");
+		if (prev)
+			prev->next = new;
+		else
+			itype = new;
+		prev = new; new->next = NULL;
+		if (sscanf(line, "%s %s", new->prog, new->ext) != 2)
+			errx(1, "Unable to parse `%s' in `%s'", line, path);
+	}
+	fclose(methods);
+}
+#endif		/* HANDLE_SCRIPT */
 
 extern	int
 getfiletype DECL1(int, print)

@@ -74,7 +74,7 @@ time_is_up DECL1(int, sig)
 }
 
 extern	VOID
-do_script DECL2C_(char *, path, int, headers)
+do_script DECL3CC_(char *, path, char *, engine, int, headers)
 {
 	struct	stat		statbuf;
 	uid_t			savedeuid, currentuid;
@@ -88,10 +88,6 @@ do_script DECL2C_(char *, path, int, headers)
 				tempbuf[XS_PATH_MAX + 32];
 	const	char		*file, *argv1, *header;
 	int			p[2], nph, count, nouid, was_slash;
-#ifdef		SUPPORT_PHP3
-	int		php3 = strlen(path) > 4 && (!strcmp(path+strlen(path)-5, ".php3") ||
-				strstr(path, ".php3?"));
-#endif		/* SUPPORT_PHP3 */
 	unsigned	int	left;
 	struct	rlimit		limits;
 	const	struct	passwd	*userinfo;
@@ -154,9 +150,9 @@ do_script DECL2C_(char *, path, int, headers)
 			goto END;
 		}
 		size = strlen(base);
-#ifdef		SUPPORT_PHP3
-		if (!php3)
-#endif		/* SUPPORT_PHP3 */
+#ifdef		HANDLE_SCRIPT
+		if (!engine)
+#endif		/* HANDLE_SCRIPT */
 		{
 			strcpy(base + size, HTTPD_SCRIPT_ROOT);
 			strcat(base + size, "/");
@@ -178,12 +174,12 @@ do_script DECL2C_(char *, path, int, headers)
 		file = path + strlen(name) + 3;
 	} else
 	{
-		if (php3)
+		if (engine)
 		{
 			if (headers)
-				error("500 PHP3 not yet supported");
+				error("500 PHP not yet supported");
 			else
-				printf("[PHP3 not yet supported]\n");
+				printf("[PHP not yet supported]\n");
 			goto END;
 		}
 		if (!was_slash)
@@ -216,11 +212,11 @@ do_script DECL2C_(char *, path, int, headers)
 	}
 
 	size = strlen(HTTPD_SCRIPT_ROOT);
-#ifdef		SUPPORT_PHP3
-	if (php3)
+#ifdef		HANDLE_SCRIPT
+	if (engine)
 		size = -1;
-	if (!php3)
-#endif		/* SUPPORT_PHP3 */
+	else
+#endif		/* HANDLE_SCRIPT */
 	if (strncmp(file, HTTPD_SCRIPT_ROOT, size) || (file[size] != '/'))
 	{
 		if (headers)
@@ -276,8 +272,8 @@ do_script DECL2C_(char *, path, int, headers)
 			printf("[Invalid URI]\n");
 		goto END;
 	}
-#ifdef		SUPPORT_PHP3
-	if (php3)
+#ifdef		HANDLE_SCRIPT
+	if (engine)
 	{
 		if (userinfo)
 			sprintf(fullpath, "/~%s/%s", userinfo->pw_name, name);
@@ -285,7 +281,7 @@ do_script DECL2C_(char *, path, int, headers)
 			sprintf(fullpath, "/%s", name);
 	}
 	else
-#endif		/* SUPPORT_PHP3 */
+#endif		/* HANDLE_SCRIPT */
 	if (userinfo)
 		sprintf(fullpath, "/~%s/%s/%s", userinfo->pw_name,
 			HTTPD_SCRIPT_ROOT, name);
@@ -433,14 +429,15 @@ do_script DECL2C_(char *, path, int, headers)
 			printf("[Cannot change directory]\n");
 			exit(1);
 		}
-#ifdef		SUPPORT_PHP3
-		if (php3) {
+#ifdef		HANDLE_SCRIPT
+		if (engine)
+		{
 			setenv("PATH_INFO", fullpath, 1);
 			setenv("PATH_TRANSLATED", fullpath, 1);
-			execl(PHP3_PATH, "php", fullpath, argv1, NULL);
+			execl(engine, engine, fullpath, argv1, NULL);
 		}
 		else
-#endif		/* SUPPORT_PHP3 */
+#endif		/* HANDLE_SCRIPT */
 			execl(fullpath, name, argv1, NULL);
 		if (nph)
 		{
@@ -450,7 +447,7 @@ do_script DECL2C_(char *, path, int, headers)
 		} else
 		{
 			printf("Content-type: text/plain\r\n\r\n");
-			printf("[execl(`%s') failed: %s",
+			printf("[execl(`%s') failed: %s]",
 				fullpath, strerror(errno));
 		}
 		exit(1);

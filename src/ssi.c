@@ -603,7 +603,7 @@ dir_run_cgi DECL2(char *, here, size_t *, size)
 		return(ERR_CONT);
 	}
 	*search = 0;
-	do_script(here, 0);
+	do_script(here, 0, 0);
 	*search = '-'; return(ERR_NONE);
 }
 

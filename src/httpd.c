@@ -304,6 +304,9 @@ open_logs DECL1(int, sig)
 #ifdef		HANDLE_COMPRESSED
 	loadcompresstypes();
 #endif		/* HANDLE_COMPRESSED */
+#ifdef		HANDLE_SCRIPT
+	loadscripttypes();
+#endif		/* HANDLE_SCRIPT */
 	set_signals();
 	if (!origeuid)
 	{
@@ -666,7 +669,7 @@ server_error DECL2CC(char *, readable, char *, cgi)
 			remotehost[0] ? remotehost : "(none)",
 			orig[0] ? orig : "(none)", env ? env : "(none)",
 			referer[0] ? referer : "(none)");
-		do_script(cgipath, headers);
+		do_script(cgipath, NULL, headers);
 	}
 }
 

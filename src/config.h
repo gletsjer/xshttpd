@@ -39,8 +39,9 @@ for more information about these SSI's. */
  * We don't use the PHP library (yet), but rely on the stand-alone
  * version instead. Shouldn't matter (only slightly in performance).
  */
-#define SUPPORT_PHP3
-#define PHP3_PATH	"/usr/local/bin/php"
+#define SUPPORT_PHP
+#define HANDLE_INTERPRETED
+#define INTERPRET_METHODS "interpret.methods"
 
 /* Define these if you have the respective include file. For example,
 define HAVE_SYS_SYSLIMITS_H if your system has the sys/syslimits.h
@@ -400,6 +401,7 @@ if it does not understand forwards. Read above about GCC! */
 #define		DECL2CC(t1,v1,t2,v2)	(t1 v1, t2 v2)
 #define		DECL3_C_(t1,v1,t2,v2,t3,v3) (t1 v1, t2 v2, t3 v3)
 #define		DECL3CC_(t1,v1,t2,v2,t3,v3) (t1 v1, t2 v2, t3 v3)
+#define		DECL3C__(t1,v1,t2,v2,t3,v3) (t1 v1, t2 v2, t3 v3)
 #else		/* Not NOCONST */
 #define		DECL1C(t1,v1)		(const t1 v1)
 #define		DECL2C_(t1,v1,t2,v2)	(const t1 v1, t2 v2)
@@ -407,6 +409,7 @@ if it does not understand forwards. Read above about GCC! */
 #define		DECL2CC(t1,v1,t2,v2)	(const t1 v1, const t2 v2)
 #define		DECL3_C_(t1,v1,t2,v2,t3,v3) (t1 v1, const t2 v2, t3 v3)
 #define		DECL3CC_(t1,v1,t2,v2,t3,v3) (const t1 v1, const t2 v2, t3 v3)
+#define		DECL3C__(t1,v1,t2,v2,t3,v3) (const t1 v1, t2 v2, t3 v3)
 #endif		/* NOCONST */
 #else		/* Not not NONEWSTYLE */
 #define		DECL0			()
@@ -422,6 +425,7 @@ if it does not understand forwards. Read above about GCC! */
 #define		DECL2_C(t1,v1,t2,v2)	(v1, v2) t1 v1; t2 v2;
 #define		DECL3_C_(t1,v1,t2,v2,t3,v3) (v1, v2, v3) t1 v1; t2 v2; t3 v3;
 #define		DECL3CC_(t1,v1,t2,v2,t3,v3) (v1, v2, v3) t1 v1; t2 v2; t3 v3;
+#define		DECL3C__(t1,v1,t2,v2,t3,v3) (v1, v2, v3) t1 v1; t2 v2; t3 v3;
 #else		/* Not NOCONST */
 #define		DECL1C(t1,v1)		(v1) const t1 v1;
 #define		DECL2C_(t1,v1,t2,v2)	(v1, v2) const t1 v1; t2 v2;
@@ -429,6 +433,7 @@ if it does not understand forwards. Read above about GCC! */
 #define		DECL2_C(t1,v1,t2,v2)	(v1, v2) t1 v1; const t2 v2;
 #define		DECL3_C_(t1,v1,t2,v2,t3,v3) (v1, v2, v3) t1 v1; const t2 v2; t3 v3;
 #define		DECL3CC_(t1,v1,t2,v2,t3,v3) (v1, v2, v3) const t1 v1; const t2 v2; t3 v3;
+#define		DECL3C__(t1,v1,t2,v2,t3,v3) (v1, v2, v3) const t1 v1; t2 v2; t3 v3;
 #endif		/* NOCONST */
 #endif		/* NONEWSTYLE */
 
