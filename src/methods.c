@@ -37,9 +37,9 @@
 #include	<errno.h>
 #include	<netdb.h>
 #ifdef		HAVE_TIME_H
-#ifdef		SYS_TIME_WITH_TIME
+#ifdef		TIME_WITH_SYS_TIME
 #include	<time.h>
-#endif		/* SYS_TIME_WITH_TIME */
+#endif		/* TIME_WITH_SYS_TIME */
 #endif		/* HAVE_TIME_H */
 #include	<stdlib.h>
 #ifndef		NONEWSTYLE
@@ -121,7 +121,7 @@ senduncompressed DECL1(int, fd)
 #ifndef		HAVE_MMAP
 	size_t		secreadtotal, writetotal;
 #endif		/* HAVE_MMAP */
-	size_t		size, written;
+	int			size, written;
 	char		modified[32];
 	struct tm	reqtime;
 
@@ -278,7 +278,7 @@ senduncompressed DECL1(int, fd)
 	{
 		size = 0;
 		alarm((size / MINBYTESPERSEC) + 60);
-		errval = sendwithdirectives(fd, &size);
+		errval = sendwithdirectives(fd, (size_t *)&size);
 		close(fd);
 		switch(errval)
 		{
@@ -315,9 +315,10 @@ sendcompressed DECL2_C(int, fd, char *, method)
 {
 	pid_t		pid;
 	int		count, processed;
+	char	prefix[] = TEMPORARYPREFIX;
 
 #ifdef		HAVE_MKSTEMP
-	if (!(processed = mkstemp(TEMPORARYPREFIX)))
+	if (!(processed = mkstemp(prefix)))
 	{
 		fprintf(stderr, "[%s] httpd: Cannot create temporary file: %s\n",
 			currenttime, strerror(errno));
@@ -405,11 +406,11 @@ sendcompressed DECL2_C(int, fd, char *, method)
 extern	int
 allowxs DECL1(char *, file)
 {
-	char	*remotehost;
+	char	*remoteaddr;
 	char	allowhost[256];
 	FILE	*rfile;
 
-	if (!(remotehost = getenv("REMOTE_ADDR")))
+	if (!(remoteaddr = getenv("REMOTE_ADDR")))
 		return 0; /* access denied */
 	if (!(rfile = fopen(file, "r")))
 		return 0; /* access denied */
@@ -422,7 +423,7 @@ allowxs DECL1(char *, file)
 		    allowhost[strlen(allowhost) - 1] = '\0';
 
 		if (strlen(allowhost) &&
-			!strncmp(remotehost, allowhost, strlen(allowhost)))
+			!strncmp(remoteaddr, allowhost, strlen(allowhost)))
 		{
 			fclose(rfile);
 			return 1; /* access granted */
@@ -437,8 +438,9 @@ allowxs DECL1(char *, file)
 extern	VOID
 do_get DECL1(char *, params)
 {
-	char			*temp, auth[XS_PATH_MAX], base[XS_PATH_MAX];
-	const	char		*file, *question;
+	char			*temp, *file, auth[XS_PATH_MAX], base[XS_PATH_MAX],
+			total[XS_PATH_MAX];
+	const	char		*filename, *question;
 	int			fd, wasdir, permanent;
 	size_t			size;
 	struct	stat		statbuf;
@@ -477,7 +479,7 @@ do_get DECL1(char *, params)
 		if (!origeuid)
 		{
 			setegid(userinfo->pw_gid);
-			setgroups(1, (gid_t *)&userinfo->pw_gid);
+			setgroups(1, (const gid_t *)&userinfo->pw_gid);
 			seteuid(userinfo->pw_uid);
 		}
 		if (!geteuid())
@@ -575,14 +577,16 @@ do_get DECL1(char *, params)
 	{
 		*temp = 0;
 		size = strlen(base);
-		((char *)file)[XS_PATH_MAX - (temp - file + 1 + size)] = 0;
+		file[XS_PATH_MAX - (temp - file + 1 + size)] = 0;
 		strcpy(base + size, file);
 		strcat(base + size, "/");
 		file = temp + 1;
 	}
 
 	if ((!*file) && (wasdir))
-		strcat(real_path, file = INDEX_HTML);
+		strcat(real_path, filename = INDEX_HTML);
+	else
+		filename = file;
 
 	RETRY:
 	snprintf(total, XS_PATH_MAX, "%s/.xsuid", base);
@@ -604,11 +608,11 @@ do_get DECL1(char *, params)
 	}
 	/* Check for *.redir instructions */
 	permanent = 0;
-	snprintf(total, XS_PATH_MAX, "%s%s.redir", base, file);
+	snprintf(total, XS_PATH_MAX, "%s%s.redir", base, filename);
 	total[XS_PATH_MAX-1] = '\0';
 	if ((fd = open(total, O_RDONLY, 0)) < 0)
 	{
-		snprintf(total, XS_PATH_MAX, "%s%s.Redir", base, file);
+		snprintf(total, XS_PATH_MAX, "%s%s.Redir", base, filename);
 		total[XS_PATH_MAX-1] = '\0';
 		if ((fd = open(total, O_RDONLY, 0)) >= 0)
 			permanent = 1;
@@ -617,7 +621,7 @@ do_get DECL1(char *, params)
 	{
 		if ((size = read(fd, total, MYBUFSIZ)) <= 0)
 		{
-			error("500 Redirection file error");
+			error("500 Redirection filename error");
 			close(fd); return;
 		}
 		total[size] = 0;
@@ -628,16 +632,16 @@ do_get DECL1(char *, params)
 	total[XS_PATH_MAX-1] = '\0';
 	if ((fd = open(total, O_RDONLY, 0)) >= 0)
 	{
-		if ((size = read(fd, total, XS_PATH_MAX - strlen(file) - 16)) <= 0)
+		if ((size = read(fd, total, XS_PATH_MAX - strlen(filename) - 16)) <= 0)
 		{
-			error("500 Directory redirection file error");
+			error("500 Directory redirection filename error");
 			close(fd); return;
 		}
 		close(fd);
 		temp = total + size; *temp = 0;
 		while ((temp > total) && (*(temp - 1) < ' '))
 			*(--temp) = 0;
-		strcat(total, file);
+		strcat(total, filename);
 		strtok(total, "\r\n"); redirect(total, 0);
 		return;
 	}
@@ -664,7 +668,7 @@ do_get DECL1(char *, params)
 #ifdef		HANDLE_COMPRESSED
 	search = NULL;
 #endif		/* HANDLE_COMPRESSED */
-	snprintf(total, XS_PATH_MAX, "%s%s", base, file);
+	snprintf(total, XS_PATH_MAX, "%s%s", base, filename);
 	total[XS_PATH_MAX-1] = '\0';
 	if (stat(total, &statbuf))
 #ifdef		HANDLE_COMPRESSED
@@ -689,10 +693,10 @@ do_get DECL1(char *, params)
 	{
 		if (!S_ISDIR(statbuf.st_mode))
 		{
-			server_error("403 Not a regular file", "NOT_REGULAR");
+			server_error("403 Not a regular filename", "NOT_REGULAR");
 			return;
 		}
-		if (!strcmp(file, INDEX_HTML) || !strcmp(file, INDEX_HTML_2))
+		if (!strcmp(filename, INDEX_HTML) || !strcmp(file, INDEX_HTML_2))
 		{
 			error("403 The index may not be a directory");
 			return;
@@ -700,7 +704,7 @@ do_get DECL1(char *, params)
 		if (wasdir)
 		{
 			wasdir = 0;
-			strcat(real_path, file = INDEX_HTML);
+			strcat(real_path, filename = INDEX_HTML);
 			goto RETRY;
 		} else
 		{
@@ -724,7 +728,7 @@ do_get DECL1(char *, params)
 		server_error("403 File permissions deny access", "PERMISSION");
 		return;
 	}
-	strncpy(name, file, XS_PATH_MAX);
+	strncpy(name, filename, XS_PATH_MAX);
 	name[XS_PATH_MAX-1] = '\0';
 
 #ifdef		HANDLE_COMPRESSED
@@ -736,10 +740,10 @@ do_get DECL1(char *, params)
 	return;
 
 	NOTFOUND:
-	if (!strcmp(file, INDEX_HTML) && strcmp(INDEX_HTML, INDEX_HTML_2))
+	if (!strcmp(filename, INDEX_HTML) && strcmp(INDEX_HTML, INDEX_HTML_2))
 	{
 		strcpy(real_path + strlen(real_path) - strlen(INDEX_HTML),
-			file = INDEX_HTML_2);
+			filename = INDEX_HTML_2);
 		wasdir = 0;
 		goto RETRY;
 	}
@@ -767,6 +771,7 @@ do_options DECL1(char *, params)
 	stdheaders(0, 0, 0);
 	secprintf("Content-length: 0\r\n");
 	secprintf("Allow: GET, HEAD, POST, OPTIONS\r\n\r\n");
+	(void)params;
 }
 
 extern	VOID

@@ -8,15 +8,17 @@
 
 #include	"httpd.h"
 #include	"local.h"
+#include	"path.h"
+#include	"mystring.h"
 
 extern	const	char	*
-calcpath DECL1C(char *, name)
+calcpath DECL1C(char *, filename)
 {
 	static	char	buffer[XS_PATH_MAX];
 	size_t		len;
 
-	if (*name == '/')
-		strncpy(buffer, name, XS_PATH_MAX - 1);
+	if (*filename == '/')
+		strncpy(buffer, filename, XS_PATH_MAX - 1);
 	else
 	{
 		strncpy(buffer, rootdir, XS_PATH_MAX - 1);
@@ -24,7 +26,7 @@ calcpath DECL1C(char *, name)
 		len = strlen(buffer);
 		buffer[len++] = '/';
 		buffer[len] = 0;
-		strncat(buffer + len, name, XS_PATH_MAX - len);
+		strncat(buffer + len, filename, XS_PATH_MAX - len);
 	}
 	buffer[XS_PATH_MAX - 1] = 0;
 	return(buffer);

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.41 2001/01/28 19:04:19 johans Exp $ */
+/* $Id: httpd.c,v 1.42 2001/01/29 21:06:19 johans Exp $ */
 
 #include	"config.h"
 
@@ -42,9 +42,9 @@
 #define		NI_MAXHOST	1025
 #endif		/* NI_MAXSERV */
 #ifdef		HAVE_TIME_H
-#ifdef		SYS_TIME_WITH_TIME
+#ifdef		TIME_WITH_SYS_TIME
 #include	<time.h>
-#endif		/* SYS_TIME_WITH_TIME */
+#endif		/* TIME_WITH_SYS_TIME */
 #endif		/* HAVE_TIME_H */
 #include	<stdlib.h>
 #ifndef		NONEWSTYLE
@@ -108,7 +108,7 @@ char		netbuf[MYBUFSIZ], remotehost[NI_MAXHOST], orig[MYBUFSIZ],
 		currenttime[80], dateformat[MYBUFSIZ], real_path[XS_PATH_MAX],
 		thishostname[NI_MAXHOST], version[16], error_path[XS_PATH_MAX],
 		access_path[XS_PATH_MAX], refer_path[XS_PATH_MAX], rootdir[XS_PATH_MAX],
-		total[XS_PATH_MAX], name[XS_PATH_MAX], port[NI_MAXSERV];
+		name[XS_PATH_MAX], port[NI_MAXSERV];
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[SENDBUFSIZE],
 		thisdomain[NI_MAXHOST], message503[MYBUFSIZ],
 		*startparams;
@@ -220,6 +220,7 @@ child_handler DECL1(int, sig)
 	while (wait3(&status, WNOHANG, NULL) > 0)
 		/* NOTHING */;
 	set_signals();
+	(void)sig;
 }
 
 static	VOID
@@ -234,6 +235,7 @@ term_handler DECL1(int, sig)
 		mainhttpd = 0;
 		killpg(0, SIGTERM);
 	}
+	(void)sig;
 	exit(0);
 }
 
@@ -323,6 +325,7 @@ open_logs DECL1(int, sig)
 		if (setegid(savedegid) == -1)
 			err(1, "setegid()");
 	}
+	(void)sig;
 }
 
 extern	VOID
@@ -331,6 +334,7 @@ alarm_handler DECL1(int, sig)
 	alarm(0); setcurrenttime();
 	fprintf(stderr, "[%s] httpd: Send timed out for `%s'\n",
 		currenttime, remotehost[0] ? remotehost : "(none)");
+	(void)sig;
 	exit(1);
 }
 
@@ -686,7 +690,7 @@ server_error DECL2CC(char *, readable, char *, cgi)
 	}
 }
 
-size_t
+int
 secread(int fd, void *buf, size_t count)
 {
 #ifdef		HANDLE_SSL
@@ -697,7 +701,7 @@ secread(int fd, void *buf, size_t count)
 		return read(fd, buf, count);
 }
 
-size_t
+int
 secwrite(int fd, void *buf, size_t count)
 {
 #ifdef		HANDLE_SSL
@@ -708,7 +712,7 @@ secwrite(int fd, void *buf, size_t count)
 		return write(fd, buf, count);
 }
 
-size_t
+int
 secfwrite(void *buf, size_t size, size_t count, FILE *stream)
 {
 #ifdef		HANDLE_SSL
@@ -720,7 +724,7 @@ secfwrite(void *buf, size_t size, size_t count, FILE *stream)
 }
 
 #ifndef		NONEWSTYLE
-size_t
+int
 secprintf(const char *format, ...)
 {
 	va_list	ap;
@@ -737,7 +741,7 @@ secprintf(const char *format, ...)
 		return printf("%s", buf);
 }
 #else		/* NONEWSTYLE */
-size_t
+int
 secprintf(format, va_alist)
 const	char	*format;
 va_dcl
@@ -757,7 +761,7 @@ va_dcl
 }
 #endif		/* NONEWSTYLE */
 
-size_t
+int
 secfputs(char *buf, FILE *stream)
 {
 #ifdef		HANDLE_SSL
@@ -769,7 +773,7 @@ secfputs(char *buf, FILE *stream)
 }
 
 extern	int
-readline DECL2(int, sd, char *, buf)
+readline DECL2(int, rd, char *, buf)
 {
 	char		ch, *buf2;
 
@@ -779,7 +783,7 @@ readline DECL2(int, sd, char *, buf)
 		if (netbufind >= netbufsiz)
 		{
 			TRYAGAIN:
-			netbufsiz = secread(sd, netbuf,
+			netbufsiz = secread(rd, netbuf,
 				readlinemode ? MYBUFSIZ : 1);
 			if (netbufsiz == -1)
 			{
@@ -788,8 +792,8 @@ readline DECL2(int, sd, char *, buf)
 					mysleep(1); goto TRYAGAIN;
 				}
 				fprintf(stderr, "[%s] httpd: readline(): %s [%d]\n",
-					currenttime, strerror(errno), sd);
-				if (sd == 0)
+					currenttime, strerror(errno), rd);
+				if (rd == 0)
 					error("503 Unexpected network error");
 				return(ERR_QUIT);
 			}
@@ -800,7 +804,7 @@ readline DECL2(int, sd, char *, buf)
 					*buf2 = 0;
 					return(ERR_NONE);
 				}
-				if (sd == 0)
+				if (rd == 0)
 					error("503 You closed the connection!");
 				return(ERR_QUIT);
 			}
@@ -817,14 +821,14 @@ process_request DECL0
 {
 	char		line[MYBUFSIZ], extra[MYBUFSIZ], *temp,
 			*params, *url, *ver;
-	int		index, readerror;
+	int		readerror;
 	size_t		size;
 
 	strcpy(version, "HTTP/0.9");
 	strcpy(dateformat, "%a %b %e %H:%M:%S %Y");
-	total[0] = orig[0] = name[0] = referer[0] = line[0] =
+	orig[0] = referer[0] = line[0] =
 		real_path[0] = browser[0] = 0;
-	netbufsiz = netbufind = headonly = postonly = headers = index = 0;
+	netbufsiz = netbufind = headonly = postonly = headers = 0;
 	unsetenv("CONTENT_LENGTH"); unsetenv("AUTH_TYPE");
 	unsetenv("CONTENT_TYPE"); unsetenv("QUERY_STRING");
 	unsetenv("ERROR_CODE"); unsetenv("ERROR_READABLE");

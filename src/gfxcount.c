@@ -242,6 +242,8 @@ main DECL2(int, argc, char **, argv)
 			"You must supply a number as a query argument");
 	loadfont();
 	buildpicture();
+	(void)argc;
+	(void)argv;
 	exit(0);
 }
 

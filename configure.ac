@@ -123,7 +123,8 @@ test -f /etc/HOSTNAME && \
 	grep vwww /etc/HOSTNAME && \
 	AC_DEFINE(BROKEN_GETNAMEINFO)
 
-CFLAGS=-g
+dnl CFLAGS="-g -Wall -W -pedantic -ansi -Wstrict-prototypes -Wtraditional -Wmissing-prototypes -Wpointer-arith -Wshadow -Waggregate-return -Wcast-qual -Wbad-function-cast -Wwrite-strings"
+CFLAGS="-g"
 AC_SUBST(ldcrypt)
 AC_SUBST(httpd_ldflags)
 AC_SUBST(httpd_cflags)

@@ -15,6 +15,7 @@
 #include	<errno.h>
 
 #include	"mygetopt.h"
+#include	"mystring.h"
 #include	"httpd.h"
 #include	"path.h"
 
@@ -67,6 +68,7 @@ cmd_help DECL1C(char *, args)
 		printf("%s\t\t%s\n", search->command, search->help);
 		search++;
 	}
+	(void)args;
 }
 
 static	VOID
@@ -90,6 +92,7 @@ cmd_status DECL1C(char *, args)
 		printf("HTTPD process group seems to be running\n");
 	printf("Main HTTPD PID: %ld\n", (long)httpdpid);
 	printf("Last used command line: %s\n", startparams);
+	(void)args;
 }
 
 static	VOID
@@ -99,6 +102,7 @@ cmd_kill DECL1C(char *, args)
 		warn("kill");
 	else
 		printf("Main HTTPD killed, children will die too.\n");
+	(void)args;
 }
 
 static	VOID
@@ -126,6 +130,7 @@ cmd_restart DECL1C(char *, args)
 	system(startparams);
 	printf("Done!\n");
 	printf("Executed: %s\n", startparams);
+	(void)args;
 }
 
 static	VOID
@@ -135,6 +140,7 @@ cmd_reload DECL1C(char *, args)
 		warn("kill()");
 	else
 		printf("Databases reloaded...\n");
+	(void)args;
 }
 
 static	VOID

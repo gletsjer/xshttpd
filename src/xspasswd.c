@@ -12,6 +12,7 @@
 
 #include	"extra.h"
 #include	"xscrypt.h"
+#include	"mystring.h"
 
 extern	int
 main DECL2(int, argc, char **, argv)
@@ -72,5 +73,7 @@ main DECL2(int, argc, char **, argv)
 	fclose(authout);
 	if (rename(newfile, AUTHFILE))
 		err(1, "Cannot rename(`%s', `%s')", newfile, AUTHFILE);
+	(void)argc;
+	(void)argv;
 	exit(0);
 }

@@ -14,6 +14,7 @@ extern	VOID	loadssl				PROTO((void));
 #endif		/* HANDLE_SSL */
 extern	VOID	loadfiletypes		PROTO((void));
 extern	int	getfiletype		PROTO((int));
+extern	int	allowxs			PROTO((char *));
 
 extern	VOID	do_get			PROTO((char *));
 extern	VOID	do_post			PROTO((char *));

@@ -23,9 +23,9 @@ typedef	struct	mime
 			alt[BUFSIZ], small[BUFSIZ];
 } mime;
 
-static	int	show_size = 1, show_type = 1, show_back = 1,
-		max_filename = 0, max_mimetype = 0, max_mimealt = 0,
-		max_mimeshort = 0, force_overwrite = 0;
+static	int	show_size = 1, show_type = 1, show_back = 1, force_overwrite = 0;
+static	size_t	max_filename = 0, max_mimetype =0, max_mimealt = 0,
+				max_mimeshort = 0;
 static	char	mimefile[XS_PATH_MAX];
 static	mime	*mimes;
 
@@ -304,11 +304,11 @@ main DECL2(int, argc, char **, argv)
 		switch(show_type)
 		{
 		case 1:
-			fprintf(output, "%-*.*s", max_mimetype, max_mimetype,
+			fprintf(output, "%-*.*s", (int)max_mimetype, (int)max_mimetype,
 				search->type);
 			break;
 		case 2:
-			fprintf(output, "%-*.*s", max_mimeshort, max_mimeshort,
+			fprintf(output, "%-*.*s", (int)max_mimeshort, (int)max_mimeshort,
 				search->small);
 			break;
 		default:

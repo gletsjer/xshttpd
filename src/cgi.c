@@ -16,9 +16,9 @@
 #include	<stdio.h>
 #include	<errno.h>
 #ifdef		HAVE_TIME_H
-#ifdef		SYS_TIME_WITH_TIME
+#ifdef		TIME_WITH_SYS_TIME
 #include	<time.h>
-#endif		/* SYS_TIME_WITH_TIME */
+#endif		/* TIME_WITH_SYS_TIME */
 #endif		/* HAVE_TIME_H */
 #include	<stdlib.h>
 #include	<signal.h>
@@ -44,6 +44,7 @@
 #include	"local.h"
 #include	"procname.h"
 #include	"ssi.h"
+#include	"cgi.h"
 #include	"extra.h"
 #include	"path.h"
 #include	"convert.h"
@@ -79,7 +80,7 @@ time_is_up DECL1(int, sig)
 
 #ifndef		NONEWSTYLE
 static	int
-append(char *buffer, int prepend, char *format, ...)
+append(char *buffer, int prepend, const char *format, ...)
 #else		/* NONEWSTYLE */
 static	int
 append(buffer, prepend, format, va_list)
@@ -114,7 +115,7 @@ va_decl
 }
 
 extern	VOID
-do_script DECL3CC_(char *, path, char *, engine, int, headers)
+do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 {
 	struct	stat		statbuf;
 	uid_t			savedeuid, currentuid;
@@ -122,7 +123,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	long			size, received, written, writetodo,
 				totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
-				base[XS_PATH_MAX], *temp, name[XS_PATH_MAX], *nextslash,
+				base[XS_PATH_MAX], *temp, *nextslash,
 				tempbuf[XS_PATH_MAX + 32], head[HEADSIZE];
 	const	char		*file, *argv1, *header;
 	int			p[2], nph, count, nouid, dossi, was_slash;
@@ -167,7 +168,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 
 	if (path[0] != '/')
 	{
-		if (headers)
+		if (showheader)
 			error("403 Invalid pathname");
 		else
 			secprintf("[Invalid pathname]\n");
@@ -182,15 +183,15 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			*temp = 0;
 		if (!(userinfo = getpwnam(name)))
 		{
-			if (headers)
+			if (showheader)
 				error("404 User is unknown");
 			else
 				secprintf("[User `%s' is unknown]\n", name);
 			goto END;
 		}
-		if (transform_user_dir(base, userinfo, headers))
+		if (transform_user_dir(base, userinfo, showheader))
 		{
-			if (!headers)
+			if (!showheader)
 				secprintf("[User directory error]\n");
 			goto END;
 		}
@@ -206,12 +207,12 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		if (!origeuid)
 		{
 			setegid(currentgid = userinfo->pw_gid);
-			setgroups(1, (gid_t *)&userinfo->pw_gid);
+			setgroups(1, (const gid_t *)&userinfo->pw_gid);
 			seteuid(userinfo->pw_uid);
 		}
 		if (!(currentuid = geteuid()))
 		{
-			if (headers)
+			if (showheader)
 				error("500 Effective UID is not valid");
 			else
 				secprintf("[UID error]\n");
@@ -263,7 +264,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		}
 		if (!(currentuid = geteuid()))
 		{
-			if (headers)
+			if (showheader)
 				error("500 Effective UID is not valid");
 			else
 				secprintf("[UID error]\n");
@@ -279,7 +280,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 #endif		/* HANDLE_SCRIPT */
 	if (strncmp(file, HTTPD_SCRIPT_ROOT, size) || (file[size] != '/'))
 	{
-		if (headers)
+		if (showheader)
 			error("403 Not a CGI path");
 		else
 			secprintf("[Not a CGI path]\n");
@@ -307,7 +308,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		fullpath[XS_PATH_MAX-1] = '\0';
 		if (stat(fullpath, &statbuf))
 		{
-			if (headers)
+			if (showheader)
 				error("403 Nonexistent CGI binary");
 			else
 				secprintf("[Nonexistent CGI binary]\n");
@@ -327,7 +328,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 
 	if (strstr(name, "..") || strstr(name, "/.x"))
 	{
-		if (headers)
+		if (showheader)
 			error("400 Invalid URI");
 		else
 			secprintf("[Invalid URI]\n");
@@ -355,7 +356,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		setenv("SCRIPT_NAME", fullpath, 1);
 	setenv("REDIRECT_STATUS", "200", 1);
 
-	if (headers)
+	if (showheader)
 	{
 		snprintf(fullpath, XS_PATH_MAX, "%s%s", base, name);
 		fullpath[XS_PATH_MAX-1] = '\0';
@@ -375,7 +376,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	fullpath[XS_PATH_MAX-1] = '\0';
 	if (stat(fullpath, &statbuf))
 	{
-		if (headers)
+		if (showheader)
 			error("403 Nonexistent CGI binary");
 		else
 			secprintf("[Nonexistent CGI binary]\n");
@@ -383,7 +384,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	}
 	if (statbuf.st_mode & (S_IWGRP | S_IWOTH))
 	{
-		if (headers)
+		if (showheader)
 			error("403 CGI binary is writable");
 		else
 			secprintf("[CGI binary is writable]\n");
@@ -391,7 +392,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	}
 	if (userinfo && (statbuf.st_uid != currentuid))
 	{
-		if (headers)
+		if (showheader)
 			error("403 Invalid owner for CGI binary");
 		else
 			secprintf("[Invalid owner for CGI binary]");
@@ -407,7 +408,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		if (pipe(p))
 		{
 			snprintf(errmsg, MYBUFSIZ, "500 pipe() failed: %s", strerror(errno));
-			if (headers)
+			if (showheader)
 				error(errmsg);
 			else
 				secprintf("[%s]\n", errmsg);
@@ -418,7 +419,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	{
 	case -1:
 		snprintf(errmsg, MYBUFSIZ, "500 fork() failed: %s", strerror(errno));
-		if (headers)
+		if (showheader)
 			error(errmsg);
 		else
 			secprintf("[%s]\n", errmsg);
@@ -449,7 +450,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			{
 				snprintf(errmsg, MYBUFSIZ, "500 pipe() failed: %s",
 					strerror(errno));
-				if (headers)
+				if (showheader)
 					error(errmsg);
 				else
 					secprintf("[%s]\n", errmsg);
@@ -571,7 +572,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		{
 			if (readline(p[0], errmsg) != ERR_NONE)
 			{
-				if (headers)
+				if (showheader)
 					error("503 Script did not end header");
 				else
 					secprintf("[Script did not end header]\n");
@@ -583,7 +584,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			header = skipspaces(errmsg);
 			if (!header[0])
 				break;
-			if (!headers)
+			if (!showheader)
 				continue;
 
 			/* Look for status header */
@@ -641,7 +642,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			}
 			else if (!strncasecmp(header, "Cache-control:", 14))
 			{
-				if (headers >= 11)
+				if (showheader >= 11)
 					append(head, 0, "Cache-control: %s\r\n",
 						skipspaces(header + 14));
 				else
@@ -650,10 +651,10 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			else
 				append(head, 0, "%s\r\n", header);
 		}
-		if (headers)
+		if (showheader)
 		{
 			if (!status)
-				append(head, 1, "%s 220 OK\r\n", version);
+				append(head, 1, "%s 200 OK\r\n", version);
 			if (!ctype)
 				append(head, 0, "Content-type: text/html\r\n");
 			setcurrenttime();
@@ -668,14 +669,14 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		{
 			if (readline(p[0], errmsg) != ERR_NONE)
 			{
-				if (headers)
+				if (showheader)
 					error("503 Script did not end header");
 				else
 					secprintf("[Script did not end header]\n");
 				goto END;
 			}
 			received = strlen(errmsg);
-			if (headers)
+			if (showheader)
 				secprintf("%s", errmsg);
 			while ((received > 0) && (errmsg[received - 1] < 32))
 				errmsg[--received] = 0;
@@ -708,19 +709,21 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		writetodo = received; temp = errmsg;
 		while (writetodo > 0)
 		{
-			switch(written = secwrite(fileno(stdout), temp, writetodo))
+			written = secwrite(fileno(stdout), temp, writetodo);
+			if (written == -1)
 			{
-			case -1:
 				if (errno == EINTR)
 					break;
 				secprintf("[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
 					strerror(errno), fileno(stdout), temp,
 					writetodo);
 				goto END;
-			case 0:
+			} else if (!written)
+			{
 				secprintf("[Connection closed: couldn't write]\n");
 				goto END;
-			default:
+			} else
+			{
 				writetodo -= written;
 				temp += written;
 			}

@@ -10,9 +10,9 @@
 #include	<sys/syslimits.h>
 #endif		/* HAVE_SYS_SYSLIMITS_H */
 #ifdef		HAVE_TIME_H
-#ifdef		SYS_TIME_WITH_TIME
+#ifdef		TIME_WITH_SYS_TIME
 #include	<time.h>
-#endif		/* SYS_TIME_WITH_TIME */
+#endif		/* TIME_WITH_SYS_TIME */
 #endif		/* HAVE_TIME_H */
 #include	<unistd.h>
 #include	<signal.h>
@@ -109,7 +109,7 @@ match DECL2CC(char *, total, char *, pattern)
 extern	int
 match_list DECL2_C(char *, list, char *, browser)
 {
-	char		*begin, *end, orig;
+	char		*begin, *end, origin;
 	int		matches;
 
 	if (!browser)
@@ -121,9 +121,9 @@ match_list DECL2_C(char *, list, char *, browser)
 			end = begin;
 			while (*end && (*end != ' '))
 				end++;
-			orig = *end; *end = 0;
+			origin = *end; *end = 0;
 			matches = match(browser, begin);
-			*end = orig;
+			*end = origin;
 			if (matches)
 				return(1);
 			begin = end;

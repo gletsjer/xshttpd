@@ -23,8 +23,7 @@
 #endif
 
 extern	char	remotehost[], orig[], dateformat[], rootdir[], currenttime[],
-		version[], netbuf[], thishostname[], real_path[], total[],
-		name[], port[];
+		version[], netbuf[], thishostname[], real_path[], name[], port[];
 extern	FILE	*access_log, *refer_log;
 extern	time_t	modtime;
 extern	int		headers, localmode, netbufind, netbufsiz, readlinemode,
@@ -53,8 +52,8 @@ extern	SSL_CTX *ssl_ctx;
 extern	SSL *ssl;
 #endif		/* HANDLE_SSL */
 /* Wrapper functions are used even if SSL is not enabled */
-extern	size_t secread(int, void *, size_t);
-extern	size_t secwrite(int, void *, size_t);
-extern	size_t secfwrite(void *, size_t, size_t, FILE *);
-extern	size_t secprintf(const char *format, ...);
-extern	size_t secfputs(char *, FILE *);
+extern	int	secread(int, void *, size_t);
+extern	int	secwrite(int, void *, size_t);
+extern	int	secfwrite(void *, size_t, size_t, FILE *);
+extern	int	secprintf(const char *format, ...);
+extern	int	secfputs(char *, FILE *);

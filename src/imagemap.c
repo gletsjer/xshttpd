@@ -169,6 +169,8 @@ main DECL2(int, argc, char **, argv)
 	if (def[0])
 		sendmesg(def);
 	servererr("No default specified");
+	(void)argc;
+	(void)argv;
 	return(0);
 }
 

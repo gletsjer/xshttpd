@@ -40,7 +40,7 @@ typedef	struct
 {
 	char		username[32];
 	int		rank;
-} userinfo;
+} userrank;
 
 static	const	char	*error_code, *error_readable, *error_url,
 			*error_url_escaped, *error_url_expanded,
@@ -64,12 +64,16 @@ extern	VOID
 redirect DECL2C_(char *, redir, int, code)
 {
 	printf("[redirect() called - transform_user_dir() is broken]\n");
+	(void)redir;
+	(void)code;
 }
 
 extern	VOID
 server_error DECL2CC(char *, readable, char *, code)
 {
 	printf("[server_error() called - transform_user_dir() is broken]\n");
+	(void)readable;
+	(void)code;
 }
 
 static	int
@@ -118,7 +122,7 @@ check_user DECL1C(struct passwd *, userinfo)
 static	VOID
 user_unknown DECL0
 {
-	userinfo		top[10];
+	userrank		top[10];
 	const	struct	passwd	*user;
 	int			count, count2, rank, said;
 	char			filename[XS_PATH_MAX];
@@ -468,5 +472,7 @@ main DECL2(int, argc, char **, argv)
 	else if (!strcmp(error_code, "LOCAL_NO_PAY"))
 		local_no_pay();
 	printf("</BODY></HTML>\n");
+	(void)argc;
+	(void)argv;
 	exit(0);
 }

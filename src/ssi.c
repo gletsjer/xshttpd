@@ -21,9 +21,9 @@
 #endif		/* HAVE_VFORK_H */
 #include	<stdio.h>
 #ifdef		HAVE_TIME_H
-#ifdef		SYS_TIME_WITH_TIME
+#ifdef		TIME_WITH_SYS_TIME
 #include	<time.h>
-#endif		/* SYS_TIME_WITH_TIME */
+#endif		/* TIME_WITH_SYS_TIME */
 #endif		/* HAVE_TIME_H */
 #include	<unistd.h>
 #ifdef		HAVE_VFORK_H
@@ -357,7 +357,7 @@ ALREADY:
 static	int
 call_counter DECL2_C(int, mode, char *, args)
 {
-	int		error;
+	int		ret;
 	uid_t		savedeuid = -1;
 	gid_t		savedegid = -1;
 	const	char	*path;
@@ -379,55 +379,65 @@ call_counter DECL2_C(int, mode, char *, args)
 		*search = 0;
 		path = args + 1;
 	}
-	error = xsc_counter(mode, path) ? ERR_CONT : ERR_NONE;
+	ret = xsc_counter(mode, path) ? ERR_CONT : ERR_NONE;
 	if (search)
 		*search = '-';
 	if (!origeuid)
 	{
 		setegid(savedegid); seteuid(savedeuid);
 	}
-	return(error);
+	return(ret);
 }
 
 static	int
 dir_count_total DECL2(char *, here, size_t *, size)
 {
+	(void)here;
+	(void)size;
 	return(call_counter(MODE_ALL, NULL));
 }
 
 static	int
 dir_count_total_gfx DECL2(char *, here, size_t *, size)
 {
+	(void)size;
 	return(call_counter(MODE_GFX_ALL, here));
 }
 
 static	int
 dir_count_today DECL2(char *, here, size_t *, size)
 {
+	(void)here;
+	(void)size;
 	return(call_counter(MODE_TODAY, NULL));
 }
 
 static	int
 dir_count_today_gfx DECL2(char *, here, size_t *, size)
 {
+	(void)size;
 	return(call_counter(MODE_GFX_TODAY, here));
 }
 
 static	int
 dir_count_month DECL2(char *, here, size_t *, size)
 {
+	(void)here;
+	(void)size;
 	return(call_counter(MODE_MONTH, NULL));
 }
 
 static	int
 dir_count_month_gfx DECL2(char *, here, size_t *, size)
 {
+	(void)size;
 	return(call_counter(MODE_GFX_MONTH, here));
 }
 
 static	int
 dir_count_reset DECL2(char *, here, size_t *, size)
 {
+	(void)size;
 	return(call_counter(MODE_RESET, here));
 }
 
@@ -451,6 +461,7 @@ dir_date_format DECL2(char *, here, size_t *, size)
 	strncpy(dateformat, here, MYBUFSIZ - 1);
 	dateformat[MYBUFSIZ - 1] = 0;
 	*search = '-';
+	(void)size;
 	return(ERR_NONE);
 }
 
@@ -463,13 +474,14 @@ dir_date DECL2(char *, here, size_t *, size)
 	time(&theclock);
 	strftime(buffer, MYBUFSIZ - 1, dateformat, localtime(&theclock));
 	*size += strlen(buffer);
+	(void)here;
 	return(secfputs(buffer, stdout) == EOF ? ERR_QUIT : ERR_NONE);
 }
 
 static	int
 dir_include_file DECL2(char *, here, size_t *, size)
 {
-	int		fd, error;
+	int		fd, ret;
 	const	char	*path;
 	char		*search;
 
@@ -500,15 +512,15 @@ dir_include_file DECL2(char *, here, size_t *, size)
 		return(ERR_CONT);
 	}
 	*search = '-';
-	error = sendwithdirectives_internal(fd, size);
+	ret = sendwithdirectives_internal(fd, size);
 	numincludes--;
-	close(fd); return(error);
+	close(fd); return(ret);
 }
 
 static	int
 dir_include_virtual DECL2(char *, here, size_t *, size)
 {
-	int	fd, error;
+	int	fd, ret;
 	const	char	*path;
 	char	*search;
 
@@ -543,10 +555,10 @@ dir_include_virtual DECL2(char *, here, size_t *, size)
 		path, strerror(errno));
 		return(ERR_CONT);
 	}
-	error = sendwithdirectives_internal(fd, size);
+	ret = sendwithdirectives_internal(fd, size);
 	numincludes--;
 	close(fd);
-	return(error);
+	return(ret);
 }
 
 static	int
@@ -587,6 +599,7 @@ static	int
 dir_remote_host DECL2(char *, here, size_t *, size)
 {
 	*size += strlen(remotehost);
+	(void)here;
 	return(secfputs(remotehost, stdout) == EOF ? ERR_QUIT : ERR_NONE);
 }
 
@@ -620,7 +633,9 @@ dir_run_cgi DECL2(char *, here, size_t *, size)
 		setenv("QUERY_STRING", querystring, 1);
 		free(querystring);
 	}
-	*search = '-'; return(ERR_NONE);
+	*search = '-';
+	(void)size;
+	return(ERR_NONE);
 }
 
 static	int
@@ -630,6 +645,8 @@ dir_agent_long DECL2(char *, here, size_t *, size)
 		secprintf("%s", getenv("USER_AGENT"));
 	else
 		secprintf("Unknown browser");
+	(void)here;
+	(void)size;
 	return(ERR_NONE);
 }
 
@@ -640,6 +657,8 @@ dir_agent_short DECL2(char *, here, size_t *, size)
 		secprintf("%s", getenv("USER_AGENT_SHORT"));
 	else
 		secprintf("Unknown browser");
+	(void)here;
+	(void)size;
 	return(ERR_NONE);
 }
 
@@ -653,6 +672,8 @@ dir_argument DECL2(char *, here, size_t *, size)
 		secprintf("[Document missing arguments]\n");
 		return(ERR_CONT);
 	}
+	(void)here;
+	(void)size;
 }
 
 static	int
@@ -662,6 +683,8 @@ dir_referer DECL2(char *, here, size_t *, size)
 		secprintf("%s", getenv("HTTP_REFERER"));
 	else
 		secprintf("No refering URL");
+	(void)here;
+	(void)size;
 	return(ERR_NONE);
 }
 
@@ -710,7 +733,9 @@ dir_if DECL2(char *, here, size_t *, size)
 		secprintf("[Unknown if subtype]\n");
 		*search = '-'; return(ERR_CONT);
 	}
-	*search = '-'; return(ERR_NONE);
+	*search = '-';
+	(void)size;
+	return(ERR_NONE);
 }
 
 static	int
@@ -726,6 +751,8 @@ static	int
 dir_else DECL2(char *, here, size_t *, size)
 {
 	ssiarray[ssioutput] = !ssiarray[ssioutput];
+	(void)here;
+	(void)size;
 	return(ERR_NONE);
 }
 
@@ -738,6 +765,8 @@ dir_endif DECL2(char *, here, size_t *, size)
 		return(ERR_CONT);
 	}
 	ssioutput--;
+	(void)here;
+	(void)size;
 	return(ERR_NONE);
 }
 
@@ -764,6 +793,7 @@ dir_switch DECL2(char *, here, size_t *, size)
 	switchstr[1] = '\0';
 	strcat(switchstr, here);
 	switchstr[switchlen-3] = '\0';
+	(void)size;
 	return(ERR_NONE);
 }
 

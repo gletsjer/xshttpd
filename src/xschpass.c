@@ -230,5 +230,7 @@ main DECL2(int, argc, char **, argv)
 		changepasswd(param, length);
 	else
 		generateform();
+	(void)argc;
+	(void)argv;
 	exit(0);
 }

@@ -99,7 +99,7 @@ va_dcl
 	sysmips(SONY_SYSNEWS, NEWS_SETPSARGS, buffer);
 #else		/* Not SONY_SYSNEWS */
 	{
-		size_t		len;
+		int			len;
 		char		*p;
 
 		len = strlen(buffer);
