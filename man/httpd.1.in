@@ -87,6 +87,7 @@ instead of the default (the factory default is 80).
 .B \-u username
 Runs the server under \fBusername\fP's user id
 instead of the default (the factory default is nobody).
+This may not be the superuser (root).
 .TP
 .B \-g groupname
 Runs the server under \fBgroupname\fP's group id
