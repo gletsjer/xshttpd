@@ -82,8 +82,6 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	long			size, received, written, writetodo,
 				totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
-				status[MYBUFSIZ], contenttype[MYBUFSIZ], cachecontrol[MYBUFSIZ],
-				cookie[MYBUFSIZ], location[MYBUFSIZ], expires[MYBUFSIZ],
 				base[XS_PATH_MAX], *temp, name[XS_PATH_MAX], *nextslash,
 				tempbuf[XS_PATH_MAX + 32];
 	const	char		*file, *argv1, *header;
@@ -338,33 +336,25 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	if (stat(fullpath, &statbuf))
 	{
 		if (headers)
-		{
-			snprintf(errmsg, MYBUFSIZ, "403 Cannot stat(`%s'): %s",
-				fullpath, strerror(errno));
-			error(errmsg);
-		} else
-			secprintf("[Cannot stat(`%s'): %s]\n",
-				fullpath, strerror(errno));
+			error("403 Nonexistent CGI binary");
+		else
+			secprintf("[Nonexistent CGI binary]\n");
 		goto END;
 	}
 	if (statbuf.st_mode & (S_IWGRP | S_IWOTH))
 	{
 		if (headers)
-		{
-			snprintf(errmsg, MYBUFSIZ, "403 `%s' is writable", fullpath);
-			error(errmsg);
-		} else
-			secprintf("[`%s' is writable]\n", fullpath);
+			error("403 CGI binary is writable");
+		else
+			secprintf("[CGI binary is writable]\n");
 		goto END;
 	}
 	if (userinfo && (statbuf.st_uid != currentuid))
 	{
 		if (headers)
-		{
-			snprintf(errmsg, MYBUFSIZ, "403 Invalid owner for `%s'", fullpath);
-			error(errmsg);
-		} else
-			secprintf("[Invalid owner for `%s']\n", fullpath);
+			error("403 Invalid owner for CGI binary");
+		else
+			secprintf("[Invalid owner for CGI binary]");
 		goto END;
 	}
 	nph = (!strncmp(name, "nph-", 4) || strstr(name, "/nph-"));
@@ -532,11 +522,10 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	if (nph)
 		exit(0);
 
-	status[0] = contenttype[0] = location[0] = cachecontrol[0] = cookie[0] = 0;
-	expires[0] = 0;
 	netbufind = netbufsiz = 0; readlinemode = READCHAR;
 	if (!nph)
 	{
+		int ctype = 0, first = 1;
 		while (1)
 		{
 			if (readline(p[0], errmsg) != ERR_NONE)
@@ -553,88 +542,75 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			header = skipspaces(errmsg);
 			if (!header[0])
 				break;
-			if (!strncasecmp(header, "Status:", 7))
-				strncpy(status, skipspaces(header + 7), MYBUFSIZ);
-			else if (!strncasecmp(header, "Location:", 9))
-				strncpy(location, skipspaces(header + 9), MYBUFSIZ);
-			else if (!strncasecmp(header, "Content-type:", 13))
-				strncpy(contenttype, skipspaces(header + 13), MYBUFSIZ);
-			else if (!strncasecmp(header, "Cache-control:", 14))
-				strncpy(cachecontrol, skipspaces(header + 14), MYBUFSIZ);
-			else if (!strncasecmp(header, "Expires:", 8))
-				strncpy(expires, skipspaces(header + 8), MYBUFSIZ);
-			else if (!strncasecmp(header, "Set-cookie:", 11))
+			if (!headers)
+				continue;
+			if (first)
 			{
-				if (!cookie[0])
-					strncpy(cookie, skipspaces(header + 11), MYBUFSIZ);
-				else
-				/* This is a special case. Or rather a dirty hack for
-				 * browsers that violate RFC 1945, 2068 and 2109(!)
-				 * Which includes netscape, w3m and others :(
+				/* If people want to change the 'Status' header
+				 * then it must be indicated on the first line
+				 * since we send output immediately...
 				 */
+				first = 0;
+				if (!strncasecmp(header, "Status:", 7))
+					secprintf("%s %s\r\n", version, skipspaces(header + 7));
+				else if (!strncasecmp(header, "Location:", 9))
+					secprintf("%s 302 Moved\r\n", version);
+				else
+					secprintf("%s 200 OK\r\n", version);
+			}
+			if (!strncasecmp(header, "Location:", 9))
+			{
+				char location[MYBUFSIZ];
+				
+				strncpy(location, skipspaces(header + 9), MYBUFSIZ);
+				switch(location[0])
 				{
-					strncat(cookie, "\r\nSet-cookie: ",
-						MYBUFSIZ - strlen(cookie));
-					strncat(cookie, skipspaces(header + 11),
-						MYBUFSIZ - strlen(cookie));
+				case '/':
+					if (!strcmp(port, "80"))
+						secprintf("Location: http://%s%s\r\n",
+							thishostname, location);
+#ifdef		HANDLE_SSL
+					else if (do_ssl && !strcmp(port, "443"))
+						secprintf("Location: https://%s%s\r\n",
+							thishostname, location);
+					else if (do_ssl)
+						secprintf("Location: https://%s:%s%s\r\n",
+							thishostname, port, location);
+#endif		/* HANDLE_SSL */
+					else
+						secprintf("Location: http://%s:%s%s\r\n",
+							thishostname, port, location);
+					break;
+				case 0:
+					break;
+				default:
+					secprintf("Location: %s\r\n", location);
+					break;
 				}
 			}
-		}
-		status[MYBUFSIZ-1] = '\0';
-		location[MYBUFSIZ-1] = '\0';
-		contenttype[MYBUFSIZ-1] = '\0';
-		cachecontrol[MYBUFSIZ-1] = '\0';
-		expires[MYBUFSIZ-1] = '\0';
-		cookie[MYBUFSIZ-1] = '\0';
-		if (headers)
-		{
-			secprintf("%s %s\r\n", version, status[0] ? status :
-				(location[0] ? "302 Moved" : "200 OK"));
-			secprintf("Content-type: %s\r\n",
-				(!contenttype[0]) ? "text/html" : contenttype);
-			if (cachecontrol[0])
+			else if (!strncasecmp(header, "Content-type:", 13))
+			{
+				ctype = 1;
+				secprintf("Content-type: %s\r\n", skipspaces(header + 13));
+			}
+			else if (!strncasecmp(header, "Cache-control:", 14))
 			{
 				if (headers >= 11)
-					secprintf("Cache-control: %s\r\n", cachecontrol);
+					secprintf("Cache-control: %s\r\n", skipspaces(header + 14));
 				else
 					secprintf("Pragma: no-cache\r\n");
 			}
-			if (cookie[0])
-				secprintf("Set-cookie: %s\r\n", cookie);
-			if (expires[0])
-				secprintf("Expires: %s\r\n", expires);
-			switch(location[0])
-			{
-			case '/':
-				if (!strcmp(port, "80"))
-					secprintf("Location: http://%s%s\r\n",
-						thishostname, location);
-#ifdef		HANDLE_SSL
-				else if (do_ssl && !strcmp(port, "443"))
-					secprintf("Location: https://%s%s\r\n",
-						thishostname, location);
-				else if (do_ssl)
-					secprintf("Location: https://%s:%s%s\r\n",
-						thishostname, port, location);
-#endif		/* HANDLE_SSL */
-				else
-					secprintf("Location: http://%s:%s%s\r\n",
-						thishostname, port, location);
-				break;
-			case 0:
-				break;
-			default:
-				secprintf("Location: %s\r\n", location);
-				break;
-			}
+			else
+				secprintf("%s\r\n", header);
+		}
+		if (headers)
+		{
+			if (!ctype)
+				secprintf("Content-type: text/html\r\n");
 			setcurrenttime();
 			secprintf("Date: %s\r\nLast-modified: %s\r\n",
 				currenttime, currenttime);
 			secprintf("Server: %s\r\n\r\n", SERVER_IDENT);
-		} else
-		{
-			if (location[0])
-				secprintf("[Internal `location' not supported]\n");
 		}
 	} else
 	{
