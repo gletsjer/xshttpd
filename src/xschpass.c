@@ -91,7 +91,7 @@ changepasswd DECL2C_(char *, param, int,  cl)
 {
 	char		filename[XS_PATH_MAX], username[BUFSIZ], old[BUFSIZ],
 			new1[BUFSIZ], new2[BUFSIZ], buffer[BUFSIZ], *search,
-			*search2;
+			*search2, *cryptnew, *cryptold;
 	struct	stat	statbuf1, statbuf2;
 	FILE		*input, *output;
 	int		found;
@@ -136,7 +136,8 @@ changepasswd DECL2C_(char *, param, int,  cl)
 	for (search = new1; *search; search++)
 		if (*search < 32)
 			error("403 Your password contains an invallid character!");
-	xs_encrypt(new1); xs_encrypt(old);
+	cryptnew = xs_encrypt(new1);
+	cryptold = xs_encrypt(old);
 
 	if (lstat(filename, &statbuf1))
 		error("403 Could not lstat directory '%s': %s",
@@ -170,7 +171,7 @@ changepasswd DECL2C_(char *, param, int,  cl)
 			filename, strerror(errno));
 
 	found = 0;
-	sprintf(new2, "%s:%s\n", username, old);
+	sprintf(new2, "%s:%s\n", username, cryptold);
 	while (fgets(buffer, BUFSIZ, input))
 	{
 		if (!found && !strcmp(buffer+1, new2))
@@ -183,7 +184,7 @@ changepasswd DECL2C_(char *, param, int,  cl)
 				error("403 Password is locked");
 			}
 			fprintf(output, "%c%s:%s\n",
-				buffer[0], username, new1);
+				buffer[0], username, cryptnew);
 		} else
 			fprintf(output, "%s", buffer);
 	}

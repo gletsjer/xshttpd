@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.97 2003/01/03 17:53:14 johans Exp $ */
+/* $Id: httpd.c,v 1.98 2003/01/03 18:18:11 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.97 2003/01/03 17:53:14 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.98 2003/01/03 18:18:11 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -861,15 +861,14 @@ check_auth DECL1(FILE *, authfile)
 	uudecode(search);
 	if ((find = strchr(search, ':')))
 	{
-		*find = 0;
+		*find++ = 0;
 		setenv("REMOTE_USER", search, 1);
-		*find++ = ':';
 		setenv("REMOTE_PASSWORD", find, 1);
-		xs_encrypt(find);
+		snprintf(line, MYBUFSIZ, "%s:%s\n", search, xs_encrypt(find));
 	}
 	while (fgets(compare, MYBUFSIZ, authfile))
 	{
-		if (!strcmp(compare + 1, search))
+		if (!strcmp(compare + 1, line))
 		{
 			fclose(authfile);
 			return 0;

@@ -10,11 +10,11 @@
 
 #include	"xscrypt.h"
 
-extern	VOID
+extern	char *
 xs_encrypt DECL1(char *, buffer)
 {
 #ifdef		HAVE_CRYPT
 	/* If you don't have a crypt() function, use plain-text pwd storage */
-	strcpy(buffer, (char *)crypt(buffer, "xs"));
+	return crypt(buffer, "xs");
 #endif		/* HAVE_CRYPT */
 }
