@@ -190,11 +190,16 @@ one with \fBUseSSL\fP (or the command line option -s) set and one without.
 To use SSL you will need an x509 certificate (\fIcert.pem\fP) and the
 corresponding private key (\fIkey.pem\fP). If you don't have
 certificates -or a certificiate authority to give these to you- then you
-can create the required files yourself using \fBopenssl\fP. The two
-\fI*.pem\fP files should be stored in the httpd root directory (by
-default \fI/usr/local/lib/httpd/\fP) in order to get SSL working.
-An example Makefile that can help you generate the certificate can be
-found in the httpd source distribution.
+can create the required files yourself using \fBopenssl\fP.
+.LP
+The two \fI*.pem\fP files are usually stored in the httpd root directory
+(by default \fI/usr/local/lib/httpd/\fP).
+You can use other filenames for the certificate and private key by
+setting the parameters \fBSSLCertificate\fP and \fBSSLPrivateKey\fP
+in the configuration file.
+.LP
+An example SSL-Makefile that can help you generate the certificate,
+can be found in the httpd source distribution.
 .SH Special files
 There are a number of files that this WWW server considers special:
 .TP
