@@ -498,7 +498,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			secprintf("Content-type: text/plain\r\n\r\n");
 			secprintf("[execl() failed: %s]",
 				strerror(errno));
-			fprintf(stderr, "[%s] execl(`%s') failed: %s]",
+			fprintf(stderr, "[%s] execl(`%s') failed: %s\n",
 				currenttime, engine ? engine : fullpath, strerror(errno));
 		}
 		exit(1);
