@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.106 2004/06/30 17:10:15 johans Exp $ */
+/* $Id: methods.c,v 1.107 2004/07/15 14:41:47 johans Exp $ */
 
 #include	"config.h"
 
@@ -832,10 +832,8 @@ do_get DECL1(char *, params)
 				goto NOTFOUND;
 		}
 		else
-			csearch = NULL;
+			goto NOTFOUND;
 	}
-	else
-		goto NOTFOUND;
 
 	if (!S_ISREG(statbuf.st_mode))
 	{
