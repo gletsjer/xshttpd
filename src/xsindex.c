@@ -319,6 +319,7 @@ main DECL2(int, argc, char **, argv)
 				neatsize((long)(statbuf.st_size)));
 		fprintf(output, "\n");
 	}
+	fprintf(output, "</PRE></BODY></HTML>\n");
 	fclose(output);
 	printf("`%s' is now ready...\n", INDEX_HTML);
 	exit(0);
