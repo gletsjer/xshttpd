@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: path.c,v 1.6 2004/11/26 16:45:09 johans Exp $ */
+/* $Id: path.c,v 1.7 2004/12/02 14:37:35 johans Exp $ */
 
 #include	"config.h"
 
@@ -13,7 +13,7 @@
 #include	"path.h"
 #include	"mystring.h"
 
-extern	const	char	*
+const	char	*
 calcpath(const char *filename)
 {
 	static	char	buffer[XS_PATH_MAX];

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: convert.c,v 1.6 2004/11/26 16:45:09 johans Exp $ */
+/* $Id: convert.c,v 1.7 2004/12/02 14:37:35 johans Exp $ */
 
 #include	"config.h"
 
@@ -12,7 +12,7 @@
 #include	"mystring.h"
 #include	"convert.h"
 
-extern const char *
+const char *
 convertpath(const char *org)
 {
 	static	char		buffer[XS_PATH_MAX];

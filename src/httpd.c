@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.160 2004/12/02 14:14:39 johans Exp $ */
+/* $Id: httpd.c,v 1.161 2004/12/02 14:37:35 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.160 2004/12/02 14:14:39 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.161 2004/12/02 14:37:35 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1050,7 +1050,7 @@ check_auth(FILE *authfile)
 	return(1);
 }
 
-extern	char	*
+char	*
 escape(const char *what)
 {
 	char		*escapebuf, *w;

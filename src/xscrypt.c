@@ -9,7 +9,7 @@
 
 #include	"xscrypt.h"
 
-extern	char *
+char *
 xs_encrypt(const char *buffer)
 {
 #ifdef		HAVE_CRYPT

@@ -13,7 +13,7 @@
 
 static	char	*findenv		 (const char *, int *);
 
-extern	char	*
+char	*
 getenv(const char *name)
 {
 	int		offset;

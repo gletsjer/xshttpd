@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: extra.c,v 1.13 2004/12/02 14:14:39 johans Exp $ */
+/* $Id: extra.c,v 1.14 2004/12/02 14:37:35 johans Exp $ */
 
 #include	"config.h"
 
@@ -25,7 +25,7 @@
 #include	"mystring.h"
 
 #ifndef		HAVE_STRCASESTR
-extern	const	char	*
+const	char	*
 strcasestr(const char *big, const char *little)
 {
 	size_t		len;
@@ -146,7 +146,7 @@ extern	char		*sys_errlist[];
 extern	const	int	sys_nerr;
 #endif		/* NEED_SYS_ERRLIST_DECL */
 
-extern	const	char	*
+const	char	*
 strerror(int code)
 {
 	if ((code < 0) || (code > sys_nerr))
