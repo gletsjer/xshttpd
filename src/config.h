@@ -24,7 +24,7 @@ for more information about these SSI's. */
 /* You can enable this when compiling httpd, but should disable it
  * for all the other utils. Yes, that's a hack, yes it needs fixing. */
 
-#define HANDLE_SSL
+#undef HANDLE_SSL
 #define CERT_FILE	"cert.pem"
 #define KEY_FILE	"key.pem"
 

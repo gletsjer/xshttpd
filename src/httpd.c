@@ -256,7 +256,8 @@ open_logs DECL1(int, sig)
 	}
 	if (mainhttpd)
 	{
-		sprintf(buffer, calcpath(PID_PATH));
+		snprintf(buffer, XS_PATH_MAX, calcpath(PID_PATH));
+		buffer[XS_PATH_MAX-1] = '\0';
 		remove(buffer);
 		if ((pidlog = fopen(buffer, "w")))
 		{
@@ -649,13 +650,15 @@ server_error DECL2CC(char *, readable, char *, cgi)
 				*search = '/';
 			if (!transform_user_dir(base, userinfo, 0))
 			{
-				sprintf(cgipath, "%s/%s/error",
+				snprintf(cgipath, XS_PATH_MAX, "%s/%s/error",
 					base, HTTPD_SCRIPT_ROOT);
+				cgipath[XS_PATH_MAX-1] = '\0';
 				if (!stat(cgipath, &statbuf))
 				{
-					sprintf(cgipath, "/~%s/%s/error",
+					snprintf(cgipath, XS_PATH_MAX, "/~%s/%s/error",
 						userinfo->pw_name,
 						HTTPD_SCRIPT_ROOT);
+					cgipath[XS_PATH_MAX-1] = '\0';
 					goto EXECUTE;
 				}
 			}
@@ -663,13 +666,16 @@ server_error DECL2CC(char *, readable, char *, cgi)
 		if (search)
 			*search = '/';
 	}
-	strcpy(base, calcpath(HTTPD_SCRIPT_ROOT_P));
-	sprintf(cgipath, "%s/error", base);
+	strncpy(base, calcpath(HTTPD_SCRIPT_ROOT_P), XS_PATH_MAX);
+	base[XS_PATH_MAX-1] = '\0';
+	snprintf(cgipath, XS_PATH_MAX, "%s/error", base);
+	cgipath[XS_PATH_MAX-1] = '\0';
 	if (stat(cgipath, &statbuf))
 		error(readable);
 	else
 	{
-		sprintf(cgipath, "/%s/error", HTTPD_SCRIPT_ROOT);
+		snprintf(cgipath, XS_PATH_MAX, "/%s/error", HTTPD_SCRIPT_ROOT);
+		cgipath[XS_PATH_MAX-1] = '\0';
 		EXECUTE:
 		setcurrenttime();
 		fprintf(stderr, "[%s] httpd(pid %ld): %s [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
@@ -1221,7 +1227,8 @@ standalone_main DECL0
 			sizeof(struct in_addr), sa_client.sin_family)))
 #endif		/* INET 6 */
 		{
-			strcpy(remotehost, remote->h_name);
+			strncpy(remotehost, remote->h_name, MAXHOSTNAMELEN);
+			remotehost[MAXHOSTNAMELEN-1] = '\0';
 			setenv("REMOTE_HOST", remotehost, 1);
 		} else
 		{
@@ -1229,7 +1236,8 @@ standalone_main DECL0
 			inet_ntop(AF_INET6, (void *)(sa6_client.sin6_addr.s6_addr), remotehost,
 					sizeof(remotehost));
 #else		/* INET 6 */
-			strcpy(remotehost, inet_ntoa(sa_client.sin_addr));
+			strncpy(remotehost, inet_ntoa(sa_client.sin_addr), MAXHOSTNAMELEN);
+			remotehost[MAXHOSTNAMELEN-1] = '\0';
 #endif		/* INET 6 */
 			unsetenv("REMOTE_HOST");
 		}
@@ -1274,9 +1282,11 @@ setup_environment DECL0
 	setenv("SERVER_SOFTWARE", SERVER_IDENT, 1);
 	setenv("SERVER_NAME", thishostname, 1);
 	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
-	sprintf(buffer, "%d", port);
+	snprintf(buffer, 16, "%d", port);
+	buffer[15] = '\0';
 	setenv("SERVER_PORT", buffer, 1);
-	sprintf(buffer, "%d", localmode);
+	snprintf(buffer, 16, "%d", localmode);
+	buffer[15] = '\0';
 	setenv("LOCALMODE", buffer, 1);
 	setenv("HTTPD_ROOT", rootdir, 1);
 }
@@ -1310,9 +1320,12 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	}
 
 	port = 80; number = HTTPD_NUMBER; localmode = 1;
-	strcpy(rootdir, HTTPD_ROOT); message503[0] = 0;
+	strncpy(rootdir, HTTPD_ROOT, XS_PATH_MAX);
+	rootdir[XS_PATH_MAX-1] = '\0';
+	message503[0] = 0;
 #ifdef		THISDOMAIN
-	strcpy(thisdomain, THISDOMAIN);
+	strncpy(thisdomain, THISDOMAIN, MAXHOSTNAMELEN);
+	thisdomain[MAXHOSTNAMELEN-1] = '\0';
 #else		/* Not THISDOMAIN */
 	thisdomain[0] = 0;
 #endif		/* THISDOMAIN */
@@ -1335,9 +1348,12 @@ main DECL3(int, argc, char **, argv, char **, envp)
 		err(1, "Check your password file: nobody may not have UID -1 or 65535.");
 	if ((short)group_id == -1)
 		err(1, "Check your group file: nogroup may not have GID -1 or 65535.");
-	sprintf(access_path, "%s/access_log", calcpath(HTTPD_LOG_ROOT));
-	sprintf(error_path, "%s/error_log", calcpath(HTTPD_LOG_ROOT));
-	sprintf(refer_path, "%s/referer_log", calcpath(HTTPD_LOG_ROOT));
+	snprintf(access_path, XS_PATH_MAX, "%s/access_log", calcpath(HTTPD_LOG_ROOT));
+	snprintf(error_path, XS_PATH_MAX, "%s/error_log", calcpath(HTTPD_LOG_ROOT));
+	snprintf(refer_path, XS_PATH_MAX, "%s/referer_log", calcpath(HTTPD_LOG_ROOT));
+	access_path[XS_PATH_MAX-1] = '\0';
+	error_path[XS_PATH_MAX-1] = '\0';
+	refer_path[XS_PATH_MAX-1] = '\0';
 	while ((option = getopt(argc, argv, "a:d:g:l:m:n:p:r:su:A:R:E:")) != EOF)
 	{
 		switch(option)
@@ -1357,9 +1373,15 @@ main DECL3(int, argc, char **, argv, char **, envp)
 				port = 443;
 			do_ssl = 1;
 			/* override defaults */
-			sprintf(access_path, "%s/ssl_access_log", calcpath(HTTPD_LOG_ROOT));
-			sprintf(error_path, "%s/ssl_error_log", calcpath(HTTPD_LOG_ROOT));
-			sprintf(refer_path, "%s/ssl_referer_log", calcpath(HTTPD_LOG_ROOT));
+			snprintf(access_path, XS_PATH_MAX,
+				"%s/ssl_access_log", calcpath(HTTPD_LOG_ROOT));
+			snprintf(error_path, XS_PATH_MAX,
+				"%s/ssl_error_log", calcpath(HTTPD_LOG_ROOT));
+			snprintf(refer_path, XS_PATH_MAX,
+				"%s/ssl_referer_log", calcpath(HTTPD_LOG_ROOT));
+			access_path[XS_PATH_MAX-1] = '\0';
+			error_path[XS_PATH_MAX-1] = '\0';
+			refer_path[XS_PATH_MAX-1] = '\0';
 #else		/* HANDLE_SSL */
 			errx(1, "SSL support not enabled at compile-time");
 #endif		/* HANDLE_SSL */
@@ -1387,7 +1409,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 		case 'a':
 #ifdef		INET6
 			/* TODO -Koresh */
-			strcpy(thishostname, optarg);
+			strncpy(thishostname, optarg, MAXHOSTNAMELEN);
 #else		/* INET6 */
 			if ((thisaddress.s_addr = inet_addr(optarg)) == -1)
 			{
@@ -1398,27 +1420,33 @@ main DECL3(int, argc, char **, argv, char **, envp)
 					errx(1, "gethostbyname(`%s') failed",
 						optarg);
 			}
-			strcpy(thishostname, optarg);
+			strncpy(thishostname, optarg, MAXHOSTNAMELEN);
 #endif		/* INET6 */
+			thishostname[MAXHOSTNAMELEN-1] = '\0';
 			break;
 		case 'r':
-			strcpy(thisdomain, optarg);
+			strncpy(thisdomain, optarg, MAXHOSTNAMELEN);
+			thisdomain[MAXHOSTNAMELEN-1] = '\0';
 			break;
 		case 'l':
 			if ((localmode = atoi(optarg)) <= 0)
 				errx(1, "Argument to -l is invalid");
 			break;
 		case 'm':
-			strcpy(message503, optarg);
+			strncpy(message503, optarg, MYBUFSIZ);
+			message503[MYBUFSIZ-1] = '\0';
 			break;
 		case 'A':
-			strcpy(access_path, optarg);
+			strncpy(access_path, optarg, XS_PATH_MAX);
+			access_path[XS_PATH_MAX-1] = '\0';
 			break;
 		case 'R':
-			strcpy(refer_path, optarg);
+			strncpy(refer_path, optarg, XS_PATH_MAX);
+			refer_path[XS_PATH_MAX-1] = '\0';
 			break;
 		case 'E':
-			strcpy(error_path, optarg);
+			strncpy(error_path, optarg, XS_PATH_MAX);
+			error_path[XS_PATH_MAX-1] = '\0';
 			break;
 		default:
 			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number] [-d rootdir]\n[-r refer-ignore-domain] [-l localmode] [-a address] [-m service-message]\n[-A access-log-path] [-E error-log-path] [-R referer-log-path]");

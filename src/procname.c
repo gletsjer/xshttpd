@@ -76,7 +76,8 @@ va_dcl
 	va_start(ap);
 #endif		/* NONEWSTYLE */
 
-	vsprintf(buffer, name, ap);
+	vsnprintf(buffer, 256, name, ap);
+	buffer[255] = '\0';
 	va_end(ap);
 
 #ifdef		PS_STRINGS
@@ -105,7 +106,7 @@ va_dcl
 			len = procnameend - procnamestart - 2;
 			buffer[len] = 0;
 		}
-		strcpy(procnamestart, buffer);
+		strncpy(procnamestart, buffer, 256);
 		p = procnamestart + len;
 		while (p < procnameend)
 			*(p++) = '\0';

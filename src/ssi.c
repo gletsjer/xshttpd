@@ -138,7 +138,8 @@ xsc_initcounter DECL1C(char *, filename)
 	char		datafile[XS_PATH_MAX];
 	const	char	*lockfile;
 
-	strcpy(datafile, calcpath(CNT_DATA));
+	strncpy(datafile, calcpath(CNT_DATA), XS_PATH_MAX);
+	datafile[XS_PATH_MAX-1] = '\0';
 	if ((fd = open(datafile, O_RDONLY,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
 	{
@@ -156,7 +157,8 @@ xsc_initcounter DECL1C(char *, filename)
 	}
 
 	done = 0;
-	strcpy(counter2.filename, filename);
+	strncpy(counter2.filename, filename, sizeof(counter2.filename));
+	counter2.filename[sizeof(counter2.filename)-1] = '\0';
 	counter2.total = counter2.today = counter2.month = 0;
 
 	while (read(fd, &counter, sizeof(counter)) == sizeof(counter))
@@ -223,7 +225,8 @@ xsc_counter DECL2_C(int, mode, char *, args)
 	}
 
 	already = 0;
-	strcpy(counterfile, calcpath(CNT_DATA));
+	strncpy(counterfile, calcpath(CNT_DATA), XS_PATH_MAX);
+	counterfile[XS_PATH_MAX-1] = '\0';
 
 reopen:
 	if ((fd = open(counterfile, O_RDWR, 
@@ -311,9 +314,10 @@ reopen:
 	}
 ALREADY:
 	if (port != 80)
-		sprintf(host, "http://%s:%d/", thishostname, port);
+		snprintf(host, sizeof(host), "http://%s:%d/", thishostname, port);
 	else
-		sprintf(host, "http://%s/", thishostname);
+		snprintf(host, sizeof(host), "http://%s/", thishostname);
+	host[sizeof(host)-1] = '\0';
 	switch(mode)
 	{
 	case MODE_ALL:
@@ -594,8 +598,8 @@ dir_run_cgi DECL2(char *, here, size_t *, size)
 
 	if ((qs = getenv("QUERY_STRING")))
 	{
-		querystring = malloc(strlen(qs));
-		strcpy(querystring, qs);
+		if ((querystring = malloc(strlen(qs))))
+			strcpy(querystring, qs);
 	}
 
 	if (*(here++) != ' ')

@@ -132,7 +132,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	currentgid = -1;
 	if (path[1] == '~')
 	{
-		strncpy(name, path + 2, 15);
+		strncpy(name, path + 2, 16);
 		name[15] = 0;
 		if ((temp = strchr(name, '/')))
 			*temp = 0;
@@ -155,7 +155,8 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		if (!engine)
 #endif		/* HANDLE_SCRIPT */
 		{
-			strcpy(base + size, HTTPD_SCRIPT_ROOT);
+			strncpy(base + size, HTTPD_SCRIPT_ROOT, XS_PATH_MAX-size-1);
+			base[XS_PATH_MAX-2] = '\0';
 			strcat(base + size, "/");
 		}
 		if (!origeuid)
@@ -178,19 +179,23 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		if (engine)
 		{
 			file = path + 1;
-			strcpy(base, calcpath(HTTPD_DOCUMENT_ROOT));
+			strncpy(base, calcpath(HTTPD_DOCUMENT_ROOT), XS_PATH_MAX-1);
+			base[XS_PATH_MAX-2] = '\0';
 			strcat(base, "/");
 		}
 		else if (!was_slash)
 		{
 			file = path + 1;
-			strcpy(base, calcpath(HTTPD_SCRIPT_ROOT_P));
+			strncpy(base, calcpath(HTTPD_SCRIPT_ROOT_P), XS_PATH_MAX-1);
+			base[XS_PATH_MAX-2] = '\0';
 			strcat(base, "/");
 		} else
 		{
-			sprintf(tempbuf, "cgi/nph-slash%s", path + 1);
+			snprintf(tempbuf, sizeof(tempbuf), "cgi/nph-slash%s", path + 1);
+			tempbuf[sizeof(tempbuf)-1] = '\0';
 			file = tempbuf;
-			strcpy(base, calcpath(HTTPD_SCRIPT_ROOT_P));
+			strncpy(base, calcpath(HTTPD_SCRIPT_ROOT_P), XS_PATH_MAX-1);
+			base[XS_PATH_MAX-2] = '\0';
 			strcat(base, "/");
 		}
 
@@ -226,7 +231,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	}
 
 	strncpy(name, file + size + 1, XS_PATH_MAX - 64);
-	name[XS_PATH_MAX - 64] = 0;
+	name[XS_PATH_MAX - 64] = '\0';
 	argv1 = NULL;
 	if ((temp = strchr(name, '?')))
 	{
@@ -242,7 +247,8 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		if (!(nextslash = strchr(nextslash, '/')))
 			break;
 		*nextslash = 0;
-		sprintf(fullpath, "%s%s", base, name);
+		snprintf(fullpath, XS_PATH_MAX, "%s%s", base, name);
+		fullpath[XS_PATH_MAX-1] = '\0';
 		if (stat(fullpath, &statbuf))
 		{
 			if (headers)
@@ -275,17 +281,18 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	if (engine)
 	{
 		if (userinfo)
-			sprintf(fullpath, "/~%s/%s", userinfo->pw_name, name);
+			snprintf(fullpath, XS_PATH_MAX, "/~%s/%s", userinfo->pw_name, name);
 		else
-			sprintf(fullpath, "/%s", name);
+			snprintf(fullpath, XS_PATH_MAX, "/%s", name);
 	}
 	else
 #endif		/* HANDLE_SCRIPT */
 	if (userinfo)
-		sprintf(fullpath, "/~%s/%s/%s", userinfo->pw_name,
+		snprintf(fullpath, XS_PATH_MAX, "/~%s/%s/%s", userinfo->pw_name,
 			HTTPD_SCRIPT_ROOT, name);
 	else
-		sprintf(fullpath, "/%s/%s", HTTPD_SCRIPT_ROOT, name);
+		snprintf(fullpath, XS_PATH_MAX, "/%s/%s", HTTPD_SCRIPT_ROOT, name);
+	fullpath[XS_PATH_MAX-1] = '\0';
 	if (was_slash)
 		setenv("SCRIPT_NAME", "/", 1);
 	else
@@ -294,9 +301,11 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 
 	if (headers)
 	{
-		sprintf(fullpath, "%s%s", base, name);
+		snprintf(fullpath, XS_PATH_MAX, "%s%s", base, name);
+		fullpath[XS_PATH_MAX-1] = '\0';
 		if ((nextslash = strrchr(fullpath, '/')))
 		{
+			/* TBD */
 			strcpy(nextslash + 1, AUTHFILE);
 			if ((auth = fopen(fullpath, "r")))
 			{
@@ -305,13 +314,14 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			}
 		}
 	}
-					
-	sprintf(fullpath, "%s%s", base, name);
+
+	snprintf(fullpath, XS_PATH_MAX, "%s%s", base, name);
+	fullpath[XS_PATH_MAX-1] = '\0';
 	if (stat(fullpath, &statbuf))
 	{
 		if (headers)
 		{
-			sprintf(errmsg, "403 Cannot stat(`%s'): %s",
+			snprintf(errmsg, MYBUFSIZ, "403 Cannot stat(`%s'): %s",
 				fullpath, strerror(errno));
 			error(errmsg);
 		} else
@@ -323,7 +333,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	{
 		if (headers)
 		{
-			sprintf(errmsg, "403 `%s' is writable", fullpath);
+			snprintf(errmsg, MYBUFSIZ, "403 `%s' is writable", fullpath);
 			error(errmsg);
 		} else
 			secprintf("[`%s' is writable]\n", fullpath);
@@ -333,7 +343,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	{
 		if (headers)
 		{
-			sprintf(errmsg, "403 Invalid owner for `%s'", fullpath);
+			snprintf(errmsg, MYBUFSIZ, "403 Invalid owner for `%s'", fullpath);
 			error(errmsg);
 		} else
 			secprintf("[Invalid owner for `%s']\n", fullpath);
@@ -347,7 +357,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	{
 		if (pipe(p))
 		{
-			sprintf(errmsg, "500 pipe() failed: %s", strerror(errno));
+			snprintf(errmsg, MYBUFSIZ, "500 pipe() failed: %s", strerror(errno));
 			if (headers)
 				error(errmsg);
 			else
@@ -358,7 +368,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	switch(child = fork())
 	{
 	case -1:
-		sprintf(errmsg, "500 fork() failed: %s", strerror(errno));
+		snprintf(errmsg, MYBUFSIZ, "500 fork() failed: %s", strerror(errno));
 		if (headers)
 			error(errmsg);
 		else
@@ -388,7 +398,8 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			fprintf(stderr, "SECPOST: %ld\n", writetodo);
 			if (pipe(q))
 			{
-				sprintf(errmsg, "500 pipe() failed: %s", strerror(errno));
+				snprintf(errmsg, MYBUFSIZ, "500 pipe() failed: %s",
+					strerror(errno));
 				if (headers)
 					error(errmsg);
 				else
@@ -478,7 +489,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			execl(fullpath, name, argv1, NULL);
 		if (nph)
 		{
-			sprintf(errmsg, "500 execl(`%s'): %s",
+			snprintf(errmsg, MYBUFSIZ, "500 execl(`%s'): %s",
 				fullpath, strerror(errno));
 			error(errmsg);
 		} else
@@ -559,6 +570,12 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				goto END;
 			}
 		}
+		status[MYBUFSIZ-1] = '\0';
+		location[MYBUFSIZ-1] = '\0';
+		contenttype[MYBUFSIZ-1] = '\0';
+		cachecontrol[MYBUFSIZ-1] = '\0';
+		expires[MYBUFSIZ-1] = '\0';
+		cookie[MYBUFSIZ-1] = '\0';
 		if (headers)
 		{
 			secprintf("%s %s\r\n", version, status[0] ? status :

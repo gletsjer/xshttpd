@@ -447,7 +447,8 @@ do_get DECL1(char *, params)
 		else
 			break;
 	}
-	strcpy(real_path, params);
+	strncpy(real_path, params, XS_PATH_MAX);
+	real_path[XS_PATH_MAX-1] = '\0';
 	bzero(params + strlen(params), 16);
 	setprocname("xs: Handling `%s' from `%s'", real_path, remotehost);
 	userinfo = NULL;
@@ -486,13 +487,15 @@ do_get DECL1(char *, params)
 #ifdef		SIMPLE_VIRTUAL_HOSTING
 		if (getenv("HTTP_HOST"))
 		{
-			strcpy(base, calcpath(getenv("HTTP_HOST")));
+			strncpy(base, calcpath(getenv("HTTP_HOST")), XS_PATH_MAX-1);
+			base[XS_PATH_MAX-2] = '\0';
 			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
-				strcpy(base, calcpath(HTTPD_DOCUMENT_ROOT));
+				strncpy(base, calcpath(HTTPD_DOCUMENT_ROOT), XS_PATH_MAX-1);
 		}
 		else
 #endif		/* SIMPLE_VIRTUAL_HOSTING */
-			strcpy(base, calcpath(HTTPD_DOCUMENT_ROOT));
+			strncpy(base, calcpath(HTTPD_DOCUMENT_ROOT), XS_PATH_MAX-1);
+		base[XS_PATH_MAX-2] = '\0';
 		strcat(base, "/");
 		if (!origeuid)
 		{
@@ -572,7 +575,8 @@ do_get DECL1(char *, params)
 		strcat(real_path, file = INDEX_HTML);
 
 	RETRY:
-	sprintf(total, "%s/.xsuid", base);
+	snprintf(total, XS_PATH_MAX, "%s/.xsuid", base);
+	total[XS_PATH_MAX-1] = '\0';
 	if (!stat(total, &statbuf))
 	{
 		if (!origeuid)
@@ -588,7 +592,8 @@ do_get DECL1(char *, params)
 			return;
 		}
 	}
-	sprintf(total, "%s%s.redir", base, file);
+	snprintf(total, XS_PATH_MAX, "%s%s.redir", base, file);
+	total[XS_PATH_MAX-1] = '\0';
 	if ((fd = open(total, O_RDONLY, 0)) >= 0)
 	{
 		if ((size = read(fd, total, MYBUFSIZ)) <= 0)
@@ -600,7 +605,8 @@ do_get DECL1(char *, params)
 		strtok(total, "\r\n"); redirect(total, 0);
 		close(fd); return;
 	}
-	sprintf(total, "%s/.redir", base);
+	snprintf(total, XS_PATH_MAX, "%s/.redir", base);
+	total[XS_PATH_MAX-1] = '\0';
 	if ((fd = open(total, O_RDONLY, 0)) >= 0)
 	{
 		if ((size = read(fd, total, XS_PATH_MAX - strlen(file) - 16)) <= 0)
@@ -616,7 +622,8 @@ do_get DECL1(char *, params)
 		strtok(total, "\r\n"); redirect(total, 0);
 		return;
 	}
-	sprintf(total, "%s/.noxs", base);
+	snprintf(total, XS_PATH_MAX, "%s/.noxs", base);
+	total[XS_PATH_MAX-1] = '\0';
 #ifdef		RESTRICTXS
 	if (!stat(total, &statbuf) && !allowxs(total))
 #else		/* RESTRICTXS */
@@ -627,7 +634,8 @@ do_get DECL1(char *, params)
 		return;
 	}
 	/* Check after redirection */
-	sprintf(auth, "%s/%s", base, AUTHFILE);
+	snprintf(auth, XS_PATH_MAX, "%s/%s", base, AUTHFILE);
+	auth[XS_PATH_MAX-1] = '\0';
 	if ((authfile = fopen(auth, "r")))
 	{
 		if (check_auth(authfile))
@@ -637,7 +645,8 @@ do_get DECL1(char *, params)
 #ifdef		HANDLE_COMPRESSED
 	search = NULL;
 #endif		/* HANDLE_COMPRESSED */
-	sprintf(total, "%s%s", base, file);
+	snprintf(total, XS_PATH_MAX, "%s%s", base, file);
+	total[XS_PATH_MAX-1] = '\0';
 	if (stat(total, &statbuf))
 #ifdef		HANDLE_COMPRESSED
 	{
@@ -679,11 +688,12 @@ do_get DECL1(char *, params)
 			char *http_host = getenv("HTTP_HOST");
 
 			if (port != 80 && !http_host)
-				sprintf(total, "http://%s:%d%s/",
+				snprintf(total, XS_PATH_MAX, "http://%s:%d%s/",
 					thishostname, port, orig);
 			else
-				sprintf(total, "http://%s%s/",
+				snprintf(total, XS_PATH_MAX, "http://%s%s/",
 					(http_host ? http_host : thishostname), orig);
+			total[XS_PATH_MAX-1] = '\0';
 			redirect(total, 1);
 			return;
 		}
@@ -695,7 +705,8 @@ do_get DECL1(char *, params)
 		server_error("403 File permissions deny access", "PERMISSION");
 		return;
 	}
-	strcpy(name, file);
+	strncpy(name, file, XS_PATH_MAX);
+	name[XS_PATH_MAX-1] = '\0';
 
 #ifdef		HANDLE_COMPRESSED
 	if (search)
