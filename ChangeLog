@@ -1,6 +1,13 @@
 This file is terribly out of date. However the manual pages should
 be (mostly) accurate. For a list of changes, please see cvs comments.
 
+Changes since 3.2 beta 22
+- Fixed error handling for root and non-existant users
+- Start up with an empty environment
+- OpenSSL support is now compiled in by default if it is available
+  use './configure --without-ssl' if this this is not desired
+- Use new style autoconf scripts
+
 Patch peters@stack.nl
 - When nesting <virtual>, complain about nesting <virtual> instead of <users>
 - Added support for Username and Groupname directives inside <virtual>
