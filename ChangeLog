@@ -1,6 +1,10 @@
 This file is probably out of date. However the manual pages should
 be (mostly) accurate. For a list of changes, please see cvs comments.
 
+Changes since 3.2 beta 29
+- Enable logging through an external program, such as cronolog
+- Support binding on multiple sockets simultaneously
+
 Changes since 3.2 beta 28
 - Deal with standard HTTP server headers supplied by CGI scripts
 - Set SCRIPT_FILENAME to accomodate new PHP versions
