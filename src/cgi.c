@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.79 2004/05/24 16:42:46 johans Exp $ */
+/* $Id: cgi.c,v 1.80 2004/05/24 19:00:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -190,6 +190,7 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 	snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
 
 	setenv("SCRIPT_NAME", path, 1);
+	setenv("SCRIPT_FILENAME", fullpath, 1);
 	setenv("REDIRECT_STATUS", "200", 1);
 
 	if (showheader)
