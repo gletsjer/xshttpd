@@ -1,0 +1,29 @@
+# Example Makefile to assist generating x509 certificates
+#
+# Copyright (C) 2000-2004 by Johan van Selst (johans@stack.nl)
+#
+# Please read OpenSSL documentation first unless you know what you're doing
+# It will tell you that common name should be the hostname of your webserver
+#
+# Now if you really know what you are doing, type:
+# make -f SSL-Makefile all
+# cp cert.pem key.pem /usr/local/lib/httpd/
+# httpd -s
+
+
+ca.pem:
+	openssl req -out ca.pem -new -x509
+
+key.pem:
+	openssl genrsa -out key.pem -rand 1024
+
+cert.req: key.pem
+	openssl req -key key.pem -new -out cert.req
+
+cert.pem: ca.pem cert.req
+	openssl x509 -req -in cert.req -CA ca.pem -CAkey privkey.pem -CAcreateserial -days 1000 -out cert.pem
+
+clean:
+	rm cert.req cert.pem key.pem
+
+all: cert.pem
