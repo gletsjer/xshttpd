@@ -593,7 +593,7 @@ do_get DECL1(char *, params)
 		wasdir = (file[strlen(file) - 1] == '/');
 	else
 		wasdir = 0;
-	if (strstr(file, "/..") || strstr(file, "/.xs"))
+	if (strstr(file, "/..") || strstr(file, "/.xs") || strstr(file, "/.noxs"))
 	{
 		server_error("403 Invalid path specified", "INVALID_PATH");
 		return;
