@@ -609,6 +609,7 @@ do_get DECL1(char *, params)
 		strcpy(base + size, file);
 		strcat(base + size, "/");
 		file = temp + 1;
+		*temp = '/';
 	}
 
 	if ((!*file) && (wasdir))
@@ -738,12 +739,12 @@ do_get DECL1(char *, params)
 		{
 			http_host = getenv("HTTP_HOST");
 
-			if (strcmp(port, "80") && !http_host)
+			if (strcmp(port, "http") && !http_host)
 				snprintf(total, XS_PATH_MAX, "http://%s:%s%s/",
-					thishostname, port, orig);
+					thishostname, port, params);
 			else
 				snprintf(total, XS_PATH_MAX, "http://%s%s/",
-					(http_host ? http_host : thishostname), orig);
+					(http_host ? http_host : thishostname), params);
 			total[XS_PATH_MAX-1] = '\0';
 			redirect(total, 1);
 			return;
