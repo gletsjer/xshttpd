@@ -59,7 +59,7 @@ AC_CHECK_FUNCS(crypt,,
 	AC_CHECK_LIB(crypt, crypt, AC_DEFINE(HAVE_CRYPT) ldcrypt="-lcrypt"))
 AC_CHECK_FUNCS(socket,,
 	AC_CHECK_LIB(socket, socket, httpd_ldflags="${httpd_ldflags} -lsocket"))
-AC_REPLACE_FUNCS(setgroups strptime)
+AC_REPLACE_FUNCS(setgroups strptime snprintf)
 
 AC_MSG_CHECKING(if you want SSL support)
 AC_ARG_WITH(ssl,

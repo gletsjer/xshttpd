@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.52 2001/02/15 11:23:34 johans Exp $ */
+/* $Id: httpd.c,v 1.53 2001/02/21 11:17:45 johans Exp $ */
 
 #include	"config.h"
 
@@ -85,6 +85,7 @@
 #include	"setenv.h"
 #include	"mystring.h"
 #include	"mygetopt.h"
+#include	"htconfig.h"
 
 #ifdef		__linux__
 extern	char	*tempnam(const char *, const char *);
@@ -108,7 +109,8 @@ char		netbuf[MYBUFSIZ], remotehost[NI_MAXHOST], orig[MYBUFSIZ],
 		currenttime[80], dateformat[MYBUFSIZ], real_path[XS_PATH_MAX],
 		thishostname[NI_MAXHOST], version[16], error_path[XS_PATH_MAX],
 		access_path[XS_PATH_MAX], refer_path[XS_PATH_MAX], rootdir[XS_PATH_MAX],
-		currentdir[XS_PATH_MAX], name[XS_PATH_MAX], port[NI_MAXSERV];
+		currentdir[XS_PATH_MAX], config_path[XS_PATH_MAX],
+		name[XS_PATH_MAX], port[NI_MAXSERV];
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[SENDBUFSIZE],
 		thisdomain[NI_MAXHOST], message503[MYBUFSIZ],
 		*startparams;
@@ -138,6 +140,7 @@ static	VOID	filedescrs		PROTO((void));
 static	VOID	detach			PROTO((void));
 static	VOID	child_handler		PROTO((int));
 static	VOID	term_handler		PROTO((int));
+static	VOID	load_config		PROTO((void));
 static	VOID	open_logs		PROTO((int));
 static	VOID	core_handler		PROTO((int));
 static	VOID	set_signals		PROTO((void));
@@ -237,6 +240,194 @@ term_handler DECL1(int, sig)
 	}
 	(void)sig;
 	exit(0);
+}
+
+static	VOID
+load_config DECL0
+{
+	int	subtype = 0;
+	FILE	*confd;
+	char	line[MYBUFSIZ], key[MYBUFSIZ], value[MYBUFSIZ];
+	char	*comment, *end;
+	struct virtual	*current = NULL, *last = NULL;
+
+	if (!(confd = fopen(config_path, "r")))
+		err(1, "fopen(`%s' [read])", config_path);
+
+	memset(&config, 0, sizeof config);
+
+	while (fgets(line, MYBUFSIZ, confd))
+	{
+		if ((comment = strchr(line, '#')))
+			*comment = 0;
+		end = line + strlen(line);
+		while ((end > line) && (*(end -1 ) <= ' '))
+			*(--end) = 0;
+		if (end == line)
+			continue;
+		if (sscanf(line, "%s %s", key, value) == 2)
+		{
+			if (!strcasecmp("SystemRoot", key))
+				config.systemroot = strdup(value);
+			else if (!strcasecmp("ListenAddress", key))
+				config.address = strdup(value);
+			else if (!strcasecmp("ListenPort", key))
+				config.port = strdup(value);
+			else if (!strcasecmp("Instances", key))
+				config.instances = atoi(value);
+			else if (!strcasecmp("PidFile", key))
+				config.pidfile = strdup(value);
+			else if (!strcasecmp("UserId", key))
+				config.userid = strdup(value);
+			else if (!strcasecmp("GroupId", key))
+				config.groupid = strdup(value);
+			else if (!strcasecmp("ExecAsUser", key))
+				if (!strcasecmp("true", value))
+					config.execasuser = 1;
+				else
+					config.execasuser = 0;
+			else if (!strcasecmp("UseSSL", key))
+				if (!strcasecmp("true", value))
+					config.usessl = 1;
+				else
+					config.usessl = 0;
+			else if (!current)
+				err(1, "illegal directive: '%s'", key);
+			else if (!strcasecmp("Hostname", key))
+				current->hostname = strdup(value);
+			else if (!strcasecmp("HtmlDir", key))
+				current->htmldir = strdup(value);
+			else if (!strcasecmp("ExecDir", key))
+				current->execdir = strdup(value);
+			else if (!strcasecmp("LogAccess", key))
+				current->logaccess = strdup(value);
+			else if (!strcasecmp("LogError", key))
+				current->logerror = strdup(value);
+			else if (!strcasecmp("LogReferer", key))
+				current->logreferer = strdup(value);
+			else
+				err(1, "illegal directive: '%s'", key);
+		}
+		else if (sscanf(line, "%s", key) == 1)
+		{
+			if (!strcasecmp("<System>", key))
+			{
+				if (subtype)
+				    err(1, "illegal <System> nesting");
+				subtype = 1;
+				current = malloc(sizeof(struct virtual));
+				memset(current, 0, sizeof(struct virtual));
+			}
+			else if (!strcasecmp("<Users>", key))
+			{
+				if (subtype)
+				    err(1, "illegal <Users> nesting");
+				subtype = 2;
+				current = malloc(sizeof(struct virtual));
+				memset(current, 0, sizeof(struct virtual));
+			}
+			else if (!strcasecmp("<Virtual>", key))
+			{
+				if (subtype)
+				    err(1, "illegal <Users> nesting");
+				subtype = 3;
+				current = malloc(sizeof(struct virtual));
+				memset(current, 0, sizeof(struct virtual));
+			}
+			else if (!strcasecmp("</System>", key))
+			{
+				if (subtype != 1)
+				    err(1, "</System> end without start");
+				if (config.system)
+				    err(1, "duplicate <System> definition");
+				subtype = 0;
+				config.system = current;
+				current = NULL;
+			}
+			else if (!strcasecmp("</Users>", key))
+			{
+				if (subtype != 2)
+				    err(1, "</Users> end without start");
+				if (config.users)
+				    err(1, "duplicate <Users> definition");
+				subtype = 0;
+				config.users = current;
+				current = NULL;
+			}
+			else if (!strcasecmp("</Virtual>", key))
+			{
+				if (subtype != 3)
+				    err(1, "</Virtual> end without start");
+				subtype = 0;
+				if (last)
+				{
+				    last->next = current;
+				    last = last->next;
+				}
+				else
+				{
+				    config.virtual = current;
+				    last = config.virtual;
+				}
+				current = NULL;
+			}
+			else
+			    err(1, "illegal directive: '%s'", key);
+		}
+		else
+			err(1, "illegal directive: '%s'", line);
+	}
+	fclose(confd);
+	/* Fill in missing defaults */
+	if (!config.systemroot)
+		config.systemroot = strdup(HTTPD_ROOT);
+	if (!config.address)
+		config.address = strdup("*");
+	if (!config.port)
+		config.port = strdup("www");
+	if (!config.instances)
+		config.instances = HTTPD_NUMBER;
+	if (!config.pidfile)
+		config.pidfile = strdup(PID_PATH);
+	if (!config.userid)
+		config.userid = strdup(HTTPD_USERID);
+	if (!config.groupid)
+		config.groupid = strdup(HTTPD_GROUPID);
+	if (!config.system)
+	{
+		config.system = malloc(sizeof(struct virtual));
+		memset(config.system, 0, sizeof(struct virtual));
+	}
+	if (!config.system->hostname)
+		config.system->hostname = strdup(thishostname);
+	if (!config.system->htmldir)
+		config.system->htmldir = strdup(HTTPD_DOCUMENT_ROOT);
+	if (!config.system->execdir)
+		config.system->execdir = strdup(HTTPD_SCRIPT_ROOT);
+	if (!config.system->logaccess)
+		config.system->logaccess = strdup(BITBUCKETNAME);
+	if (!config.system->logerror)
+		config.system->logerror = strdup(BITBUCKETNAME);
+	if (!config.system->logreferer)
+		config.system->logreferer = strdup(BITBUCKETNAME);
+	if (!config.users)
+	{
+		config.users = malloc(sizeof(struct virtual));
+		memset(config.users, 0, sizeof(struct virtual));
+	}
+	if (!config.users->htmldir)
+		config.users->htmldir = strdup(".html");
+	if (!config.users->execdir)
+		config.users->execdir = strdup(".html/cgi-bin");
+	current = config.virtual;
+	while (current)
+	{
+		if (!current->hostname)
+			err(1, "illegal virtual block without hostname");
+		if (!current->htmldir)
+			err(1, "illegal virtual block without directory");
+		current = current->next;
+	}
 }
 
 static	VOID
@@ -1428,10 +1619,12 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	snprintf(access_path, XS_PATH_MAX, "%s/access_log", calcpath(HTTPD_LOG_ROOT));
 	snprintf(error_path, XS_PATH_MAX, "%s/error_log", calcpath(HTTPD_LOG_ROOT));
 	snprintf(refer_path, XS_PATH_MAX, "%s/referer_log", calcpath(HTTPD_LOG_ROOT));
+	snprintf(config_path, XS_PATH_MAX, "%s/httpd.conf", calcpath(HTTPD_ROOT));
 	access_path[XS_PATH_MAX-1] = '\0';
 	error_path[XS_PATH_MAX-1] = '\0';
 	refer_path[XS_PATH_MAX-1] = '\0';
-	while ((option = getopt(argc, argv, "a:d:fg:l:m:n:p:r:su:A:R:E:")) != EOF)
+	config_path[XS_PATH_MAX-1] = '\0';
+	while ((option = getopt(argc, argv, "a:c:d:fg:l:m:n:p:r:su:A:R:E:")) != EOF)
 	{
 		switch(option)
 		{
@@ -1514,6 +1707,10 @@ main DECL3(int, argc, char **, argv, char **, envp)
 		case 'E':
 			strncpy(error_path, optarg, XS_PATH_MAX);
 			error_path[XS_PATH_MAX-1] = '\0';
+			break;
+		case 'c':
+			strncpy(config_path, optarg, XS_PATH_MAX);
+			config_path[XS_PATH_MAX-1] = '\0';
 			break;
 		default:
 			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number] [-d rootdir]\n[-r refer-ignore-domain] [-l localmode] [-a address] [-m service-message]\n[-f] [-s] [-A access-log-path] [-E error-log-path] [-R referer-log-path]");
