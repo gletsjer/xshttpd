@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: procname.c,v 1.13 2004/11/26 17:17:27 johans Exp $ */
+/* $Id: procname.c,v 1.14 2004/11/26 19:02:11 johans Exp $ */
 
 #include	"config.h"
 
@@ -111,7 +111,7 @@ setprocname(const char *name, ...)
 #endif		/* HAVE_SETPROCTITLE */
 
 extern	void
-initsetprocname(int argc, char **argv, char **envp)
+initsetprocname(int argc, char **argv)
 {
 #ifndef		PS_STRINGS
 	/* start with empty environment */
@@ -125,5 +125,4 @@ initsetprocname(int argc, char **argv, char **envp)
 #else		/* Not PS_STRINGS */
 	procnamestart = procnameend = NULL;
 #endif		/* PS_STRINGS */
-	(void) envp;	/* unused */
 }

@@ -5,4 +5,4 @@
 #else		/* Not HAVE_SETPROCTITLE */
 extern	void	setprocname		(const char *, ...);
 #endif		/* HAVE_SETPROCTITLE */
-extern	void	initsetprocname		(int, char **, char**);
+extern	void	initsetprocname		(int, char **);
