@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.103 2003/01/23 22:47:20 johans Exp $ */
+/* $Id: httpd.c,v 1.104 2003/01/27 13:15:14 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.103 2003/01/23 22:47:20 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.104 2003/01/27 13:15:14 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -269,163 +269,165 @@ load_config DECL0
 	config.usevirtualhost = 1;
 
 	if (confd)
-	/* skip this loop if there is no config file and use defaults below */
-	while (fgets(line, MYBUFSIZ, confd))
 	{
-		if ((comment = strchr(line, '#')))
-			*comment = 0;
-		end = line + strlen(line);
-		while ((end > line) && (*(end -1 ) <= ' '))
-			*(--end) = 0;
-		if (end == line)
-			continue;
-		if (sscanf(line, "%s %s", key, value) == 2)
+		/* skip this loop if there is no config file and use defaults below */
+		while (fgets(line, MYBUFSIZ, confd))
 		{
-			if (!strcasecmp("SystemRoot", key))
-				config.systemroot = strdup(value);
-			else if (!strcasecmp("ListenAddress", key))
-				config.address = strdup(value);
-			else if (!strcasecmp("ListenPort", key))
-				config.port = strdup(value);
-			else if (!strcasecmp("ListenFamily", key))
-				config.family =
-					!strcasecmp("IPv4", value) ? PF_INET :
-					!strcasecmp("IPv6", value) ? PF_INET6 :
-					PF_UNSPEC;
-			else if (!strcasecmp("Instances", key))
-				config.instances = atoi(value);
-			else if (!strcasecmp("PidFile", key))
-				config.pidfile = strdup(value);
-			else if (!strcasecmp("UserId", key))
-				username = strdup(value);
-			else if (!strcasecmp("GroupId", key))
-				groupname = strdup(value);
-			else if (!strcasecmp("ExecAsUser", key))
-				if (!strcasecmp("true", value))
-					config.execasuser = 1;
-				else
-					config.execasuser = 0;
-			else if (!strcasecmp("UseSSL", key))
-				if (!strcasecmp("true", value))
+			if ((comment = strchr(line, '#')))
+				*comment = 0;
+			end = line + strlen(line);
+			while ((end > line) && (*(end -1 ) <= ' '))
+				*(--end) = 0;
+			if (end == line)
+				continue;
+			if (sscanf(line, "%s %s", key, value) == 2)
+			{
+				if (!strcasecmp("SystemRoot", key))
+					config.systemroot = strdup(value);
+				else if (!strcasecmp("ListenAddress", key))
+					config.address = strdup(value);
+				else if (!strcasecmp("ListenPort", key))
+					config.port = strdup(value);
+				else if (!strcasecmp("ListenFamily", key))
+					config.family =
+						!strcasecmp("IPv4", value) ? PF_INET :
+						!strcasecmp("IPv6", value) ? PF_INET6 :
+						PF_UNSPEC;
+				else if (!strcasecmp("Instances", key))
+					config.instances = atoi(value);
+				else if (!strcasecmp("PidFile", key))
+					config.pidfile = strdup(value);
+				else if (!strcasecmp("UserId", key))
+					username = strdup(value);
+				else if (!strcasecmp("GroupId", key))
+					groupname = strdup(value);
+				else if (!strcasecmp("ExecAsUser", key))
+					if (!strcasecmp("true", value))
+						config.execasuser = 1;
+					else
+						config.execasuser = 0;
+				else if (!strcasecmp("UseSSL", key))
+					if (!strcasecmp("true", value))
 #ifdef		HANDLE_SSL
-					config.usessl = 1;
+						config.usessl = 1;
 #else		/* HANDLE_SSL */
-					errx(1, "SSL support not enabled at compile-time");
+						errx(1, "SSL support not enabled at compile-time");
 #endif		/* HANDLE_SSL */
+					else
+						config.usessl = 0;
+				else if (!strcasecmp("UseCharset", key))
+					config.usecharset = !strcasecmp("true", value);
+				else if (!strcasecmp("UseRestrictAddr", key))
+					config.userestrictaddr = !strcasecmp("true", value);
+				else if (!strcasecmp("UseVirtualHost", key))
+					config.usevirtualhost = !strcasecmp("true", value);
+				else if (!strcasecmp("UseVirtualUid", key))
+					config.usevirtualuid = !strcasecmp("true", value);
+				else if (!strcasecmp("UseLocalScript", key))
+					config.uselocalscript = !strcasecmp("true", value);
+				else if (!strcasecmp("LocalMode", key))
+					config.localmode = atoi(value);
+				else if (!current)
+					errx(1, "illegal directive: '%s'", key);
+				else if (!strcasecmp("Hostname", key))
+					current->hostname = strdup(value);
+				else if (!strcasecmp("HtmlDir", key))
+					current->htmldir = strdup(value);
+				else if (!strcasecmp("ExecDir", key))
+					current->execdir = strdup(value);
+				else if (!strcasecmp("PhExecDir", key))
+					current->phexecdir = strdup(value);
+				else if (!strcasecmp("VirtualId", key))
+					current->virtualid = !strcasecmp("true", value);
+				else if (!strcasecmp("LogAccess", key))
+					current->logaccess = strdup(value);
+				else if (!strcasecmp("LogError", key))
+					current->logerror = strdup(value);
+				else if (!strcasecmp("LogReferer", key))
+					current->logreferer = strdup(value);
+				else if (!strcasecmp("LogStyle", key))
+					if (!strcasecmp("common", value) ||
+							!strcasecmp("traditional", value))
+						current->logstyle = traditional;
+					else if (!strcasecmp("combined", value) ||
+							 !strcasecmp("extended", value))
+						current->logstyle = combined;
+					else
+						errx(1, "illegal logstyle: '%s'", value);
 				else
-					config.usessl = 0;
-			else if (!strcasecmp("UseCharset", key))
-				config.usecharset = !strcasecmp("true", value);
-			else if (!strcasecmp("UseRestrictAddr", key))
-				config.userestrictaddr = !strcasecmp("true", value);
-			else if (!strcasecmp("UseVirtualHost", key))
-				config.usevirtualhost = !strcasecmp("true", value);
-			else if (!strcasecmp("UseVirtualUid", key))
-				config.usevirtualuid = !strcasecmp("true", value);
-			else if (!strcasecmp("UseLocalScript", key))
-				config.uselocalscript = !strcasecmp("true", value);
-			else if (!strcasecmp("LocalMode", key))
-				config.localmode = atoi(value);
-			else if (!current)
-				errx(1, "illegal directive: '%s'", key);
-			else if (!strcasecmp("Hostname", key))
-				current->hostname = strdup(value);
-			else if (!strcasecmp("HtmlDir", key))
-				current->htmldir = strdup(value);
-			else if (!strcasecmp("ExecDir", key))
-				current->execdir = strdup(value);
-			else if (!strcasecmp("PhExecDir", key))
-				current->phexecdir = strdup(value);
-			else if (!strcasecmp("VirtualId", key))
-				current->virtualid = !strcasecmp("true", value);
-			else if (!strcasecmp("LogAccess", key))
-				current->logaccess = strdup(value);
-			else if (!strcasecmp("LogError", key))
-				current->logerror = strdup(value);
-			else if (!strcasecmp("LogReferer", key))
-				current->logreferer = strdup(value);
-			else if (!strcasecmp("LogStyle", key))
-				if (!strcasecmp("common", value) ||
-						!strcasecmp("traditional", value))
-					current->logstyle = traditional;
-				else if (!strcasecmp("combined", value) ||
-						 !strcasecmp("extended", value))
-					current->logstyle = combined;
-				else
-					errx(1, "illegal logstyle: '%s'", value);
-			else
-				err(1, "illegal directive: '%s'", key);
-		}
-		else if (sscanf(line, "%s", key) == 1)
-		{
-			if (!strcasecmp("<System>", key))
-			{
-				if (subtype)
-				    err(1, "illegal <System> nesting");
-				subtype = 1;
-				current = malloc(sizeof(struct virtual));
-				memset(current, 0, sizeof(struct virtual));
+					err(1, "illegal directive: '%s'", key);
 			}
-			else if (!strcasecmp("<Users>", key))
+			else if (sscanf(line, "%s", key) == 1)
 			{
-				if (subtype)
-				    err(1, "illegal <Users> nesting");
-				subtype = 2;
-				current = malloc(sizeof(struct virtual));
-				memset(current, 0, sizeof(struct virtual));
-			}
-			else if (!strcasecmp("<Virtual>", key))
-			{
-				if (subtype)
-				    err(1, "illegal <Users> nesting");
-				subtype = 3;
-				current = malloc(sizeof(struct virtual));
-				memset(current, 0, sizeof(struct virtual));
-			}
-			else if (!strcasecmp("</System>", key))
-			{
-				if (subtype != 1)
-				    err(1, "</System> end without start");
-				if (config.system)
-				    err(1, "duplicate <System> definition");
-				subtype = 0;
-				config.system = current;
-				current = NULL;
-			}
-			else if (!strcasecmp("</Users>", key))
-			{
-				if (subtype != 2)
-				    err(1, "</Users> end without start");
-				if (config.users)
-				    err(1, "duplicate <Users> definition");
-				subtype = 0;
-				config.users = current;
-				current = NULL;
-			}
-			else if (!strcasecmp("</Virtual>", key))
-			{
-				if (subtype != 3)
-				    err(1, "</Virtual> end without start");
-				subtype = 0;
-				if (last)
+				if (!strcasecmp("<System>", key))
 				{
-				    last->next = current;
-				    last = last->next;
+					if (subtype)
+						err(1, "illegal <System> nesting");
+					subtype = 1;
+					current = malloc(sizeof(struct virtual));
+					memset(current, 0, sizeof(struct virtual));
+				}
+				else if (!strcasecmp("<Users>", key))
+				{
+					if (subtype)
+						err(1, "illegal <Users> nesting");
+					subtype = 2;
+					current = malloc(sizeof(struct virtual));
+					memset(current, 0, sizeof(struct virtual));
+				}
+				else if (!strcasecmp("<Virtual>", key))
+				{
+					if (subtype)
+						err(1, "illegal <Users> nesting");
+					subtype = 3;
+					current = malloc(sizeof(struct virtual));
+					memset(current, 0, sizeof(struct virtual));
+				}
+				else if (!strcasecmp("</System>", key))
+				{
+					if (subtype != 1)
+						err(1, "</System> end without start");
+					if (config.system)
+						err(1, "duplicate <System> definition");
+					subtype = 0;
+					config.system = current;
+					current = NULL;
+				}
+				else if (!strcasecmp("</Users>", key))
+				{
+					if (subtype != 2)
+						err(1, "</Users> end without start");
+					if (config.users)
+						err(1, "duplicate <Users> definition");
+					subtype = 0;
+					config.users = current;
+					current = NULL;
+				}
+				else if (!strcasecmp("</Virtual>", key))
+				{
+					if (subtype != 3)
+						err(1, "</Virtual> end without start");
+					subtype = 0;
+					if (last)
+					{
+						last->next = current;
+						last = last->next;
+					}
+					else
+					{
+						config.virtual = current;
+						last = config.virtual;
+					}
+					current = NULL;
 				}
 				else
-				{
-				    config.virtual = current;
-				    last = config.virtual;
-				}
-				current = NULL;
+					err(1, "illegal directive: '%s'", key);
 			}
 			else
-			    err(1, "illegal directive: '%s'", key);
+				err(1, "illegal directive: '%s'", line);
 		}
-		else
-			err(1, "illegal directive: '%s'", line);
+		fclose(confd);
 	}
-	fclose(confd);
 	/* Fill in missing defaults */
 	if (!config.systemroot)
 		config.systemroot = strdup(HTTPD_ROOT);
