@@ -1,6 +1,10 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.3 beta 10
+- Include local strsep and fix other replacement functions
+- Revamped build system by using a libxs.a for general functions
+
 Changes since 3.3 beta 9
 - Added LogStyle 'virtual': combined log with http_host prefix
 

@@ -8,6 +8,7 @@ dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_AWK
 AC_PROG_INSTALL
+AC_PROG_RANLIB
 AC_PROG_LN_S
 AC_PATH_PROG(ppmtogif, ppmtogif, /bin/true)
 AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "$ppmtogif",
@@ -38,10 +39,10 @@ dnl AC_FUNC_SETVBUF_REVERSED
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_FUNC_WAIT3
-AC_CHECK_FUNCS(gethostname mktime select strcasestr strerror strpbrk strsep strstr)
+AC_CHECK_FUNCS(gethostname mktime select strcasestr strerror strpbrk strstr)
 
 dnl SEPERATOR
-AC_CHECK_FUNCS(bcopy bzero getaddrinfo getnameinfo killpg mkstemp mmap setenv seteuid setegid setresuid setresgid setrlimit setsid setpriority sigemptyset tempnam vfork setproctitle)
+AC_CHECK_FUNCS(bcopy bzero getaddrinfo getnameinfo killpg mkstemp mmap seteuid setegid setresuid setresgid setrlimit setsid setpriority sigemptyset tempnam vfork setproctitle)
 
 dnl Prog specific checks
 if test x$prefix = xNONE
@@ -66,7 +67,8 @@ AC_CHECK_FUNCS(socket,,
 	AC_CHECK_LIB(socket, socket, httpd_ldflags="${httpd_ldflags} -lsocket"))
 AC_CHECK_FUNCS(MD5Init,,
 	AC_CHECK_LIB(md, MD5Init, httpd_ldflags="${httpd_ldflags} -lmd"))
-AC_REPLACE_FUNCS(setgroups strptime snprintf)
+AM_CONDITIONAL([MD5], [test x$ac_cv_lib_md_MD5Init = xyes])
+AC_REPLACE_FUNCS(err setenv setgroups strptime strsep snprintf)
 
 AC_MSG_CHECKING(if you want SSL support)
 AC_ARG_WITH(ssl,
