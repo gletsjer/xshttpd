@@ -937,9 +937,9 @@ standalone_main DECL0
 	size_t			clen;
 #ifdef		INET6
 	struct	sockaddr_in6	sa6_server, sa6_client;
-#else
+#else		/* INET 6 */
 	struct	sockaddr_in	sa_server, sa_client;
-#endif
+#endif		/* INET 6 */
 	const	struct	hostent	*remote;
 	pid_t			*childs, pid;
 	struct	rlimit		limit;
@@ -952,9 +952,9 @@ standalone_main DECL0
 	setprocname("xs(MAIN): Initializing deamons...");
 #ifdef		INET6
 	if ((sd = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP)) == -1)
-#else
+#else		/* INET 6 */
 	if ((sd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
-#endif
+#endif		/* INET 6 */
 		err(1, "socket()");
 
 	temp = 1;
@@ -1064,10 +1064,10 @@ standalone_main DECL0
 #ifdef		INET6
 		clen = sizeof(sa6_client);
 		csd = accept(sd, (struct sockaddr *)&sa6_client, &clen);
-#else
+#else		/* INET 6 */
 		clen = sizeof(sa_client);
 		csd = accept(sd, (struct sockaddr *)&sa_client, &clen);
-#endif
+#endif		/* INET 6 */
 		if (csd < 0)
 		{
 			if (errno == EINTR)
@@ -1081,6 +1081,7 @@ standalone_main DECL0
 
 		sl.l_onoff = 1; sl.l_linger = 600;
 		setsockopt(csd, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl));
+#ifndef		INET6
 #ifdef		SO_SNDBUF
 		temp = SENDBUFSIZE + 64;
 		setsockopt(csd, SOL_SOCKET, SO_SNDBUF, &temp, sizeof(temp));
@@ -1089,6 +1090,7 @@ standalone_main DECL0
 		temp = 512;
 		setsockopt(csd, SOL_SOCKET, SO_RCVBUF, &temp, sizeof(temp));
 #endif		/* SO_RCVBUF */
+#endif		/* INET6 */
 
 		dup2(csd, 0); dup2(csd, 1); close(csd);
 
@@ -1098,31 +1100,31 @@ standalone_main DECL0
 		setvbuf(stdin, _IONBF, NULL, 0);
 #endif		/* SETVBUF_REVERSED */
 
-#ifdef INET6
+#ifdef		INET6
 		inet_ntop(AF_INET6, (void *)sa6_client.sin6_addr.s6_addr, remotehost,
 				sizeof(remotehost));
 		setenv("REMOTE_ADDR", remotehost, 1);
-#else
+#else		/* INET 6 */
 		setenv("REMOTE_ADDR", inet_ntoa(sa_client.sin_addr), 1);
-#endif
-#ifdef INET6
+#endif		/* INET 6 */
+#ifdef		INET6
 		if ((remote = gethostbyaddr((char *)&sa6_client.sin6_addr,
 			sizeof(struct in6_addr), sa6_client.sin6_family)))
-#else
+#else		/* INET 6 */
 		if ((remote = gethostbyaddr((char *)&sa_client.sin_addr,
 			sizeof(struct in_addr), sa_client.sin_family)))
-#endif
+#endif		/* INET 6 */
 		{
 			strcpy(remotehost, remote->h_name);
 			setenv("REMOTE_HOST", remotehost, 1);
 		} else
 		{
-#ifdef INET6
+#ifdef		INET6
 			inet_ntop(AF_INET6, (void *)(sa6_client.sin6_addr.s6_addr), remotehost,
 					sizeof(remotehost));
-#else
+#else		/* INET 6 */
 			strcpy(remotehost, inet_ntoa(sa_client.sin_addr));
-#endif
+#endif		/* INET 6 */
 			unsetenv("REMOTE_HOST");
 		}
 		setprocname("xs(%d): Connect from `%s'", count + 1, remotehost);
@@ -1188,11 +1190,11 @@ main DECL3(int, argc, char **, argv, char **, envp)
 #else		/* Not THISDOMAIN */
 	thisdomain[0] = 0;
 #endif		/* THISDOMAIN */
-#ifdef INET6
+#ifdef		INET6
 	memcpy(thisaddress6.s6_addr, &in6addr_any, sizeof(in6addr_any));
-#else
+#else		/* INET 6 */
 	thisaddress.s_addr = htonl(INADDR_ANY);
-#endif
+#endif		/* INET 6 */
 	if (gethostname(thishostname, MAXHOSTNAMELEN) == -1)
 		errx(1, "gethostname() failed");
 	if ((userinfo = getpwnam(HTTPD_USERID)))
