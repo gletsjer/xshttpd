@@ -26,11 +26,12 @@
 #include	"httpd.h"
 #include	"mystring.h"
 
-extern	char	*
+extern	const	char	*
 strcasestr DECL2CC(char *, big, char *, little)
 {
 	size_t		len;
 	char		*search, *newbig, *newlittle;
+	const char	*result;
 
 	len = strlen(big) + 1;
 	if (!(newbig = (char *)malloc(len)))
@@ -49,8 +50,9 @@ strcasestr DECL2CC(char *, big, char *, little)
 	for (search = newbig; *search; )
 		*(search++) = tolower(*search);
 	search = strstr(newbig, newlittle);
+	result = big + (search - newbig);
 	free(newbig); free(newlittle);
-	return(search);
+	return(result);
 }
 
 extern	int
