@@ -182,6 +182,19 @@ retrieves pages under users' own UID, this problem is avoided.
 .LP
 More information about authentication can be found in the manual pages
 of \fBxspasswd\fP and \fBxschpass\fP.
+.SH Configuring SSL
+The webserver supports secure https connections as well as normal http.
+However if you want to do both, you will need to run seperate instances,
+one with \fBUseSSL\fP (or the command line option -s) set and one without.
+.LP
+To use SSL you will need an x509 certificate (\fIcert.pem\fP) and the
+corresponding private key (\fIkey.pem\fP). If you don't have
+certificates -or a certificiate authority to give these to you- then you
+can create the required files yourself using \fBopenssl\fP. The two
+\fI*.pem\fP files should be stored in the httpd root directory (by
+default \fI/usr/local/lib/httpd/\fP) in order to get SSL working.
+An example Makefile that can help you generate the certificate can be
+found in the httpd source distribution.
 .SH Special files
 There are a number of files that this WWW server considers special:
 .TP
