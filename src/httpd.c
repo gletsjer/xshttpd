@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.108 2003/02/20 18:50:56 johans Exp $ */
+/* $Id: httpd.c,v 1.109 2003/02/20 22:37:28 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.108 2003/02/20 18:50:56 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.109 2003/02/20 22:37:28 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -114,9 +114,7 @@ char		remotehost[NI_MAXHOST],
 		version[16], currentdir[XS_PATH_MAX], name[XS_PATH_MAX];
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[SENDBUFSIZE],
 		thisdomain[NI_MAXHOST], message503[MYBUFSIZ], orig[MYBUFSIZ],
-		refer_path[XS_PATH_MAX], config_path[XS_PATH_MAX],
-		error_path[XS_PATH_MAX], access_path[XS_PATH_MAX],
-		netbuf[MYBUFSIZ],
+		config_path[XS_PATH_MAX], netbuf[MYBUFSIZ],
 		*startparams;
 time_t		modtime;
 #ifdef		HANDLE_SSL
@@ -261,8 +259,6 @@ load_config DECL0
 
 	confd = fopen(config_path, "r");
 
-	memset(&config, 0, sizeof config);
-
 	/* Set simple defaults - others follow the parsing */
 	config.usecharset = 1;
 	config.userestrictaddr = 1;
@@ -283,7 +279,10 @@ load_config DECL0
 			if (sscanf(line, "%s %s", key, value) == 2)
 			{
 				if (!strcasecmp("SystemRoot", key))
-					config.systemroot = strdup(value);
+				{
+					if (!config.systemroot)
+						config.systemroot = strdup(value);
+				}
 				else if (!strcasecmp("ListenAddress", key))
 					config.address = strdup(value);
 				else if (!strcasecmp("ListenPort", key))
@@ -294,7 +293,10 @@ load_config DECL0
 						!strcasecmp("IPv6", value) ? PF_INET6 :
 						PF_UNSPEC;
 				else if (!strcasecmp("Instances", key))
-					config.instances = atoi(value);
+				{
+					if (!config.instances)
+						config.instances = atoi(value);
+				}
 				else if (!strcasecmp("PidFile", key))
 					config.pidfile = strdup(value);
 				else if (!strcasecmp("UserId", key))
@@ -326,7 +328,10 @@ load_config DECL0
 				else if (!strcasecmp("UseLocalScript", key))
 					config.uselocalscript = !strcasecmp("true", value);
 				else if (!strcasecmp("LocalMode", key))
-					config.localmode = atoi(value);
+				{
+					if (!config.localmode)
+						config.localmode = atoi(value);
+				}
 				else if (!current)
 					errx(1, "illegal directive: '%s'", key);
 				else if (!strcasecmp("Hostname", key))
@@ -441,7 +446,7 @@ load_config DECL0
 		username = strdup(HTTPD_USERID);
 	if (!config.localmode)
 		config.localmode = 1;
-	if (!(config.userid = atoi(username)))
+	if (!config.userid && !(config.userid = atoi(username)))
 	{
 		if (!(pwd = getpwnam(username)))
 			errx(1, "Invalid username: %s", username);
@@ -449,7 +454,7 @@ load_config DECL0
 	}
 	if (!groupname)
 		groupname = strdup(HTTPD_GROUPID);
-	if (!(config.groupid = atoi(groupname)))
+	if (!config.groupid && !(config.groupid = atoi(groupname)))
 	{
 		if (!(grp = getgrnam(groupname)))
 			errx(1, "Invalid groupname: %s", groupname);
@@ -599,7 +604,7 @@ open_logs DECL1(int, sig)
 	if ((tempfile = open(calcpath(config.system->logerror),
 		    O_CREAT | O_APPEND | O_WRONLY,
 		    S_IWUSR | S_IRUSR | S_IROTH | S_IRGRP)) < 0)
-		err(1, "open(`%s' [append])", error_path);
+		err(1, "open(`%s' [append])", config.system->logerror);
 	if (tempfile != 2)
 	{
 		if (dup2(tempfile, 2) == -1)
@@ -1783,8 +1788,12 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	int			option, num;
 	enum { optionp, optionaa, optionrr, optionee };
 	char *longopt[4] = { NULL, NULL, NULL, NULL, };
+	const struct passwd	*userinfo;
+	const struct group	*groupinfo;
 
 	origeuid = geteuid(); origegid = getegid();
+	memset(&config, 0, sizeof config);
+
 #ifdef		HAVE_SETPRIORITY
 #ifdef		NEED_PRIO_MAX
 #define		PRIO_MAX	20
@@ -1812,15 +1821,9 @@ main DECL3(int, argc, char **, argv, char **, envp)
 #else		/* Not THISDOMAIN */
 	thisdomain[0] = 0;
 #endif		/* THISDOMAIN */
-	snprintf(access_path, XS_PATH_MAX, "%s/access_log", calcpath(HTTPD_LOG_ROOT));
-	snprintf(error_path, XS_PATH_MAX, "%s/error_log", calcpath(HTTPD_LOG_ROOT));
-	snprintf(refer_path, XS_PATH_MAX, "%s/referer_log", calcpath(HTTPD_LOG_ROOT));
 	snprintf(config_path, XS_PATH_MAX, "%s/httpd.conf", calcpath(HTTPD_ROOT));
-	access_path[XS_PATH_MAX-1] = '\0';
-	error_path[XS_PATH_MAX-1] = '\0';
-	refer_path[XS_PATH_MAX-1] = '\0';
 	config_path[XS_PATH_MAX-1] = '\0';
-	while ((option = getopt(argc, argv, "a:c:d:g:l:m:n:p:r:su:A:R:E:v")) != EOF)
+	while ((option = getopt(argc, argv, "c:d:g:l:m:n:p:r:su:v")) != EOF)
 	{
 		switch(option)
 		{
@@ -1829,33 +1832,33 @@ main DECL3(int, argc, char **, argv, char **, envp)
 				errx(1, "Invalid number of processes");
 			break;
 		case 'p':
-			longopt[optionp] = optarg;
+			config.port = strdup(optarg);
 			break;
 		case 's':
 #ifdef		HANDLE_SSL
 			config.usessl = 1;
-			/* override defaults */
-			snprintf(access_path, XS_PATH_MAX,
-				"%s/ssl_access_log", calcpath(HTTPD_LOG_ROOT));
-			snprintf(error_path, XS_PATH_MAX,
-				"%s/ssl_error_log", calcpath(HTTPD_LOG_ROOT));
-			snprintf(refer_path, XS_PATH_MAX,
-				"%s/ssl_referer_log", calcpath(HTTPD_LOG_ROOT));
-			access_path[XS_PATH_MAX-1] = '\0';
-			error_path[XS_PATH_MAX-1] = '\0';
-			refer_path[XS_PATH_MAX-1] = '\0';
 #else		/* HANDLE_SSL */
 			errx(1, "SSL support not enabled at compile-time");
 #endif		/* HANDLE_SSL */
 			break;
+		case 'u':
+			if ((config.userid = atoi(optarg)) > 0)
+				break;
+			if (!(userinfo = getpwnam(optarg)))
+				errx(1, "Invalid user ID");
+			config.userid = userinfo->pw_uid;
+			break;
+		case 'g':
+			if ((config.groupid = atoi(optarg)) > 0)
+				break;
+			if (!(groupinfo = getgrnam(optarg)))
+				errx(1, "Invalid group ID");
+			config.groupid = groupinfo->gr_gid;
+			break;
 		case 'd':
 			if (*optarg != '/')
 				errx(1, "The -d directory must start with a /");
-			strncpy(config.systemroot, optarg, XS_PATH_MAX-1);
-			break;
-		case 'a':
-			strncpy(config.system->hostname, optarg, NI_MAXHOST);
-			config.system->hostname[NI_MAXHOST-1] = '\0';
+			config.systemroot = strdup(optarg);
 			break;
 		case 'r':
 			strncpy(thisdomain, optarg, NI_MAXHOST);
@@ -1869,15 +1872,6 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			strncpy(message503, optarg, MYBUFSIZ);
 			message503[MYBUFSIZ-1] = '\0';
 			break;
-		case 'A':
-			longopt[optionaa] = optarg;
-			break;
-		case 'R':
-			longopt[optionrr] = optarg;
-			break;
-		case 'E':
-			longopt[optionee] = optarg;
-			break;
 		case 'c':
 			strncpy(config_path, optarg, XS_PATH_MAX);
 			config_path[XS_PATH_MAX-1] = '\0';
@@ -1886,7 +1880,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			fprintf(stdout, "%s\n", SERVER_IDENT);
 			return 0;
 		default:
-			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number] [-d rootdir]\n[-r refer-ignore-domain] [-l localmode] [-a address] [-m service-message]\n[-f] [-s] [-A access-log-path] [-E error-log-path] [-R referer-log-path]");
+			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number] [-d rootdir]\n[-r refer-ignore-domain] [-l localmode] [-m service-message] [-f] [-s]");
 		}
 	}
 	load_config();
@@ -1896,21 +1890,6 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	{
 		strncpy(config.port, longopt[optionp], NI_MAXSERV);
 		config.port[NI_MAXSERV-1] = '\0';
-	}
-	if (longopt[optionaa])
-	{
-		strncpy(access_path, longopt[optionaa], XS_PATH_MAX);
-		access_path[XS_PATH_MAX-1] = '\0';
-	}
-	if (longopt[optionrr])
-	{
-		strncpy(refer_path, longopt[optionrr], XS_PATH_MAX);
-		refer_path[XS_PATH_MAX-1] = '\0';
-	}
-	if (longopt[optionee])
-	{
-		strncpy(error_path, longopt[optionee], XS_PATH_MAX);
-		error_path[XS_PATH_MAX-1] = '\0';
 	}
 
 	initsetprocname(argc, argv, envp);
