@@ -7,5 +7,7 @@ extern	int
 setgroups DECL2(int, ngroups, const gid_t, *gidset)
 {
 	/* fake success */
+	(void)ngroups;
+	(void)gidset;
 	return 0;
 }
