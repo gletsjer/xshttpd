@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.71 2002/12/13 15:02:10 johans Exp $ */
+/* $Id: cgi.c,v 1.72 2002/12/18 15:07:42 johans Exp $ */
 
 #include	"config.h"
 
@@ -184,7 +184,6 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 	sigaction(SIGALRM, &action, NULL);
 
 	left = alarm(360); fflush(stdout);
-	unsetenv("PATH_TRANSLATED");
 	unsetenv("SCRIPT_NAME");
 	unsetenv("REDIRECT_STATUS");
 
@@ -192,7 +191,6 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 
 	snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
 
-	setenv("PATH_TRANSLATED", fullpath, 1);
 	setenv("SCRIPT_NAME", path, 1);
 	setenv("REDIRECT_STATUS", "200", 1);
 
@@ -340,11 +338,7 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 		else
 #endif		/* HANDLE_PERL */
 		if (engine)
-		{
-			unsetenv("PATH_INFO");
-			setenv("PATH_TRANSLATED", fullpath, 1);
 			execl(engine, engine, fullpath, argv1, NULL);
-		}
 		else
 #endif		/* HANDLE_SCRIPT */
 			execl(fullpath, file, argv1, NULL);

@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.95 2002/12/13 13:08:18 johans Exp $ */
+/* $Id: httpd.c,v 1.96 2002/12/18 15:07:42 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.95 2002/12/13 13:08:18 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.96 2002/12/18 15:07:42 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1167,7 +1167,7 @@ process_request DECL0
 	netbufsiz = netbufind = headonly = postonly = headers = 0;
 	unsetenv("CONTENT_LENGTH"); unsetenv("AUTH_TYPE");
 	unsetenv("CONTENT_TYPE"); unsetenv("QUERY_STRING");
-	unsetenv("PATH_INFO");
+	unsetenv("PATH_INFO"); unsetenv("PATH_TRANSLATED");
 	unsetenv("ERROR_CODE"); unsetenv("ERROR_READABLE");
 	unsetenv("ERROR_URL"); unsetenv("ERROR_URL_ESCAPED");
 	unsetenv("ERROR_URL_EXPANDED"); unsetenv("REMOTE_USER");

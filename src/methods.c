@@ -630,14 +630,18 @@ do_get DECL1(char *, params)
 	{
 		char fullpath[XS_PATH_MAX];
 		*temp = 0;
-		snprintf(fullpath, XS_PATH_MAX, "%s/%s", base, file);
+		snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
 		if (stat(fullpath, &statbuf))
 			break; /* error later */
 		if ((statbuf.st_mode & S_IFMT) == S_IFREG)
 		{
+			char	*fp;
 			*temp = '/';
-			setenv("PATH_INFO", temp, 1);
+			setenv("PATH_INFO", params, 1);
+			asprintf(&fp, "%s%s", fullpath, temp);
+			setenv("PATH_TRANSLATED", fp, 1);
 			*temp = 0;
+			free(fp);
 			break;
 		}
 		*(temp++) = '/';
