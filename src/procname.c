@@ -3,7 +3,6 @@
 #include	"config.h"
 
 #ifdef		HAVE_SYS_EXEC_H
-#include	<sys/exec.h>
 #endif		/* HAVE_SYS_EXEC_H */
 #ifdef		HAVE_SYS_PARAM_H
 #include	<sys/param.h>
@@ -109,7 +108,7 @@ va_dcl
 		strcpy(procnamestart, buffer);
 		p = procnamestart + len;
 		while (p < procnameend)
-			*(p++) = ' ';
+			*(p++) = '\0';
 	}
 #endif		/* SONY_SYSNEWS */
 #endif		/* PSTAT_SETCMD */

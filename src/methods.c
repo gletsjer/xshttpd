@@ -118,6 +118,7 @@ senduncompressed DECL1(int, fd)
 #endif		/* HAVE_MMAP */
 	size_t		size, written;
 	char		modified[32];
+	struct tm	reqtime;
 
 	alarm(180);
 	if ((size = lseek(fd, 0, SEEK_END)) == -1)
@@ -153,9 +154,8 @@ senduncompressed DECL1(int, fd)
 #endif		/* WANT_SSI */
 		if ((env = getenv("IF_MODIFIED_SINCE")))
 		{
-			struct tm reqtime;
 			strptime(env, "%a, %d %b %Y %T", &reqtime);
-			if (!dynamic && mktime(&reqtime) > modtime)
+			if (!dynamic && (mktime(&reqtime) > modtime))
 			{
 				headonly = 1;
 				printf("%s 304 Not modified\r\n", version);
@@ -165,9 +165,8 @@ senduncompressed DECL1(int, fd)
 		}
 		else if ((env = getenv("IF_UNMODIFIED_SINCE")))
 		{
-			struct tm reqtime;
 			strptime(env, "%a, %d %b %Y %T", &reqtime);
-			if (dynamic || mktime(&reqtime) > modtime)
+			if (dynamic || (mktime(&reqtime) > modtime))
 			{
 				server_error("412 Precondition failed", "PRECONDITION_FAILED");
 				close(fd);

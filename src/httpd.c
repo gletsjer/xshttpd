@@ -1092,6 +1092,7 @@ standalone_main DECL0
 
 		sl.l_onoff = 1; sl.l_linger = 600;
 		setsockopt(csd, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl));
+#if 0
 #ifndef		__linux__
 #ifndef		INET6
 #ifdef		SO_SNDBUF
@@ -1104,6 +1105,7 @@ standalone_main DECL0
 #endif		/* SO_RCVBUF */
 #endif		/* INET6 */
 #endif		/* __linux__ */
+#endif		/* 0 */
 
 		dup2(csd, 0); dup2(csd, 1); close(csd);
 

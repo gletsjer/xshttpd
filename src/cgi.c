@@ -111,7 +111,6 @@ do_script DECL2C_(char *, path, int, headers)
 	alarm(0); /* left = alarm(360); */ fflush(stdout);
 	unsetenv("PATH_INFO"); unsetenv("PATH_TRANSLATED");
 	unsetenv("QUERY_STRING"); unsetenv("SCRIPT_NAME");
-	unsetenv("REDIRECT_STATUS");
 	savedeuid = savedegid = -1;
 	if (!origeuid)
 	{
@@ -260,6 +259,8 @@ do_script DECL2C_(char *, path, int, headers)
 			break;
 		*(nextslash++) = '/';
 	}
+#if 0
+	/* I don't get this part --johans */
 	if (nextslash)
 	{
 		*nextslash = '/';
@@ -267,6 +268,7 @@ do_script DECL2C_(char *, path, int, headers)
 		setenv("PATH_TRANSLATED", convertpath(nextslash), 1);
 		*nextslash = 0;
 	}
+#endif
 
 	if (strstr(name, "..") || strstr(name, "/.x"))
 	{
@@ -292,10 +294,17 @@ do_script DECL2C_(char *, path, int, headers)
 	else
 		sprintf(fullpath, "/%s/%s", HTTPD_SCRIPT_ROOT, name);
 	if (was_slash)
+	{
 		setenv("SCRIPT_NAME", "/", 1);
+		setenv("PATH_INFO", "/", 1);
+		setenv("PATH_TRANSLATED", convertpath("/"), 1);
+	}
 	else
+	{
 		setenv("SCRIPT_NAME", fullpath, 1);
-	setenv("REDIRECT_STATUS", "200", 1);
+		setenv("PATH_INFO", fullpath, 1);
+		setenv("PATH_TRANSLATED", convertpath(fullpath), 1);
+	}
 
 	if (headers)
 	{
@@ -434,14 +443,16 @@ do_script DECL2C_(char *, path, int, headers)
 			exit(1);
 		}
 #ifdef		SUPPORT_PHP3
-		if (php3) {
-			setenv("PATH_INFO", fullpath, 1);
-			setenv("PATH_TRANSLATED", fullpath, 1);
+		if (php3)
+		{
+			/* PHP's CGI mode sucks big time */
+			unsetenv("SERVER_SOFTWARE"); unsetenv("SERVER_NAME");
+			unsetenv("GATEWAY_INTERFACE"); unsetenv("REQUEST_METHOD");
 			execl(PHP3_PATH, "php", fullpath, argv1, NULL);
 		}
 		else
 #endif		/* SUPPORT_PHP3 */
-			execl(fullpath, name, argv1, NULL);
+		execl(fullpath, name, argv1, NULL);
 		if (nph)
 		{
 			sprintf(errmsg, "500 execl(`%s'): %s",
@@ -491,8 +502,6 @@ do_script DECL2C_(char *, path, int, headers)
 				strcpy(cachecontrol, skipspaces(header + 14));
 			else if (!strncasecmp(header, "Set-cookie:", 11))
 				strcpy(cachecontrol, skipspaces(header + 11));
-			else if (!strncasecmp(header, "X-Powered-By:", 13))
-				/* ignore */;
 			else
 			{
 				fprintf(stderr, "[%s] httpd: Invalid header `%s' from script `%s'\n",
