@@ -111,6 +111,11 @@ same syntax as the global script.methods file, see
 .BR httpd(1)
 for details.
 .TP
+.B ScriptTimeout <minutes>
+The time a CGI script is allowed to run before it will be considered runaway
+and killed by the server. The time should be specified in minutes (default is 6).
+Note that several browsers will kill a connection even earlier than this.
+.TP
 .B LocalMode <number>
 t.b.d.
 

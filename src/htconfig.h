@@ -38,6 +38,7 @@ extern struct configuration {
 	char *		port;
 	int		family;
 	int		num_sockets;
+	int		script_timeout;
 	unsigned short	instances;
 	unsigned short	localmode;
 	char *		pidfile;

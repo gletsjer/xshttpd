@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.81 2004/05/27 22:55:40 johans Exp $ */
+/* $Id: cgi.c,v 1.82 2004/06/26 13:10:07 johans Exp $ */
 
 #include	"config.h"
 
@@ -181,7 +181,7 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 	action.sa_flags = 0;
 	sigaction(SIGALRM, &action, NULL);
 
-	left = alarm(360); fflush(stdout);
+	left = alarm(60 * config.script_timeout); fflush(stdout);
 	unsetenv("SCRIPT_NAME");
 	unsetenv("REDIRECT_STATUS");
 

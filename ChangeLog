@@ -4,6 +4,7 @@ is not complete. Refer to cvs comments for more information.
 Changes since 3.2 beta 32
 - Fix a bug in naming logfiles (this broke httpdc reload)
 - Prepare for DIGEST-MD5 support (not implemented yet)
+- Make ScriptTimeout configurable
 
 Changes since 3.2 beta 31
 - The multiple sockets implementation did not work. Redone.
