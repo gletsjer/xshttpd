@@ -635,6 +635,23 @@ do_get DECL1(char *, params)
 			return;
 		}
 	}
+	/* Check for directory permissions */
+	if (stat(base, &statbuf))
+	{
+		error("500 Cannot stat current directory");
+		return;
+	}
+	if (userinfo && (statbuf.st_mode & (S_IWGRP | S_IWOTH)))
+	{
+		error("403 User directory is writable");
+		return;
+	}
+	if (userinfo && (statbuf.st_uid != getuid()))
+	{
+		error("403 Invalid owner of user directory");
+		return;
+	}
+	
 	/* Check for *.redir instructions */
 	permanent = 0;
 	snprintf(total, XS_PATH_MAX, "%s%s.redir", base, filename);
@@ -699,6 +716,12 @@ do_get DECL1(char *, params)
 #endif		/* HANDLE_COMPRESSED */
 	snprintf(total, XS_PATH_MAX, "%s%s", base, filename);
 	total[XS_PATH_MAX-1] = '\0';
+	if (!lstat(total, &statbuf) && S_ISLNK(statbuf.st_mode) &&
+		userinfo && (statbuf.st_uid != getuid()))
+	{
+		error("403 Invalid owner of symlink");
+		return;
+	}
 	if (stat(total, &statbuf))
 #ifdef		HANDLE_COMPRESSED
 	{
