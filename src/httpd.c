@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.71 2002/04/28 15:01:51 johans Exp $ */
+/* $Id: httpd.c,v 1.72 2002/04/28 15:08:02 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.71 2002/04/28 15:01:51 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.72 2002/04/28 15:08:02 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1385,7 +1385,13 @@ standalone_main DECL0
 	temp = 1;
 	if ((setsockopt(sd, SOL_SOCKET, SO_REUSEPORT, &temp, sizeof(temp))) == -1)
 		err(1, "setsockopt(REUSEPORT)");
-#endif	/* HAVE_SO_REUSEPORT */
+#else	/* HAVE_SO_REUSEPORT */
+#ifdef	SO_REUSEADDR
+	temp = 1;
+	if ((setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &temp, sizeof(temp))) == -1)
+		err(1, "setsockopt(REUSEADDR)");
+#endif	/* SO_REUSEADDR */
+#endif	/* SO_REUSEPORT */
 
 	temp = 1;
 	if ((setsockopt(sd, SOL_SOCKET, SO_KEEPALIVE, &temp, sizeof(temp))) == -1)
