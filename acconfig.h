@@ -57,6 +57,11 @@ default compress.methods for more details. */
 #undef HANDLE_COMPRESSED 
 #define COMPRESS_METHODS "compress.methods"
 
+/* The server can automatically send extra font information obtained
+from .charset files. Define HANDLE_CHARSET if that is what you want */
+  
+#undef HANDLE_CHARSET
+
 /* The path in which `ppmtogif' (part of the NetPBM package) can be found.
 If you do not have this, the graphical counter will not work (I'm
 working on this...). In that case, #undef this line. */

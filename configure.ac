@@ -34,7 +34,7 @@ AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_FUNC_WAIT3
-AC_CHECK_FUNCS(gethostname mktime select strerror strstr)
+AC_CHECK_FUNCS(gethostname mktime select strerror strstr strcasestr)
 
 dnl SEPERATOR
 AC_CHECK_FUNCS(bcopy bzero getaddrinfo getnameinfo killpg mkstemp mmap setenv seteuid setegid setresuid setresgid setrlimit setsid setpriority sigemptyset tempnam vfork)
@@ -86,6 +86,8 @@ AC_ARG_DEFAULT(script, HANDLE_SCRIPT, yes,
 	[  --disable-script        disable scripting support (PHP)])
 AC_ARG_DEFAULT(compress, HANDLE_COMPRESSED, yes,
 	[  --disable-compress      disable auto-extraction of compressed files])
+AC_ARG_DEFAULT(charset, HANDLE_CHARSET, yes,
+	[  --disable-charset       disable font information via .charset files])
 if test x${ac_cv_func_setrlimit} = xyes
 then
 	AC_ARG_DEFAULT(setrlimit, USE_SETRLIMIT, yes,
