@@ -477,7 +477,6 @@ do_get DECL1(char *, params)
 	}
 	strncpy(real_path, params, XS_PATH_MAX);
 	real_path[XS_PATH_MAX-1] = '\0';
-	bzero(params + strlen(params), 16);
 	setprocname("xs: Handling `%s' from `%s'", real_path, remotehost);
 	userinfo = NULL;
 
@@ -581,7 +580,7 @@ do_get DECL1(char *, params)
 		wasdir = (file[strlen(file) - 1] == '/');
 	else
 		wasdir = 0;
-	if (strstr(file, "..") || strstr(file, "/.x"))
+	if (strstr(file, "/..") || strstr(file, "/.xs"))
 	{
 		server_error("403 Invalid path specified", "INVALID_PATH");
 		return;
