@@ -138,4 +138,5 @@ initsetprocname DECL3(int, argc, char **, argv, char **, envp)
 #else		/* Not PS_STRINGS */
 	procnamestart = procnameend = NULL;
 #endif		/* PS_STRINGS */
+	(void) envp;	/* unused */
 }

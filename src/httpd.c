@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.123 2004/02/22 14:10:50 johans Exp $ */
+/* $Id: httpd.c,v 1.124 2004/02/22 14:41:49 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.123 2004/02/22 14:10:50 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.124 2004/02/22 14:41:49 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -510,9 +510,9 @@ load_config DECL0
 		config.system->groupid = grp->gr_gid;
 	}
 	if (!config.system->sslcertificate)
-			config.system->sslcertificate = CERT_FILE;
+		config.system->sslcertificate = strdup(CERT_FILE);
 	if (!config.system->sslprivatekey)
-			config.system->sslprivatekey = KEY_FILE;
+		config.system->sslprivatekey = strdup(KEY_FILE);
 	/* Set up users section */
 	if (!config.users)
 	{
@@ -786,10 +786,12 @@ redirect DECL2C_(char *, redir, int, permanent)
 	env = getenv("QUERY_STRING");
 	if (headers)
 	{
-		secprintf("%s %s moved\r\nLocation: %s%s%s\r\n", version,
-			permanent ? "301 Permanently" : "302 Temporarily",
-			redir,
-			env ? "?" : "", env ?: "");
+		if (env)
+			secprintf("%s %s moved\r\nLocation: %s?%s\r\n", version,
+				permanent ? "301 Permanently" : "302 Temporarily", redir, env);
+		else
+			secprintf("%s %s moved\r\nLocation: %s\r\n", version,
+				permanent ? "301 Permanently" : "302 Temporarily", redir);
 		stdheaders(1, 1, 1);
 	}
 	if (!headonly)
