@@ -37,6 +37,9 @@
 #include	<stdio.h>
 #include	<errno.h>
 #include	<netdb.h>
+#ifndef		NI_MAXSERV
+#define		NI_MAXSERV	32
+#endif		/* NI_MAXSERV */
 #ifdef		HAVE_TIME_H
 #ifdef		SYS_TIME_WITH_TIME
 #include	<time.h>
@@ -1020,8 +1023,12 @@ standalone_main DECL0
 {
 	int			csd = 0, count, temp;
 	size_t			clen;
+#ifdef		HAVE_GETADDRINFO
 	struct	addrinfo	hints, *res;
 	struct	sockaddr_storage	saddr;
+#else		/* HAVE_GETADDRINFO */
+	struct	sockaddr	saddr;
+#endif		/* HAVE_GETADDRINFO */
 	pid_t			*childs, pid;
 	struct	rlimit		limit;
 
@@ -1031,12 +1038,14 @@ standalone_main DECL0
 	detach(); open_logs(0);
 
 	setprocname("xs(MAIN): Initializing deamons...");
+
+#ifdef		HAVE_GETADDRINFO
 	memset(&hints, 0, sizeof(hints));
-#if		defined(__linux__) && defined(INET6)
+#if			defined(__linux__) && defined(INET6)
 	hints.ai_family = PF_INET6;
 #else
 	hints.ai_family = PF_UNSPEC;
-#endif	/* __linux__ && INET6 */
+#endif		/* __linux__ && INET6 */
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 	if ((getaddrinfo(forcehost ? thishostname : NULL, port, &hints, &res)))
@@ -1045,6 +1054,10 @@ standalone_main DECL0
 	/* only look at the first address */
 	if ((sd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1)
 		err(1, "socket()");
+#else		/* HAVE_GETADDRINFO */
+	if ((sd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
+		err(1, "socket()");
+#endif		/* HAVE_GETADDRINFO */
 
 	temp = 1;
 	if ((setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &temp, sizeof(temp))) == -1)
@@ -1054,13 +1067,23 @@ standalone_main DECL0
 	if ((setsockopt(sd, SOL_SOCKET, SO_KEEPALIVE, &temp, sizeof(temp))) == -1)
 		err(1, "setsockopt(KEEPALIVE)");
 
+#ifdef		HAVE_GETADDRINFO
 	if (bind(sd, res->ai_addr, res->ai_addrlen) == -1)
 		err(1, "bind()");
 
+	freeaddrinfo(res);
+#else		/* HAVE_GETADDRINFO */
+	/* Quick patch to run on old systems */
+	memset(&saddr, '\0', sizeof(struct sockaddr));
+	saddr.sa_family = PF_INET;
+	((struct sockaddr_in *)&saddr)->sin_port = htons(atoi(port));
+
+	if (bind(sd, &saddr, sizeof(struct sockaddr)) == -1)
+		err(1, "bind()");
+#endif		/* HAVE_GETADDRINFO */
+
 	if (listen(sd, MAXLISTEN))
 		err(1, "listen()");
-
-	freeaddrinfo(res);
 
 #ifdef		RLIMIT_NPROC
 	limit.rlim_max = limit.rlim_cur = RLIM_INFINITY;
@@ -1191,6 +1214,7 @@ standalone_main DECL0
 		setvbuf(stdin, _IONBF, NULL, 0);
 #endif		/* SETVBUF_REVERSED */
 
+#ifdef		HAVE_GETADDRINFO
 		if (!getnameinfo((struct sockaddr *)&saddr, clen,
 			remotehost, sizeof(remotehost), NULL, 0, NI_NUMERICHOST))
 		{
@@ -1225,6 +1249,15 @@ standalone_main DECL0
 			setenv("REMOTE_HOST", remotehost, 1);
 		}
 #endif		/* HAVE_GETNAMEINFO */
+#else		/* HAVE_GETADDRINFO */
+		if (strncpy(remotehost,
+			inet_ntoa(((struct sockaddr_in *)&saddr)->sin_addr),
+			MAXHOSTNAMELEN))
+		{
+			remotehost[MAXHOSTNAMELEN-1] = '\0';
+			setenv("REMOTE_HOST", remotehost, 1);
+		}
+#endif		/* HAVE_GETADDRINFO */
 #ifdef		HANDLE_SSL
 		if (do_ssl) {
 			ssl = SSL_new(ssl_ctx);
