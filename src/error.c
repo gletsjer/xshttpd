@@ -410,7 +410,7 @@ local_no_pay DECL0
 	if ((temp = strchr(buffer, '/')))
 		*temp = 0;
 	printf("The user <B>%s</B>, whom you specified in your URL,\n", buffer);
-	printf("has not payed his/her member fee to our computer society\n");
+	printf("has not paid his/her member fee to our computer society\n");
 	printf("this year. The pages will be online again once the author\n");
 	printf("has decided that he/she wants to remain a member.\n");
 	printf("<P>Return to the <A HREF=\"/\">main index</A>\n");

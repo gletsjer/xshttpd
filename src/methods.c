@@ -529,6 +529,23 @@ do_get DECL1(char *, params)
 			base[XS_PATH_MAX-2] = '\0';
 			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
 				strncpy(base, calcpath(HTTPD_DOCUMENT_ROOT), XS_PATH_MAX-1);
+#ifdef		VIRTUAL_UID
+			else
+			{
+				/* We got a virtual host, now set euid */
+				if (!origeuid)
+				{
+					setegid(statbuf.st_gid);
+					setgroups(1, (const gid_t *)&statbuf.st_gid);
+					seteuid(statbuf.st_uid);
+				}
+				if (!(geteuid()))
+				{
+					error("500 Effective UID is not valid");
+					return;
+				}
+			}
+#endif		/* VIRTUAL_UID */
 		}
 		else
 #endif		/* SIMPLE_VIRTUAL_HOSTING */
