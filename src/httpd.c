@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.63 2002/01/12 13:43:31 johans Exp $ */
+/* $Id: httpd.c,v 1.64 2002/01/31 14:38:36 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.63 2002/01/12 13:43:31 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.64 2002/01/31 14:38:36 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1237,7 +1237,7 @@ process_request DECL0
 		if ((temp = strchr(http_host, ':')))
 			*temp = '\0';
 		temp = http_host + strlen(http_host);
-		while (*(temp--) == '.')
+		while (*(--temp) == '.')
 			*temp = '\0';
 #ifdef		HANDLE_SSL
 		if (strcmp(port, do_ssl ? "https" : "http"))
@@ -1255,7 +1255,7 @@ process_request DECL0
 		}
 		unsetenv("HTTP_HOST");
 		/* Ignore unqualified names - it could be a subdirectory! */
-		if (http_host && strchr(http_host, '.'))
+		if (http_host && strlen(http_host) > 3 && strchr(http_host, '.'))
 			setenv("HTTP_HOST", http_host, 1);
 	}
 	else if (headers >= 11)
