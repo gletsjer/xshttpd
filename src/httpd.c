@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.86 2002/08/16 11:28:40 johans Exp $ */
+/* $Id: httpd.c,v 1.87 2002/08/16 12:35:27 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.86 2002/08/16 11:28:40 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.87 2002/08/16 12:35:27 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -487,6 +487,10 @@ load_config DECL0
 		config.users->execdir = strdup("cgi-bin");
 	if (!config.users->phexecdir)
 		config.users->phexecdir = strdup("cgi-bin");
+	if (!config.users->logerror)
+		warnx("error logs not implemented for users section");
+	if (!config.users->logreferer)
+		warnx("referer logs not implemented for users section");
 	config.system->next = config.users;
 	config.users->next = config.virtual;
 	current = config.virtual;
@@ -496,6 +500,10 @@ load_config DECL0
 			err(1, "illegal virtual block without hostname");
 		if (!current->htmldir)
 			err(1, "illegal virtual block without directory");
+		if (!config.users->logerror)
+			warnx("error logs not implemented for virtual section");
+		if (!config.users->logreferer)
+			warnx("referer logs not implemented for virtual section");
 		current = current->next;
 	}
 }
