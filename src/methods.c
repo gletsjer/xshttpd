@@ -467,7 +467,10 @@ allowxs DECL1C(char *, file)
 				freeaddrinfo(res);
 			}
 			if (lport && cport == lport)
+			{
+				fclose(rfile);
 				return 1; /* access granted */
+			}
 		}
 	}
 
