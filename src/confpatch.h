@@ -6,63 +6,6 @@
 #define		vfork		fork
 #endif		/* HAVE_VFORK */
 
-#ifndef		NOPROTOS
-#define		a	a
-#else
-#define		a	()
-#endif
-
-#ifndef		NONEWSTYLE
-#define		DECL0			(void)
-#define		DECL1(t1,v1)		(t1 v1)
-#define		DECL2(t1,v1,t2,v2)	(t1 v1, t2 v2)
-#define		DECL3(t1,v1,t2,v2,t3,v3) (t1 v1, t2 v2, t3 v3)
-#define		DECL4(t1,v1,t2,v2,t3,v3,t4,v4) (t1 v1, t2 v2, t3 v3, t4 v4)
-#define		DECL5(t1,v1,t2,v2,t3,v3,t4,v4,t5,v5) (t1 v1, t2 v2, t3 v3, t4 v4, t5 v5)
-#ifdef		NOCONST
-#define		DECL1C(t1,v1)		(t1 v1)
-#define		DECL2C_(t1,v1,t2,v2)	(t1 v1, t2 v2)
-#define		DECL2_C(t1,v1,t2,v2)	(t1 v1, t2 v2)
-#define		DECL2CC(t1,v1,t2,v2)	(t1 v1, t2 v2)
-#define		DECL3_C_(t1,v1,t2,v2,t3,v3) (t1 v1, t2 v2, t3 v3)
-#define		DECL3CC_(t1,v1,t2,v2,t3,v3) (t1 v1, t2 v2, t3 v3)
-#define		DECL3C__(t1,v1,t2,v2,t3,v3) (t1 v1, t2 v2, t3 v3)
-#else		/* Not NOCONST */
-#define		DECL1C(t1,v1)		(const t1 v1)
-#define		DECL2C_(t1,v1,t2,v2)	(const t1 v1, t2 v2)
-#define		DECL2_C(t1,v1,t2,v2)	(t1 v1, const t2 v2)
-#define		DECL2CC(t1,v1,t2,v2)	(const t1 v1, const t2 v2)
-#define		DECL3_C_(t1,v1,t2,v2,t3,v3) (t1 v1, const t2 v2, t3 v3)
-#define		DECL3CC_(t1,v1,t2,v2,t3,v3) (const t1 v1, const t2 v2, t3 v3)
-#define		DECL3C__(t1,v1,t2,v2,t3,v3) (const t1 v1, t2 v2, t3 v3)
-#define		DECL3CCC(t1,v1,t2,v2,t3,v3) (const t1 v1, const t2 v2, const t3 v3)
-#endif		/* NOCONST */
-#else		/* Not not NONEWSTYLE */
-#define		DECL0			()
-#define		DECL1(t1,v1)		(v1) t1 v1;
-#define		DECL2(t1,v1,t2,v2)	(v1, v2) t1 v1; t2 v2;
-#define		DECL3(t1,v1,t2,v2,t3,v3) (v1, v2, v3) t1 v1; t2 v2; t3 v3;
-#define		DECL4(t1,v1,t2,v2,t3,v3,t4,v4) \
-				(v1, v2, v3, v4) t1 v1; t2 v2; t3 v3; t4 v4;
-#ifdef		NOCONST
-#define		DECL1C(t1,v1)		(v1) t1 v1;
-#define		DECL2C_(t1,v1,t2,v2)	(v1, v2) t1 v1; t2 v2;
-#define		DECL2CC(t1,v1,t2,v2)	(v1, v2) t1 v1; t2 v2;
-#define		DECL2_C(t1,v1,t2,v2)	(v1, v2) t1 v1; t2 v2;
-#define		DECL3_C_(t1,v1,t2,v2,t3,v3) (v1, v2, v3) t1 v1; t2 v2; t3 v3;
-#define		DECL3CC_(t1,v1,t2,v2,t3,v3) (v1, v2, v3) t1 v1; t2 v2; t3 v3;
-#define		DECL3C__(t1,v1,t2,v2,t3,v3) (v1, v2, v3) t1 v1; t2 v2; t3 v3;
-#else		/* Not NOCONST */
-#define		DECL1C(t1,v1)		(v1) const t1 v1;
-#define		DECL2C_(t1,v1,t2,v2)	(v1, v2) const t1 v1; t2 v2;
-#define		DECL2CC(t1,v1,t2,v2)	(v1, v2) const t1 v1; const t2 v2;
-#define		DECL2_C(t1,v1,t2,v2)	(v1, v2) t1 v1; const t2 v2;
-#define		DECL3_C_(t1,v1,t2,v2,t3,v3) (v1, v2, v3) t1 v1; const t2 v2; t3 v3;
-#define		DECL3CC_(t1,v1,t2,v2,t3,v3) (v1, v2, v3) const t1 v1; const t2 v2; t3 v3;
-#define		DECL3C__(t1,v1,t2,v2,t3,v3) (v1, v2, v3) const t1 v1; t2 v2; t3 v3;
-#endif		/* NOCONST */
-#endif		/* NONEWSTYLE */
-
 #ifdef		NOCONST
 #define		const
 #endif		/* NOCONST */

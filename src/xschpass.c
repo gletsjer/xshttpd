@@ -5,11 +5,7 @@
 #include	<stdio.h>
 #include	<unistd.h>
 #include	<stdlib.h>
-#ifndef		NONEWSTYLE
 #include	<stdarg.h>
-#else		/* Not not NONEWSTYLE */
-#include	<varargs.h>
-#endif		/* NONEWSTYLE */
 #include	<sys/stat.h>
 #include	<errno.h>
 #include	<ctype.h>
@@ -24,23 +20,12 @@ static	void	changepasswd		(const char *, int);
 static	void	generateform		(void);
 extern	int	main			(int, char *[]);
 
-#ifndef		NONEWSTYLE
 static	void
 error(const char *format, ...)
 {
 	va_list		ap;
 
 	va_start(ap, format);
-#else		/* Not not NONEWSTYLE */
-static	void
-error(format, va_alist)
-const	char	*format;
-va_dcl
-{
-	va_list		ap;
-
-	va_start(ap);
-#endif		/* NONEWSTYLE */
 
 	alarm(180);
 

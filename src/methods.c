@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.120 2004/11/26 17:05:09 johans Exp $ */
+/* $Id: methods.c,v 1.121 2004/11/26 17:17:27 johans Exp $ */
 
 #include	"config.h"
 
@@ -40,11 +40,7 @@
 #endif		/* TIME_WITH_SYS_TIME */
 #endif		/* HAVE_TIME_H */
 #include	<stdlib.h>
-#ifndef		NONEWSTYLE
 #include	<stdarg.h>
-#else		/* Not not NONEWSTYLE */
-#include	<varargs.h>
-#endif		/* NONEWSTYLE */
 #include	<signal.h>
 #include	<pwd.h>
 #include	<grp.h>

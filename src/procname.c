@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: procname.c,v 1.12 2004/11/26 16:45:09 johans Exp $ */
+/* $Id: procname.c,v 1.13 2004/11/26 17:17:27 johans Exp $ */
 
 #include	"config.h"
 
@@ -44,11 +44,7 @@ struct		pst_swapinfo;
 #include	<stdio.h>
 #include	<unistd.h>
 #include	<stdlib.h>
-#ifndef		NONEWSTYLE
 #include	<stdarg.h>
-#else		/* Not not NONEWSTYLE */
-#include	<varargs.h>
-#endif		/* NONEWSTYLE */
 #ifdef		HAVE_MEMORY_H
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
@@ -62,7 +58,6 @@ extern	char	**environ;
 static	char	*procnamestart, *procnameend;
 
 #ifndef		HAVE_SETPROCTITLE
-#ifndef		NONEWSTYLE
 extern	void
 setprocname(const char *name, ...)
 {
@@ -73,17 +68,6 @@ setprocname(const char *name, ...)
 #endif		/* PS_STRINGS */
 
 	va_start(ap, name);
-#else		/* Not not NONEWSTYLE */
-extern	void
-setprocname(name, va_alist)
-const	char	*name;
-va_dcl
-{
-	va_list		ap;
-	static	char	buffer[256], *argv;
-
-	va_start(ap);
-#endif		/* NONEWSTYLE */
 
 	vsnprintf(buffer, 256, name, ap);
 	buffer[255] = '\0';

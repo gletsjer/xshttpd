@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.152 2004/11/26 17:05:09 johans Exp $ */
+/* $Id: httpd.c,v 1.153 2004/11/26 17:17:27 johans Exp $ */
 
 #include	"config.h"
 
@@ -48,11 +48,7 @@
 #endif		/* TIME_WITH_SYS_TIME */
 #endif		/* HAVE_TIME_H */
 #include	<stdlib.h>
-#ifndef		NONEWSTYLE
 #include	<stdarg.h>
-#else		/* Not not NONEWSTYLE */
-#include	<varargs.h>
-#endif		/* NONEWSTYLE */
 #include	<signal.h>
 #include	<pwd.h>
 #include	<grp.h>
@@ -105,7 +101,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.152 2004/11/26 17:05:09 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.153 2004/11/26 17:17:27 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1239,7 +1235,6 @@ secfwrite(void *buf, size_t size, size_t count, FILE *stream)
 		return fwrite(buf, size, count, stream);
 }
 
-#ifndef		NONEWSTYLE
 int
 secprintf(const char *format, ...)
 {
@@ -1256,26 +1251,6 @@ secprintf(const char *format, ...)
 #endif		/* HANDLE_SSL */
 		return printf("%s", buf);
 }
-#else		/* NONEWSTYLE */
-int
-secprintf(format, va_alist)
-const	char	*format;
-va_dcl
-{
-	va_list	ap;
-	char	buf[4096];
-
-	va_start(ap);
-	vsnprintf(buf, 4096, format, ap);
-	va_end(ap);
-#ifdef		HANDLE_SSL
-	if (config.usessl)
-		return SSL_write(ssl, buf, strlen(buf));
-	else
-#endif		/* HANDLE_SSL */
-		return printf("%s", buf);
-}
-#endif		/* NONEWSTYLE */
 
 int
 secfputs(char *buf, FILE *stream)

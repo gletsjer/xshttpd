@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.12 2004/11/26 17:05:09 johans Exp $ */
+/* $Id: httpdc.c,v 1.13 2004/11/26 17:17:27 johans Exp $ */
 
 #include	"config.h"
 
@@ -24,12 +24,7 @@
 typedef	struct
 {
 	const	char	*command;
-	void		(*func)
-#ifndef		NONEWSTYLE
-				(const char *);
-#else		/* Not NONEWSTYLE */
-				();
-#endif		/* NONEWSTYLE */
+	void		(*func) (const char *);
 	const	char	*help;
 } command;
 

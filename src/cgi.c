@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.86 2004/11/26 16:53:01 johans Exp $ */
+/* $Id: cgi.c,v 1.87 2004/11/26 17:17:27 johans Exp $ */
 
 #include	"config.h"
 
@@ -35,11 +35,7 @@
 #ifdef		HAVE_MEMORY_H
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
-#ifndef		NONEWSTYLE
 #include	<stdarg.h>
-#else		/* NONEWSTYLE */
-#include	<optarg.h>
-#endif		/* NONEWSTYLE */
 #ifdef		HANDLE_PERL
 #include	<EXTERN.h>
 #include	<perl.h>
@@ -110,17 +106,8 @@ time_is_up(int sig)
 	alarm_handler(sig);
 }
 
-#ifndef		NONEWSTYLE
 static	int
 append(char *buffer, int prepend, const char *format, ...)
-#else		/* NONEWSTYLE */
-static	int
-append(buffer, prepend, format, va_list)
-char	*buffer;
-int		prepend;
-const	char	*format;
-va_decl
-#endif		/* NONEWSTYLE */
 {
 	va_list	ap;
 	size_t	len;

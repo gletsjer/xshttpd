@@ -825,12 +825,7 @@ dir_case(char *here, size_t *size)
 typedef	struct
 {
 	const	char	*name;
-	int		(*func)
-#ifndef	NONEWSTYLE
-				(char *, size_t *);
-#else	/* Not not NONEWSTYLE */
-				();
-#endif	/* NONEWSTYLE */
+	int		(*func) (char *, size_t *);
 	char		params;
 } directivestype;
 
