@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.83 2002/06/23 18:11:35 johans Exp $ */
+/* $Id: httpd.c,v 1.84 2002/07/01 17:03:52 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.83 2002/06/23 18:11:35 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.84 2002/07/01 17:03:52 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -477,11 +477,11 @@ load_config DECL0
 		memset(config.users, 0, sizeof(struct virtual));
 	}
 	if (!config.users->htmldir)
-		config.users->htmldir = strdup(".html");
+		config.users->htmldir = strdup(".");
 	if (!config.users->execdir)
-		config.users->execdir = strdup(".html/cgi-bin");
+		config.users->execdir = strdup("cgi-bin");
 	if (!config.users->phexecdir)
-		config.users->phexecdir = strdup(".html/cgi-bin");
+		config.users->phexecdir = strdup("cgi-bin");
 	current = config.virtual;
 	while (current)
 	{
@@ -898,7 +898,7 @@ server_error DECL2CC(char *, readable, char *, cgi)
 	struct	stat		statbuf;
 	const	struct	passwd	*userinfo;
 	char			*search, cgipath[XS_PATH_MAX], base[XS_PATH_MAX],
-				*escaped;
+				*escaped, *temp, filename[] = "/error";
 	const	char		*env;
 
 	if (!current)
@@ -927,41 +927,40 @@ server_error DECL2CC(char *, readable, char *, cgi)
 				*search = '/';
 			if (!transform_user_dir(base, userinfo, 0))
 			{
-				snprintf(cgipath, XS_PATH_MAX, "%s/%s/error",
-					base, current->execdir);
+				snprintf(cgipath, XS_PATH_MAX, "%s%s%s",
+					base, current->phexecdir, filename);
 				cgipath[XS_PATH_MAX-1] = '\0';
 				if (!stat(cgipath, &statbuf))
-				{
-					snprintf(cgipath, XS_PATH_MAX, "/~%s/%s/error",
-						userinfo->pw_name,
-						current->execdir);
-					cgipath[XS_PATH_MAX-1] = '\0';
 					goto EXECUTE;
-				}
 			}
 		}
 		if (search)
 			*search = '/';
 	}
-	strncpy(base, calcpath(current->phexecdir), XS_PATH_MAX);
-	base[XS_PATH_MAX-1] = '\0';
-	snprintf(cgipath, XS_PATH_MAX, "%s/error", base);
+	snprintf(cgipath, XS_PATH_MAX, "%s%s",
+		calcpath(current->phexecdir), filename);
 	cgipath[XS_PATH_MAX-1] = '\0';
 	if (stat(cgipath, &statbuf))
-		error(readable);
-	else
 	{
-		snprintf(cgipath, XS_PATH_MAX, "/%s/error", current->execdir);
-		cgipath[XS_PATH_MAX-1] = '\0';
-		EXECUTE:
-		setcurrenttime();
-		fprintf(stderr, "[%s] httpd(pid %ld): %s [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
-			currenttime, (long)getpid(), readable,
-			remotehost[0] ? remotehost : "(none)",
-			orig[0] ? orig : "(none)", env ? env : "(none)",
-			referer[0] ? referer : "(none)");
-		do_script(cgipath, NULL, headers);
+		/* Last resort: try system error script */
+		snprintf(cgipath, XS_PATH_MAX, "%s%s",
+			calcpath(current->phexecdir), filename);
+		if (stat(cgipath, &statbuf))
+		{
+			error(readable);
+			return;
+		}
 	}
+	EXECUTE:
+	if ((temp = strrchr(cgipath, '/')))
+		*temp = '\0';
+	setcurrenttime();
+	fprintf(stderr, "[%s] httpd(pid %ld): %s [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
+		currenttime, (long)getpid(), readable,
+		remotehost[0] ? remotehost : "(none)",
+		orig[0] ? orig : "(none)", env ? env : "(none)",
+		referer[0] ? referer : "(none)");
+	do_script(orig, cgipath, filename, NULL, 1);
 }
 
 extern	void
@@ -1381,7 +1380,9 @@ process_request DECL0
 		if (!strcasecmp(http_host, current->hostname))
 			break;
 	}
-	if (!current)
+	if (params[0] && params[1] == '~')
+		current = config.users;
+	else if (!current)
 		current = config.system;
 
 	if (current->logstyle == traditional &&

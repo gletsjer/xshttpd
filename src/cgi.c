@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.62 2002/06/20 10:25:28 johans Exp $ */
+/* $Id: cgi.c,v 1.63 2002/07/01 17:03:52 johans Exp $ */
 
 #include	"config.h"
 
@@ -149,18 +149,15 @@ va_decl
 }
 
 extern	VOID
-do_script DECL3CC_(char *, path, char *, engine, int, showheader)
+do_script DECL5(char *, path, char *, base, char *, file, char *, engine, int, showheader)
 {
-	struct	stat		statbuf;
-	uid_t			savedeuid, currentuid;
-	gid_t			savedegid, currentgid;
-	long			size, received, writetodo,
+	long			received, writetodo,
 				totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
-				base[XS_PATH_MAX], *temp, *nextslash,
-				tempbuf[XS_PATH_MAX + 32], head[HEADSIZE];
-	const	char		*file, *argv1, *header;
-	int			p[2], nph, count, nouid, dossi, was_slash,
+				*temp, *nextslash,
+				head[HEADSIZE];
+	const	char		*argv1, *header;
+	int			p[2], nph, count, nouid, dossi,
 				written;
 	unsigned	int	left;
 #ifdef		HANDLE_SSL
@@ -173,7 +170,6 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 #ifdef		USE_SETRLIMIT
 	struct	rlimit		limits;
 #endif		/* USE_SETRLIMIT */
-	const	struct	passwd	*userinfo;
 	FILE			*auth;
 	struct	sigaction	action;
 
@@ -189,229 +185,21 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 
 	left = alarm(360); fflush(stdout);
 	unsetenv("PATH_INFO"); unsetenv("PATH_TRANSLATED");
-	unsetenv("QUERY_STRING"); unsetenv("SCRIPT_NAME");
+	unsetenv("SCRIPT_NAME");
 	unsetenv("REDIRECT_STATUS");
-	savedeuid = savedegid = -1;
-	if (!origeuid)
-	{
-		savedeuid = geteuid(); seteuid(origeuid);
-		savedegid = getegid(); setegid(origegid);
-	}
 
-	userinfo = NULL; was_slash = 0;
-	if ((path[0] == '/') && ((path[1] == '?') || !path[1]))
-		was_slash = 1;
+	/* snip++ */
 
-	if (path[0] != '/')
-	{
-		if (showheader)
-			error("403 Invalid pathname");
-		else
-			secprintf("[Invalid pathname]\n");
-		goto END;
-	}
-	currentgid = -1;
-	if (path[1] == '~')
-	{
-		strncpy(name, path + 2, 16);
-		name[15] = 0;
-		if ((temp = strchr(name, '/')))
-			*temp = 0;
-		if (!(userinfo = getpwnam(name)))
-		{
-			if (showheader)
-				error("404 User is unknown");
-			else
-				secprintf("[User `%s' is unknown]\n", name);
-			goto END;
-		}
-		if (transform_user_dir(base, userinfo, showheader))
-		{
-			if (!showheader)
-				secprintf("[User directory error]\n");
-			goto END;
-		}
-		size = strlen(base);
-#ifdef		HANDLE_SCRIPT
-		if (!engine)
-#endif		/* HANDLE_SCRIPT */
-		{
-			strncpy(base + size, current->execdir, XS_PATH_MAX-size-1);
-			base[XS_PATH_MAX-2] = '\0';
-			strcat(base + size, "/");
-		}
-		if (!origeuid)
-		{
-			setegid(currentgid = userinfo->pw_gid);
-			setgroups(1, (const gid_t *)&userinfo->pw_gid);
-			seteuid(userinfo->pw_uid);
-		}
-		if (!(currentuid = geteuid()))
-		{
-			if (showheader)
-				error("500 Effective UID is not valid");
-			else
-				secprintf("[UID error]\n");
-			goto END;
-		}
-		file = path + strlen(name) + 3;
-	}
-	else
-	{
-		if (config.usevirtualhost && getenv("HTTP_HOST"))
-		{
-			strncpy(base, calcpath(getenv("HTTP_HOST")), XS_PATH_MAX-1);
-			base[XS_PATH_MAX-2] = '\0';
-			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
-				strncpy(base, calcpath(engine
-					? current->htmldir : rootdir), XS_PATH_MAX-1);
-			else if (config.usevirtualuid)
-			{
-				/* We got a virtual host, now set euid */
-				if (!origeuid)
-				{
-					setegid(currentgid = statbuf.st_gid);
-					setgroups(1, (const gid_t *)&statbuf.st_gid);
-					seteuid(statbuf.st_uid);
-				}
-				if (!(currentuid = geteuid()))
-				{
-					if (showheader)
-						error("500 Effective UID is not valid");
-					else
-						secprintf("[UID error]\n");
-					goto END;
-				}
-			}
-		}
-		else
-			strncpy(base, calcpath(engine ? current->htmldir : rootdir),
-				XS_PATH_MAX-1);
-		strcat(base, "/");
-		base[XS_PATH_MAX-2] = '\0';
-		if (engine)
-		{
-			file = path + 1;
-		}
-		else if (!was_slash)
-		{
-			file = path + 1;
-			strncat(base, current->phexecdir, XS_PATH_MAX-strlen(base)-1);
-			base[XS_PATH_MAX-2] = '\0';
-			strcat(base, "/");
-		} else
-		{
-			snprintf(tempbuf, sizeof(tempbuf), "cgi/nph-slash%s", path + 1);
-			tempbuf[sizeof(tempbuf)-1] = '\0';
-			file = tempbuf;
-			strncat(base, current->phexecdir, XS_PATH_MAX-strlen(base)-1);
-			base[XS_PATH_MAX-2] = '\0';
-			strcat(base, "/");
-		}
+	snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
 
-		if (!origeuid)
-		{
-			setegid(currentgid = config.groupid);
-			setgroups(1, &config.groupid);
-			seteuid(config.userid);
-		}
-		if (!(currentuid = geteuid()))
-		{
-			if (showheader)
-				error("500 Effective UID is not valid");
-			else
-				secprintf("[UID error]\n");
-			goto END;
-		}
-	}
-
-	size = strlen(current->execdir);
-#ifdef		HANDLE_SCRIPT
-	if (engine)
-		size = -1;
-	else
-#endif		/* HANDLE_SCRIPT */
-	if (strncmp(file, current->execdir, size) || (file[size] != '/'))
-	{
-		if (showheader)
-			error("403 Not a CGI path");
-		else
-			secprintf("[Not a CGI path]\n");
-		goto END;
-	}
-
-	strncpy(name, file + size + 1, XS_PATH_MAX - 64);
-	name[XS_PATH_MAX - 64] = '\0';
-	argv1 = NULL;
-	if ((temp = strchr(name, '?')))
-	{
-		*(temp++) = 0;
-		setenv("QUERY_STRING", temp, 1);
-		if (!strchr(temp, '='))
-			argv1 = temp;
-	}
-
-	nextslash = name;
-	for (;;)
-	{
-		if (!(nextslash = strchr(nextslash, '/')))
-			break;
-		*nextslash = 0;
-		snprintf(fullpath, XS_PATH_MAX, "%s%s", base, name);
-		fullpath[XS_PATH_MAX-1] = '\0';
-		if (stat(fullpath, &statbuf))
-		{
-			if (showheader)
-				error("403 Nonexistent CGI binary");
-			else
-				secprintf("[Nonexistent CGI binary]\n");
-			goto END;
-		}
-		if ((statbuf.st_mode & S_IFMT) == S_IFREG)
-			break;
-		*(nextslash++) = '/';
-	}
-	if (nextslash)
-	{
-		*nextslash = '/';
-		setenv("PATH_INFO", nextslash, 1);
-		setenv("PATH_TRANSLATED", convertpath(nextslash), 1);
-		*nextslash = 0;
-	}
-
-	if (strstr(name, "..") || strstr(name, "/.x"))
-	{
-		if (showheader)
-			error("400 Invalid URI");
-		else
-			secprintf("[Invalid URI]\n");
-		goto END;
-	}
-#ifdef		HANDLE_SCRIPT
-	if (engine)
-	{
-		if (userinfo)
-			snprintf(fullpath, XS_PATH_MAX, "/~%s/%s", userinfo->pw_name, name);
-		else
-			snprintf(fullpath, XS_PATH_MAX, "/%s", name);
-	}
-	else
-#endif		/* HANDLE_SCRIPT */
-	if (userinfo)
-		snprintf(fullpath, XS_PATH_MAX, "/~%s/%s/%s", userinfo->pw_name,
-			current->execdir, name);
-	else
-		snprintf(fullpath, XS_PATH_MAX, "/%s/%s", current->execdir, name);
-	fullpath[XS_PATH_MAX-1] = '\0';
-	if (was_slash)
-		setenv("SCRIPT_NAME", "/", 1);
-	else
-		setenv("SCRIPT_NAME", fullpath, 1);
+	setenv("PATH_INFO", path, 1);
+	setenv("PATH_TRANSLATED", fullpath, 1);
+	setenv("SCRIPT_NAME", path, 1);
 	setenv("REDIRECT_STATUS", "200", 1);
 
 	if (showheader)
 	{
-		snprintf(fullpath, XS_PATH_MAX, "%s%s", base, name);
+		snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
 		fullpath[XS_PATH_MAX-1] = '\0';
 		if ((nextslash = strrchr(fullpath, '/')))
 		{
@@ -426,45 +214,13 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 				}
 			}
 		}
+		snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
 	}
 
-	snprintf(fullpath, XS_PATH_MAX, "%s%s", base, name);
-	fullpath[XS_PATH_MAX-1] = '\0';
-	if (stat(fullpath, &statbuf))
-	{
-		snprintf(base, XS_PATH_MAX-1, "%s/%s",
-			calcpath(HTTPD_ROOT), current->execdir);
-		snprintf(fullpath, XS_PATH_MAX-1, "%s/%s/%s",
-			calcpath(HTTPD_ROOT), current->execdir, name);
-		if (stat(fullpath, &statbuf))
-		{
-			if (showheader)
-				error("403 Nonexistent CGI binary");
-			else
-				secprintf("[Nonexistent CGI binary]\n");
-			goto END;
-		}
-	}
-	if (userinfo && (statbuf.st_mode & (S_IWGRP | S_IWOTH)))
-	{
-		if (showheader)
-			error("403 CGI binary is writable");
-		else
-			secprintf("[CGI binary is writable]\n");
-		goto END;
-	}
-	if (userinfo && (statbuf.st_uid != currentuid))
-	{
-		if (showheader)
-			error("403 Invalid owner for CGI binary");
-		else
-			secprintf("[Invalid owner for CGI binary]");
-		goto END;
-	}
-	nph = (!strncmp(name, "nph-", 4) || strstr(name, "/nph-"));
-	dossi = (!strncmp(name, "ssi-", 4) || strstr(name, "/ssi-"));
-	nouid = (strstr(name, "/nph-nid-") || strstr(name, "/nid-") ||
-		!strncmp(name, "nph-nid-", 8) || !strncmp(name, "nid-", 4));
+	nph = (!strncmp(file, "nph-", 4) || strstr(file, "/nph-"));
+	dossi = (!strncmp(file, "ssi-", 4) || strstr(file, "/ssi-"));
+	nouid = (strstr(file, "/nph-nid-") || strstr(file, "/nid-") ||
+		!strncmp(file, "nph-nid-", 8) || !strncmp(file, "nid-", 4));
 	p[0] = -1; p[1] = -1;
 	if (1 /* !nph || do_ssl */)
 	{
@@ -546,32 +302,29 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 			close(count);
 		if (!origeuid)
 		{
-			seteuid(origeuid);
-			if (nouid)
-			{
-				currentuid = config.userid;
-				currentgid = config.groupid;
-			}
-			setgid(currentgid); setuid(currentuid);
-			if (!getuid() || !geteuid() ||
-				(getuid() != currentuid) ||
-				(getgid() != currentgid))
+			setuid(geteuid()); setgid(getegid());
+			if (!getuid() || !geteuid())
 			{
 				secprintf("Content-type: text/plain\r\n\r\n");
 				secprintf("[Invalid UID setting]\n");
 				secprintf("UID = %ld, EUID = %ld\n",
 					(long)getuid(), (long)geteuid());
+				secprintf("GID = %ld, EGID = %ld\n",
+					(long)getgid(), (long)getegid());
 				exit(1);
 			}
 		}
+fprintf(stderr, "path %s base %s file %s fullpath %s engine %s\n", path, base, file, fullpath, engine);
 		setenv("PATH", SCRIPT_PATH, 1);
-		snprintf(tempbuf, 1+strrchr(fullpath, '/') - fullpath, "%s", fullpath);
-		if (chdir(tempbuf))
+		if (chdir(base))
 		{
 			secprintf("Content-type: text/plain\r\n\r\n");
 			secprintf("[Cannot change directory]\n");
 			exit(1);
 		}
+		argv1 = getenv("QUERY_STRING");
+		if (argv1 && strchr(argv1, '='))
+			argv1 = NULL;
 #ifdef		HANDLE_SCRIPT
 #ifdef		HANDLE_PERL
 		if (engine && !strcmp(engine, "internal:perl"))
@@ -591,7 +344,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 		}
 		else
 #endif		/* HANDLE_SCRIPT */
-			execl(fullpath, name, argv1, NULL);
+			execl(fullpath, file, argv1, NULL);
 		/* no need to give local path info to the visitor */
 		if (nph)
 		{
@@ -825,10 +578,6 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 		close(q[0]); close(q[1]);
 	}
 #endif		/* HANDLE_SSL */
-	if (!origeuid)
-	{
-		seteuid(origeuid); setegid(savedegid); seteuid(savedeuid);
-	}
 #ifdef		HAVE_SIGEMPTYSET
 	sigemptyset(&action.sa_mask);
 #else		/* Not HAVE_SIGEMPYSET */

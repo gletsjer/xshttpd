@@ -801,6 +801,13 @@ do_get DECL1(char *, params)
 			return;
 		}
 	}
+	if (userinfo &&
+		(statbuf.st_mode & (S_IWGRP | S_IWOTH)) &&
+		(statbuf.st_mode & S_IXUSR))
+	{
+		error("403 User executable can be written by others");
+		return;
+	}
 
 	modtime = statbuf.st_mtime;
 	if ((fd = open(total, O_RDONLY, 0)) < 0)
@@ -816,9 +823,7 @@ do_get DECL1(char *, params)
 	if (script ||
 		(*cgi && !strncmp(cgi, HTTPD_SCRIPT_ROOT, size) && cgi[size] == '/'))
 	{
-		if (question)
-			*question = '?';
-		do_script(params, NULL, headers);
+		do_script(params, base, file, NULL, headers);
 		return;
 	}
 
@@ -830,12 +835,10 @@ do_get DECL1(char *, params)
 		if ((temp = strstr(file, search->ext)) &&
 			strlen(temp) == strlen(search->ext))
 		{
-			if (question)
-				*question = '?';
 			if (!strcmp(search->prog, "internal:404"))
 				error("404 Requested URL not found");
 			else
-				do_script(params, search->prog, headers);
+				do_script(params, base, file, search->prog, headers);
 			return;
 		}
 		search = search->next;
@@ -879,13 +882,14 @@ do_get DECL1(char *, params)
 	{
 		strcpy(real_path + strlen(real_path) - strlen(INDEX_HTML_2),
 			filename = INDEX_HTML_3);
+		snprintf(file, XS_PATH_MAX, "/%s", INDEX_HTML_3);
 		/* oops, lost the arguments  -  quick hack to get it back */
 		if (question)
 		{
 			strcat(real_path, "?");
 			strcat(real_path, question + 1);
 		}
-		params = file = real_path;
+		params = real_path;
 		wasdir = 0;
 		goto RETRY;
 	}

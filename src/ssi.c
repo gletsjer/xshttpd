@@ -588,7 +588,9 @@ dir_run_cgi DECL2(char *, here, size_t *, size)
 		return(ERR_CONT);
 	}
 	*search = 0;
+#if 0
 	do_script(here, 0, 0);
+#endif
 	if (qs)
 	{
 		setenv("QUERY_STRING", querystring, 1);

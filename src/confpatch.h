@@ -18,6 +18,7 @@
 #define		DECL2(t1,v1,t2,v2)	(t1 v1, t2 v2)
 #define		DECL3(t1,v1,t2,v2,t3,v3) (t1 v1, t2 v2, t3 v3)
 #define		DECL4(t1,v1,t2,v2,t3,v3,t4,v4) (t1 v1, t2 v2, t3 v3, t4 v4)
+#define		DECL5(t1,v1,t2,v2,t3,v3,t4,v4,t5,v5) (t1 v1, t2 v2, t3 v3, t4 v4, t5 v5)
 #ifdef		NOCONST
 #define		DECL1C(t1,v1)		(t1 v1)
 #define		DECL2C_(t1,v1,t2,v2)	(t1 v1, t2 v2)
