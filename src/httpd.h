@@ -3,8 +3,6 @@
 /* Based on xs-httpd/2.3 */
 #include	<sys/types.h>
 
-#define		SERVER_IDENT	"xs-httpd/3.0 beta/0.13"
-
 #define		SENDBUFSIZE	8192
 #define		MYBUFSIZ	1024
 #define		HEADSIZE	8192

@@ -119,3 +119,5 @@ Note: Linux distributions are well know for this feature */
 
 #undef PACKAGE
 
+#undef SERVER_IDENT
+

@@ -1,3 +1,11 @@
+Changes since 3.0 beta 13
+- Add a third directory index fallback: index.php
+- Allow multiple password retries
+- Use general /cgi-bin/error when virtual host doesn't have it
+- Don't allow virtual host "."
+- Change to current directory before running CGI or PHP
+- Allow setting character set (using .charset files)
+
 Changes since 3.0 beta 12
 - Fix a uid check
 
