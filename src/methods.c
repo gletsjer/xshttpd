@@ -985,8 +985,6 @@ do_get DECL1(char *, params)
 	{
 		strcpy(real_path + strlen(real_path) - strlen(INDEX_HTML),
 			filename = INDEX_HTML_2);
-		wasdir = 0;
-		goto RETRY;
 	}
 	else if (!strcmp(filename, INDEX_HTML_2) &&
 			strcmp(INDEX_HTML_2, INDEX_HTML_3))
@@ -994,17 +992,23 @@ do_get DECL1(char *, params)
 		strcpy(real_path + strlen(real_path) - strlen(INDEX_HTML_2),
 			filename = INDEX_HTML_3);
 		snprintf(file, XS_PATH_MAX, "/%s", INDEX_HTML_3);
-		/* oops, lost the arguments  -  quick hack to get it back */
-		if (question)
-		{
-			strcat(real_path, "?");
-			strcat(real_path, question + 1);
-		}
-		params = real_path;
-		wasdir = 0;
-		goto RETRY;
 	}
-	server_error("404 Requested URL not found", "NOT_FOUND");
+	else
+	{
+		/* no more retries */
+		server_error("404 Requested URL not found", "NOT_FOUND");
+		return;
+	}
+
+	/* add original arguments back to real_path */
+	if (question)
+	{
+		strcat(real_path, "?");
+		strcat(real_path, question + 1);
+	}
+	params = real_path;
+	wasdir = 0;
+	goto RETRY;
 }
 
 extern	VOID
