@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.51 2001/06/12 18:12:05 johans Exp $ */
+/* $Id: cgi.c,v 1.52 2001/12/26 14:09:17 johans Exp $ */
 
 #include	"config.h"
 
@@ -426,11 +426,18 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 	fullpath[XS_PATH_MAX-1] = '\0';
 	if (stat(fullpath, &statbuf))
 	{
-		if (showheader)
-			error("403 Nonexistent CGI binary");
-		else
-			secprintf("[Nonexistent CGI binary]\n");
-		goto END;
+		snprintf(base, XS_PATH_MAX-1, "%s/%s",
+			calcpath(HTTPD_ROOT), HTTPD_SCRIPT_ROOT);
+		snprintf(fullpath, XS_PATH_MAX-1, "%s/%s/%s",
+			calcpath(HTTPD_ROOT), HTTPD_SCRIPT_ROOT, name);
+		if (stat(fullpath, &statbuf))
+		{
+			if (showheader)
+				error("403 Nonexistent CGI binary");
+			else
+				secprintf("[Nonexistent CGI binary]\n");
+			goto END;
+		}
 	}
 	if (statbuf.st_mode & (S_IWGRP | S_IWOTH))
 	{
