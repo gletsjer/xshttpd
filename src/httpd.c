@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.161 2004/12/02 14:37:35 johans Exp $ */
+/* $Id: httpd.c,v 1.162 2004/12/02 17:43:54 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.161 2004/12/02 14:37:35 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.162 2004/12/02 17:43:54 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -415,14 +415,14 @@ load_config()
 					}
 				}
 				else
-					err(1, "illegal directive: '%s'", key);
+					errx(1, "illegal directive: '%s'", key);
 			}
 			else if (sscanf(line, "%s", key) == 1)
 			{
 				if (!strcasecmp("<System>", key))
 				{
 					if (subtype)
-						err(1, "illegal <System> nesting");
+						errx(1, "illegal <System> nesting");
 					subtype = 1;
 					current = malloc(sizeof(struct virtual));
 					memset(current, 0, sizeof(struct virtual));
@@ -430,7 +430,7 @@ load_config()
 				else if (!strcasecmp("<Users>", key))
 				{
 					if (subtype)
-						err(1, "illegal <Users> nesting");
+						errx(1, "illegal <Users> nesting");
 					subtype = 2;
 					current = malloc(sizeof(struct virtual));
 					memset(current, 0, sizeof(struct virtual));
@@ -438,7 +438,7 @@ load_config()
 				else if (!strcasecmp("<Virtual>", key))
 				{
 					if (subtype)
-						err(1, "illegal <Virtual> nesting");
+						errx(1, "illegal <Virtual> nesting");
 					subtype = 3;
 					current = malloc(sizeof(struct virtual));
 					memset(current, 0, sizeof(struct virtual));
@@ -446,7 +446,7 @@ load_config()
 				else if (!strcasecmp("<Socket>", key))
 				{
 					if (subtype)
-						err(1, "illegal <Socket> nesting");
+						errx(1, "illegal <Socket> nesting");
 					subtype = 4;
 					if (!config.sockets)
 					{
@@ -462,9 +462,9 @@ load_config()
 				else if (!strcasecmp("</System>", key))
 				{
 					if (subtype != 1)
-						err(1, "</System> end without start");
+						errx(1, "</System> end without start");
 					if (config.system)
-						err(1, "duplicate <System> definition");
+						errx(1, "duplicate <System> definition");
 					subtype = 0;
 					config.system = current;
 					current = NULL;
@@ -472,9 +472,9 @@ load_config()
 				else if (!strcasecmp("</Users>", key))
 				{
 					if (subtype != 2)
-						err(1, "</Users> end without start");
+						errx(1, "</Users> end without start");
 					if (config.users)
-						err(1, "duplicate <Users> definition");
+						errx(1, "duplicate <Users> definition");
 					subtype = 0;
 					config.users = current;
 					current = NULL;
@@ -482,7 +482,7 @@ load_config()
 				else if (!strcasecmp("</Virtual>", key))
 				{
 					if (subtype != 3)
-						err(1, "</Virtual> end without start");
+						errx(1, "</Virtual> end without start");
 					subtype = 0;
 					if (last)
 					{
@@ -499,14 +499,14 @@ load_config()
 				else if (!strcasecmp("</Socket>", key))
 				{
 					if (subtype != 4)
-						err(1, "</Socket> end without start");
+						errx(1, "</Socket> end without start");
 					subtype = 0;
 				}
 				else
-					err(1, "illegal directive: '%s'", key);
+					errx(1, "illegal directive: '%s'", key);
 			}
 			else
-				err(1, "illegal directive: '%s'", line);
+				errx(1, "illegal directive: '%s'", line);
 		}
 		fclose(confd);
 	}
@@ -593,9 +593,9 @@ load_config()
 	for (current = config.users; current; current = current->next)
 	{
 		if (!current->hostname)
-			err(1, "illegal virtual block without hostname");
+			errx(1, "illegal virtual block without hostname");
 		if (!current->htmldir)
-			err(1, "illegal virtual block without directory");
+			errx(1, "illegal virtual block without directory");
 		if (!current->execdir)
 			current->execdir = strdup(HTTPD_SCRIPT_ROOT);
 		if (!current->phexecdir)
