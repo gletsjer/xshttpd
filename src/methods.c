@@ -512,7 +512,8 @@ do_get DECL1(char *, params)
 	}
 
 #ifdef		SUPPORT_PHP3
-	if (strlen(file) > 4 && !strcmp(file + strlen(file) - 5, ".php3"))
+	if (strlen(file) > 4 &&
+		(!strcmp(file + strlen(file) - 5, ".php3") || strstr(file, ".php3?")))
 	{
 		do_script(params, headers);
 		return;

@@ -89,7 +89,8 @@ do_script DECL2C_(char *, path, int, headers)
 	const	char		*file, *argv1, *header;
 	int			p[2], nph, count, nouid, was_slash;
 #ifdef		SUPPORT_PHP3
-	int		php3 = strlen(path) > 4 && !strcmp(path+strlen(path)-5, ".php3");
+	int		php3 = strlen(path) > 4 && (!strcmp(path+strlen(path)-5, ".php3") ||
+				strstr(path, ".php3?"));
 #endif		/* SUPPORT_PHP3 */
 	unsigned	int	left;
 	struct	rlimit		limits;
