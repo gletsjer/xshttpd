@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.137 2004/08/09 17:34:10 johans Exp $ */
+/* $Id: httpd.c,v 1.138 2004/09/22 09:22:25 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.137 2004/08/09 17:34:10 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.138 2004/09/22 09:22:25 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1136,7 +1136,7 @@ server_error DECL2CC(char *, readable, char *, cgi)
 extern	void
 logrequest DECL2(const char *, request, long, size)
 {
-	char		buffer[80];
+	char		buffer[80], *dynrequest, *dynagent, *p;
 	time_t		theclock;
 	FILE		*alog;
 
@@ -1154,6 +1154,14 @@ logrequest DECL2(const char *, request, long, size)
 	else
 		alog = current->openaccess;
 
+	dynrequest = strdup(request);
+	for (p = dynrequest; *p; p++)
+		if ('\"' == *p)
+			*p = '\'';
+	dynagent = strdup(getenv("USER_AGENT"));
+	for (p = dynagent; *p; p++)
+		if ('\"' == *p)
+			*p = '\'';
 	if (current->logstyle == traditional)
 	{
 		FILE	*rlog = current->openreferer
@@ -1162,7 +1170,7 @@ logrequest DECL2(const char *, request, long, size)
 		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" 200 %ld\n",
 			remotehost,
 			buffer, 
-			getenv("REQUEST_METHOD"), request, version,
+			getenv("REQUEST_METHOD"), dynrequest, version,
 			size > 0 ? (long)size : (long)0);
 		if (rlog &&
 			(!thisdomain[0] || !strcasestr(referer, thisdomain)))
@@ -1173,10 +1181,13 @@ logrequest DECL2(const char *, request, long, size)
 				"\"%s\" \"%s\"\n",
 			remotehost,
 			buffer, 
-			getenv("REQUEST_METHOD"), request, version,
+			getenv("REQUEST_METHOD"), dynrequest, version,
 			size > 0 ? (long)size : (long)0,
 			referer,
-			getenv("USER_AGENT"));
+			dynagent);
+
+	free(dynrequest);
+	free(dynagent);
 }
 
 int
