@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.162 2004/12/02 17:43:54 johans Exp $ */
+/* $Id: httpd.c,v 1.163 2004/12/03 11:45:35 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.162 2004/12/02 17:43:54 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.163 2004/12/03 11:45:35 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -266,6 +266,8 @@ load_config()
 
 	/* default socket for backwards compatibility */
 	lsock = malloc(sizeof(struct socket_config));
+	if (!lsock)
+		err(1, "Fatal error");
 	memset(lsock, 0, sizeof(struct socket_config));
 	if (config.instances)
 		lsock->instances = config.instances;
@@ -425,6 +427,8 @@ load_config()
 						errx(1, "illegal <System> nesting");
 					subtype = 1;
 					current = malloc(sizeof(struct virtual));
+					if (!current)
+						err(1, "Fatal error");
 					memset(current, 0, sizeof(struct virtual));
 				}
 				else if (!strcasecmp("<Users>", key))
@@ -433,6 +437,8 @@ load_config()
 						errx(1, "illegal <Users> nesting");
 					subtype = 2;
 					current = malloc(sizeof(struct virtual));
+					if (!current)
+						err(1, "Fatal error");
 					memset(current, 0, sizeof(struct virtual));
 				}
 				else if (!strcasecmp("<Virtual>", key))
@@ -441,6 +447,8 @@ load_config()
 						errx(1, "illegal <Virtual> nesting");
 					subtype = 3;
 					current = malloc(sizeof(struct virtual));
+					if (!current)
+						err(1, "Fatal error");
 					memset(current, 0, sizeof(struct virtual));
 				}
 				else if (!strcasecmp("<Socket>", key))
@@ -455,6 +463,8 @@ load_config()
 					else
 					{
 						lsock->next = malloc(sizeof(struct socket_config));
+						if (!lsock->next)
+							err(1, "Fatal error");
 						lsock = lsock->next;
 						memset(lsock, 0, sizeof(struct socket_config));
 					}
@@ -539,6 +549,8 @@ load_config()
 	if (!config.system)
 	{
 		config.system = malloc(sizeof(struct virtual));
+		if (!config.system)
+			err(1, "Fatal error");
 		memset(config.system, 0, sizeof(struct virtual));
 	}
 	if (!config.system->hostname)
@@ -581,6 +593,8 @@ load_config()
 	if (!config.users)
 	{
 		config.users = malloc(sizeof(struct virtual));
+		if (!config.users)
+			err(1, "Fatal error");
 		memset(config.users, 0, sizeof(struct virtual));
 	}
 	if (!config.users->hostname)
@@ -1750,7 +1764,7 @@ standalone_socket(char id)
 
 	set_signals(); reqs = 0;
 	if (!(childs = (pid_t *)malloc(sizeof(pid_t) * config.instances)))
-		errx(1, "malloc() failed");
+		err(1, "malloc() failed");
 
 	for (count = 0; count < config.instances; count++)
 	{
@@ -1980,7 +1994,7 @@ main(int argc, char **argv)
 	for (num = option = 0; option < argc; option++)
 		num += (1 + strlen(argv[option]));
 	if (!(startparams = (char *)malloc(num)))
-		errx(1, "Cannot malloc memory for startparams");
+		err(1, "Cannot malloc memory for startparams");
 	*startparams = 0;
 	for (option = 0; option < argc; option++)
 	{
