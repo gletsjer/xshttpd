@@ -83,7 +83,8 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
 				status[MYBUFSIZ], contenttype[MYBUFSIZ], cachecontrol[MYBUFSIZ],
-				cookie[MYBUFSIZ], location[MYBUFSIZ], base[XS_PATH_MAX],
+				cookie[MYBUFSIZ], location[MYBUFSIZ], expires[MYBUFSIZ],
+				base[XS_PATH_MAX],
 				inbuf[MYBUFSIZ], *temp, name[XS_PATH_MAX], *nextslash,
 				tempbuf[XS_PATH_MAX + 32];
 	const	char		*file, *argv1, *header;
@@ -499,6 +500,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		exit(0);
 
 	status[0] = contenttype[0] = location[0] = cachecontrol[0] = cookie[0] = 0;
+	expires[0] = 0;
 	netbufind = netbufsiz = 0; readlinemode = 1;
 	if (!nph)
 	{
@@ -526,6 +528,8 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				strncpy(contenttype, skipspaces(header + 13), MYBUFSIZ);
 			else if (!strncasecmp(header, "Cache-control:", 14))
 				strncpy(cachecontrol, skipspaces(header + 14), MYBUFSIZ);
+			else if (!strncasecmp(header, "Expires:", 8))
+				strncpy(expires, skipspaces(header + 8), MYBUFSIZ);
 			else if (!strncasecmp(header, "Set-cookie:", 11))
 			{
 				if (!cookie[0])
@@ -570,6 +574,8 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			}
 			if (cookie[0])
 				secprintf("Set-cookie: %s\r\n", cookie);
+			if (expires[0])
+				secprintf("Expires: %s\r\n", expires);
 			switch(location[0])
 			{
 			case '/':
