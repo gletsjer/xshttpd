@@ -590,7 +590,13 @@ dir_remote_host DECL2(char *, here, size_t *, size)
 static	int
 dir_run_cgi DECL2(char *, here, size_t *, size)
 {
-	char			*search;
+	char	*search, *querystring, *qs;
+
+	if ((qs = getenv("QUERY_STRING")))
+	{
+		querystring = malloc(strlen(qs));
+		strcpy(querystring, qs);
+	}
 
 	if (*(here++) != ' ')
 	{
@@ -604,6 +610,11 @@ dir_run_cgi DECL2(char *, here, size_t *, size)
 	}
 	*search = 0;
 	do_script(here, 0, 0);
+	if (qs)
+	{
+		setenv("QUERY_STRING", querystring, 1);
+		free(querystring);
+	}
 	*search = '-'; return(ERR_NONE);
 }
 
