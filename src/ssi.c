@@ -43,6 +43,7 @@
 #include	"path.h"
 #include	"convert.h"
 #include	"xscounter.h"
+#include	"methods.h"
 #include	"mystring.h"
 #include	"htconfig.h"
 
@@ -568,6 +569,7 @@ static	int
 dir_run_cgi DECL2(char *, here, size_t *, size)
 {
 	char	*search, *querystring, *qs;
+	int		oldhead;
 
 	if ((qs = getenv("QUERY_STRING")))
 	{
@@ -588,10 +590,15 @@ dir_run_cgi DECL2(char *, here, size_t *, size)
 		return(ERR_CONT);
 	}
 	*search = 0;
-#if 0
-	do_script(here, 0, 0);
-#endif
-	if (qs)
+	oldhead = headers;
+	headers = 0;
+	do_get(here);
+	headers = oldhead;
+	/* used to do something like this - which is way more efficient
+	 *
+	do_script(here, "", "", NULL, 0);
+	 */
+	if (querystring)
 	{
 		setenv("QUERY_STRING", querystring, 1);
 		free(querystring);
@@ -908,6 +915,8 @@ parsedirectives DECL2(char *, parse, size_t *, size)
 		LOOPNEXT: ;
 	}
 
+	/* So what _is_ this for anyway??? */
+#if		0
 	if (store != result)
 	{
 		if (print_enabled())
@@ -917,6 +926,7 @@ parsedirectives DECL2(char *, parse, size_t *, size)
 			*size += (store - result);
 		}
 	}
+#endif
 	return(ERR_NONE);
 }
 
