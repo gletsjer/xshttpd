@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.58 2001/05/18 18:43:52 johans Exp $ */
+/* $Id: httpd.c,v 1.59 2001/05/18 19:02:35 johans Exp $ */
 
 #include	"config.h"
 
@@ -1742,22 +1742,22 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	/* Explicity set these, overriding default or implicit setting */
 	if (longopt[optionp])
 	{
-		strncpy(port, optarg, NI_MAXSERV);
+		strncpy(port, longopt[optionp], NI_MAXSERV);
 		port[NI_MAXSERV-1] = '\0';
 	}
 	if (longopt[optionaa])
 	{
-		strncpy(access_path, optarg, XS_PATH_MAX);
+		strncpy(access_path, longopt[optionaa], XS_PATH_MAX);
 		access_path[XS_PATH_MAX-1] = '\0';
 	}
 	if (longopt[optionrr])
 	{
-		strncpy(refer_path, optarg, XS_PATH_MAX);
+		strncpy(refer_path, longopt[optionrr], XS_PATH_MAX);
 		refer_path[XS_PATH_MAX-1] = '\0';
 	}
 	if (longopt[optionee])
 	{
-		strncpy(error_path, optarg, XS_PATH_MAX);
+		strncpy(error_path, longopt[optionee], XS_PATH_MAX);
 		error_path[XS_PATH_MAX-1] = '\0';
 	}
 
