@@ -660,9 +660,9 @@ do_get DECL1(char *, params)
 		{
 			char *http_host = getenv("HTTP_HOST");
 
-			if (port != 80)
+			if (port != 80 && !http_host)
 				sprintf(total, "http://%s:%d%s/",
-					(http_host ? http_host : thishostname), port, orig);
+					thishostname, port, orig);
 			else
 				sprintf(total, "http://%s%s/",
 					(http_host ? http_host : thishostname), orig);
