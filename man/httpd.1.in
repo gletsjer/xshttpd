@@ -288,6 +288,12 @@ KOI8-R.
 \fB *.charset\fP
 Sets the character set for a specific file (see *.redir).
 .TP
+\fB .mimetypes\fP
+This file lets a user override the contents of the global
+\fImime.types\fP file. The syntax of this file is exactly the
+same as that for the global configuration file, but it applies
+(recurively) to the local directories.
+.TP
 \fB .xsauth\fP
 If this file exists, all files in that directory (NOT the
 subdirectories) are protected by usercode/password
@@ -297,8 +303,8 @@ details about this.
 \fB .xsscripts
 This file lets a user override the contents of the global
 \fIscript.methods\fP file. The syntax of this file is exactly the
-same as that for the global configuration file, but it applies only
-to a single directory.
+same as that for the global configuration file, but it applies
+(recurively) to the local directories.
 .LP
 .SH XS\-HTTPD SSI's
 One of the most advanced features of this WWW server is its
