@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.60 2001/05/30 10:33:18 johans Exp $ */
+/* $Id: httpd.c,v 1.61 2001/11/08 11:10:06 johans Exp $ */
 
 #include	"config.h"
 
@@ -1346,7 +1346,7 @@ standalone_main DECL0
 	saddr.sa_family = PF_INET;
 	if (!strcmp(port, "http"))
 		sport = 80;
-	else if (!strcmp(port, "shttp"))
+	else if (!strcmp(port, "https"))
 		sport = 443;
 	else
 		sport = atoi(port) || 80;
