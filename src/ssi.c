@@ -761,7 +761,6 @@ dir_endswitch DECL2(char *, here, size_t *, size)
 static	int
 dir_case DECL2(char *, here, size_t *, size)
 {
-	unsigned int caselen = 256;
 	char *casestr = malloc(256);
 
 	strncpy(casestr, switchstr, switchlen);

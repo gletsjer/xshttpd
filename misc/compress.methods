@@ -22,3 +22,4 @@
 # from top to bottom.
 
 /usr/bin/gunzip		.gz
+#/usr/local/bunzip2	.bz2

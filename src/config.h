@@ -36,6 +36,8 @@ for more information about these SSI's. */
 #define RESTRICTXS
  
 /* PHP3 support
+ * We don't use the PHP library (yet), but rely on the stand-alone
+ * version instead. Shouldn't matter (only slightly in performance).
  */
 #define SUPPORT_PHP3
 #define PHP3_PATH	"/usr/local/bin/php"

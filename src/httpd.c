@@ -1183,7 +1183,9 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	const	struct	passwd	*userinfo;
 	const	struct	group	*groupinfo;
 	int			option, num;
+#ifndef 	INET6
 	const	struct	hostent	*hp;
+#endif		/* INET6 */
 
 	origeuid = geteuid(); origegid = getegid();
 #ifdef		HAVE_SETPRIORITY

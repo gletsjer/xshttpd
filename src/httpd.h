@@ -1,8 +1,8 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* Based on xs-httpd/2.3 ilse-version/1.0 */
+/* Based on xs-httpd/2.3 */
 
-#define		SERVER_IDENT	"xs-httpd/2.3 stack-version/2.3"
+#define		SERVER_IDENT	"xs-httpd/3.0 beta/0.1"
 
 #define		SENDBUFSIZE	8192
 #define		MYBUFSIZ	1024

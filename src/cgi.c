@@ -108,7 +108,7 @@ do_script DECL2C_(char *, path, int, headers)
 	action.sa_flags = 0;
 	sigaction(SIGALRM, &action, NULL);
 
-	alarm(0); /* left = alarm(360); */ fflush(stdout);
+	left = alarm(360); fflush(stdout);
 	unsetenv("PATH_INFO"); unsetenv("PATH_TRANSLATED");
 	unsetenv("QUERY_STRING"); unsetenv("SCRIPT_NAME");
 	unsetenv("REDIRECT_STATUS");
@@ -646,5 +646,5 @@ do_script DECL2C_(char *, path, int, headers)
 	action.sa_handler = alarm_handler;
 	action.sa_flags = 0;
 	sigaction(SIGALRM, &action, NULL);
-	/* alarm(left); */
+	alarm(left);
 }
