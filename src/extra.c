@@ -45,11 +45,11 @@ strcasestr DECL2CC(char *, big, char *, little)
 	}
 	bcopy(little, newlittle, len);
 
-	for (search = newlittle; *search; )
-		if (isupper(*(search++)))
+	for (search = newlittle; *search; search++)
+		if (isupper(*search))
 			*search = tolower(*search);
-	for (search = newbig; *search; )
-		if (isupper(*(search++)))
+	for (search = newbig; *search; search++)
+		if (isupper(*search))
 			*search = tolower(*search);
 	search = strstr(newbig, newlittle);
 	result = big + (search - newbig);
