@@ -63,7 +63,6 @@ transform_user_dir2 DECL3_C_(char *, base, struct passwd *, userinfo,
 				"LOCAL_NO_PAGE");
 		return(1);
 	}
-	sprintf(base, "/www/%s/", userinfo->pw_name);
 	if (strncmp(linkbuffer, "/lwww", 5))
 	{
 		if (errors)
