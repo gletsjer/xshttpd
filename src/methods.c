@@ -760,7 +760,7 @@ do_get DECL1(char *, params)
 #ifdef		HANDLE_COMPRESSED
 	if (search)
 	{
-		if (search->name &&
+		if (strlen(search->name) &&
 			strstr(getenv("HTTP_ACCEPT_ENCODING"), search->name))
 		{
 			setenv("CONTENT_ENCODING", search->name, 1);
