@@ -84,13 +84,19 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
 				status[MYBUFSIZ], contenttype[MYBUFSIZ], cachecontrol[MYBUFSIZ],
 				cookie[MYBUFSIZ], location[MYBUFSIZ], expires[MYBUFSIZ],
-				base[XS_PATH_MAX],
-				inbuf[MYBUFSIZ], *temp, name[XS_PATH_MAX], *nextslash,
+				base[XS_PATH_MAX], *temp, name[XS_PATH_MAX], *nextslash,
 				tempbuf[XS_PATH_MAX + 32];
 	const	char		*file, *argv1, *header;
-	int			p[2], q[2], nph, count, nouid, was_slash, ssl_post = 0;
+	int			p[2], nph, count, nouid, was_slash;
 	unsigned	int	left;
+#ifdef		HANDLE_SSL
+	char	inbuf[MYBUFSIZ];
+	int		q[2];
+	int		ssl_post = 0;
+#endif		/* HANDLE_SSL */
+#ifndef		DONT_USE_SETRLIMIT
 	struct	rlimit		limits;
+#endif		/* DONT_USE_SETRLIMIT */
 	const	struct	passwd	*userinfo;
 	FILE			*auth;
 	struct	sigaction	action;
@@ -410,7 +416,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			{
 				written = writetodo > MYBUFSIZ ? MYBUFSIZ : writetodo;
 				secread(0, inbuf, written);
-				if (readerror = ERR_get_error()) {
+				if ((readerror = ERR_get_error())) {
 					fprintf(stderr, "SSL Error: %s\n",
 						ERR_reason_error_string(readerror));
 					goto END;

@@ -61,7 +61,10 @@ extern	VOID
 setprocname(const char *name, ...)
 {
 	va_list		ap;
-	static	char	buffer[256], *argv;
+	static	char	buffer[256];
+#ifdef 		PS_STRINGS
+	static	char	*argv;
+#endif		/* PS_STRINGS */
 
 	va_start(ap, name);
 #else		/* Not not NONEWSTYLE */

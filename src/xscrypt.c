@@ -12,5 +12,5 @@
 extern	VOID
 xs_encrypt DECL1(char *, buffer)
 {
-	strcpy(buffer, crypt(buffer, "xs"));
+	strcpy(buffer, (char *)crypt(buffer, "xs"));
 }

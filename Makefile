@@ -41,10 +41,13 @@ CFLAGS	+= -I/usr/local/include -I/usr/local/ssl/include
 # SCO, you will to add -lintl because of strftime().
 
 #LDFLAGS	= -s -lcrypt
-LDFLAGS	= -lcrypt
+LDFLAGS	=
 
-# Enable when using SSL
-LDFLAGS	+= -L/usr/local/lib -L /usr/local/ssl/lib -lcrypto -lssl
+# This is only linked with files that use crypt()
+LD_CRYPT	= -lcrypt
+
+# Enable only when using SSL
+LD_SSL	= -L/usr/local/lib -L /usr/local/ssl/lib -lcrypto -lssl
 
 # Where should systemwide user-usable binaries be installed? This includes
 # the WWW server itself, the controller (httpdc) and also the authentication
@@ -67,7 +70,6 @@ MANEXT	= .gz
 # What is the root directory of the WWW server? This should be directory
 # in which the subdirectories 'logs' and 'htdocs'will be placed.
 
-!HTTPDIR	= /vwww/httpd
 HTTPDIR	= /usr/local/lib/httpd
 
 # Location of the systemwide CGI binaries.
@@ -93,15 +95,16 @@ httpd:		httpd.o local.o err.o procname.o extra.o ssi.o cgi.o \
 			xscrypt.o path.o setenv.o methods.o convert.o
 		$(CC) httpd.o local.o err.o procname.o extra.o ssi.o cgi.o \
 			xscrypt.o path.o setenv.o methods.o convert.o \
-			-o httpd $(LDFLAGS)
+			-o httpd $(LDFLAGS) $(LD_CRYPT) $(LD_SSL)
 		$(STRIP) httpd
 
 xspasswd:	xspasswd.o err.o xscrypt.o extra.o
-		$(CC) xspasswd.o err.o xscrypt.o extra.o -o xspasswd $(LDFLAGS)
+		$(CC) xspasswd.o err.o xscrypt.o extra.o -o xspasswd \
+			$(LDFLAGS) $(LD_CRYPT)
 		$(STRIP) xspasswd
 
 xschpass:	xschpass.o xscrypt.o extra.o
-		$(CC) xschpass.o xscrypt.o extra.o -o xschpass $(LDFLAGS)
+		$(CC) xschpass.o xscrypt.o extra.o -o xschpass $(LDFLAGS) $(LD_CRYPT)
 		$(STRIP) xschpass
 
 imagemap:	imagemap.o extra.o

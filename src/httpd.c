@@ -825,7 +825,7 @@ process_request DECL0
 #ifdef		HANDLE_SSL
 	if (do_ssl)
 		setenv("SSL_CIPHER", SSL_get_cipher(ssl), 1);
-	if (readerror = ERR_get_error()) {
+	if ((readerror = ERR_get_error())) {
 		fprintf(stderr, "SSL Error: %s\n", ERR_reason_error_string(readerror));
 		error("400 SSL Error");
 		return;
