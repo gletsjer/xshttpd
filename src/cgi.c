@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.63 2002/07/01 17:03:52 johans Exp $ */
+/* $Id: cgi.c,v 1.64 2002/08/16 13:25:40 johans Exp $ */
 
 #include	"config.h"
 
@@ -314,7 +314,6 @@ do_script DECL5(char *, path, char *, base, char *, file, char *, engine, int, s
 				exit(1);
 			}
 		}
-fprintf(stderr, "path %s base %s file %s fullpath %s engine %s\n", path, base, file, fullpath, engine);
 		setenv("PATH", SCRIPT_PATH, 1);
 		if (chdir(base))
 		{
