@@ -2,11 +2,11 @@
 
 #ifndef		NOFORWARDS
 extern	VOID	loadcompresstypes	PROTO((void));
-extern	VOID	loadscripttypes		PROTO((char *));
+extern	VOID	loadscripttypes		PROTO((char *, char *));
 #ifdef		HANDLE_SSL
 extern	VOID	loadssl				PROTO((void));
 #endif		/* HANDLE_SSL */
-extern	VOID	loadfiletypes		PROTO((char *));
+extern	VOID	loadfiletypes		PROTO((char *, char *));
 #ifdef		HANDLE_PERL
 extern	VOID	loadperl			PROTO((void));
 #endif		/* HANDLE_PERL */

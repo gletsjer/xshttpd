@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.115 2004/11/18 14:07:40 johans Exp $ */
+/* $Id: methods.c,v 1.116 2004/11/23 19:59:11 johans Exp $ */
 
 #include	"config.h"
 
@@ -999,11 +999,11 @@ do_get DECL1(char *, params)
 	name[XS_PATH_MAX-1] = '\0';
 
 	/* check for local file type */
-	loadfiletypes(base);
+	loadfiletypes(orgbase, base);
 
 	/* check litype for local and itype for global settings */
 	if ((tmp = config.uselocalscript))
-		loadscripttypes(base);
+		loadscripttypes(orgbase, base);
 	for (isearch = litype ? litype : itype; isearch; isearch = isearch->next)
 	{
 		size = strlen(isearch->ext);
@@ -1127,7 +1127,7 @@ do_options DECL1C(char *, params)
 }
 
 extern	VOID
-loadfiletypes DECL1(char *, base)
+loadfiletypes DECL2(char *, orgbase, char *, base)
 {
 	char		line[MYBUFSIZ], *end, *comment;
 	char		*mimepath;
@@ -1150,9 +1150,7 @@ loadfiletypes DECL1(char *, base)
 	lftype = NULL;
 	if (base)
 	{
-		mimepath = (char *)malloc(strlen(base) + 12);
-		sprintf(mimepath, "%s/.mimetypes", base);
-		if (!(mime = fopen(mimepath, "r")))
+		if (!(mime = find_file(orgbase, base, ".mimetypes")))
 			return;
 	}
 	else
@@ -1230,19 +1228,18 @@ loadcompresstypes DECL0
 }
 
 extern	VOID
-loadscripttypes DECL1(char *, base)
+loadscripttypes DECL2(char *, orgbase, char *, base)
 {
 	char		line[MYBUFSIZ], *end, *comment, *path;
 	FILE		*methods;
 	ctypes		*prev, *new;
 
-	if (base)
+	if (orgbase && base)
 	{
 		while (litype)
 			{ new = litype->next; free(litype); litype = new; }
 		path = (char *)malloc(strlen(base) + 12);
-		sprintf(path, "%s/.xsscripts", base);
-		if (!(methods = fopen(path, "r")))
+		if (!(methods = find_file(orgbase, base, ".xsscripts")))
 		{
 			free(path);
 			return;

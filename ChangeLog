@@ -1,6 +1,10 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.3 beta 5
+- Recursive .mimetypes
+- Recursive .xsscripts
+
 Changes since 3.3 beta 4
 - Allow per directory .mimetypes
 
