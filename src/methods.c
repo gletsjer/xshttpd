@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.131 2005/03/10 16:34:54 johans Exp $ */
+/* $Id: methods.c,v 1.132 2005/03/29 16:24:24 johans Exp $ */
 
 #include	"config.h"
 
@@ -343,6 +343,7 @@ sendcompressed(int fd, const char *method)
 		error("500 Unable to open temporary file");
 		exit(1);
 	}
+	remove(mkstemp);
 #else		/* HAVE_MKSTEMP */
 	char		*tmp;
 
