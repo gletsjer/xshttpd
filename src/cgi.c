@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.50 2001/05/30 10:33:18 johans Exp $ */
+/* $Id: cgi.c,v 1.51 2001/06/12 18:12:05 johans Exp $ */
 
 #include	"config.h"
 
@@ -506,10 +506,10 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 		setrlimit(RLIMIT_MEMLOCK, &limits);
 #endif		/* RLIMIT_MEMLOCK */
 #endif		/* USE_SETRLIMIT */
-#ifdef		HANDLE_SSL
-		/* Posting via SSL takes a lot of extra work */
 		if (1 /* !nph || do_ssl */)
 			dup2(p[1], 1);
+#ifdef		HANDLE_SSL
+		/* Posting via SSL takes a lot of extra work */
 		dup2(q[0], 0);
 #endif		/* HANDLE_SSL */
 

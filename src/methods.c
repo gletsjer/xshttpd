@@ -734,7 +734,7 @@ do_get DECL1(char *, params)
 	snprintf(total, XS_PATH_MAX, "%s%s", base, filename);
 	total[XS_PATH_MAX-1] = '\0';
 	if (!lstat(total, &statbuf) && S_ISLNK(statbuf.st_mode) &&
-		userinfo && (statbuf.st_uid != getuid()))
+		userinfo && (statbuf.st_uid != geteuid()))
 	{
 		error("403 Invalid owner of symlink");
 		return;
