@@ -28,11 +28,11 @@ extern	int
 main DECL2(int, argc, char **, argv)
 {
 	int			x, y, z, comp, total, fd, mode = MODE_TOTAL,
-				option;
+				wrset = 0, wrint = 0, option;
 	char			counterfile[XS_PATH_MAX], url[BUFSIZ];
 	countstr		counter;
 
-	while ((option = getopt(argc, argv, "dmt")) != EOF)
+	while ((option = getopt(argc, argv, "dmtw:")) != EOF)
 	{
 		switch(option)
 		{
@@ -45,8 +45,13 @@ main DECL2(int, argc, char **, argv)
 		case 't':
 			mode = MODE_TOTAL;
 			break;
+		case 'w':
+			wrset = 1;
+			if ((wrint = atoi(optarg)) < 0)
+				errx(1, "Cannot set a negative number");
+			break;
 		default:
-			errx(1, "Usage: %s -[d|m|t] URL", argv[0]);
+			errx(1, "Usage: %s -[d|m|t] [-w #] URL", argv[0]);
 		}
 	}
 
@@ -56,7 +61,7 @@ main DECL2(int, argc, char **, argv)
 	strcpy(url, argv[optind]);
 
 	sprintf(counterfile, "%s/%s", HTTPD_ROOT, CNT_DATA);
-	if ((fd = open(counterfile, O_RDONLY, 0)) < 0)
+	if ((fd = open(counterfile, wrset ? O_RDWR : O_RDONLY, 0)) < 0)
 		err(1, "Could not open(%s)", counterfile);
 
 	if ((total = lseek(fd, 0, SEEK_END)) == -1)
@@ -89,14 +94,27 @@ main DECL2(int, argc, char **, argv)
 	switch(mode)
 	{
 	case MODE_TOTAL:
+		if (wrset)
+			counter.total = wrint;
 		printf("%d\n", counter.total);
 		break;
 	case MODE_TODAY:
+		if (wrset)
+			counter.today = wrint;
 		printf("%d\n", counter.today);
 		break;
 	case MODE_MONTH:
+		if (wrset)
+			counter.month = wrint;
 		printf("%d\n", counter.month);
 		break;
+	}
+	if (wrset)
+	{
+		if (lseek(fd, y * sizeof(countstr), SEEK_SET) == -1)
+			err(1, "lseek()");
+		if (write(fd, &counter, sizeof(countstr)) != sizeof(countstr))
+			err(1, "write()");
 	}
 	fflush(stdout);
 	close(fd);
