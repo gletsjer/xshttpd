@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.134 2004/06/26 13:10:07 johans Exp $ */
+/* $Id: httpd.c,v 1.135 2004/06/30 12:43:32 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.134 2004/06/26 13:10:07 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.135 2004/06/30 12:43:32 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1610,7 +1610,7 @@ standalone_main DECL0
 
 	detach(); open_logs(0);
 
-	for (sock = config.sockets; sock->next; sock = sock->next)
+	for (sock = config.sockets; sock; sock = sock->next)
 	{
 		config.family	= sock->family;
 		config.address	= sock->address;
@@ -1618,22 +1618,25 @@ standalone_main DECL0
 		config.instances= sock->instances;
 		config.usessl	= sock->usessl;
 
-		switch ((pid = fork()))
-		{
-		case -1:
-			warn("fork() failed");
-			killpg(0, SIGTERM);
-			exit(1);
-		case 0:
-			mainhttpd = 0;
+		if (sock->next)
+			/* spawn auxiliary master */
+			switch ((pid = fork()))
+			{
+			case -1:
+				warn("fork() failed");
+				killpg(0, SIGTERM);
+				exit(1);
+			case 0:
+				mainhttpd = 0;
+				standalone_socket(id);
+				exit(0);
+			default:
+				id++;
+			}
+		else
+			/* make myself useful */
 			standalone_socket(id);
-			exit(0);
-		default:
-			id++;
-		}
 	}
-	/* make myself useful */
-	standalone_socket(id);
 }
 
 static	VOID
