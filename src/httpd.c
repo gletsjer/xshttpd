@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.54 2001/03/19 14:50:46 johans Exp $ */
+/* $Id: httpd.c,v 1.55 2001/03/22 19:02:52 johans Exp $ */
 
 #include	"config.h"
 
@@ -1210,17 +1210,16 @@ process_request DECL0
 			if ((*http_host < 'a' || *http_host > 'z') &&
 				(*http_host < 'A' || *http_host > 'Z') &&
 				(*http_host < '0' || *http_host > '9') &&
-				*http_host != '-' && *http_host != '.' && *http_host != ':' &&
+				*http_host != '-' && *http_host != '.' &&
+				*http_host != ':' &&
 				*http_host != '[' && *http_host != ']')
 			{
-				error("400 Invalid Host Header");
+				server_error("400 Invalid Host Header", "BAD_REQUEST");
 				return;
 			}
+		/* Ignore unqualified names - it could be a subdirectory! */
 		if (!strchr(getenv("HTTP_HOST"), '.'))
-		{
-			error("400 Invalid Host Header");
-			return;
-		}
+			unsetenv("HTTP_HOST");
 	}
 	else if (headers >= 11)
 	{
