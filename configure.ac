@@ -22,17 +22,19 @@ AC_CHECK_HEADERS(alloca.h crypt.h err.h sys/exec.h getopt.h fcntl.h memory.h sys
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
+AC_HEADER_TIME
+AC_STRUCT_TM
 AC_TYPE_UID_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
-AC_HEADER_TIME
-AC_STRUCT_TM
+AC_TYPE_SIGNAL
+AC_CHECK_TYPES(socklen_t,,, [#include <sys/types.h>
+#include <sys/socket.h>])
 
 dnl Checks for library functions.
 AC_FUNC_MMAP
 AC_FUNC_SETPGRP
 dnl AC_FUNC_SETVBUF_REVERSED
-AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_FUNC_WAIT3

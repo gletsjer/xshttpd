@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.112 2004/10/23 14:53:54 johans Exp $ */
+/* $Id: methods.c,v 1.113 2004/10/25 18:53:41 johans Exp $ */
 
 #include	"config.h"
 
@@ -72,7 +72,6 @@
 #include	<perl.h>
 #endif		/* HANDLE_PERL */
 #ifndef		s6_addr16
-#define		s6_addr8	__u6_addr.__u6_addr8
 #define		s6_addr16	__u6_addr.__u6_addr16
 #define		s6_addr32	__u6_addr.__u6_addr32
 #endif		/* s6_addr16 */
@@ -100,7 +99,9 @@
 
 #ifndef		NOFORWARDS
 static int	getfiletype		PROTO((int));
+#ifdef	INET6
 static int	v6masktonum		PROTO((int, struct in6_addr *));
+#endif	/* INET6 */
 static int	allowxs			PROTO((FILE *));
 static VOID	senduncompressed	PROTO((int));
 static VOID	sendcompressed		PROTO((int, const char *));
@@ -425,6 +426,7 @@ sendcompressed DECL2_C(int, fd, char *, method)
 	senduncompressed(processed);
 }
 
+#ifdef		INET6
 static	int
 v6masktonum	DECL2(int, mask, struct in6_addr *, addr6)
 {
@@ -437,7 +439,7 @@ v6masktonum	DECL2(int, mask, struct in6_addr *, addr6)
 	z = 0;
 	for (x = 0; x < mask; x++)
 	{
-		addr6->s6_addr8[y] |= (1 << (7 - z));
+		addr6->s6_addr[y] |= (1 << (7 - z));
 		z++;
 		if (z == 8)
 		{
@@ -448,6 +450,7 @@ v6masktonum	DECL2(int, mask, struct in6_addr *, addr6)
 
 	return 0;
 }
+#endif		/* INET6 */
 
 extern	int
 allowxs DECL1(FILE *, rfile)

@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.143 2004/10/22 12:07:53 johans Exp $ */
+/* $Id: httpd.c,v 1.144 2004/10/25 18:53:41 johans Exp $ */
 
 #include	"config.h"
 
@@ -98,9 +98,13 @@ extern	int	setpriority PROTO((int, int, int));
 #endif		/* NOFORWARDS */
 #endif		/* HPUX */
 
+#ifndef		HAVE_SOCKLEN_T
+typedef	size_t	socklen_t;
+#endif		/* HAVE_SOCKLEN_T */
+
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.143 2004/10/22 12:07:53 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.144 2004/10/25 18:53:41 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -525,10 +529,12 @@ load_config DECL0
 		config.pidfile = strdup(PID_PATH);
 	if (!config.localmode)
 		config.localmode = 1;
+#ifdef		HANDLE_SSL
 	if (!config.sslcertificate)
 		config.sslcertificate = strdup(CERT_FILE);
 	if (!config.sslprivatekey)
 		config.sslprivatekey = strdup(KEY_FILE);
+#endif		/* HANDLE_SSL */
 	/* Set up system section */
 	if (!config.system)
 	{
@@ -1669,7 +1675,7 @@ static	VOID
 standalone_socket DECL1(char, id)
 {
 	int			csd = 0, count, temp;
-	size_t			clen;
+	socklen_t		clen;
 #ifdef		HAVE_GETADDRINFO
 	struct	addrinfo	hints, *res;
 	struct	sockaddr_storage	saddr;
