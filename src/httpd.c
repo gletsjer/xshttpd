@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.35 2001/01/26 17:48:46 johans Exp $ */
+/* $Id: httpd.c,v 1.36 2001/01/26 22:10:27 johans Exp $ */
 
 #include	"config.h"
 
@@ -1199,7 +1199,6 @@ standalone_main DECL0
 		clen = sizeof(saddr);
 		if ((csd = accept(sd, (struct sockaddr *)&saddr, &clen)) < 0)
 		{
-			perror("500 Foobar");
 			if (errno == EINTR)
 				child_handler(SIGCHLD);
 			continue;
