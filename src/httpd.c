@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.37 2001/01/27 17:57:07 johans Exp $ */
+/* $Id: httpd.c,v 1.38 2001/01/27 19:33:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -1048,6 +1048,7 @@ standalone_main DECL0
 	struct	sockaddr_storage	saddr;
 #else		/* HAVE_GETADDRINFO */
 	struct	sockaddr	saddr;
+	unsigned	short	sport;
 #endif		/* HAVE_GETADDRINFO */
 	pid_t			*childs, pid;
 	struct	rlimit		limit;
@@ -1096,6 +1097,12 @@ standalone_main DECL0
 	/* Quick patch to run on old systems */
 	memset(&saddr, 0, sizeof(struct sockaddr));
 	saddr.sa_family = PF_INET;
+	if (!strcmp(port, "http"))
+		sport = 80;
+	else if (!strcmp(port, "shttp"))
+		sport = 443;
+	else
+		sport = atoi(port) || 80;
 	((struct sockaddr_in *)&saddr)->sin_port = htons(atoi(port));
 
 	if (bind(sd, &saddr, sizeof(struct sockaddr)) == -1)
