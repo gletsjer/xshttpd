@@ -517,7 +517,12 @@ dir_include_file DECL2(char *, here, size_t *, size)
 	*search = '-';
 	ret = sendwithdirectives_internal(fd, size);
 	numincludes--;
-	close(fd); return(ret);
+	close(fd);
+	if (getenv("ORIG_PATH_INFO"))
+		setenv("PATH_INFO", getenv("ORIG_PATH_INFO"), 1);
+	if (getenv("ORIG_PATH_TRANSLATED"))
+		setenv("PATH_TRANSLATED", getenv("ORIG_PATH_TRANSLATED"), 1);
+	return(ret);
 }
 
 static	int
@@ -607,6 +612,10 @@ dir_run_cgi DECL2(char *, here, size_t *, size)
 		setenv("QUERY_STRING", querystring, 1);
 		free(querystring);
 	}
+	if (getenv("ORIG_PATH_INFO"))
+		setenv("PATH_INFO", getenv("ORIG_PATH_INFO"), 1);
+	if (getenv("ORIG_PATH_TRANSLATED"))
+		setenv("PATH_TRANSLATED", getenv("ORIG_PATH_TRANSLATED"), 1);
 	(void)size;
 	return(ERR_NONE);
 }
