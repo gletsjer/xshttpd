@@ -14,6 +14,7 @@ image/x-xpixmap			xpm
 image/tiff			tiff
 image/tiff			tif
 image/ief			ief
+image/png			png
 application/font-tdpfr		pfr
 application/octet-stream	bin
 application/msword		doc
