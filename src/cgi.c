@@ -432,7 +432,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 #ifdef		HANDLE_SCRIPT
 		if (engine)
 		{
-			setenv("PATH_INFO", fullpath, 1);
+			unsetenv("PATH_INFO");
 			setenv("PATH_TRANSLATED", fullpath, 1);
 			execl(engine, engine, fullpath, argv1, NULL);
 		}
