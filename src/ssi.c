@@ -601,6 +601,8 @@ dir_run_cgi DECL2(char *, here, size_t *, size)
 		if ((querystring = malloc(strlen(qs))))
 			strcpy(querystring, qs);
 	}
+		else
+			querystring = NULL;
 
 	if (*(here++) != ' ')
 	{
