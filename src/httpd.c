@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.155 2004/11/26 18:03:36 johans Exp $ */
+/* $Id: httpd.c,v 1.156 2004/11/26 18:33:26 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.155 2004/11/26 18:03:36 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.156 2004/11/26 18:33:26 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -268,7 +268,7 @@ load_config()
 	lsock = malloc(sizeof(struct socket_config));
 	memset(lsock, 0, sizeof(struct socket_config));
 	if (config.instances)
-		lsock.instances = config.instances;
+		lsock->instances = config.instances;
 
 	/* Set simple defaults - others follow the parsing */
 	config.usecharset = 1;
