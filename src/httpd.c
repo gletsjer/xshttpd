@@ -332,7 +332,7 @@ core_handler DECL1(int, sig)
 	const	char	*env;
 
 	alarm(0); setcurrenttime();
-	env = getenv("DOCUMENT_ARGUMENTS");
+	env = getenv("QUERY_STRING");
 	fprintf(stderr, "[%s] httpd(pid %ld): FATAL SIGNAL %d [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
 		currenttime, (long)getpid(), sig,
 		remotehost[0] ? remotehost : "(none)",
@@ -395,7 +395,7 @@ error DECL1C(char *, message)
 	const	char	*env;
 
 	alarm(180); setcurrenttime();
-	env = getenv("DOCUMENT_ARGUMENTS");
+	env = getenv("QUERY_STRING");
 	fprintf(stderr, "[%s] httpd(pid %ld): %s [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
 		currenttime, (long)getpid(), message,
 		remotehost[0] ? remotehost : "(none)",
@@ -420,7 +420,7 @@ redirect DECL2C_(char *, redir, int, permanent)
 {
 	const	char	*env;
 
-	env = getenv("DOCUMENT_ARGUMENTS");
+	env = getenv("QUERY_STRING");
 	if (headers)
 	{
 		printf("%s %s moved\r\nLocation: %s\r\n", version,
@@ -630,7 +630,7 @@ server_error DECL2CC(char *, readable, char *, cgi)
 	setenv("ERROR_URL_ESCAPED", escaped ? escaped : "", 1);
 	if (escaped)
 		free(escaped);
-	env = getenv("DOCUMENT_ARGUMENTS");
+	env = getenv("QUERY_STRING");
 	if (real_path[1] == '~')
 	{
 		if ((search = strchr(real_path + 2, '/')))
@@ -731,7 +731,7 @@ process_request DECL0
 		real_path[0] = browser[0] = 0;
 	netbufsiz = netbufind = headonly = postonly = headers = index = 0;
 	unsetenv("CONTENT_LENGTH"); unsetenv("AUTH_TYPE");
-	unsetenv("CONTENT_TYPE"); unsetenv("DOCUMENT_ARGUMENTS");
+	unsetenv("CONTENT_TYPE"); unsetenv("QUERY_STRING");
 	unsetenv("ERROR_CODE"); unsetenv("ERROR_READABLE");
 	unsetenv("ERROR_URL"); unsetenv("ERROR_URL_ESCAPED");
 	unsetenv("ERROR_URL_EXPANDED"); unsetenv("REMOTE_USER");

@@ -630,8 +630,8 @@ dir_agent_short DECL2(char *, here, size_t *, size)
 static	int
 dir_argument DECL2(char *, here, size_t *, size)
 {
-	if (getenv("DOCUMENT_ARGUMENTS")) {
-		printf("%s", getenv("DOCUMENT_ARGUMENTS"));
+	if (getenv("QUERY_STRING")) {
+		printf("%s", getenv("QUERY_STRING"));
 		return(ERR_NONE);
 	} else {
 		printf("[Document missing arguments]\n");
@@ -685,7 +685,7 @@ dir_if DECL2(char *, here, size_t *, size)
 			getenv("REMOTE_ADDR"));
 	else if (!strncasecmp(here, "argument ", 9))
 		ssiarray[++ssioutput] = match_list(here + 9,
-			getenv("DOCUMENT_ARGUMENTS"));
+			getenv("QUERY_STRING"));
 	else if (!strncasecmp(here, "referer ", 8))
 		ssiarray[++ssioutput] = match_list(here + 8,
 			getenv("HTTP_REFERER"));
