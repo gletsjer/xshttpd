@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.138 2004/09/22 09:22:25 johans Exp $ */
+/* $Id: httpd.c,v 1.139 2004/09/22 17:18:01 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.138 2004/09/22 09:22:25 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.139 2004/09/22 17:18:01 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -276,6 +276,8 @@ load_config DECL0
 	config.usecompressed = 1;
 	config.script_timeout = 6;
 	config.sockets = NULL;
+	config.priority = 0;
+	config.scriptpriority = PRIO_MAX;
 
 	if (confd)
 	{
@@ -352,6 +354,10 @@ load_config DECL0
 						(!strcasecmp("UserId", key) || 
 						 !strcasecmp("GroupId", key)))
 					errx(1, "%s directive should be in <System> section", key);
+				else if (!strcasecmp("Priority", key))
+					config.priority = atoi(value);
+				else if (!strcasecmp("ScriptPriority", key))
+					config.scriptpriority = atoi(value);
 				else if (!current)
 					errx(1, "illegal directive: '%s'", key);
 				else if (!strcasecmp("Hostname", key))
@@ -1995,10 +2001,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	memset(&config, 0, sizeof config);
 
 #ifdef		HAVE_SETPRIORITY
-#ifdef		NEED_PRIO_MAX
-#define		PRIO_MAX	20
-#endif		/* NEED_PRIO_MAX */
-	if (setpriority(PRIO_PROCESS, (pid_t)0, PRIO_MAX))
+	if (setpriority(PRIO_PROCESS, (pid_t)0, config.priority))
 		warn("setpriority");
 #endif		/* HAVE_SETPRIORITY */
 

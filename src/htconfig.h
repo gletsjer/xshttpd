@@ -41,6 +41,8 @@ extern struct configuration {
 	int		script_timeout;
 	unsigned short	instances;
 	unsigned short	localmode;
+	int		priority;
+	int		scriptpriority;
 	char *		pidfile;
 	unsigned	execasuser: 1;
 	unsigned	usecharset: 1;

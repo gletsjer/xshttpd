@@ -145,7 +145,7 @@ AC_NEED_CONST(optarg, NEED_OPTARG_AND_OPTIND, unistd.h)
 AC_NEED_CONST(environ, NEED_DECL_ENVIRON, unistd.h)
 if test x${ac_cv_func_setpriority} = xyes
 then
-	AC_NEED_CONST2(PRIO_MAX, NEED_PRIO_MAX, sys/time.h, sys/resource.h)
+	AC_NEED_CONST2(PRIO_MAX, [PRIO_MAX 20], sys/time.h, sys/resource.h)
 fi
 dnl AC_EGREP_HEADER(sys_errlist, stdio.h,, AC_DEFINE(NEED_SYS_ERRLIST_DECL))
 dnl AC_EGREP_HEADER(optarg, getopt.h,, AC_DEFINE(NEED_OPTARG_AND_OPTIND))

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.83 2004/06/30 17:10:15 johans Exp $ */
+/* $Id: cgi.c,v 1.84 2004/09/22 17:18:01 johans Exp $ */
 
 #include	"config.h"
 
@@ -336,6 +336,12 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 		argv1 = getenv("QUERY_STRING");
 		if (argv1 && strchr(argv1, '='))
 			argv1 = NULL;
+
+#ifdef		HAVE_SETPRIORITY
+		if (setpriority(PRIO_PROCESS, (pid_t)0, config.scriptpriority))
+			warn("setpriority");
+#endif		/* HAVE_SETPRIORITY */
+
 #ifdef		HANDLE_PERL
 		if (engine && !strcmp(engine, "internal:perl"))
 		{
