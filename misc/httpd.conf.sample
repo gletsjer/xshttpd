@@ -24,12 +24,12 @@ LogReferer	logs/referer_log
 <Users>
 Hostname	www.stack.nl
 HtmlDir		.html
-ExecDir		.html/cgi-bin
+ExecDir		cgi-bin
 </Users>
 
 <Virtual>
 Hostname	www.ipv6.stack.nl
 HtmlDir		/www/ipv6
-ExecDir		/www/ipv6/cgi-bin
+ExecDir		cgi-bin
 </Virtual>
 
