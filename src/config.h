@@ -288,6 +288,11 @@ be used, otherwise sa_mask will just be assigned 0. */
   
 #define HAVE_SIGEMPTYSET 
   
+/* Does your system have a good working getaddrinfo() library call? If so,
+it will be used, otherwise hostname-resolution won't work well. */
+  
+#define HAVE_GETADDRINFO
+  
 /* Does your system have a good working getnameinfo() library call? If so,
 it will be used, otherwise getaddrinfo() is used instead. */
   
