@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.77 2003/09/29 18:53:34 johans Exp $ */
+/* $Id: cgi.c,v 1.78 2004/02/22 14:10:50 johans Exp $ */
 
 #include	"config.h"
 
@@ -204,7 +204,7 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 			{
 				if (check_auth(auth))
 				{
-					eat_content_length();
+					(void) eat_content_length();
 					goto END;
 				}
 			}
@@ -347,10 +347,10 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 		else
 #endif		/* HANDLE_PERL */
 		if (engine)
-			execl(engine, engine, fullpath, argv1, NULL);
+			(void) execl(engine, engine, fullpath, argv1, NULL);
 		else
 #endif		/* HANDLE_SCRIPT */
-			execl(fullpath, file, argv1, NULL);
+			(void) execl(fullpath, file, argv1, NULL);
 		/* no need to give local path info to the visitor */
 		if (nph)
 		{
@@ -395,8 +395,8 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 			while ((written = write(q[1], inbuf + offset, tobewritten - offset)) < tobewritten - offset) {
 				if ((written == -1) && (errno != EINTR))
 				{
-					fprintf(stderr, "[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
-						strerror(errno), q[1], temp, writetodo);
+					fprintf(stderr, "[Connection closed: %s (fd = %d, todo = %ld]\n",
+						strerror(errno), q[1], writetodo);
 					goto END;
 				} else if (written != -1)
 					offset += written;

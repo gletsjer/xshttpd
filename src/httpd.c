@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.122 2003/12/27 19:53:22 johans Exp $ */
+/* $Id: httpd.c,v 1.123 2004/02/22 14:10:50 johans Exp $ */
 
 #include	"config.h"
 
@@ -82,6 +82,7 @@
 #include	"path.h"
 #include	"convert.h"
 #include	"setenv.h"
+#include	"local.h"
 #include	"mystring.h"
 #include	"mygetopt.h"
 #include	"htconfig.h"
@@ -99,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.122 2003/12/27 19:53:22 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.123 2004/02/22 14:10:50 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -565,7 +566,7 @@ open_logs DECL1(int, sig)
 	{
 		snprintf(buffer, XS_PATH_MAX, calcpath(config.pidfile));
 		buffer[XS_PATH_MAX-1] = '\0';
-		remove(buffer);
+		(void) remove(buffer);
 		if ((pidlog = fopen(buffer, "w")))
 		{
 			fprintf(pidlog, "%ld\n", (long)getpid());
@@ -808,11 +809,11 @@ hexdigit DECL1(int, ch)
 	const	char	*temp, *hexdigits = "0123456789ABCDEF";
 
 	if ((temp = strchr(hexdigits, islower(ch) ? toupper(ch) : ch)))
-		return(temp - hexdigits);
+		return (temp - hexdigits);
 	else
 	{
 		error("500 Invalid `percent' parameters");
-		return(-1);
+		return (-1);
 	}
 }
 
@@ -837,9 +838,9 @@ decode DECL1(char *, str)
 			poss++;
 		} else
 		{
-			if ((top = hexdigit((int)poss[1])) == -1)
+			if ((top = hexdigit((int)poss[1])) < 0)
 				return(ERR_QUIT);
-			if ((bottom = hexdigit((int)poss[2])) == -1)
+			if ((bottom = hexdigit((int)poss[2])) < 0)
 				return(ERR_QUIT);
 			*(posd++) = (top << 4) + bottom;
 			poss += 3;
@@ -1008,7 +1009,7 @@ server_error DECL2CC(char *, readable, char *, cgi)
 	if (current == config.users && (userinfo = getpwuid(geteuid())))
 	{
 		char	base[XS_PATH_MAX];
-		transform_user_dir(base, userinfo, 1);
+		(void) transform_user_dir(base, userinfo, 1);
 		snprintf(cgipath, XS_PATH_MAX, "%s%s%s",
 			base, current->phexecdir, filename);
 	}
@@ -1243,6 +1244,7 @@ process_request DECL0
 	unsetenv("IF_RANGE");
 	unsetenv("SSL_CIPHER");
 
+	http_host[0] = '\0';
 
 	alarm(180); errno = 0;
 #ifdef		HANDLE_SSL
@@ -1342,7 +1344,7 @@ process_request DECL0
 				browser[MYBUFSIZ - 1] = 0;
 				setenv("USER_AGENT", browser, 1);
 				setenv("HTTP_USER_AGENT", browser, 1);
-				strtok(browser, "/");
+				(void) strtok(browser, "/");
 				for (temp = browser; *temp; temp++)
 					if (isupper(*temp))
 						*temp = tolower(*temp);
@@ -1391,7 +1393,7 @@ process_request DECL0
 		}
 	} else if (!strncasecmp(ver, "HTCPCP/", 7))
 	{
-		headers = 1.0;
+		headers = 1;
 		strcpy(version, "HTCPCP/1.0");
 		error("418 Duh... I'm a webserver Jim, not a coffeepot!");
 		return;
@@ -1433,9 +1435,9 @@ process_request DECL0
 			"NO_RELATIVE_URLS");
 		return;
 	}
-	if ((temp = getenv("HTTP_HOST")) &&
-		(temp = strncpy(http_host, temp, NI_MAXHOST)))
+	if ((temp = getenv("HTTP_HOST")))
 	{
+		temp = strncpy(http_host, temp, NI_MAXHOST);
 		temp[NI_MAXHOST-1] = '\0';
 		for ( ; *temp; temp++)
 			if ((*temp < 'a' || *temp > 'z') &&
@@ -1466,7 +1468,7 @@ process_request DECL0
 		}
 		unsetenv("HTTP_HOST");
 		/* Ignore unqualified names - it could be a subdirectory! */
-		if (http_host && strlen(http_host) > 3 && strchr(http_host, '.'))
+		if ((strlen(http_host) > 3) && strchr(http_host, '.'))
 			setenv("HTTP_HOST", http_host, 1);
 	}
 	else if (headers >= 11)
@@ -1658,7 +1660,6 @@ standalone_main DECL0
 			}
 		}
 	}
-	free(childs);
 
 	CHILD:
 #ifndef		SETVBUF_REVERSED
@@ -1790,6 +1791,7 @@ standalone_main DECL0
 				secprintf("%s 500 Failed\r\nContent-type: text/plain\r\n\r\n",
 					version);
 				secprintf("SSL Flipped...\n");
+				free(childs);
 				return;
 			}
 		}
@@ -1923,7 +1925,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			thisdomain[NI_MAXHOST-1] = '\0';
 			break;
 		case 'l':
-			if ((config.localmode = atoi(optarg)) <= 0)
+			if (!(config.localmode = atoi(optarg)))
 				errx(1, "Argument to -l is invalid");
 			break;
 		case 'm':

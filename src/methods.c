@@ -143,13 +143,13 @@ senduncompressed DECL1(int, fd)
 	struct tm	reqtime;
 
 	alarm(180);
-	if ((size = lseek(fd, 0, SEEK_END)) == -1)
+	if ((size = lseek(fd, (off_t)0, SEEK_END)) == -1)
 	{
 		error("500 Cannot lseek() to end of file");
 		close(fd);
 		return;
 	}
-	if (lseek(fd, 0, SEEK_SET))
+	if (lseek(fd, (off_t)0, SEEK_SET))
 	{
 		error("500 Cannot lseek() to beginning of file");
 		close(fd);
@@ -173,7 +173,7 @@ senduncompressed DECL1(int, fd)
 					dynamic = 1;
 					break;
 				}
-			lseek(fd, 0, SEEK_SET);
+			lseek(fd, (off_t)0, SEEK_SET);
 		}
 #endif		/* WANT_SSI */
 		if ((env = getenv("IF_MODIFIED_SINCE")))
@@ -276,7 +276,8 @@ senduncompressed DECL1(int, fd)
 					currenttime,
 					remotehost[0] ? remotehost : "(none)");
 		}
-		munmap(buffer, size); size = written;
+		(void) munmap(buffer, size);
+		size = written;
 		alarm(0);
 	}
 #else		/* Not HAVE_MMAP */
@@ -398,7 +399,7 @@ sendcompressed DECL2_C(int, fd, char *, method)
 		dup2(fd, 0); dup2(processed, 1);
 		for (count = 3; count < 64; count++)
 			close(count);
-		execl(method, method, NULL);
+		(void) execl(method, method, NULL);
 		fprintf(stderr, "[%s] httpd: Cannot execl(`%s'): %s\n",
 			currenttime, method, strerror(errno));
 		error("500 Cannot start conversion program");
@@ -755,11 +756,14 @@ do_get DECL1(char *, params)
 		if ((size = read(fd, total, MYBUFSIZ)) <= 0)
 		{
 			error("500 Redirection filename error");
-			close(fd); return;
+			close(fd);
+			return;
 		}
 		total[size] = 0;
-		strtok(total, "\r\n"); redirect(total, permanent);
-		close(fd); return;
+		(void) strtok(total, "\r\n");
+		redirect(total, permanent);
+		close(fd);
+		return;
 	}
 	snprintf(total, XS_PATH_MAX, "%s/.redir", base);
 	total[XS_PATH_MAX-1] = '\0';
@@ -768,7 +772,8 @@ do_get DECL1(char *, params)
 		if ((size = read(fd, total, XS_PATH_MAX - strlen(filename) - 16)) <= 0)
 		{
 			error("500 Directory redirection filename error");
-			close(fd); return;
+			close(fd);
+			return;
 		}
 		close(fd);
 		temp = total + size; *temp = 0;
@@ -792,8 +797,10 @@ do_get DECL1(char *, params)
 		}
 		if (fd >= 0)
 		{
-			read(fd, charset, XS_PATH_MAX);
-			charset[XS_PATH_MAX-1] = '\0';
+			if (read(fd, charset, XS_PATH_MAX) < 0)
+				charset[0] = '\0';
+			else
+				charset[XS_PATH_MAX-1] = '\0';
 			if ((temp = strchr(charset, '\n')))
 				temp[0] = '\0';
 			close(fd);
@@ -959,7 +966,8 @@ do_get DECL1(char *, params)
 	if (csearch)
 	{
 		if (strlen(csearch->name) &&
-			strstr(getenv("HTTP_ACCEPT_ENCODING"), csearch->name))
+			(temp = getenv("HTTP_ACCEPT_ENCODING")) &&
+			strstr(temp, csearch->name))
 		{
 			setenv("CONTENT_ENCODING", csearch->name, 1);
 			senduncompressed(fd);
