@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.109 2004/10/08 08:51:17 johans Exp $ */
+/* $Id: methods.c,v 1.110 2004/10/22 12:07:53 johans Exp $ */
 
 #include	"config.h"
 
@@ -414,7 +414,7 @@ sendcompressed DECL2_C(int, fd, char *, method)
 extern	int
 allowxs DECL1C(char *, file)
 {
-	char	*remoteaddr;
+	char	*remoteaddr, *slash;
 	char	allowhost[256];
 	FILE	*rfile;
 
@@ -438,6 +438,25 @@ allowxs DECL1C(char *, file)
 		{
 			fclose(rfile);
 			return 1; /* access granted */
+		}
+
+		/* allow host if remote_addr matches CIDR subnet in file */
+		if ((slash = strchr(allowhost, '/')) &&
+			strchr(allowhost, '.') &&
+			strchr(remoteaddr, '.'))
+		{
+#if 0
+			struct	in_addr		allow, remote;
+			unsigned int		subnet;
+
+			*slash = '\0';
+			subnet = atoi(slash + 1);
+			inet_aton(allowhost, allow);
+			inet_aton(remotehost, remote);
+
+			if ((remotehost.addr & !(1 << subnet)) == allow)
+				return 1;
+#endif
 		}
 
 		/* allow any host if the local port matches :port in .noxs */
@@ -1251,8 +1270,11 @@ getfiletype DECL1(int, print)
 						search->name, charset);
 				else if (!strncmp(search->name, "text/", 5))
 					secprintf("Content-type: %s; "
-							"charset=US-ASCII\r\n",
-						search->name);
+							"charset=%s\r\n",
+						search->name,
+						config.defaultcharset
+						? config.defaultcharset
+						: "us-ascii");
 				else
 					secprintf("Content-type: %s\r\n",
 						search->name);
