@@ -665,7 +665,7 @@ do_get DECL1(char *, params)
 			{
 				char	*fp;
 				*temp = '/';
-				setenv("PATH_INFO", params, 1);
+				setenv("PATH_INFO", temp, 1);
 				asprintf(&fp, "%s%s", fullpath, temp);
 				setenv("PATH_TRANSLATED", fp, 1);
 				*temp = 0;
