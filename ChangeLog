@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.3 beta 1
+- Recursive check for .xsauth files (probably not air-tight)
+
 Changes since 3.2 gamma 1
 - Remove superfluous double quotes from logs (rewrite as single quote)
 - Allow configurable priority - and a separate prio for user CGI's

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.107 2004/07/15 14:41:47 johans Exp $ */
+/* $Id: methods.c,v 1.108 2004/09/25 14:39:08 johans Exp $ */
 
 #include	"config.h"
 
@@ -477,8 +477,9 @@ allowxs DECL1C(char *, file)
 extern	VOID
 do_get DECL1(char *, params)
 {
-	char			*temp, *cgi, *file, *question,
-			auth[XS_PATH_MAX], base[XS_PATH_MAX], total[XS_PATH_MAX],
+	char			*temp, *cgi, *file, *question, *p,
+			auth[XS_PATH_MAX], base[XS_PATH_MAX],
+			orgbase[XS_PATH_MAX], total[XS_PATH_MAX],
 			temppath[XS_PATH_MAX];
 	const	char		*filename, *http_host;
 	int			fd, wasdir, permanent, script = 0, tmp;
@@ -606,6 +607,7 @@ do_get DECL1(char *, params)
 			return;
 		}
 	}
+	strncpy(orgbase, base, XS_PATH_MAX);
 
 	if (question)
 	{
@@ -799,12 +801,23 @@ do_get DECL1(char *, params)
 	}
 
 	/* Check after redirection */
-	snprintf(auth, XS_PATH_MAX, "%s/%s", base, AUTHFILE);
-	auth[XS_PATH_MAX-1] = '\0';
-	if ((authfile = fopen(auth, "r")))
+	/* Ugly way to do this recursively */
+	snprintf(auth, XS_PATH_MAX, "%s/", base);
+	for (p = auth;
+		(p == auth || !strncmp(orgbase, auth, strlen(orgbase))) &&
+		(p = strrchr(auth, '/'));
+		*p = '\0')
 	{
-		if (check_auth(authfile))
-			return;
+		snprintf(p, XS_PATH_MAX - (p - auth), "/%s", AUTHFILE);
+		auth[XS_PATH_MAX-1] = '\0';
+		if ((authfile = fopen(auth, "r")))
+		{
+			if (check_auth(authfile))
+				return;
+			else
+				/* one password is sufficient */
+				break;
+		}
 	}
 
 	snprintf(total, XS_PATH_MAX, "%s%s", base, filename);
