@@ -5,7 +5,7 @@
 SystemRoot	/usr/local/lib/httpd
 
 #ListenAddress	www.stack.nl
-ListenPort	80
+ListenPort	http
 Instances	20
 PidFile		/var/run/httpd.pid
 UserId		nobody
@@ -30,8 +30,8 @@ LogReferer	logs/referer_log
 #PhExecDir	cgi-bin
 </Users>
 
-<Virtual>
+#<Virtual>
 #Hostname	www.ipv6.stack.nl
 #HtmlDir	/www/ipv6
-</Virtual>
+#</Virtual>
 

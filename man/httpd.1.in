@@ -77,6 +77,10 @@ directories like the logs directory, the htdocs
 directory and the cgi\-bin directory. The factory default
 is /usr/local/lib/httpd.
 .TP
+.B \-D documentdir
+Uses \fBdocumentdir\fP as the main directory for HTML files,
+instead of the default \fBrootdir\fP/htdocs.
+.TP
 .B \-r referdomain
 Uses \fBreferdomain\fP as the "refer\-ignore\-domain".
 References coming from this domain will not be logged in the

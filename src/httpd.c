@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.112 2003/02/26 18:12:48 johans Exp $ */
+/* $Id: httpd.c,v 1.113 2003/03/02 11:05:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.112 2003/02/26 18:12:48 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.113 2003/03/02 11:05:04 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1403,7 +1403,8 @@ process_request DECL0
 		temp = http_host + strlen(http_host);
 		while (*(--temp) == '.')
 			*temp = '\0';
-		if (strcmp(config.port, config.usessl ? "https" : "http"))
+		if (strcmp(config.port, config.usessl ? "https" : "http") ||
+			strcmp(config.port, config.usessl ? "443" : "80"))
 		{
 			if (strlen(http_host) >= NI_MAXHOST - 6)
 			{
