@@ -123,9 +123,7 @@ static	ctypes	*ctype = NULL;
 #ifdef		HANDLE_SCRIPT
 static	ctypes	*itype = NULL;
 #endif		/* HANDLE_SCRIPT */
-#ifdef		HANDLE_CHARSET
 static	char	charset[XS_PATH_MAX];
-#endif		/* HANDLE_CHARSET */
 #ifdef		HANDLE_PERL
 static	PerlInterpreter *	perl = NULL;
 #endif		/* HANDLE_PERL */
@@ -728,27 +726,27 @@ do_get DECL1(char *, params)
 		server_error("403 Directory is not available", "DIR_NOT_AVAIL");
 		return;
 	}
-#ifdef		HANDLE_CHARSET
-	/* Check for *.charset preferences */
-	snprintf(total, XS_PATH_MAX, "%s%s.charset", base, filename);
-	total[XS_PATH_MAX-1] = '\0';
-	if ((fd = open(total, O_RDONLY, 0)) < 0)
+	charset[0] =  '\0';
+	if (config.usecharset)
 	{
-		snprintf(total, XS_PATH_MAX, "%s.charset", base);
+		/* Check for *.charset preferences */
+		snprintf(total, XS_PATH_MAX, "%s%s.charset", base, filename);
 		total[XS_PATH_MAX-1] = '\0';
-		fd = open(total, O_RDONLY, 0);
+		if ((fd = open(total, O_RDONLY, 0)) < 0)
+		{
+			snprintf(total, XS_PATH_MAX, "%s.charset", base);
+			total[XS_PATH_MAX-1] = '\0';
+			fd = open(total, O_RDONLY, 0);
+		}
+		if (fd >= 0)
+		{
+			read(fd, charset, XS_PATH_MAX);
+			charset[XS_PATH_MAX-1] = '\0';
+			if ((temp = strchr(charset, '\n')))
+				temp[0] = '\0';
+			close(fd);
+		}
 	}
-	if (fd >= 0)
-	{
-		read(fd, charset, XS_PATH_MAX);
-		charset[XS_PATH_MAX-1] = '\0';
-		if ((temp = strchr(charset, '\n')))
-			temp[0] = '\0';
-		close(fd);
-	}
-	else
-		charset[0] = '\0';
-#endif		/* HANDLE_CHARSET */
 
 	/* Check after redirection */
 	snprintf(auth, XS_PATH_MAX, "%s/%s", base, AUTHFILE);
@@ -1103,12 +1101,10 @@ getfiletype DECL1(int, print)
 		{
 			if (print)
 			{
-#ifdef		HANDLE_CHARSET
 				if (*charset)
 					secprintf("Content-type: %s; charset=%s\r\n",
 						search->name, charset);
 				else
-#endif		/* HANDLE_CHARSET */
 					secprintf("Content-type: %s\r\n", search->name);
 			}
 			return(!strcmp(search->name, "text/html"));

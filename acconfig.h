@@ -57,11 +57,6 @@ default compress.methods for more details. */
 #undef HANDLE_COMPRESSED 
 #define COMPRESS_METHODS "compress.methods"
 
-/* The server can automatically send extra font information obtained
-from .charset files. Define HANDLE_CHARSET if that is what you want */
-  
-#undef HANDLE_CHARSET
-
 
 /* Persistent perl interpreter
  * This extension allows perl files to be interpreted by a built-in

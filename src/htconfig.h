@@ -26,7 +26,8 @@ struct configuration {
 	gid_t 		groupid;
 	unsigned	execasuser: 1;
 	unsigned	usessl: 1;
-	unsigned	padding: 6;
+	unsigned	usecharset: 1;
+	unsigned	padding: 5;
 	struct virtual *	system;
 	struct virtual *	users;
 	struct virtual *	virtual;

@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/httpd.c)
-AM_INIT_AUTOMAKE(xshttpd, 31b05)
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.1 beta/0.5")
+AM_INIT_AUTOMAKE(xshttpd, 31b06)
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.1 beta/0.6")
 AM_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
@@ -87,8 +87,6 @@ AC_ARG_DEFAULT(script, HANDLE_SCRIPT, yes,
 	[  --disable-script        disable scripting support (PHP)])
 AC_ARG_DEFAULT(compress, HANDLE_COMPRESSED, yes,
 	[  --disable-compress      disable auto-extraction of compressed files])
-AC_ARG_DEFAULT(charset, HANDLE_CHARSET, yes,
-	[  --disable-charset       disable font information via .charset files])
 if test x${ac_cv_func_setrlimit} = xyes
 then
 	AC_ARG_DEFAULT(setrlimit, USE_SETRLIMIT, yes,

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.77 2002/06/12 13:14:19 johans Exp $ */
+/* $Id: httpd.c,v 1.78 2002/06/12 13:39:14 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.77 2002/06/12 13:14:19 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.78 2002/06/12 13:39:14 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -304,6 +304,8 @@ load_config DECL0
 #endif		/* HANDLE_SSL */
 				else
 					config.usessl = 0;
+			else if (!strcasecmp("UseCharset", key))
+				config.usecharset = !strcasecmp("true", value);
 			else if (!strcasecmp("LocalMode", key))
 				config.localmode = atoi(value);
 			else if (!current)
