@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.165 2004/12/03 14:10:21 johans Exp $ */
+/* $Id: httpd.c,v 1.166 2005/01/01 22:08:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.165 2004/12/03 14:10:21 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.166 2005/01/01 22:08:16 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -254,9 +254,10 @@ load_config()
 {
 	int	subtype = 0;
 	FILE	*confd;
-	char	line[MYBUFSIZ], key[MYBUFSIZ], value[MYBUFSIZ],
-			thishostname[NI_MAXHOST];
+	char	line[MYBUFSIZ], thishostname[NI_MAXHOST];
+	char	*key, *value;
 	char	*comment, *end, *username = NULL, *groupname = NULL;
+	char	**defaultindexfiles;
 	struct passwd	*pwd;
 	struct group	*grp;
 	struct virtual	*last = NULL;
@@ -283,6 +284,12 @@ load_config()
 	config.scriptpriority = PRIO_MAX;
 	config.virtualhostdir = NULL;
 
+	defaultindexfiles = malloc(MAXINDEXFILES);
+	defaultindexfiles[0] = "index.html";
+	defaultindexfiles[1] = "index.htm";
+	defaultindexfiles[2] = "index.php";
+	defaultindexfiles[3] = NULL;
+
 	if (confd)
 	{
 		/* skip this loop if there is no config file and use defaults below */
@@ -291,12 +298,27 @@ load_config()
 			if ((comment = strchr(line, '#')))
 				*comment = 0;
 			end = line + strlen(line);
-			while ((end > line) && (*(end -1 ) <= ' '))
+			while ((end > line) && (*(end - 1) <= ' '))
 				*(--end) = 0;
 			if (end == line)
 				continue;
-			if ((sscanf(line, "%s \"%[^\"]\"", key, value) == 2) ||
-				(sscanf(line, "%s %s", key, value) == 2))
+			key = line;
+
+			if ((value = strpbrk(line, "\t ")))
+			{
+				*value++ = 0;
+				while ('\t' == *value || ' ' == *value)
+					value++;
+
+				/* quotes are optional - for historical reasons */
+				if (('"' == value[0]) && (end = strchr(value + 1, '"')))
+				{
+					value++;
+					*end = '\0';
+				}
+			}
+
+			if (value && strlen(value))
 			{
 				if (!strcasecmp("SystemRoot", key))
 				{
@@ -387,6 +409,23 @@ load_config()
 					current->logerror = strdup(value);
 				else if (!strcasecmp("LogReferer", key))
 					current->logreferer = strdup(value);
+				else if (!strcasecmp("IndexFiles", key))
+				{
+					int		i;
+					char	*prev = NULL, *next = value;
+
+					current->indexfiles = malloc(MAXINDEXFILES);
+					for (i = 0; i < MAXINDEXFILES; )
+					{
+						if ((prev = strsep(&next, ", \t")) && *prev)
+							current->indexfiles[i++] = strdup(prev);
+						else if (!prev)
+						{
+							current->indexfiles[i] = NULL;
+							break;
+						}
+					}
+				}
 				else if (!strcasecmp("LogStyle", key))
 					if (!strcasecmp("common", value) ||
 							!strcasecmp("traditional", value))
@@ -417,7 +456,7 @@ load_config()
 				else
 					errx(1, "illegal directive: '%s'", key);
 			}
-			else if (sscanf(line, "%s", key) == 1)
+			else if (strlen(key))
 			{
 				if (!strcasecmp("<System>", key))
 				{
@@ -587,6 +626,8 @@ load_config()
 			errx(1, "Invalid groupname: %s", groupname);
 		config.system->groupid = grp->gr_gid;
 	}
+	if (!config.system->indexfiles)
+		config.system->indexfiles = defaultindexfiles;
 	/* Set up users section */
 	if (!config.users)
 	{
@@ -618,6 +659,8 @@ load_config()
 			current->userid = config.system->userid;
 		if (!current->groupid)
 			current->groupid = config.system->groupid;
+		if (!current->indexfiles)
+			current->indexfiles = config.system->indexfiles;
 	}
 }
 

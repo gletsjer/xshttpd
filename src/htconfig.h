@@ -1,5 +1,6 @@
 #include <sys/types.h>
 #include <pwd.h>
+#define	MAXINDEXFILES	32
 
 extern struct virtual {
 	char *		hostname;
@@ -9,6 +10,7 @@ extern struct virtual {
 	char *		logaccess;
 	char *		logerror;
 	char *		logreferer;
+	char **		indexfiles;
 	uid_t		userid;
 	gid_t		groupid;
 	FILE *		openaccess;

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.125 2004/12/15 16:19:59 johans Exp $ */
+/* $Id: methods.c,v 1.126 2005/01/01 22:08:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -775,8 +775,11 @@ do_get(char *params)
 	strncpy(currentdir, base, XS_PATH_MAX);
 	currentdir[XS_PATH_MAX-1] = '\0';
 
-	if ((!*file) && (wasdir))
-		strcat(real_path, filename = INDEX_HTML);
+	if ((!*file) && (wasdir) && current->indexfiles)
+	{
+		filename = current->indexfiles[0];
+		strcat(real_path, filename);
+	}
 	else
 		filename = file;
 
@@ -1050,22 +1053,38 @@ do_get(char *params)
 	NOTFOUND:
 	if ((temp = strchr(real_path, '?')))
 		*temp = '\0';
-	if (!strcmp(filename, INDEX_HTML) && strcmp(INDEX_HTML, INDEX_HTML_2))
+
+	/* find next possible index file */
+	if (current->indexfiles)
 	{
-		strcpy(real_path + strlen(real_path) - strlen(INDEX_HTML),
-			filename = INDEX_HTML_2);
-	}
-	else if (!strcmp(filename, INDEX_HTML_2) &&
-			strcmp(INDEX_HTML_2, INDEX_HTML_3))
-	{
-		strcpy(real_path + strlen(real_path) - strlen(INDEX_HTML_2),
-			filename = INDEX_HTML_3);
-		filename = INDEX_HTML_3;
-		snprintf(file, XS_PATH_MAX, "/%s", INDEX_HTML_3);
+		int		i;
+		char	*idx = NULL;
+
+		for (i = 0; i < MAXINDEXFILES - 1; i++)
+		{
+			if (!(idx = current->indexfiles[i]))
+				break;
+
+			if (!strcmp(filename, idx))
+			{
+				if (!(idx = current->indexfiles[i + 1]))
+					break;
+
+				strcpy(real_path + strlen(real_path) - strlen(filename), idx);
+				filename = idx;
+				break;
+			}
+		}
+
+		if (!idx)
+		{
+			/* no more retries */
+			server_error("404 Requested URL not found", "NOT_FOUND");
+			return;
+		}
 	}
 	else
 	{
-		/* no more retries */
 		server_error("404 Requested URL not found", "NOT_FOUND");
 		return;
 	}
