@@ -8,6 +8,7 @@ SystemRoot	/usr/local/lib/httpd
 ListenPort	http
 Instances	20
 PidFile		/var/run/httpd.pid
+VirtualHostDir	vhosts
 
 ExecAsUser	true
 UseSSL		false
@@ -18,7 +19,6 @@ GroupId		nogroup
 #Hostname	www.stack.nl
 #HtmlDir	htdocs
 #PhExecDir	cgi-bin
-VirtualHostDir	vhosts
 LogAccess	logs/access_log
 LogError	logs/error_log
 LogReferer	logs/referer_log

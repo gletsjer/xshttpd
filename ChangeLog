@@ -1,11 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
-Changes since 3.3 beta 4
-- Added VirtualHostDir configuration directive. Please set this.
-
 Changes since 3.3 beta 3
 - Several patches to compile on older machines
+- Added VirtualHostDir configuration directive. Please set this.
 
 Changes since 3.3 beta 2
 - Make default charset configurable
