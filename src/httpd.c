@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.106 2003/02/20 17:39:16 johans Exp $ */
+/* $Id: httpd.c,v 1.107 2003/02/20 18:50:20 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.106 2003/02/20 17:39:16 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.107 2003/02/20 18:50:20 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -503,8 +503,6 @@ load_config DECL0
 			current->execdir = strdup(HTTPD_SCRIPT_ROOT);
 		if (!current->phexecdir)
 			current->phexecdir = strdup(HTTPD_SCRIPT_ROOT_P);
-		if (current->logerror)
-			warnx("error logs not implemented for virtual section");
 		if (!current->logstyle)
 			current->logstyle = config.system->logstyle;
 	}
@@ -577,6 +575,23 @@ open_logs DECL1(int, sig)
 #endif		/* SETVBUF_REVERSED */
 			}
 		}
+		if (current != config.system)
+		{
+			/* referer */
+			if (current->openerror)
+				fclose(current->openerror);
+			if (current->logerror)
+			{
+				if (!(current->openerror =
+						fopen(calcpath(current->logerror), "a")))
+					err(1, "fopen(`%s' [append])", current->logerror);
+#ifndef		SETVBUF_REVERSED
+				setvbuf(current->openerror, NULL, _IOLBF, 0);
+#else		/* Not not SETVBUF_REVERSED */
+				setvbuf(current->openerror, _IOLBF, NULL, 0);
+#endif		/* SETVBUF_REVERSED */
+			}
+		}
 	}
 
 	fflush(stderr);
@@ -590,7 +605,10 @@ open_logs DECL1(int, sig)
 		if (dup2(tempfile, 2) == -1)
 			err(1, "dup2() failed");
 		close(tempfile);
+		config.system->openerror = NULL;
 	}
+	else
+		config.system->openerror = stderr;
 
 	if (mainhttpd)
 	{
@@ -702,8 +720,9 @@ error DECL1C(char *, message)
 
 	alarm(180); setcurrenttime();
 	env = getenv("QUERY_STRING");
-	fprintf(stderr, "[%s] httpd(pid %ld): %s [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
-		currenttime, (long)getpid(), message,
+	fprintf((current && current->openerror) ? current->openerror : stderr,
+		"[%s:%d] httpd(pid %ld): %s [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
+		currenttime, (current && current->openerror), (long)getpid(), message,
 		remotehost[0] ? remotehost : "(none)",
 		orig[0] ? orig : "(none)", env ? env : "(none)",
 		referer[0] ? referer : "(none)");
@@ -962,7 +981,8 @@ server_error DECL2CC(char *, readable, char *, cgi)
 	if ((temp = strrchr(cgipath, '/')))
 		*temp = '\0';
 	setcurrenttime();
-	fprintf(stderr, "[%s] httpd(pid %ld): %s [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
+	fprintf((current && current->openerror) ? current->openerror : stderr,
+		"[%s] httpd(pid %ld): %s [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
 		currenttime, (long)getpid(), readable,
 		remotehost[0] ? remotehost : "(none)",
 		orig[0] ? orig : "(none)", env ? env : "(none)",

@@ -11,6 +11,7 @@ extern struct virtual {
 	char *		logreferer;
 	FILE *		openaccess;
 	FILE *		openreferer;
+	FILE *		openerror;
 	enum	{ none, traditional, combined }		logstyle;
 	unsigned	virtualid: 1;
 	unsigned	padding: 7;
