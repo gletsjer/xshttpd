@@ -56,7 +56,7 @@ AC_ARG_DIR(docdir, htdocs)
 AC_ARG_DIR(logdir, logs)
 
 AC_CHECK_FUNCS(crypt,,
-	AC_CHECK_LIB(crypt, crypt, ldcrypt="-lcrypt" AC_DEFINE(HAVE_CRYPT)))
+	AC_CHECK_LIB(crypt, crypt, AC_DEFINE(HAVE_CRYPT) ldcrypt="-lcrypt"))
 AC_CHECK_FUNCS(socket,,
 	AC_CHECK_LIB(socket, socket, httpd_ldflags="${httpd_ldflags} -lsocket"))
 AC_REPLACE_FUNCS(strptime)
