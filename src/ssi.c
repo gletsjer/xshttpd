@@ -201,8 +201,7 @@ xsc_initcounter DECL1C(char *, filename)
 static	int
 xsc_counter DECL2_C(int, mode, char *, args)
 {
-	char			counterfile[XS_PATH_MAX],
-				host[MAXHOSTNAMELEN + 16];
+	char			counterfile[XS_PATH_MAX], host[XS_PATH_MAX];
 	const	char		*lockfile;
 	struct stat		statbuf;
 	int			fd = -1, timer, total, x, y, z, comp, already;

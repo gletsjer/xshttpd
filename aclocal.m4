@@ -31,12 +31,25 @@ AC_DEFUN(AC_ARG_DIR, [
 AC_DEFUN(AC_NEED_CONST, [
 	AC_MSG_CHECKING("for $1")
 	AC_TRY_RUN([
-#include <$2>
+#include <$3>
 int main() { return $1, 0; }
 ],
 		AC_MSG_RESULT(found),
 		AC_MSG_RESULT(will use my own)
-		AC_DEFINE($3),
+		AC_DEFINE($2),
+		AC_MSG_RESULT(unknown))
+	])
+
+AC_DEFUN(AC_NEED_CONST2, [
+	AC_MSG_CHECKING("for $1")
+	AC_TRY_RUN([
+#include <$3>
+#include <$4>
+int main() { return $1, 0; }
+],
+		AC_MSG_RESULT(found),
+		AC_MSG_RESULT(will use my own)
+		AC_DEFINE($2),
 		AC_MSG_RESULT(unknown))
 	])
 

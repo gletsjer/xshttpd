@@ -32,7 +32,7 @@ AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_FUNC_WAIT3
-AC_CHECK_FUNCS(gethostname mktime select socket strerror strstr)
+AC_CHECK_FUNCS(gethostname mktime select strerror strstr)
 
 dnl SEPERATOR
 AC_CHECK_FUNCS(bcopy bzero getaddrinfo getnameinfo killpg mkstemp mmap setenv seteuid setegid setresuid setresgid setsid setpriority sigemptyset tempnam vfork)
@@ -52,6 +52,8 @@ AC_ARG_DIR(logdir, logs)
 
 AC_CHECK_FUNCS(crypt,,
 	AC_CHECK_LIB(crypt, crypt, ldcrypt="-lcrypt"))
+AC_CHECK_FUNCS(socket,,
+	AC_CHECK_LIB(socket, socket, httpd_ldflags="${httpd_ldflags} -lsocket"))
 AC_MSG_CHECKING(if you want SSL support)
 AC_ARG_WITH(ssl,
 	[  --with-ssl              crypto support],
@@ -80,9 +82,13 @@ AC_ARG_DEFAULT(setrlimit, USE_SETRLIMIT,
 
 dnl Test runs for required global variables
 
-AC_NEED_CONST(sys_errlist, stdio.h, NEED_SYS_ERRLIST_DECL)
-AC_NEED_CONST(optarg, unistd.h, NEED_OPTARG_AND_OPTIND)
-AC_NEED_CONST(environ, unistd.h, NEED_DECL_ENVIRON)
+AC_NEED_CONST(sys_errlist, NEED_SYS_ERRLIST_DECL, stdio.h)
+AC_NEED_CONST(optarg, NEED_OPTARG_AND_OPTIND, unistd.h)
+AC_NEED_CONST(environ, NEED_DECL_ENVIRON, unistd.h)
+if test "${ac_cv_func_setpriority}" = yes
+then
+	AC_NEED_CONST2(PRIO_MAX, NEED_PRIO_MAX, sys/time.h, sys/resource.h)
+fi
 dnl AC_EGREP_HEADER(sys_errlist, stdio.h,, AC_DEFINE(NEED_SYS_ERRLIST_DECL))
 dnl AC_EGREP_HEADER(optarg, getopt.h,, AC_DEFINE(NEED_OPTARG_AND_OPTIND))
 dnl AC_EGREP_HEADER(eniviron, unistd.h,, AC_DEFINE(NEED_DECL_ENVIRON))
@@ -99,6 +105,8 @@ dnl Should be replaced by a decent check some day...
 test -f /etc/HOSTNAME && \
 	grep vwww /etc/HOSTNAME && \
 	AC_DEFINE(BROKEN_GETNAMEINFO)
+
+CFLAGS=-g
 AC_SUBST(ldcrypt)
 AC_SUBST(httpd_ldflags)
 AC_SUBST(httpd_cflags)

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.38 2001/01/27 19:33:04 johans Exp $ */
+/* $Id: httpd.c,v 1.39 2001/01/28 14:13:14 johans Exp $ */
 
 #include	"config.h"
 
@@ -1050,11 +1050,15 @@ standalone_main DECL0
 	struct	sockaddr	saddr;
 	unsigned	short	sport;
 #endif		/* HAVE_GETADDRINFO */
+#ifndef		HAVE_GETNAMEINFO
+	unsigned	long	laddr;
+#endif		/* HAVE_GETNAMEINFO */
 	pid_t			*childs, pid;
 	struct	rlimit		limit;
 
-	/* Speed hack */
-	gethostbyname("localhost");
+	/* Speed hack
+	 * gethostbyname("localhost");
+	 */
 
 	detach(); open_logs(0);
 
@@ -1103,7 +1107,7 @@ standalone_main DECL0
 		sport = 443;
 	else
 		sport = atoi(port) || 80;
-	((struct sockaddr_in *)&saddr)->sin_port = htons(atoi(port));
+	((struct sockaddr_in *)&saddr)->sin_port = htons(sport);
 
 	if (bind(sd, &saddr, sizeof(struct sockaddr)) == -1)
 		err(1, "bind()");
@@ -1254,13 +1258,14 @@ standalone_main DECL0
 				setenv("REMOTE_ADDR", remotehost + 7, 1);
 		}
 #else		/* HAVE_GETNAMEINFO */
-		if (strncpy(remotehost,
-			inet_ntoa(((struct sockaddr_in *)&saddr)->sin_addr),
-			MAXHOSTNAMELEN))
-		{
-			remotehost[MAXHOSTNAMELEN-1] = '\0';
-			setenv("REMOTE_HOST", remotehost, 1);
-		}
+		/* I don't need libnsl for this... */
+		laddr = ntohl(((struct sockaddr_in *)&saddr)->sin_addr.s_addr);
+		sprintf(remotehost, "%d.%d.%d.%d",
+			(laddr & 0xff000000) >> 24,
+			(laddr & 0x00ff0000) >> 16,
+			(laddr & 0x0000ff00) >> 8,
+			(laddr & 0x000000ff));
+		setenv("REMOTE_HOST", remotehost, 1);
 #endif		/* HAVE_GETNAMEINFO */
 
 #if			defined(HAVE_GETNAMEINFO) && !defined(BROKEN_GETNAMEINFO)
@@ -1346,6 +1351,9 @@ main DECL3(int, argc, char **, argv, char **, envp)
 
 	origeuid = geteuid(); origegid = getegid();
 #ifdef		HAVE_SETPRIORITY
+#ifdef		NEED_PRIO_MAX
+#define		PRIO_MAX	20
+#endif		/* NEED_PRIO_MAX */
 	if (setpriority(PRIO_PROCESS, (pid_t)0, PRIO_MAX))
 		warn("setpriority");
 #endif		/* HAVE_SETPRIORITY */

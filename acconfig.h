@@ -73,6 +73,11 @@ then #define NEED_DECL_ENVIRON. */
  
 #undef NEED_DECL_ENVIRON 
 
+/* Does your system have the define PRIO_MAX? If not, the programs will
+declare it themselves when needed for setpriority(). 20 sounds nice */
+
+#undef NEED_PRIO_MAX
+
 /* Does your system have a broken getnameinfo() function?
 Note: Linux distributions are well know for this feature */
 
