@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.47 2001/02/12 12:36:48 johans Exp $ */
+/* $Id: httpd.c,v 1.48 2001/02/12 13:25:29 johans Exp $ */
 
 #include	"config.h"
 
@@ -820,7 +820,7 @@ static	VOID
 process_request DECL0
 {
 	char		line[MYBUFSIZ], extra[MYBUFSIZ], *temp,
-			*params, *url, *ver;
+			*params, *url, *ver, *http_host;
 	int		readerror;
 	size_t		size;
 
@@ -1013,9 +1013,21 @@ process_request DECL0
 		(!thisdomain[0] || !strcasestr(referer, thisdomain)))
 		fprintf(refer_log, "%s -> %s\n", referer, params);
 
-	if (headers >= 11 && !(getenv("HTTP_HOST")))
+	if ((http_host = getenv("HTTP_HOST")))
 	{
-		server_error("400 Bad Request", "BAD_REQUEST");
+		for ( ; *http_host; http_host++)
+			if ((*http_host < 'a' || *http_host > 'z') &&
+				(*http_host < 'A' || *http_host > 'Z') &&
+				(*http_host < '0' || *http_host > '9') &&
+				*http_host != '-' && *http_host != '.')
+			{
+				server_error("400 Invalid Host Header", "BAD_REQUEST");
+				return;
+			}
+	}
+	else if (headers >= 11)
+	{
+		server_error("400 Missing Host Header", "BAD_REQUEST");
 		return;
 	}
 	if (params[0] != '/' && strcmp("OPTIONS", line))

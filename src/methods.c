@@ -523,11 +523,6 @@ do_get DECL1(char *, params)
 #ifdef		SIMPLE_VIRTUAL_HOSTING
 		if ((http_host = getenv("HTTP_HOST")))
 		{
-			if (strchr(http_host, '/'))
-			{
-				error("403 Invalid path specified");
-				return;
-			}
 			strncpy(base, calcpath(http_host), XS_PATH_MAX-1);
 			base[XS_PATH_MAX-2] = '\0';
 			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
