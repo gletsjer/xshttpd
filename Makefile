@@ -8,8 +8,8 @@ CP	= cp -p
 MKDIR	= mkdir -p
 CHOWN	= chown
 CHMOD	= chmod
-#STRIP	= strip
-STRIP	= true
+#STRIP	= true
+STRIP	= strip
 SHELL	= /bin/sh
 
 # What compiler do you have? Use an ANSI compatible one if you can!
@@ -23,8 +23,8 @@ CC	= gcc
 # = symbol) will suffice. If you know how to enable some optimization and
 # more warning flags, turn them on!
 
-#CFLAGS	= -O3 -Wall -pedantic -ansi
-CFLAGS	= -g -Wall -pedantic -ansi
+#CFLAGS	= -g -Wall -pedantic -ansi
+CFLAGS	= -O3 -Wall -pedantic -ansi
 
 # Enable when using SSL
 CFLAGS	+= -I/usr/local/include -I/usr/local/ssl/include
