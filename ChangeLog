@@ -1,6 +1,9 @@
 This file is probably out of date. However the manual pages should
 be (mostly) accurate. For a list of changes, please see cvs comments.
 
+Changes since 3.2 beta 24
+- Fix typo that caused PATH_TRANSLATED and friends to be unset
+
 Changes since 3.2 beta 23
 - Fix small portability issues: now runs again on IRIX, Solaris, etc.
 - httpdc uses PidFile setting from httpd.conf

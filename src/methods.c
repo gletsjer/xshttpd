@@ -647,12 +647,12 @@ do_get DECL1(char *, params)
 
 	/* look for file on disk */
 	snprintf(temppath, XS_PATH_MAX, "%s%s", base, file);
-	if (!stat(temp, &statbuf) &&
+	if (!stat(temppath, &statbuf) &&
 		(statbuf.st_mode & S_IFMT) == S_IFREG)
 	{
 		setenv("PATH_INFO", params, 1);
-		setenv("PATH_TRANSLATED", temp, 1);
-		setenv("SCRIPT_FILENAME", temp, 1);
+		setenv("PATH_TRANSLATED", temppath, 1);
+		setenv("SCRIPT_FILENAME", temppath, 1);
 	}
 	else
 	{
