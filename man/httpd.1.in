@@ -753,18 +753,17 @@ Of course, regular CGI variables are also set, such as
 I thank all the members at MCGV Stack who are actively involved in the
 entire WWW happening.
 .SH "SEE ALSO"
-http://www.stack.nl/~sven/xs\-httpd/
+http://www.stack.nl/xs\-httpd/
 .br
 xspasswd(1), imagemap(1), clearxs(1), readxs(1), gfxcount(1), xsindex(1),
-httpdc(1)
+httpdc(1), httpd.conf(5)
 .SH COPYRIGHT
-All the programs in the XS\-HTTPD package are copyright (C) 1995, 1996
-by Sven Berkvens, except the imagemapper.
+All the programs in the XS\-HTTPD package are copyright (C) 1995-2004
+by Sven Berkvens and Johan van Selst, except the imagemapper.
 .SH AUTHOR
-The author of this WWW server and its accompanying programs is
-Sven Berkvens (sven@stack.nl). I made all the programs,
-except the imagemapper, which I took from the NCSA distribution,
-but I cleaned it up.
+The original author of this WWW server and its accompanying programs
+is Sven Berkvens. I made all the programs, except the imagemapper,
+which I took from the NCSA distribution, but I cleaned it up.
 .LP
 New features have been added by other people at Stack. If you have
 problems with this version please contact the Stack maintainers
