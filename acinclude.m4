@@ -9,3 +9,10 @@ AC_DEFUN(AC_ARG_DEFAULT, [
 	if test ${enable_$1} = "yes" ; then AC_DEFINE($2) fi
 	])
 
+AC_DEFUN(AC_ARG_DIR, [
+	AC_ARG_WITH($1,
+		[  --with-$1=PATH	  directory to use for $2 [ROOTDIR/$2]],
+		$1=${withval},
+		$1=${rootdir}/$2)
+	])
+

@@ -44,18 +44,11 @@ AC_ARG_WITH(rootdir,
 	rootdir=${libdir}/httpd)
 miscdir=${rootdir}
 miscdir=${libdir}/httpd
-AC_ARG_WITH(cgidir,
-	[  --with-cgidir=PATH      directory to install data files [ROOTDIR/cgi-bin]],
-	cgidir=${withval},
-	cgidir=${rootdir}/cgi-bin)
-AC_ARG_WITH(fontdir,
-	[  --with-fontdir=PATH     directory to install data files [ROOTDIR/gfxcount]],
-	fontdir=${withval},
-	fontdir=${rootdir}/gfxcount)
-AC_ARG_WITH(icondir,
-	[  --with-icondir=PATH     directory to install data files [ROOTDIR/icons]],
-	icondir=${withval},
-	icondir=${rootdir}/icons)
+AC_ARG_DIR(cgidir, cgi-bin)
+AC_ARG_DIR(fontdir, gfxcount)
+AC_ARG_DIR(icondir, icons)
+AC_ARG_DIR(docdir, htdocs)
+AC_ARG_DIR(logdir, logs)
 
 AC_CHECK_FUNCS(crypt,,
 	AC_CHECK_LIB(crypt, crypt, ldcrypt="-lcrypt"))
@@ -89,6 +82,8 @@ AC_SUBST(miscdir)
 AC_SUBST(cgidir)
 AC_SUBST(fontdir)
 AC_SUBST(icondir)
+AC_SUBST(docdir)
+AC_SUBST(logdir)
 
 AC_DEFINE(NEED_DECL_ENVIRON)
 AC_SUBST(ldcrypt)
