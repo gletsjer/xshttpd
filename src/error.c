@@ -1,5 +1,5 @@
 #include	"config.h"
-/* $Id: error.c,v 1.13 2004/12/02 14:14:39 johans Exp $ */
+/* $Id: error.c,v 1.14 2005/01/15 19:27:31 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -56,7 +56,7 @@ void
 error(const char *what)
 {
 	printf("Content-type: text/html\r\n\r\n");
-	printf("<HTML><HEAD><TITLE>500 Error occurred</TITLE></HEAD\n");
+	printf("<HTML><HEAD><TITLE>500 Error occurred</TITLE></HEAD>\n");
 	printf("<BODY><H1>500 Error occurred</H1>\n");
 	printf("The <TT>error</TT> utility encountered the following\n");
 	printf("error: <B>%s</B></BODY></HTML>\n", what);
