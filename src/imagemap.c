@@ -24,7 +24,6 @@
 #include	<ctype.h>
 #include	<sys/stat.h>
 
-#include	"string.h"
 
 #define		MYBUFSIZ	1024
 #define		MAXVERTS	1000

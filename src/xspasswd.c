@@ -12,7 +12,6 @@
 
 #include	"extra.h"
 #include	"xscrypt.h"
-#include	"string.h"
 
 extern	int
 main DECL2(int, argc, char **, argv)

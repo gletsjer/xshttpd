@@ -43,7 +43,6 @@
 #include	"path.h"
 #include	"convert.h"
 #include	"setenv.h"
-#include	"string.h"
 
 #ifndef		NOFORWARDS
 static	const	char	*skipspaces	PROTO((const char *));
@@ -92,9 +91,9 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	int		q[2];
 	int		ssl_post = 0;
 #endif		/* HANDLE_SSL */
-#ifndef		DONT_USE_SETRLIMIT
+#ifdef		USE_SETRLIMIT
 	struct	rlimit		limits;
-#endif		/* DONT_USE_SETRLIMIT */
+#endif		/* USE_SETRLIMIT */
 	const	struct	passwd	*userinfo;
 	FILE			*auth;
 	struct	sigaction	action;
@@ -384,7 +383,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			secprintf("[%s]\n", errmsg);
 		goto END;
 	case 0:
-#ifndef		DONT_USE_SETRLIMIT
+#ifdef		USE_SETRLIMIT
 #ifdef		RLIMIT_CPU
 		limits.rlim_cur = 120; limits.rlim_max = 128;
 		setrlimit(RLIMIT_CPU, &limits);
@@ -397,7 +396,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		limits.rlim_cur = limits.rlim_max = 1;
 		setrlimit(RLIMIT_MEMLOCK, &limits);
 #endif		/* RLIMIT_MEMLOCK */
-#endif		/* DONT_USE_SETRLIMIT */
+#endif		/* USE_SETRLIMIT */
 #ifdef		HANDLE_SSL
 		/* Posting via SSL takes a lot of extra work */
 		if (do_ssl && (ssl_post = !strcmp("POST", getenv("REQUEST_METHOD"))))
@@ -449,7 +448,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			exit(1);
 		}
 #else		/* Not HAVE_SETSID */
-		if (setpgrp(getpid(), 0)) == -1)
+		if (setpgrp(getpid(), 0) == -1)
 		{
 			secprintf("Content-type: text/plain\r\n\r\n");
 			secprintf("[setpgrp() failed]\n");

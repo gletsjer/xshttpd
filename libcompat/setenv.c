@@ -10,7 +10,6 @@
 #include	<unistd.h>
 
 #include	"setenv.h"
-#include	"string.h"
 
 #ifndef		NOFORWARDS
 static	char	*findenv		 PROTO((const char *, int *));

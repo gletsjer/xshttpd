@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.34 2001/01/26 11:08:17 johans Exp $ */
+/* $Id: httpd.c,v 1.35 2001/01/26 17:48:46 johans Exp $ */
 
 #include	"config.h"
 
@@ -83,7 +83,6 @@
 #include	"convert.h"
 #include	"setenv.h"
 #include	"getopt.h"
-#include	"string.h"
 
 #ifdef		__linux__
 extern	char	*tempnam(const char *, const char *);
@@ -192,7 +191,7 @@ detach DECL0
 	if (setsid() == -1)
 		err(1, "setsid() failed");
 #else		/* Not HAVE_SETSID */
-	if (setpgrp(getpid(), 0)) == -1)
+	if (setpgrp(getpid(), 0) == -1)
 		err(1, "setpgrp() failed");
 #endif		/* HAVE_SETSID */
 }

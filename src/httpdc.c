@@ -14,7 +14,6 @@
 #endif		/* HAVE_ERR_H */
 #include	<errno.h>
 
-#include	"string.h"
 #include	"getopt.h"
 #include	"httpd.h"
 #include	"path.h"

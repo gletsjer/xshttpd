@@ -10,7 +10,6 @@
 #endif		/* NONEWSTYLE */
 #include	<errno.h>
 
-#include	"string.h"
 
 #ifndef		HAVE_ERR_H
 #ifndef		NONEWSTYLE

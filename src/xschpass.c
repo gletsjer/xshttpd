@@ -16,7 +16,6 @@
 
 #include	"extra.h"
 #include	"xscrypt.h"
-#include	"string.h"
 
 #ifndef		NOFORWARDS
 static	VOID	error			PROTO((const char *, ...));

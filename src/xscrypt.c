@@ -7,7 +7,6 @@
 #include	<crypt.h>
 #endif		/* HAVE_CRYPT_H */
 
-#include	"string.h"
 
 extern	VOID
 xs_encrypt DECL1(char *, buffer)

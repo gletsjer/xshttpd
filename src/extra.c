@@ -24,7 +24,6 @@
 #include	"extra.h"
 #include	"local.h"
 #include	"httpd.h"
-#include	"string.h"
 
 extern	char	*
 strcasestr DECL2CC(char *, big, char *, little)

@@ -48,7 +48,6 @@ struct		pst_swapinfo;
 #endif		/* HAVE_MEMORY_H */
 
 #include	"procname.h"
-#include	"string.h"
 
 #ifdef		NEED_DECL_ENVIRON
 extern	char	**environ;

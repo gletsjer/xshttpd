@@ -33,7 +33,6 @@
 #include	<arpa/inet.h>
 
 #include	<fcntl.h>
-#include	<string.h>
 #include	<stdio.h>
 #include	<errno.h>
 #include	<netdb.h>
@@ -83,7 +82,6 @@
 #include	"convert.h"
 #include	"setenv.h"
 #include	"getopt.h"
-#include	"string.h"
 
 #ifdef		__linux__
 extern	char	*tempnam(const char *, const char *);
@@ -365,7 +363,7 @@ sendcompressed DECL2_C(int, fd, char *, method)
 			exit(1);
 		}
 #else		/* Not HAVE_SETSID */
-		if (setpgrp(getpid(), 0)) == -1)
+		if (setpgrp(getpid(), 0) == -1)
 		{
 			error("500 setpgrp() failed");
 			exit(1);

@@ -14,7 +14,6 @@
 #include	<errno.h>
 #include	<fcntl.h>
 
-#include	"string.h"
 
 #ifdef		PATH_PPMTOGIF
 #ifndef		NOFORWARDS

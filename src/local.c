@@ -10,7 +10,6 @@
 
 #include	"httpd.h"
 #include	"local.h"
-#include	"string.h"
 
 #ifndef		NOFORWARDS
 static	int	transform_user_dir1	PROTO((char *, const struct passwd *,

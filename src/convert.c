@@ -8,7 +8,6 @@
 
 #include	"httpd.h"
 #include	"local.h"
-#include	"string.h"
 
 extern	const	char	*
 convertpath DECL1C(char *, orig)

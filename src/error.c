@@ -10,7 +10,6 @@
 
 #include	"local.h"
 #include	"setenv.h"
-#include	"string.h"
 #include	"path.h"
 
 #ifndef		NOFORWARDS

@@ -18,7 +18,6 @@
 
 #include	"xscounter.h"
 #include	"getopt.h"
-#include	"string.h"
 
 #define		MODE_TODAY	0
 #define		MODE_MONTH	1

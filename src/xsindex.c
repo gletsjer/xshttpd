@@ -13,7 +13,6 @@
 #include	"err.h"
 #endif		/* HAVE_ERR_H */
 
-#include	"string.h"
 #include	"getopt.h"
 
 typedef	struct	mime
