@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.128 2004/03/25 22:15:57 johans Exp $ */
+/* $Id: httpd.c,v 1.129 2004/05/29 13:55:28 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.128 2004/03/25 22:15:57 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.129 2004/05/29 13:55:28 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -280,7 +280,8 @@ load_config DECL0
 				*(--end) = 0;
 			if (end == line)
 				continue;
-			if (sscanf(line, "%s %s", key, value) == 2)
+			if ((sscanf(line, "%s \"%[^\"]\"", key, value) == 2) ||
+				(sscanf(line, "%s %s", key, value) == 2))
 			{
 				if (!strcasecmp("SystemRoot", key))
 				{
@@ -588,13 +589,30 @@ open_logs DECL1(int, sig)
 	for (current = config.system; current; current = current->next)
 	{
 		/* access */
-		if (current->openaccess)
-			fclose(current->openaccess);
 		if (current->logaccess)
 		{
-			if (!(current->openaccess =
+			if ('|' != current->logaccess[0])
+			{
+				if (current->openaccess)
+					fclose(current->openaccess);
+				if (!(current->openaccess =
 					fopen(calcpath(current->logaccess), "a")))
-				err(1, "fopen(`%s' [append])", current->logaccess);
+				{
+					err(1, "fopen(`%s' [append])",
+						current->logaccess);
+				}
+			}
+			else /* use_pipe */
+			{
+				if (current->openaccess)
+					pclose(current->openaccess);
+				if (!(current->openaccess =
+					popen(current->logaccess + 1, "w")))
+				{
+					err(1, "popen(`%s' [write])",
+						current->logaccess);
+				}
+			}
 #ifndef		SETVBUF_REVERSED
 			setvbuf(current->openaccess, NULL, _IOLBF, 0);
 #else		/* Not not SETVBUF_REVERSED */
@@ -603,54 +621,79 @@ open_logs DECL1(int, sig)
 		}
 
 		/* XXX: evil code duplication */
-		if (current->logstyle == traditional)
+		if (current->logstyle == traditional && current->logreferer)
 		{
 			/* referer */
-			if (current->openreferer)
-				fclose(current->openreferer);
-			if (current->logreferer)
+			if ('|' != current->logreferer[0])
 			{
+				if (current->openreferer)
+					fclose(current->openaccess);
 				if (!(current->openreferer =
-						fopen(calcpath(current->logreferer), "a")))
-					err(1, "fopen(`%s' [append])", current->logreferer);
-#ifndef		SETVBUF_REVERSED
-				setvbuf(current->openreferer, NULL, _IOLBF, 0);
-#else		/* Not not SETVBUF_REVERSED */
-				setvbuf(current->openreferer, _IOLBF, NULL, 0);
-#endif		/* SETVBUF_REVERSED */
+					fopen(calcpath(current->logreferer), "a")))
+				{
+					err(1, "fopen(`%s' [append])",
+						current->logreferer);
+				}
 			}
-		}
-		if (current != config.system)
-		{
-			/* referer */
-			if (current->openerror)
-				fclose(current->openerror);
-			if (current->logerror)
+			else /* use pipe */
 			{
-				if (!(current->openerror =
-						fopen(calcpath(current->logerror), "a")))
-					err(1, "fopen(`%s' [append])", current->logerror);
-#ifndef		SETVBUF_REVERSED
-				setvbuf(current->openerror, NULL, _IOLBF, 0);
-#else		/* Not not SETVBUF_REVERSED */
-				setvbuf(current->openerror, _IOLBF, NULL, 0);
-#endif		/* SETVBUF_REVERSED */
+				if (current->openreferer)
+					pclose(current->openaccess);
+				if (!(current->openreferer =
+					popen(current->logreferer + 1, "w")))
+				{
+					err(1, "popen(`%s' [write])",
+						current->logreferer);
+				}
 			}
+#ifndef		SETVBUF_REVERSED
+			setvbuf(current->openreferer, NULL, _IOLBF, 0);
+#else		/* Not not SETVBUF_REVERSED */
+			setvbuf(current->openreferer, _IOLBF, NULL, 0);
+#endif		/* SETVBUF_REVERSED */
+		}
+
+		/* XXX: evil code duplication */
+		if (current->logerror)
+		{
+			/* error */
+			if ('|' != current->logerror[0])
+			{
+				if (current->openerror)
+					fclose(current->openerror);
+				if (!(current->openerror =
+					fopen(calcpath(current->logerror), "a")))
+				{
+					err(1, "fopen(`%s' [append])",
+						current->logerror);
+				}
+			}
+			else /* use pipe */
+			{
+				if (current->openerror)
+					pclose(current->openerror);
+				if (!(current->openerror =
+					popen(current->logerror + 1, "w")))
+				{
+					err(1, "popen(`%s' [write])",
+						current->logerror);
+				}
+			}
+#ifndef		SETVBUF_REVERSED
+			setvbuf(current->openerror, NULL, _IOLBF, 0);
+#else		/* Not not SETVBUF_REVERSED */
+			setvbuf(current->openerror, _IOLBF, NULL, 0);
+#endif		/* SETVBUF_REVERSED */
 		}
 	}
 
 	fflush(stderr);
 	close(2);
-	if ((tempfile = open(calcpath(config.system->logerror),
-		    O_CREAT | O_APPEND | O_WRONLY,
-		    S_IWUSR | S_IRUSR | S_IROTH | S_IRGRP)) < 0)
-		err(1, "open(`%s' [append])", config.system->logerror);
+	tempfile = fileno(config.system->openerror);
 	if (tempfile != 2)
 	{
 		if (dup2(tempfile, 2) == -1)
 			err(1, "dup2() failed");
-		close(tempfile);
-		config.system->openerror = NULL;
 	}
 	else
 		config.system->openerror = stderr;
