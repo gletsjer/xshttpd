@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.127 2005/01/17 20:41:19 johans Exp $ */
+/* $Id: methods.c,v 1.128 2005/01/22 11:31:24 johans Exp $ */
 
 #include	"config.h"
 
@@ -1286,29 +1286,6 @@ loadscripttypes(char *orgbase, char *base)
 	free(path);
 	fclose(methods);
 }
-
-#ifdef		HANDLE_SSL
-void
-loadssl()
-{
-	if (config.usessl) {
-		SSLeay_add_all_algorithms();
-		SSL_load_error_strings();
-		ssl_ctx = SSL_CTX_new(SSLv23_server_method());
-		if (!SSL_CTX_use_certificate_file(ssl_ctx,
-				calcpath(config.sslcertificate),
-				SSL_FILETYPE_PEM) ||
-			!SSL_CTX_use_PrivateKey_file(ssl_ctx,
-				calcpath(config.sslprivatekey),
-				SSL_FILETYPE_PEM) ||
-			!SSL_CTX_check_private_key(ssl_ctx))
-			errx(1, "Cannot initialise SSL %s %s",
-				calcpath(config.sslcertificate),
-				calcpath(config.sslprivatekey));
-		ERR_print_errors_fp(stderr);
-	}
-}
-#endif		/* HANDLE_SSL */
 
 #ifdef		HANDLE_PERL
 void

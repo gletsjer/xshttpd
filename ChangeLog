@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.3 beta 11
+- Cleaned up SSL and moved to libxs.a as well (to do: cgi-ssl)
+
 Changes since 3.3 beta 10
 - Include local strsep and fix other replacement functions
 - Revamped build system by using a libxs.a for general functions

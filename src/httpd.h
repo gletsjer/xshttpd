@@ -24,8 +24,7 @@ extern	char	remotehost[], dateformat[], currentdir[],
 		currenttime[], version[], real_path[],
 		name[];
 extern	time_t	modtime;
-extern	int		headers, netbufind, netbufsiz, readlinemode,
-		headonly, postonly;
+extern	int		headers, headonly, postonly;
 extern	gid_t	origegid;
 extern	uid_t	origeuid;
 

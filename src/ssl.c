@@ -1,18 +1,20 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.1 2005/01/17 20:41:19 johans Exp $ */
+/* $Id: ssl.c,v 1.2 2005/01/22 11:31:24 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<string.h>
 #include	<unistd.h>
+#include	<err.h>
 #include	<errno.h>
 #include	<stdarg.h>
 
 #include	"httpd.h"
 #include	"htconfig.h"
 #include	"config.h"
+#include	"path.h"
 #include	"ssl.h"
 #include	"extra.h"
 
@@ -21,31 +23,85 @@ SSL_CTX			*ssl_ctx;
 static SSL		*ssl;
 #endif		/* HANDLE_SSL */
 
-int		netbufind, netbufsiz, readlinemode;
+static int	netbufind, netbufsiz, readlinemode;
 static char	netbuf[MYBUFSIZ];
+
+void
+setreadmode(int mode, int reset)
+{
+	unsigned long readerror;
+
+	if (reset)
+		netbufind = netbufsiz = 0;
+#ifdef		HANDLE_SSL
+	if ((readerror = ERR_get_error())) {
+		fprintf(stderr, "SSL Error: %s\n",
+			ERR_reason_error_string(readerror));
+		error("400 SSL Error");
+	}
+#endif		/* HANDLE_SSL */
+	readlinemode = mode;
+}
 
 int
 initssl(int csd)
 {
-	netbufsiz = netbufind = 0;
+	if (!config.usessl)
+		return 0;
+
 #ifdef		HANDLE_SSL
-	if (config.usessl)
-		setenv("SSL_CIPHER", SSL_get_cipher(ssl), 1);
-	if (config.usessl) {
-		ssl = SSL_new(ssl_ctx);
-		SSL_set_verify(ssl, SSL_VERIFY_NONE, NULL);
-		SSL_set_fd(ssl, csd);
-		if (!SSL_accept(ssl)) {
-			fprintf(stderr, "SSL flipped\n");
-			secprintf("%s 500 Failed\r\nContent-type: text/plain\r\n\r\n",
-				version);
-			secprintf("SSL Flipped...\n");
-			return -1;
-		}
+	ssl = SSL_new(ssl_ctx);
+	SSL_set_verify(ssl, SSL_VERIFY_NONE, NULL);
+	SSL_set_fd(ssl, csd);
+	if (!SSL_accept(ssl)) {
+		fprintf(stderr, "SSL flipped\n");
+		secprintf("%s 500 Failed\r\nContent-type: text/plain\r\n\r\n",
+			version);
+		secprintf("SSL Flipped...\n");
+		return -1;
 	}
+	setenv("SSL_CIPHER", SSL_get_cipher(ssl), 1);
 #endif		/* HANDLE_SSL */
 	return 0;
 }
+
+void
+endssl(int csd)
+{
+#ifdef		HANDLE_SSL
+	SSL_free(ssl);
+#endif		/* HANDLE_SSL */
+	close(csd);
+}
+
+void
+loadssl()
+{
+	if (!config.usessl)
+		return;
+
+#ifdef		HANDLE_SSL
+	if (!config.sslcertificate)
+		config.sslcertificate = strdup(CERT_FILE);
+	if (!config.sslprivatekey)
+		config.sslprivatekey = strdup(KEY_FILE);
+	SSLeay_add_all_algorithms();
+	SSL_load_error_strings();
+	ssl_ctx = SSL_CTX_new(SSLv23_server_method());
+	if (!SSL_CTX_use_certificate_file(ssl_ctx,
+			calcpath(config.sslcertificate),
+			SSL_FILETYPE_PEM) ||
+		!SSL_CTX_use_PrivateKey_file(ssl_ctx,
+			calcpath(config.sslprivatekey),
+			SSL_FILETYPE_PEM) ||
+		!SSL_CTX_check_private_key(ssl_ctx))
+		errx(1, "Cannot initialise SSL %s %s",
+			calcpath(config.sslcertificate),
+			calcpath(config.sslprivatekey));
+	ERR_print_errors_fp(stderr);
+#endif		/* HANDLE_SSL */
+}
+
 
 int
 secread(int fd, void *buf, size_t count)
@@ -83,7 +139,7 @@ secfwrite(void *buf, size_t size, size_t count, FILE *stream)
 int
 secprintf(const char *format, ...)
 {
-	va_list	ap;
+	va_list ap;
 	char	buf[4096];
 
 	va_start(ap, format);

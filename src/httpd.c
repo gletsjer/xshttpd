@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.169 2005/01/17 20:41:19 johans Exp $ */
+/* $Id: httpd.c,v 1.170 2005/01/22 11:31:24 johans Exp $ */
 
 #include	"config.h"
 
@@ -103,7 +103,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.169 2005/01/17 20:41:19 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.170 2005/01/22 11:31:24 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -551,19 +551,11 @@ load_config()
 		if (!lsock->instances)
 			lsock->instances = HTTPD_NUMBER;
 		config.usessl |= lsock->usessl;
-#ifdef		HANDLE_SSL
-#endif		/* HANDLE_SSL */
 	}
 	if (!config.pidfile)
 		config.pidfile = strdup(PID_PATH);
 	if (!config.localmode)
 		config.localmode = 1;
-#ifdef		HANDLE_SSL
-	if (!config.sslcertificate)
-		config.sslcertificate = strdup(CERT_FILE);
-	if (!config.sslprivatekey)
-		config.sslprivatekey = strdup(KEY_FILE);
-#endif		/* HANDLE_SSL */
 	/* Set up system section */
 	if (!config.system)
 	{
@@ -801,9 +793,7 @@ open_logs(int sig)
 	if (config.usecompressed)
 		loadcompresstypes();
 	loadscripttypes(NULL, NULL);
-#ifdef		HANDLE_SSL
 	loadssl();
-#endif		/* HANDLE_SSL */
 #ifdef		HANDLE_PERL
 	loadperl();
 #endif		/* HANDLE_PERL */
@@ -1172,13 +1162,7 @@ process_request()
 	http_host[0] = '\0';
 
 	alarm(180); errno = 0;
-#ifdef		HANDLE_SSL
-	if ((readerror = ERR_get_error())) {
-		fprintf(stderr, "SSL Error: %s\n", ERR_reason_error_string(readerror));
-		error("400 SSL Error");
-		return;
-	}
-#endif		/* HANDLE_SSL */
+	setreadmode(READCHAR, 1);
 	readerror = secread(0, line, 1);
 	if (readerror == 1)
 		readerror = secread(0, line + 1, 1);
@@ -1197,7 +1181,7 @@ process_request()
 		error("400 Unable to read begin of request line");
 		return;
 	}
-	readlinemode = strncasecmp("POST", line, 4) ? READBLOCK : READCHAR;
+	setreadmode(strncasecmp("POST", line, 4) ? READBLOCK : READCHAR, 0);
 	if (readline(0, line + 4) == ERR_QUIT)
 	{
 		error("400 Unable to read request line");
@@ -1743,9 +1727,7 @@ standalone_socket(char id)
 		} else
 			process_request();
 		alarm(0); reqs++;
-#ifdef		HANDLE_SSL
-		close(csd);
-#endif		/* HANDLE_SSL */
+		endssl(csd);
 		fflush(stdout); fflush(stdin); fflush(stderr);
 	}
 	/* NOTREACHED */

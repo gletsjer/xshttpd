@@ -2,9 +2,6 @@
 
 void	loadcompresstypes	(void);
 void	loadscripttypes		(char *, char *);
-#ifdef		HANDLE_SSL
-void	loadssl				(void);
-#endif		/* HANDLE_SSL */
 void	loadfiletypes		(char *, char *);
 #ifdef		HANDLE_PERL
 void	loadperl			(void);
