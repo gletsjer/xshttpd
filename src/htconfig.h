@@ -49,7 +49,8 @@ extern struct configuration {
 	unsigned	usevirtualhost: 1;
 	unsigned	usevirtualuid: 1;
 	unsigned	uselocalscript: 1;
-	unsigned	padding: 1;
+	unsigned	usecompressed: 1;
+	/* unsigned	padding: 8; */
 	struct virtual *	system;
 	struct virtual *	users;
 	struct virtual *	virtual;

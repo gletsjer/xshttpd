@@ -1,9 +1,7 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
 #ifndef		NOFORWARDS
-#ifdef		HANDLE_COMPRESSED
 extern	VOID	loadcompresstypes	PROTO((void));
-#endif		/* HANDLE_COMPRESSED */
 #ifdef		HANDLE_SCRIPT
 extern	VOID	loadscripttypes		PROTO((char *));
 #endif		/* HANDLE_SCRIPT */

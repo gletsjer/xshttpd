@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.135 2004/06/30 12:43:32 johans Exp $ */
+/* $Id: httpd.c,v 1.136 2004/06/30 17:10:15 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.135 2004/06/30 12:43:32 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.136 2004/06/30 17:10:15 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -273,6 +273,7 @@ load_config DECL0
 	config.usecharset = 1;
 	config.userestrictaddr = 1;
 	config.usevirtualhost = 1;
+	config.usecompressed = 1;
 	config.script_timeout = 6;
 	config.sockets = NULL;
 
@@ -340,6 +341,8 @@ load_config DECL0
 					config.uselocalscript = !strcasecmp("true", value);
 				else if (!strcasecmp("ScriptTimeout", key))
 					config.script_timeout = atoi(value);
+				else if (!strcasecmp("UseCompressed", key))
+					config.usecompressed = !strcasecmp("true", value);
 				else if (!strcasecmp("LocalMode", key))
 				{
 					if (!config.localmode)
@@ -743,12 +746,9 @@ open_logs DECL1(int, sig)
 			currenttime);
 	}
 	loadfiletypes();
-#ifdef		HANDLE_COMPRESSED
-	loadcompresstypes();
-#endif		/* HANDLE_COMPRESSED */
-#ifdef		HANDLE_SCRIPT
+	if (config.usecompressed)
+		loadcompresstypes();
 	loadscripttypes(NULL);
-#endif		/* HANDLE_SCRIPT */
 #ifdef		HANDLE_SSL
 	loadssl();
 #endif		/* HANDLE_SSL */

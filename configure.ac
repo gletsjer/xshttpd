@@ -103,20 +103,12 @@ AC_ARG_DEFAULT(ssi, WANT_SSI, yes,
 	[enable server-side includes])
 AC_ARG_DEFAULT(ipv6, INET6, yes,
 	[enable ipv6 support])
-AC_ARG_DEFAULT(script, HANDLE_SCRIPT, yes,
-	[enable scripting support e.g. PHP])
-if test x${enable_script} = xyes
-then
-	AC_DEFINE(SCRIPT_METHODS, "script.methods",
-		[File describing script extensions and interpreters])
-fi
-AC_ARG_DEFAULT(compress, HANDLE_COMPRESSED, yes,
-	[enable auto-extraction of compressed files])
-if test x${enable_compress} = xyes
-then
-	AC_DEFINE(COMPRESS_METHODS, "compress.methods",
-		[File describing compression extensions and programs])
-fi
+# This is now enabled by default
+AC_DEFINE(SCRIPT_METHODS, "script.methods",
+	[File describing script extensions and interpreters])
+# This is now enabled by default
+AC_DEFINE(COMPRESS_METHODS, "compress.methods",
+	[File describing compression extensions and programs])
 if test x${ac_cv_func_setrlimit} = xyes
 then
 	AC_ARG_DEFAULT(setrlimit, USE_SETRLIMIT, yes,

@@ -3,6 +3,8 @@ is not complete. Refer to cvs comments for more information.
 
 Changes since 3.2 beta 33
 - Last socket instance might have wrong settings
+- HANDLE_SCRIPT and HANDLE_COMPRESSED can no longer be disabled at compile;
+  set UseLocalScript or UseCompressed to false if you don't want it
 
 Changes since 3.2 beta 32
 - Fix a bug in naming logfiles (this broke httpdc reload)

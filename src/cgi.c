@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.82 2004/06/26 13:10:07 johans Exp $ */
+/* $Id: cgi.c,v 1.83 2004/06/30 17:10:15 johans Exp $ */
 
 #include	"config.h"
 
@@ -336,7 +336,6 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 		argv1 = getenv("QUERY_STRING");
 		if (argv1 && strchr(argv1, '='))
 			argv1 = NULL;
-#ifdef		HANDLE_SCRIPT
 #ifdef		HANDLE_PERL
 		if (engine && !strcmp(engine, "internal:perl"))
 		{
@@ -350,7 +349,6 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 		if (engine)
 			(void) execl(engine, engine, fullpath, argv1, NULL);
 		else
-#endif		/* HANDLE_SCRIPT */
 			(void) execl(fullpath, file, argv1, NULL);
 		/* no need to give local path info to the visitor */
 		if (nph)

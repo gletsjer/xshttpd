@@ -154,6 +154,7 @@ It wil listen to port 443 for https (SSL) connections.
 .SH Automatic decompression
 One of the nice features of the WWW server is automatic decompression.
 This feature is dealt with in the file called \fBcompress.methods\fP.
+You should disable \fIUseCompressed\fI if you don't want it.
 .LP
 This file lists the possible compression types that are understood by the
 WWW server. It works very simply: if somebody asks for (for example)

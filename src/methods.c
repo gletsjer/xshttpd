@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.105 2004/05/27 22:55:40 johans Exp $ */
+/* $Id: methods.c,v 1.106 2004/06/30 17:10:15 johans Exp $ */
 
 #include	"config.h"
 
@@ -86,20 +86,11 @@
 #include	"mystring.h"
 #include	"htconfig.h"
 
-#ifdef		HANDLE_COMPRESSED
-#define		WANT_CTYPES	1
-#endif		/* HANDLE_COMPRESSED */
-#ifdef		HANDLE_SCRIPT
-#define		WANT_CTYPES	1
-#endif		/* HANDLE_SCRIPT */
-
 #ifndef		NOFORWARDS
 static int	getfiletype		PROTO((int));
 static int	allowxs			PROTO((const char *));
 static VOID	senduncompressed	PROTO((int));
-#ifdef		HANDLE_COMPRESSED
 static VOID	sendcompressed		PROTO((int, const char *));
-#endif		/* HANDLE_COMPRESSED */
 #endif		/* NOFORWARDS */
 
 /* Global structures */
@@ -110,21 +101,15 @@ typedef	struct	ftypes
 	char		name[32], ext[16];
 } ftypes;
 
-#ifdef		WANT_CTYPES
 typedef	struct	ctypes
 {
 	struct	ctypes	*next;
 	char		prog[XS_PATH_MAX], ext[16], name[16];
 } ctypes;
-#endif		/* WANT_CTYPES */
 
 static	ftypes	*ftype = NULL;
-#ifdef		HANDLE_COMPRESSED
 static	ctypes	*ctype = NULL;
-#endif		/* HANDLE_COMPRESSED */
-#ifdef		HANDLE_SCRIPT
 static	ctypes	*itype = NULL, *litype = NULL;
-#endif		/* HANDLE_SCRIPT */
 static	char	charset[XS_PATH_MAX];
 #ifdef		HANDLE_PERL
 static	PerlInterpreter *	perl = NULL;
@@ -334,7 +319,6 @@ senduncompressed DECL1(int, fd)
 	close(fd);
 }
 
-#ifdef HANDLE_COMPRESSED
 extern	VOID
 sendcompressed DECL2_C(int, fd, char *, method)
 {
@@ -426,7 +410,6 @@ sendcompressed DECL2_C(int, fd, char *, method)
 	}
 	senduncompressed(processed);
 }
-#endif		/* HANDLE_COMPRESSED */
 
 extern	int
 allowxs DECL1C(char *, file)
@@ -503,9 +486,7 @@ do_get DECL1(char *, params)
 	struct	stat		statbuf;
 	const	struct	passwd	*userinfo;
 	FILE			*authfile;
-#ifdef		WANT_CTYPES
 	const	ctypes		*csearch = NULL, *isearch = NULL;
-#endif		/* WANT_CTYPES */
 
 	alarm(240);
 
@@ -835,25 +816,26 @@ do_get DECL1(char *, params)
 		return;
 	}
 	if (stat(total, &statbuf))
-#ifdef		HANDLE_COMPRESSED
 	{
-		csearch = ctype;
-		temp = total + strlen(total);
-		while (csearch)
+		if (config.usecompressed)
 		{
-			strcpy(temp, csearch->ext);
-			if (!stat(total, &statbuf))
-				break;
-			csearch = csearch->next;
+			csearch = ctype;
+			temp = total + strlen(total);
+			while (csearch)
+			{
+				strcpy(temp, csearch->ext);
+				if (!stat(total, &statbuf))
+					break;
+				csearch = csearch->next;
+			}
+			if (!csearch)
+				goto NOTFOUND;
 		}
-		if (!csearch)
-			goto NOTFOUND;
+		else
+			csearch = NULL;
 	}
 	else
-		csearch = NULL;
-#else		/* Not HANDLE_COMPRESSED */
 		goto NOTFOUND;
-#endif		/* HANDLE_COMPRESSED */
 
 	if (!S_ISREG(statbuf.st_mode))
 	{
@@ -919,7 +901,6 @@ do_get DECL1(char *, params)
 	strncpy(name, filename, XS_PATH_MAX);
 	name[XS_PATH_MAX-1] = '\0';
 
-#ifdef		HANDLE_SCRIPT
 	/* check litype for local and itype for global settings */
 	if ((tmp = config.uselocalscript))
 		loadscripttypes(base);
@@ -949,7 +930,6 @@ do_get DECL1(char *, params)
 			isearch = itype;
 		}
 	}
-#endif		/* HANDLE_SCRIPT */
 
 	/* Do this only after all the security checks */
 	if (script >= 0)
@@ -972,8 +952,7 @@ do_get DECL1(char *, params)
 		return;
 	}
 
-#ifdef		HANDLE_COMPRESSED
-	if (csearch)
+	if (config.usecompressed && csearch)
 	{
 		if (strlen(csearch->name) &&
 			(temp = getenv("HTTP_ACCEPT_ENCODING")) &&
@@ -986,7 +965,6 @@ do_get DECL1(char *, params)
 			sendcompressed(fd, csearch->prog);
 	}
 	else
-#endif		/* HANDLE_COMPRESSED */
 		senduncompressed(fd);
 	return;
 
@@ -1088,7 +1066,6 @@ loadfiletypes DECL0
 	fclose(mime);
 }
 
-#ifdef		HANDLE_COMPRESSED
 extern	VOID
 loadcompresstypes DECL0
 {
@@ -1128,11 +1105,9 @@ loadcompresstypes DECL0
 	}
 	fclose(methods);
 }
-#endif		/* HANDLE_COMPRESSED */
 
-#ifdef		HANDLE_SCRIPT
 extern	VOID
-loadscripttypes PROTO((char *base))
+loadscripttypes DECL1(char *, base)
 {
 	char		line[MYBUFSIZ], *end, *comment, *path;
 	FILE		*methods;
@@ -1191,7 +1166,6 @@ loadscripttypes PROTO((char *base))
 	free(path);
 	fclose(methods);
 }
-#endif		/* HANDLE_SCRIPT */
 
 #ifdef		HANDLE_SSL
 extern	VOID
