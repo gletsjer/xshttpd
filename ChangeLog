@@ -1,6 +1,13 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.2 beta 35
+- SERVER_NAME uses the requested HTTP_HOST instead of default hostname
+
+Changes since 3.2 beta 34
+- A 404 NOT FOUND error was returned when not appropriate
+- Tested (and working) with PHP 5.0.0
+
 Changes since 3.2 beta 33
 - Last socket instance might have wrong settings
 - HANDLE_SCRIPT and HANDLE_COMPRESSED can no longer be disabled at compile;

@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.136 2004/06/30 17:10:15 johans Exp $ */
+/* $Id: httpd.c,v 1.137 2004/08/09 17:34:10 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.136 2004/06/30 17:10:15 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.137 2004/08/09 17:34:10 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1318,6 +1318,7 @@ process_request DECL0
 	orig[0] = referer[0] = line[0] =
 		real_path[0] = browser[0] = 0;
 	netbufsiz = netbufind = headonly = postonly = headers = 0;
+	unsetenv("SERVER_NAME");
 	unsetenv("CONTENT_LENGTH"); unsetenv("AUTH_TYPE");
 	unsetenv("CONTENT_TYPE"); unsetenv("QUERY_STRING");
 	unsetenv("PATH_INFO"); unsetenv("PATH_TRANSLATED");
@@ -1528,6 +1529,8 @@ process_request DECL0
 			"NO_RELATIVE_URLS");
 		return;
 	}
+	/* SERVER_NAME may be overriden soon */
+	setenv("SERVER_NAME", config.system->hostname, 1);
 	if ((temp = getenv("HTTP_HOST")))
 	{
 		temp = strncpy(http_host, temp, NI_MAXHOST);
@@ -1562,7 +1565,11 @@ process_request DECL0
 		unsetenv("HTTP_HOST");
 		/* Ignore unqualified names - it could be a subdirectory! */
 		if ((strlen(http_host) > 3) && strchr(http_host, '.'))
+		{
 			setenv("HTTP_HOST", http_host, 1);
+			unsetenv("SERVER_NAME");
+			setenv("SERVER_NAME", http_host, 1);
+		}
 	}
 	else if (headers >= 11)
 	{

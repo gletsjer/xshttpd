@@ -43,6 +43,22 @@ servers), only to replace a lost server (in case of timeouts).
 .TP
 o
 Comes with some other useful programs
+.TP
+o
+Offers Server-Side Includes for many common tasks, including
+built-in page counters (text or graphical)
+.TP
+o
+Supports PHP and other interpreted file formats
+.TP
+o
+Supports automatic decompression to save diskspace and bandwidth
+.TP
+o
+Serves SSL (https) and http connections through the same daemon
+.TP
+o
+Full support for IPv6
 .LP
 .SH RUNNING THE HTTPD
 Note that if you are going to use a port number below or equal to 1024
