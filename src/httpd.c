@@ -728,7 +728,7 @@ secprintf(const char *format, ...)
 		return SSL_write(ssl, buf, strlen(buf));
 	else
 #endif		/* HANDLE_SSL */
-		return write(1, buf, strlen(buf));
+		return printf("%s", buf);
 }
 
 size_t
