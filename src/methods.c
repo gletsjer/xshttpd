@@ -567,7 +567,7 @@ do_get DECL1(char *, params)
 			strncpy(base, calcpath(http_host), XS_PATH_MAX-1);
 			base[XS_PATH_MAX-2] = '\0';
 			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
-				strncpy(base, calcpath(current->htmldir), XS_PATH_MAX-1);
+				*base = '\0';
 			else if (config.usevirtualuid)
 			{
 				/* We got a virtual host, now set euid */
@@ -1103,7 +1103,7 @@ extern	VOID
 loadscripttypes PROTO((char *base))
 {
 	char		line[MYBUFSIZ], *end, *comment;
-	const char	*path = NULL;
+	char		*path = NULL;
 	FILE		*methods;
 	ctypes		*prev, *new;
 
@@ -1117,7 +1117,7 @@ loadscripttypes PROTO((char *base))
 	else
 	{
 		while (itype) { new = itype->next; free(itype); itype = new; }
-		path = calcpath(SCRIPT_METHODS);
+		path = (char *)calcpath(SCRIPT_METHODS);
 		if (!(methods = fopen(path, "r")))
 			err(1, "fopen(`%s' [read])", path);
 	}

@@ -54,6 +54,10 @@ start the WWW server as root.
 
 The server has a number of options:
 .TP
+.B \-c configfile
+Uses the specified configuration file instead of the default
+\fIrootdir\fP/httpd.conf.
+.TP
 .B \-p portnumber
 Uses port number
 .B portnumber

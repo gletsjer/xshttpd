@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.116 2003/03/16 12:36:00 johans Exp $ */
+/* $Id: httpd.c,v 1.117 2003/05/06 21:57:17 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.116 2003/03/16 12:36:00 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.117 2003/05/06 21:57:17 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -975,6 +975,8 @@ server_error DECL2CC(char *, readable, char *, cgi)
 	char				cgipath[XS_PATH_MAX],
 				*escaped, *temp, filename[] = "/error";
 	const	char		*env;
+	uid_t		uid;
+	const	struct	passwd	*userinfo;
 
 	if (!current)
 		current = config.system;
@@ -992,8 +994,19 @@ server_error DECL2CC(char *, readable, char *, cgi)
 	if (escaped)
 		free(escaped);
 	env = getenv("QUERY_STRING");
-	snprintf(cgipath, XS_PATH_MAX, "%s%s",
-		calcpath(current->phexecdir), filename);
+	/* Look for user-defined error script */
+	if ((uid = geteuid()) && (userinfo = getpwuid(uid)))
+	{
+		char	base[XS_PATH_MAX];
+		transform_user_dir(base, userinfo, 1);
+		snprintf(cgipath, XS_PATH_MAX, "%s%s%s",
+			base, current->phexecdir, filename);
+	}
+	else	/* Look for virtual host error script */
+	{
+		snprintf(cgipath, XS_PATH_MAX, "%s%s",
+			calcpath(current->phexecdir), filename);
+	}
 	if (stat(cgipath, &statbuf))
 	{
 		/* Last resort: try system error script */
