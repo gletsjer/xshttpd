@@ -6,6 +6,9 @@ extern	VOID	senduncompressed	PROTO((int));
 extern	VOID	sendcompressed		PROTO((int, const char *));
 extern	VOID	loadcompresstypes	PROTO((void));
 #endif		/* HANDLE_COMPRESSED */
+#ifdef		HANDLE_SCRIPT
+extern	VOID	loadscripttypes		PROTO((void));
+#endif		/* HANDLE_SCRIPT */
 extern	VOID	loadfiletypes		PROTO((void));
 extern	int	getfiletype		PROTO((int));
 

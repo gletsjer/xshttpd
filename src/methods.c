@@ -519,7 +519,7 @@ do_get DECL1(char *, params)
 	{
 		size = strlen(search->ext);
 		if ((temp = strstr(file, search->ext)) &&
-			(*(file + temp + size) == '\0' || *(file + temp + size) == '?'))
+			(*(temp + size) == '\0' || *(temp + size) == '?'))
 		{
 			do_script(params, search->prog, headers);
 			return;

@@ -35,12 +35,13 @@ for more information about these SSI's. */
 
 #define RESTRICTXS
  
-/* PHP3 support
- * We don't use the PHP library (yet), but rely on the stand-alone
- * version instead. Shouldn't matter (only slightly in performance).
+/* Generic file interpretation support (read: PHP)
+ * This extension allows files with certain extensions to be parsed
+ * by an external interpreter. You will have to specify the extensions
+ * and programs in SCRIPT_METHODS
  */
 #define HANDLE_SCRIPT
-#define SCRIPT_METHODS "interpret.methods"
+#define SCRIPT_METHODS "script.methods"
 
 /* Define these if you have the respective include file. For example,
 define HAVE_SYS_SYSLIMITS_H if your system has the sys/syslimits.h
