@@ -159,6 +159,13 @@ specified with \fB.gz\fP. Note that this process does not actually
 create \fBindex.html\fP in that same directory. It creates a file
 in the temporary directory, which is removed immediately after usage.
 .LP
+In the case that the browsers accepts certain document encodigings (gzip
+is quite common) and the document is stored on disk in an acceptable
+format, then the server won't even bother to decompress the document
+himself, but will send it to the client compressed as it is, so that the
+browser will extract it itself before presenting the document to the
+user.
+.LP
 If somebody asks directly for \fBindex.html.gz\fP, he will get it
 in the compressed format. This way, nice things like the following can
 be done:
@@ -182,7 +189,7 @@ retrieves pages under users' own UID, this problem is avoided.
 .LP
 More information about authentication can be found in the manual pages
 of \fBxspasswd\fP and \fBxschpass\fP.
-.SH Configuring SSL
+.SH Secure Sockets Layer
 The webserver supports secure https connections as well as normal http.
 However if you want to do both, you will need to run seperate instances,
 one with \fBUseSSL\fP (or the command line option -s) set and one without.
