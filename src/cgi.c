@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.69 2002/11/12 18:05:38 johans Exp $ */
+/* $Id: cgi.c,v 1.70 2002/11/17 22:34:32 johans Exp $ */
 
 #include	"config.h"
 
@@ -374,7 +374,6 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 	}
 
 #ifdef		HANDLE_SSL
-			fprintf(stderr, "HERE\n", received);
 	if (ssl_post)
 	{
 		writetodo = atoi(getenv("CONTENT_LENGTH"));

@@ -15,7 +15,7 @@ xsindex_SOURCES = xsindex.c err.c extra.c
 
 httpd_CFLAGS = @httpd_cflags@ -DBUILD_HTTPD
 httpd_LDADD = @LIBOBJS@
-httpd_LDFLAGS = @httpd_ldflags@ @ldcrypt@ -L/usr/local/lib -lgc
+httpd_LDFLAGS = @httpd_ldflags@ @ldcrypt@
 xspasswd_LDFLAGS = @ldcrypt@
 xschpass_LDFLAGS = @ldcrypt@
 
