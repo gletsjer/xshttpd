@@ -2,9 +2,7 @@
 
 #ifndef		NOFORWARDS
 extern	VOID	loadcompresstypes	PROTO((void));
-#ifdef		HANDLE_SCRIPT
 extern	VOID	loadscripttypes		PROTO((char *));
-#endif		/* HANDLE_SCRIPT */
 #ifdef		HANDLE_SSL
 extern	VOID	loadssl				PROTO((void));
 #endif		/* HANDLE_SSL */
