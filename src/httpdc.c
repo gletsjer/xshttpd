@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.5 2001/05/22 12:19:29 johans Exp $ */
+/* $Id: httpdc.c,v 1.6 2002/12/23 15:07:58 johans Exp $ */
 
 #include	"config.h"
 
@@ -177,12 +177,14 @@ control DECL1C(char *, args)
 }
 
 static	VOID
-loadpidfile DECL0
+loadpidfile DECL1C(char *, pidfilename)
 {
 	char		buffer[BUFSIZ], pidname[XS_PATH_MAX];
 	FILE		*pidfile;
 
-	strcpy(pidname, calcpath(PID_PATH));
+	strncpy(pidname,
+		pidfilename == NULL ? calcpath(PID_PATH) : pidfilename,
+		XS_PATH_MAX);
 	if ((pidfile = fopen(pidname, "r")))
 	{
 		if (!fgets(buffer, BUFSIZ, pidfile))
@@ -202,15 +204,19 @@ extern	int
 main DECL2(int, argc, char **, argv)
 {
 	char		buffer[BUFSIZ];
+	char		*pidfilename = NULL;
 	int		option;
 
 	strcpy(rootdir, HTTPD_ROOT);
-	while ((option = getopt(argc, argv, "d:")) != EOF)
+	while ((option = getopt(argc, argv, "d:p:")) != EOF)
 	{
 		switch(option)
 		{
 		case 'd':
-			strcpy(rootdir, optarg);
+			strncpy(rootdir, optarg, XS_PATH_MAX);
+			break;
+		case 'p':
+			pidfilename = optarg;
 			break;
 		default:
 			err(1, "Usage: %s [-d rootdir]", argv[0]);
@@ -218,7 +224,7 @@ main DECL2(int, argc, char **, argv)
 	}
 	if (argc != optind)
 	{
-		loadpidfile();
+		loadpidfile(pidfilename);
 		control(argv[optind]);
 		exit(0);
 	}
@@ -232,7 +238,7 @@ main DECL2(int, argc, char **, argv)
 			buffer[strlen(buffer) - 1] = 0;
 		if (!buffer[0])
 			continue;
-		loadpidfile();
+		loadpidfile(pidfilename);
 		control(buffer);
 	}
 	fprintf(stderr, "End of input received\n");
