@@ -111,6 +111,7 @@ do_script DECL2C_(char *, path, int, headers)
 	alarm(0); /* left = alarm(360); */ fflush(stdout);
 	unsetenv("PATH_INFO"); unsetenv("PATH_TRANSLATED");
 	unsetenv("QUERY_STRING"); unsetenv("SCRIPT_NAME");
+	unsetenv("REDIRECT_STATUS");
 	savedeuid = savedegid = -1;
 	if (!origeuid)
 	{
@@ -433,8 +434,11 @@ do_script DECL2C_(char *, path, int, headers)
 			exit(1);
 		}
 #ifdef		SUPPORT_PHP3
-		if (php3)
+		if (php3) {
+			setenv("PATH_INFO", fullpath, 1);
+			setenv("PATH_TRANSLATED", fullpath, 1);
 			execl(PHP3_PATH, "php", fullpath, argv1, NULL);
+		}
 		else
 #endif		/* SUPPORT_PHP3 */
 			execl(fullpath, name, argv1, NULL);
