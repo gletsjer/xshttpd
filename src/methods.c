@@ -1142,7 +1142,11 @@ loadscripttypes PROTO((char *base))
 			{ new = itype->next; free(itype); itype = new; }
 		path = strdup(calcpath(SCRIPT_METHODS));
 		if (!(methods = fopen(path, "r")))
-			err(1, "fopen(`%s' [read])", path);
+		{
+			/* missing script.methods is not fatal */
+			free(path);
+			return;
+		}
 	}
 	prev = NULL;
 	while (fgets(line, MYBUFSIZ, methods))

@@ -1,6 +1,9 @@
 This file is terribly out of date. However the manual pages should
 be (mostly) accurate. For a list of changes, please see cvs comments.
 
+Changes since 3.2 beta 23
+- Fix small portability issues: now runs again on IRIX, Solaris, etc.
+
 Changes since 3.2 beta 22
 - Fixed error handling for root and non-existant users
 - Start up with an empty environment
