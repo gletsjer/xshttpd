@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.100 2003/01/13 13:56:00 johans Exp $ */
+/* $Id: httpd.c,v 1.101 2003/01/19 22:07:08 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.100 2003/01/13 13:56:00 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.101 2003/01/19 22:07:08 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -925,8 +925,7 @@ extern	VOID
 server_error DECL2CC(char *, readable, char *, cgi)
 {
 	struct	stat		statbuf;
-	const	struct	passwd	*userinfo;
-	char			*search, cgipath[XS_PATH_MAX], base[XS_PATH_MAX],
+	char				cgipath[XS_PATH_MAX],
 				*escaped, *temp, filename[] = "/error";
 	const	char		*env;
 
@@ -946,41 +945,19 @@ server_error DECL2CC(char *, readable, char *, cgi)
 	if (escaped)
 		free(escaped);
 	env = getenv("QUERY_STRING");
-	if (real_path[0] && real_path[1] == '~')
-	{
-		if ((search = strchr(real_path + 2, '/')))
-			*search = 0;
-		if ((userinfo = getpwnam(real_path + 2)))
-		{
-			if (search)
-				*search = '/';
-			if (!transform_user_dir(base, userinfo, 0))
-			{
-				snprintf(cgipath, XS_PATH_MAX, "%s%s%s",
-					base, current->phexecdir, filename);
-				cgipath[XS_PATH_MAX-1] = '\0';
-				if (!stat(cgipath, &statbuf))
-					goto EXECUTE;
-			}
-		}
-		if (search)
-			*search = '/';
-	}
 	snprintf(cgipath, XS_PATH_MAX, "%s%s",
 		calcpath(current->phexecdir), filename);
-	cgipath[XS_PATH_MAX-1] = '\0';
 	if (stat(cgipath, &statbuf))
 	{
 		/* Last resort: try system error script */
 		snprintf(cgipath, XS_PATH_MAX, "%s%s",
-			calcpath(current->phexecdir), filename);
+			calcpath(config.system->phexecdir), filename);
 		if (stat(cgipath, &statbuf))
 		{
 			error(readable);
 			return;
 		}
 	}
-	EXECUTE:
 	if ((temp = strrchr(cgipath, '/')))
 		*temp = '\0';
 	setcurrenttime();
