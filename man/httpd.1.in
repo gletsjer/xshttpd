@@ -283,6 +283,9 @@ This directive inserts a HTML tag to include a graphical
 representation of the number of times that this page has
 been retrieved today. See above for \fIlocation\fP.
 .TP
+\fBcount\-reset\fP
+This directive resets all counters for this page to 0.
+.TP
 \fBdate\fP
 This directive inserts the current date and time, optionally
 in your own format. You can specify your own date and time
