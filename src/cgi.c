@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.54 2002/01/31 16:16:28 johans Exp $ */
+/* $Id: cgi.c,v 1.55 2002/02/19 12:14:18 johans Exp $ */
 
 #include	"config.h"
 
@@ -40,6 +40,10 @@
 #else		/* NONEWSTYLE */
 #include	<optarg.h>
 #endif		/* NONEWSTYLE */
+#ifdef		HANDLE_PERL
+#include	<EXTERN.h>
+#include	<perl.h>
+#endif		/* HANDLE_PERL */
 
 #include	"httpd.h"
 #include	"local.h"
@@ -55,6 +59,9 @@
 static	const	char	*skipspaces	PROTO((const char *));
 static	VOID	time_is_up		PROTO((int));
 #endif		/* NOFORWARDS */
+#ifdef		HANDLE_PERL
+static	char *	perlargs[] = { "", NULL };
+#endif		/* HANDLE_PERL */
 
 pid_t			child;
 
@@ -568,6 +575,16 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 			exit(1);
 		}
 #ifdef		HANDLE_SCRIPT
+#ifdef		HANDLE_PERL
+		if (!strcmp(engine, "internal:perl"))
+		{
+			perlargs[0] = fullpath;
+			perl_call_argv("Embed::Persistent::eval_file",
+				G_DISCARD | G_EVAL, perlargs);
+			return;
+		}
+		else
+#endif		/* HANDLE_PERL */
 		if (engine)
 		{
 			unsetenv("PATH_INFO");

@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/httpd.c)
-AM_INIT_AUTOMAKE(xshttpd, 31b01)
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.1 beta/0.1")
+AM_INIT_AUTOMAKE(xshttpd, 31b03)
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.1 beta/0.3")
 AM_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
@@ -97,6 +97,8 @@ fi
 AC_SHOW_HELP(--enable options (disabled by default):)
 AC_ARG_DEFAULT(virtualuid, VIRTUAL_UID, no,
 	[  --enable-virtualuid     enable variable euid for virtual hosting])
+AC_ARG_DEFAULT(perl, HANDLE_PERL, no,
+	[  --enable-perl           enable persistent perl interpreter])
 AC_ARG_DEFAULT(warnings, , no,
 	[  --enable-warnings       show extra compiler warnings])
 
@@ -105,6 +107,17 @@ then
 	CFLAGS="-g -O -fsigned-char -pedantic -ansi -trigraphs -Wall -W -Wpointer-arith -Wshadow -pipe -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wimplicit -Wreturn-type -Wformat -Wswitch -Wcomment -Wchar-subscripts -Wuninitialized -Wparentheses -Wcast-align -Waggregate-return -Wnested-externs -Winline"
 else
 	CFLAGS="-g"
+fi
+
+if test x${enable_perl} = xyes
+then
+	if test x${enable_script} = xno
+	then
+		echo "You can only use --enable-perl with --enable-script"
+		exit 1
+	fi
+	httpd_cflags="${httpd_cflags} `perl -MExtUtils::Embed -e ccopts`"
+	httpd_ldflags="${httpd_ldflags} `perl -MExtUtils::Embed -e ldopts`"
 fi
 
 dnl Test runs for required global variables

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.66 2002/02/14 14:15:51 johans Exp $ */
+/* $Id: httpd.c,v 1.67 2002/02/19 12:14:19 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.66 2002/02/14 14:15:51 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.67 2002/02/19 12:14:19 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -513,6 +513,9 @@ open_logs DECL1(int, sig)
 #ifdef		HANDLE_SSL
 	loadssl();
 #endif		/* HANDLE_SSL */
+#ifdef		HANDLE_PERL
+	loadperl();
+#endif		/* HANDLE_PERL */
 	set_signals();
 	if (!origeuid)
 	{

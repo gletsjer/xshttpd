@@ -62,6 +62,21 @@ from .charset files. Define HANDLE_CHARSET if that is what you want */
   
 #undef HANDLE_CHARSET
 
+/* Persistent perl interpreter
+ * This extension allows perl files to be interpreted by a built-in
+ * interpreter. This is only available if SCRIPT_METHODS is enabled.
+ */
+ 
+#undef HANDLE_PERL
+
+/* The server can automatically uncompress compressed files on the server
+side if the other side is not able to handle the compression method.
+If you want to turn on this feature, define HANDLE_COMPRESSED. See the
+default compress.methods for more details. */
+  
+#undef HANDLE_COMPRESSED 
+#define COMPRESS_METHODS "compress.methods"
+
 /* The path in which `ppmtogif' (part of the NetPBM package) can be found.
 If you do not have this, the graphical counter will not work (I'm
 working on this...). In that case, #undef this line. */

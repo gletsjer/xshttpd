@@ -1,3 +1,10 @@
+Changes since 3.1 beta 2
+- Hook up with a perl library (experimental)
+
+Changes since 3.1 beta 1
+- Add internal:404 for file types that should never be shown (includes)
+- Compile cleanly under Darwin
+
 Changes since 3.0 beta 13
 - Add a third directory index fallback: index.php
 - Allow multiple password retries

@@ -69,6 +69,10 @@
 #ifdef		HANDLE_SSL
 #include	<openssl/ssl.h>
 #endif		/* HANDLE_SSL */
+#ifdef		HANDLE_PERL
+#include	<EXTERN.h>
+#include	<perl.h>
+#endif		/* HANDLE_PERL */
 
 #include	"httpd.h"
 #include	"methods.h"
@@ -121,6 +125,9 @@ static	ctypes	*itype = NULL;
 #ifdef		HANDLE_CHARSET
 static	char	charset[XS_PATH_MAX];
 #endif		/* HANDLE_CHARSET */
+#ifdef		HANDLE_PERL
+static	PerlInterpreter *	perl = NULL;
+#endif		/* HANDLE_PERL */
 
 extern	VOID
 senduncompressed DECL1(int, fd)
@@ -1019,6 +1026,10 @@ loadscripttypes DECL0
 			*(--end) = 0;
 		if (line == end)
 			continue;
+#ifndef		HANDLE_PERL
+		if (!strncmp(line, "internal:perl", 13))
+			continue;
+#endif		HANDLE_PERL
 		if (!(new = (ctypes *)malloc(sizeof(ctypes))))
 			errx(1, "Out of memory in loadscripttypes()");
 		if (prev)
@@ -1051,6 +1062,27 @@ loadssl	DECL0
 	}
 }
 #endif		/* HANDLE_SSL */
+
+#ifdef		HANDLE_PERL
+extern	VOID
+loadperl	DECL0
+{
+	char *embedding[] = { "", HTTPD_ROOT "/persistent.pl" };
+	char filename [1024];
+	int exitstatus = 0;
+	STRLEN n_a;
+
+	if (!(perl = perl_alloc()))
+	   errx(1, "No memory!");
+	perl_construct(perl);
+
+	exitstatus = perl_parse(perl, NULL, 2, embedding, NULL);
+	if (!exitstatus)
+	   exitstatus = perl_run(perl);
+	else
+		errx(1, "No perl!");
+}
+#endif		/* HANDLE_PERL */
 
 extern	int
 getfiletype DECL1(int, print)

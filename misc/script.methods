@@ -2,3 +2,5 @@
 
 /usr/local/bin/php	.php3
 /usr/local/bin/php4	.php
+internal:404		.htmli
+internal:perl		.pl
