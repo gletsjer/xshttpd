@@ -115,6 +115,16 @@ same syntax as the global script.methods file, see
 .BR httpd(1)
 for details.
 .TP
+.B Priority
+The system priority that the daemon will be running at. A lower priority causes
+more favorable scheduling. The default priority is 0.
+.TP
+.B ScriptPriority
+The CPU priority that user CGI scripts will be running at. A lower priority
+causes more favorable scheduling. The default value is PRIO_MAX, which may
+cause scripts to respond quite slowly, but at least your other processes won't
+be suffering too much from broken scripts.
+.TP
 .B ScriptTimeout <minutes>
 The time a CGI script is allowed to run before it will be considered runaway
 and killed by the server. The time should be specified in minutes (default is 6).
