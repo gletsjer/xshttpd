@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/httpd.c)
-AM_INIT_AUTOMAKE(xshttpd, 33b03)
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.03", [Server version])
+AM_INIT_AUTOMAKE(xshttpd, 33b04)
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.04", [Server version])
 AM_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
@@ -145,10 +145,7 @@ dnl Test runs for required global variables
 AC_NEED_CONST(sys_errlist, NEED_SYS_ERRLIST_DECL, stdio.h)
 AC_NEED_CONST(optarg, NEED_OPTARG_AND_OPTIND, unistd.h)
 AC_NEED_CONST(environ, NEED_DECL_ENVIRON, unistd.h)
-if test x${ac_cv_func_setpriority} = xyes
-then
-	AC_NEED_CONST2(PRIO_MAX, [PRIO_MAX 20], sys/time.h, sys/resource.h)
-fi
+
 dnl AC_EGREP_HEADER(sys_errlist, stdio.h,, AC_DEFINE(NEED_SYS_ERRLIST_DECL))
 dnl AC_EGREP_HEADER(optarg, getopt.h,, AC_DEFINE(NEED_OPTARG_AND_OPTIND))
 dnl AC_EGREP_HEADER(eniviron, unistd.h,, AC_DEFINE(NEED_DECL_ENVIRON))

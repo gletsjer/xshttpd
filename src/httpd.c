@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.146 2004/11/13 17:06:03 johans Exp $ */
+/* $Id: httpd.c,v 1.147 2004/11/16 18:14:10 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,10 +101,13 @@ extern	int	setpriority PROTO((int, int, int));
 #ifndef		HAVE_SOCKLEN_T
 typedef	size_t	socklen_t;
 #endif		/* HAVE_SOCKLEN_T */
+#ifndef		PRIO_MAX
+#define		PRIO_MAX	20
+#endif
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.146 2004/11/13 17:06:03 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.147 2004/11/16 18:14:10 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
