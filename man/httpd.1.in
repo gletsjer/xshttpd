@@ -227,11 +227,27 @@ redirection (302) a permanent redirection (301) will be sent.
 Users probably won't notice any difference, but it should keep
 robots from keep on using the old address.
 .TP
+\fB .charset\fP
+If this file is present in a certain directory, then all files
+requested from that directory will get an extra HTTP header which
+indicates the character set used, as specified by the contents
+of the .charset file. Usefull settings are e.g. UTF-8, ISO-8859-1,
+KOI8-R.
+.TP
+\fB *.charset\fP
+Sets the character set for a specific file (see *.redir).
+.TP
 \fB .xsauth\fP
 If this file exists, all files in that directory (NOT the
 subdirectories) are protected by usercode/password
 combinations. Read the manual page of xspasswd for more
 details about this.
+.TP
+\fB .xsscripts
+This file lets a user override the contents of the global
+\fIscript.methods\fP file. The syntax of this file is exactly the
+same as that for the global configuration file, but it applies only
+to a single directory.
 .LP
 .SH XS\-HTTPD SSI's
 One of the most advanced features of this WWW server is its
