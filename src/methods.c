@@ -663,7 +663,7 @@ do_get DECL1(char *, params)
 		error("403 User directory is writable");
 		return;
 	}
-	if (userinfo && (statbuf.st_uid != getuid()))
+	if (userinfo && (statbuf.st_uid != geteuid()))
 	{
 		error("403 Invalid owner of user directory");
 		return;
