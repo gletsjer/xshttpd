@@ -127,22 +127,11 @@ extern	VOID
 initsetprocname DECL3(int, argc, char **, argv, char **, envp)
 {
 #ifndef		PS_STRINGS
-	int		i, len;
+	/* start with empty environment */
+	environ = (char **)malloc(sizeof(char *));
+	*environ = NULL;
 
-	for (i = 0; envp[i]; i++)
-		/* NOTHING HERE */;
-	environ = (char **)malloc(sizeof(char *) * (i + 1));
-	for (i = 0; envp[i]; i++)
-	{
-		len = strlen(envp[i]);
-		environ[i] = (char *)malloc(len + 1);
-		bcopy(envp[i], environ[i], len + 1);
-	}
-	environ[i] = NULL;
-	if (i > 0)
-		procnameend = envp[i - 1] + strlen(envp[i - 1]);
-	else
-		procnameend = argv[argc - 1] + strlen(argv[argc - 1]);
+	procnameend = argv[argc - 1] + strlen(argv[argc - 1]);
 	procnamestart = argv[0];
 	argv[1] = NULL;
 	setprocname("xs: Process name initialized...");
