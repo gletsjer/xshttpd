@@ -279,6 +279,11 @@ main DECL2(int, argc, char **, argv)
 	remove(INDEX_HTML);
 	if (!(output = fopen(INDEX_HTML, "w")))
 		err(1, "fopen(%s)", INDEX_HTML);
+	/* maybe add this when it actually validates...
+	fprintf(output, "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 "
+		"Transitional//EN\"\n"
+		"\t\"http://www.w3c.org/TR/html4/loose.dtd\">\n");
+	 */
 	fprintf(output, "<HTML><HEAD><TITLE>%s</TITLE></HEAD><BODY>\n",
 		argv[optind]);
 	fprintf(output, "<H1>%s</H1><HR><PRE>\n", argv[optind]);

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.101 2004/04/01 09:45:46 johans Exp $ */
+/* $Id: methods.c,v 1.102 2004/05/07 14:12:45 johans Exp $ */
 
 #include	"config.h"
 
@@ -648,13 +648,17 @@ do_get DECL1(char *, params)
 
 	/* look for file on disk */
 	snprintf(temppath, XS_PATH_MAX, "%s%s", base, file);
-	if (!stat(temppath, &statbuf) &&
+	if (!wasdir &&
+		!stat(temppath, &statbuf) &&
 		(statbuf.st_mode & S_IFMT) == S_IFREG)
 	{
+		/* No PATH_INFO for regular files */
+#if		0
 		setenv("PATH_INFO", params, 1);
 		if (!getenv("ORIG_PATH_INFO"))
 			setenv("ORIG_PATH_INFO", params, 1);
 		setenv("PATH_TRANSLATED", temppath, 1);
+#endif		/* 0 */
 		if (!getenv("ORIG_PATH_TRANSLATED"))
 			setenv("ORIG_PATH_TRANSLATED", temppath, 1);
 		setenv("SCRIPT_FILENAME", temppath, 1);
@@ -673,6 +677,8 @@ do_get DECL1(char *, params)
 			{
 				*temp = '/';
 				setenv("PATH_INFO", temp, 1);
+				if ('\0' == temp[1])
+					*temp = '\0';
 				snprintf(temppath, XS_PATH_MAX, "%s%s", fullpath, temp);
 				setenv("PATH_TRANSLATED", temppath, 1);
 				setenv("SCRIPT_FILENAME", temppath, 1);
