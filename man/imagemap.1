@@ -1,0 +1,54 @@
+.TH IMAGEMAP 1 "26 March 1996"
+.SH NAME
+imagemap \- The WWW image mapper
+.SH SYNOPSIS
+.ta 8n
+.B http://your.site.name/cgi\-bin/imagemap/~\fIUSERNAME\fP/\fImapfile\fP
+.LP 
+.SH DESCRIPTION OF IMAGEMAP
+IMAGEMAP is a program that lets you handle imagemaps on the WWW. An imagemap
+is basically a picture (for example a GIF file) that has been divided into
+areas. A user with a browser that understands imagemaps (most modern
+graphical browser understand imagemaps) can then click on a certain part
+of the image. An area\-specific action then occurs.
+.LP
+For example, consider a GIF pictures with two areas on it: a box on the
+left side and a circle on the right side. Then the user who created the
+pictures can define what will happen if the remote user clicks on the
+box, what will happen if the circle is pressed, and also what happens if
+the user clicks on the picture, but not on the box or the circle (the
+default).
+.SH IMAGEMAP
+\fBImagemap\fP is not a program that allows the user to define the map.
+There are other programs that do this; for example, \fBmapedit\fP is
+a good one. \fBImagemap\fP is the program that handles the actions for
+the WWW. What a user must do is create a \fImap\fP file (either by hand,
+which is not very easy, or by using a program like \fBmapedit\fP).
+Then, he or she must use something like the following in his/her WWW page:
+.LP
+<A\ HREF="http://site/cgi\-bin/imagemap/~\fIUSER\fP/pics/image.map">
+.br
+<IMG SRC="pics/image.gif" ISMAP></A>
+.LP
+In other words, make a \fBHREF\fP anchor to the imagemapper and use an image
+as the contents of the anchor. Do not forgot to specify the \fBISMAP\fP keyword
+in the \fBIMG\fP tag.
+
+.SH ACKNOWLEDGEMENTS
+I thank all the members at MCGV Stack who are actively involved in the
+entire WWW happening. I thank the NCSA for creating the original version
+of this program. See \fIhttp://hoohoo.ncsa.uiuc.edu/\fP for details about
+the NCSA distribution.
+.SH SEE ALSO
+http://www.stack.nl/~sven/xs\-httpd/
+.br
+httpd(1), xspasswd(1), clearxs(1), readxs(1), gfxcount(1), xsindex(1),
+httpdc(1)
+.SH COPYRIGHT
+All the programs in the XS\-HTTPD package are copyright (C) 1995, 1996
+by Sven Berkvens, except the imagemapper.
+.SH AUTHOR
+The author of the XS WWW server and its accompanying programs is
+Sven Berkvens (sven@stack.nl). I made all the programs,
+except the imagemapper, which I took from the NCSA distribution,
+but I cleaned it up.

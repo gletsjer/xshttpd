@@ -1,0 +1,67 @@
+.TH XSINDEX 1 "28 May 1996"
+.SH NAME
+xsindex \- Create a nice index file for a directory
+.SH SYNOPSIS
+.ta 8n
+.B xsindex
+[
+.I options
+]
+.I title
+.LP 
+.SH DESCRIPTION OF XSINDEX
+XSINDEX is a program that will create a nice index page for a directory.
+What it does is make a listing of all files in the current directory
+(except for special files, like \fB.\fP, \fB.xsauth\.\fP, etc) and create
+a table\-like overview of them. Included with every file is the type of
+that file (in two different formats, see the \fB\-t\fP option) and its
+size.
+
+.SH OPTIONS
+The program has a number of options:
+.TP
+.B \-b
+If you activate this option, \fB..\fP will not be listed in the index.
+This is useful if \fB..\fP has no meaning in that directory.
+.TP
+.B \-f
+This option disabled the 'Are you sure you want to overwrite?' prompt.
+.TP
+.B \-m mimefile
+This option allows you to specify a different mime index file. This
+allows you to specify, for example, different icon images for file
+types. Start the program without any arguments to see where the default
+mime index file is located.
+.TP
+.B \-s
+Disable the display of file sizes.
+.TP
+.B \-t mimetype
+This option allows you to specify how file types are displayed. The
+\fImimetype\fP can be either 1, 2 or 3. 3 disables the display of
+the file type. 1 (the default) means full mime types, such as
+\fBimage/jpeg\fP. 2 means user specified (see the \-m option)
+strings, such as \fBJPEG image\fP.
+.LP
+The \fItitle\fP is used as the title of the document that will be
+created. Use a descriptive title!
+.LP
+.SH EXAMPLE
+xstitle \-t 2 "Directory of /pub/ftp"
+.LP
+.SH ACKNOWLEDGEMENTS
+I thank all the members at MCGV Stack who are actively involved in the
+entire WWW happening.
+.SH SEE ALSO
+http://www.stack.nl/~sven/xs\-httpd/
+.br
+httpd(1), xspasswd(1), imagemap(1), readxs(1), gfxcount(1), clearxs(1),
+httpdc(1)
+.SH COPYRIGHT
+All the programs in the XS\-HTTPD package are copyright (C) 1995, 1996
+by Sven Berkvens, except the imagemapper.
+.SH AUTHOR
+The author of the XS WWW server and its accompanying programs is
+Sven Berkvens (sven@stack.nl). I made all the programs,
+except the imagemapper, which I took from the NCSA distribution,
+but I cleaned it up.

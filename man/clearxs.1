@@ -1,0 +1,53 @@
+.TH CLEARXS 1 "26 March 1996"
+.SH NAME
+clearxs \- Updates the WWW counter file every day
+.SH SYNOPSIS
+.ta 8n
+.B clearxs
+[
+.I options
+]
+.LP 
+.SH DESCRIPTION OF CLEARXS
+CLEARXS is a program that you should install in \fIcron\fP's table.
+What it does is clear some of the fields in the WWW counter file every night.
+This is so that the counter can assume three values: a day counter, a
+month counter and a total counter. This program resets the day counter
+to 0 every day and the month counter to 0 every first of the month.
+.SH OPTIONS
+The program has three options:
+.TP
+.B \-d
+This makes the program clear all the day counters, but leaves the other
+counters as they were. This option should be used every night.
+.TP
+.B \-m
+This makes the program clear the day and the month counter. The total
+counter is left as it was. This should be run by \fIcron\fP every first of
+the month.
+.TP
+.B \-T
+Clears all the counters. Do NOT use :)
+.SH EXAMPLE
+The following can be used as a cron table entry:
+.LP
+0       0       2\-31    *       *       root    clearxs \-d
+.br
+0       0       1       *       *       root    clearxs \-m
+
+.SH ACKNOWLEDGEMENTS
+I thank all the members at MCGV Stack who are actively involved in the
+entire WWW happening.
+.SH SEE ALSO
+http://www.stack.nl/~sven/xs\-httpd/
+.br
+httpd(1), xspasswd(1), imagemap(1), readxs(1), gfxcount(1), xsindex(1),
+httpdc(1)
+.SH COPYRIGHT
+All the programs in the XS\-HTTPD package are copyright (C) 1995, 1996
+by Sven Berkvens, except the imagemapper.
+.SH AUTHOR
+The author of the XS WWW server and its accompanying programs is
+Sven Berkvens (sven@stack.nl). I made all the programs,
+except the imagemapper, which I took from the NCSA distribution,
+but I cleaned it up.

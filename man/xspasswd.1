@@ -1,0 +1,66 @@
+.TH XSPASSWD 1 "26 March 1996"
+.SH NAME
+xspasswd \- Manager for WWW authentication passwords using the XS\-HTTPD
+.SH SYNOPSIS
+.ta 8n
+.B xspasswd
+.LP 
+.SH DESCRIPTION OF XSPASSWD
+XSPASSWD is a program that lets you manage the usercode/password database
+for the authentication feature of the XS\-HTTPD.
+.LP
+Authentication works very simply: if a file called \fI.xsauth\fP is present
+in the directory in which a file is going to be retrieved, then the remote
+user will be asked for a usercode and password before the file is allowed
+to be retrieved. This program manages the \fI.xsauth\fP file.
+.SH RUNNING XSPASSWD
+Change your current directory to the directory that you wish to protect
+with usercodes and passwords. Note that subdirectories of that subdirectory
+are \fBnot\fP protected. You have to place a seperate \fI.xsauth\fP file per
+directory that you wish to protect. You can of course use symbolic or
+hard links to make them all equal.
+.LP
+Then, type \fBxspasswd\fP. The program will start up. It will ask you
+for a username. Type a username and press ENTER. Then, the program asks
+for a password for that username. Type something press ENTER. The program
+then asks you to re\-enter the password that you just typed. Do that and
+press ENTER again. Now the program asks if you wish to \fBlock\fP the
+password. If you answer \fByes\fP, it will not be possible to change the
+password using the WWW form (see below). If you answer \fBno\fP, it is
+possible to change the password using the WWW form. After you press ENTER,
+the program will update (or create) the \fI.xsauth\fP file.
+.LP
+Note that you can have as many usercodes and passwords as you wish.
+.LP
+You can also use this program to change passwords. Just type an existing
+username when the program prompts you for a username. You do not have to
+enter the old password. Users using the WWW form \fIare\fP required to
+enter the old password before changing it to a new one.
+.SH THE WWW FORM
+This program has a similar program for the WWW. This other program is
+called \fBxschpass\fP. It can be used by making a link to the following URL:
+.LP
+http://your.site.name/cgi\-bin/xschpass/~\fIUSERNAME\fP/\fIdirectory\fP
+.LP
+where \fIUSERNAME\fP is your usercode on that system. \fIdirectory\fP is
+the directory in which the \fI.xsauth\fP file is situated.
+.LP
+Users using the WWW form are only allowed to change a password if they
+know the old password.
+
+.SH ACKNOWLEDGEMENTS
+I thank all the members at MCGV Stack who are actively involved in the
+entire WWW happening.
+.SH SEE ALSO
+http://www.stack.nl/~sven/xs\-httpd/
+.br
+httpd(1), imagemap(1), clearxs(1), readxs(1), gfxcount(1), xsindex(1),
+httpdc(1)
+.SH COPYRIGHT
+All the programs in the XS\-HTTPD package are copyright (C) 1995, 1996
+by Sven Berkvens, except the imagemapper.
+.SH AUTHOR
+The author of the XS WWW server and its accompanying programs is
+Sven Berkvens (sven@stack.nl). I made all the programs,
+except the imagemapper, which I took from the NCSA distribution,
+but I cleaned it up.

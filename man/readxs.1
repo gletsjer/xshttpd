@@ -1,0 +1,46 @@
+.TH READXS 1 "26 March 1996"
+.SH NAME
+readxs \- Display the WWW counter file status
+.SH SYNOPSIS
+.ta 8n
+.B readxs
+[
+.I options
+] URI
+.LP 
+.SH DESCRIPTION OF READXS
+READXS is a program that lets you read the WWW counter file.
+.SH RUNNING READXS
+Say you have a counter installed on your WWW page using the WWW
+server's server side includes. Say this page is called \fBindex.html\fP.
+Then you can get the value of this counter on standard output for use
+in shell scripts using this program. In this case you could type:
+.LP
+readxs /~\fIUSER\fP/index.html
+.SH OPTIONS
+.TP
+.B \-d
+Display the "day" type counter.
+.TP
+.B \-m
+Display the "month" type counter.
+.TP
+.B \-t
+Display the "total" type counter (this is the default).
+
+.SH ACKNOWLEDGEMENTS
+I thank all the members at MCGV Stack who are actively involved in the
+entire WWW happening.
+.SH SEE ALSO
+http://www.stack.nl/~sven/xs\-httpd/
+.br
+httpd(1), xspasswd(1), imagemap(1), clearxs(1), gfxcount(1), xsindex(1),
+httpdc(1)
+.SH COPYRIGHT
+All the programs in the XS\-HTTPD package are copyright (C) 1995, 1996
+by Sven Berkvens, except the imagemapper.
+.SH AUTHOR
+The author of the XS WWW server and its accompanying programs is
+Sven Berkvens (sven@stack.nl). I made all the programs,
+except the imagemapper, which I took from the NCSA distribution,
+but I cleaned it up.

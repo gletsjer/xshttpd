@@ -1,0 +1,660 @@
+.TH HTTPD 1 "22 June 1998"
+.SH NAME
+httpd \- WWW server conforming to HTTP/1.1
+.SH SYNOPSIS
+.ta 8n
+.B httpd
+[
+.I options
+]
+.LP 
+.SH DESCRIPTION OF HTTPD
+What is XS\-HTTPD? XS\-HTTPD is a WWW server that has the following features:
+.TP
+o
+It is pronounced as "access\-HTTP\-daemon"
+.TP
+o
+It is SMALL (very small in fact: a factor two to three smaller than
+normal servers on disk and in memory)
+.TP
+o
+It is FAST (because it is so small and does not do
+unnecessary things)
+.TP
+o
+Uses very little CPU time
+.TP
+o
+Configurable (configuration compiled in to make it small, but
+largely overridable on the command line)
+.TP
+o
+Runs user CGI binaries under their \fIown\fP user ID!
+.TP
+o
+Gets users' pages under their own user ID, allowing them to
+really have protected pages (using the built\-in authentication
+mechanism)!
+.TP
+o
+Does not fork for every connection (has a fixed number of
+servers), only to replace a lost server (in case of timeouts).
+.TP
+o
+Comes with some other useful programs
+.LP
+.SH RUNNING THE HTTPD
+Note that if you are going to use a port number below or equal to 1024
+(for example 80, the default port number), you will have to be
+.I root
+to start the WWW server. Also, if you want users'
+CGI binaries to be executed under their own user ID, you will have to
+start the WWW server as root.
+
+The server has a number of options:
+.TP
+.B \-p portnumber
+Uses port number
+.B portnumber
+instead of the default (the factory default is 80).
+.TP
+.B \-u username
+Runs the server under \fBusername\fP's user id
+instead of the default (the factory default is nobody).
+.TP
+.B \-g groupname
+Runs the server under \fBgroupname\fP's group id
+instead of the default (the factory default is nogroup).
+.TP
+.B \-n number
+Uses \fBnumber\fP as the number of servers to
+start (the factory default is 20).
+.TP
+.B \-d rootdir
+Uses \fBrootdir\fP as the base directory for other
+directories like the logs directory, the htdocs
+directory and the cgi\-bin directory. The factory default
+is /usr/local/lib/httpd.
+.TP
+.B \-r referdomain
+Uses \fBreferdomain\fP as the "refer\-ignore\-domain".
+References coming from this domain will not be logged in the
+refer_log. This is usually your own domain. Note that
+it is wise to start the domain with a dot (.). You may also
+give a machine name instead of a domain name.
+.TP
+.B \-l localmode
+Uses \fBlocalmode\fP as the parameter to transform_user_dir().
+This way, you can build different options into your local
+configuration. Not recommended for non\-experts.
+.TP
+.B \-a address
+Uses \fBaddress\fP as the internet address to listen
+on. This is very handy on "multi\-homing" server with multiple
+interfaces. Uses this option, you can place servers with different
+functionality on different interfaces. This name is also used for
+redirecting requests back to this host. Therefore, you must use
+a "full" (complete with the host's name and the domain) internet
+address, otherwise remote hosts will not be able to resolve the name.
+.TP
+.B \-m service\-message
+If you give this option to the server, it will not function as it normally
+would. Instead of supplying documents, all it will do is display the
+\fBservice\-message\fP. This is very useful to at least give users an idea
+of what you are doing when the server is temporarily out of order.
+Remember that if you are supplying an entire
+sentence, then you have to enclose that sentence in quotes (").
+.TP
+.B \-A access\-log\-path
+If you give this option to the server, you will override the default
+file in which the server will place all retrieved files.
+.TP
+.B \-E error\-log\-path
+If you give this option to the server, you will override the default
+file in which the server will place all error messages.
+.TP
+.B \-R referer\-log\-path
+If you give this option to the server, you will override the default
+file in which the server will place references to local files.
+.LP
+.SH EXAMPLE
+A typical startup sequence could be:
+.LP
+httpd \-n 64 \-u http \-g www \-r .stack.nl \-l 2
+.LP
+which will start 64 servers (64 concurrent connections possible),
+and run it under user ID http and group ID www.
+It will ignore any references coming from *.stack.nl
+and it will pass 2 as a parameter to \fBtransform_user_dir\fP.
+.SH Other features
+.SH Automatic decompression
+One of the nice features of the WWW server is automatic decompression.
+This feature is dealt with in the file called \fBcompress.methods\fP.
+.LP
+This file lists the possible compression types that are understood by the
+WWW server. It works very simply: if somebody asks for (for example)
+\fBindex.html\fP, and this file does not exist, but
+\fBindex.html.gz\fP does exist, then \fBindex.html\fP will be
+`generated' out of \fBindex.html.gz\fP using the method
+specified with \fB.gz\fP. Note that this process does not actually
+create \fBindex.html\fP in that same directory. It creates a file
+in the temporary directory, which is removed immediately after usage.
+.LP
+If somebody asks directly for \fBindex.html.gz\fP, he will get it
+in the compressed format. This way, nice things like the following can
+be done:
+.LP
+\fBGet <A HREF="xshttpd.tar">the uncompressed
+tar</A>, or get the <A HREF="xshttpd.tar.gz">the compressed tar</A>.\fP
+.LP
+The user only has to have the compressed version, because if somebody
+asks for the uncompressed version, the server will uncompress it on the
+fly for that user.
+.LP
+Note that only one compression type per file is possible. Of course, you
+can make frontends for types that require multiple filters. In that case,
+it can be helpful to know that the list is traversed from top to bottom.
+.SH Authentication
+This server supports the \fIbasic\fP authentication protocol. This
+means that users can protect their pages with a username/password
+combination. Other servers can do this too, but they lack one thing:
+the "protected" files have to be world\-readable. Because this server
+retrieves pages under users' own UID, this problem is avoided.
+.LP
+More information about authentication can be found in the manual pages
+of \fBxspasswd\fP and \fBxschpass\fP.
+.SH Special files
+There are a number of files that this WWW server considers special:
+.TP
+\fB .noxs\fP
+If this file exists in a certain directory, that entire
+directory is considered closed. If somebody attempts to
+retrieve a file from that directory, he will get a
+\fIPermission denied\fP notice. This is useful for
+users and system administrators: users can use it when
+they are updating the directory and system administrators
+can use it to easily shut down a group of pages.
+Note that only the directory in which the file is present
+is blocked. Subdirectories are \fInot\fP blocked.
+.br
+It is possible to allow access to this directory for a limited
+number of hosts. You can list the IP-addresses to which access
+should be granted in this file (one address per line). Or you
+can use an IP prefix to allow an entire subnet.
+E.g. "131.155.140" will unblock 131.155.140.0 - 131.155.140.255.
+.TP
+\fB .xsuid\fP
+If this file exists in a certain directory, all files in that
+directory will be retrieved as (by default) nobody/nogroup
+instead of under your own UID. This can be useful if you want
+a file permission of say 600 to mean: do not allow retrieval
+(by default, the file is retrieved under your own UID, so the
+daemon could have still read those files).
+.TP
+\fB .redir\fP
+If this file is present in a certain directory, and a file
+is requested from that directory, then a redirection message
+will be sent to the remote user's browser. It works simply
+by substituting the server name and the directory that the
+remote user to get to this file by the contents of the file.
+This way, an entire directory can be automatically be redirected.
+.TP
+\fB *.redir\fP
+If a file is requested and a file exists with the same name
+but with \fB.redir\fP appended to it, the file will not be
+sent. Instead, the server will send a redirection message to
+the remote user's browser. The redirected location is retrieved
+from the \fB*.redir\fP file.
+.TP
+\fB .xsauth\fP
+If this file exists, all files in that directory (NOT the
+subdirectories) are protected by usercode/password
+combinations. Read the manual page of xspasswd for more
+details about this.
+.LP
+.SH XS\-HTTPD SSI's
+One of the most advanced features of this WWW server is its
+server side includes. Server side includes (SSI's) are "commands"
+to the server to do something. These may be embedded in HTML
+documents.
+.LP
+The format of such a directive is as follows:
+.br
+\fB<!\-\-#\fP\fIname\fP
+\fB[\fP\fIargument(s)\fP\fB]\fP\fB\-\->\fP
+.LP
+\fIname\fP is the name of the directive. You may specify
+\fIarguments\fP
+to the directive if needed or wanted, seperated from the directive's
+name by \fBone\fP space. Note also that a directive must
+start and end on the same line. You may have other things on that
+line, including other directives.
+.LP
+When the server sends a HTML document to the remote client, it will
+parse all of the directives that are embedded in that document.
+The possible directives are:
+.TP
+\fBcount\-total\fP
+This directive inserts the number of times that this page has
+ever been retrieved. You may use counters as many times as you
+wish per page, they will only increment once.
+.TP
+\fBcount\-month\fP
+This directive inserts the number of times that this page has
+been retrieved this month.
+.TP
+\fBcount\-today\fP
+This directive inserts the number of times that this page has
+been retrieved today.
+.TP
+\fBcount\-total\-gfx\fP \fB[\fP\fIlocation\fP\fB]\fP
+This directive inserts a HTML tag to include a graphical
+representation of the number of times that this page has
+ever been retrieved. If \fIlocation\fP is specified,
+it will be used as a base location for the font. A font
+has 10 digits in it, each in a seperate file, all PPM's.
+Say location is \fB/~user/font1\fP, and digit \fB1\fP
+is needed, then \fP/~user/font1/1.ppm\fP will be used as
+that digit.
+Two default fonts are supplied with this WWW server. They may
+be accessed using the \fBlocation\fPs: \fI/fonts/digital\fP
+and \fI/fonts/large\fP.
+.TP
+\fBcount\-month\-gfx\fP \fB[\fP\fIlocation\fP\fB]\fP
+This directive inserts a HTML tag to include a graphical
+representation of the number of times that this page has
+been retrieved this month. See above for \fIlocation\fP.
+.TP
+\fBcount\-today\-gfx\fP \fB[\fP\fIlocation\fP\fB]\fP
+This directive inserts a HTML tag to include a graphical
+representation of the number of times that this page has
+been retrieved today. See above for \fIlocation\fP.
+.TP
+\fBdate\fP
+This directive inserts the current date and time, optionally
+in your own format. You can specify your own date and time
+format using the \fBdate\-format\fP directive (see
+below).
+.TP
+\fBdate\-format\fP \fIformat\fP
+This directive uses \fIformat\fP as the new date and time
+format. You must specify the format in strftime(3) format.
+Type \fBman strftime\fP for help on how to
+use this format.
+.TP
+\fBinclude\-file\fP \fIfile\fP
+This directive allows you to include another \fIfile\fP in this
+document. Very useful for standard headers and footers. Note that
+included files may be nested and that directives are parsed in them.
+Note also that counters and such always count the
+\fBoriginal\fP file, so you can use the
+\fBcount\-*\fP directives in your standard headers and
+footers. The argument should be an absolute path, e.g.
+\fI<!\-\-#include\-file /home/username/.html/file\-to\-include.html\-\->\fP
+.TP
+\fBinclude virtual="\fP\fIfile\fP\fB"\fP
+The same as include\-file, however here the argument should be a
+path relative to the WWW's root directory, e.g.
+\fI<!\-\-#include\ virtual="/~username/file\-to\-include.html"\-\->\fP
+This is compatible with the Apache webserver (I am told).
+.TP
+\fBlast\-mod\fP
+\fB[\fP\fIfile\fP\fB]\fP
+This directive (with a pseudonym \fBlast\-modified\fP
+inserts the last modification date of either the originally
+request file (the current document) or the optionally specified
+\fIfile\fP. The date will be in the format specified by the
+\fBdate\-format\fP directive.
+.TP
+\fBremote\-host\fP
+Inserts the name (or the IP number if the name cannot be resolved)
+of the remote computer that is asking for this document.
+.TP
+\fBrun\-cgi\fP \fIcgi\fP
+Runs the CGI binary \fIcgi\fP and inserts its output at this
+point. Standard \fBPATH_INFO\fP and
+\fBPATH_TRANSLATED\fP parsing is done, so you can give
+argumens to the CGI binary. All standard CGI environment variables
+will be set up appriopriately. See the CGI section
+for more details on CGI's.
+.TP
+\fBagent\-short\fP
+This directive inserts the name of the browser that the remote
+user is using in the short version (i.e. without the version number).
+Note that Netscape is displayed as Mozilla, which is Netscape's
+real name.
+.TP
+\fBagent\-long\fP
+This directive inserts the name of the browser that the remote
+user is using in the long version (i.e. with version numbers and
+other comments that the browser sends).
+.TP
+\fBargument\fP
+It is possible (since version 2.1) to pass arguments to
+HTML documents. 
+This directive inserts the (unparsed) arguments that the client
+added when requesting this page. This directive is mostly usefull
+for debugging purposes.
+.br
+Arguments are passed by appending a question mark to the
+page's URL and giving the arguments after that. For
+example:
+.br
+\fBhttp://www.foo.bar/~test/blah.html?an_argument\fP
+.TP
+\fBreferer\fP
+Inserts the URL from which the client was refered to this page.
+Not available if the user didn't follow a link from another page.
+.TP
+\fBif\fP \fIkeyword\fP \fIpattern(s)\fP
+The following four directive are the most powerful: they allow
+a kind of flow control in your documents. This directive
+displays all text and directives after it until it encounters
+an \fBendif\fP or a \fBelse\fP directive,
+if the query evaluates to true.
+.LP
+Possible \fIkeywords\fP are:
+.TP
+\fBbrowser\fP
+If any of the \fIpatterns\fP match the browser name
+that the remote user if using, the query evaluates to true,
+otherwise it evaluates to false. See below on how to specify
+patterns.
+.TP
+\fBremote\-host\fP
+If any of the \fIpatterns\fP match the remote host's
+name or IP number, the query evaluates to true,
+otherwise it evaluates to false.
+.TP
+\fBremote\-name\fP
+If any of the \fIpatterns\fP match the remote host's name,
+the query evaluates to true, otherwise it evaluates to false.
+.TP
+\fBremote\-addr\fP
+If any of the \fIpatterns\fP match the remote host's
+IP number, the query evaluates to true, otherwise it
+evaluates to false.
+.TP
+\fBargument\fP
+If any of the \fIpatterns\fP match the
+given argument, the query evaluates to true, otherwise it
+evaluates to false.
+Read the description of the \fBargument\fP directive for details on
+how arguments are passed to HTML documents.
+.TP
+\fBreferer\fP
+If any of the \fIpatterns\fP match the URL from which the client was
+refered to this page, the query evaluates to true, otherwise it
+evaluates to false.
+.LP
+Patterns are simple wildcard patterns (case\-insensitive).
+For example, to match any version of Netscape (which is really
+called Mozilla), you would use \fBmozilla/*\fP.
+If you want to match any Mosaic version 2, you would use
+\fB*Mosaic*/2*\fP.
+.LP
+A browser's name is always constructed in the following way:
+.br
+\fIbrowsername\fP\fB/\fP\fIversion\fP
+\fIextra\fP\fB/\fP\fIversion\fP
+.TP
+\fBif\-not\fP \fIkeyword\fP \fIpattern(s)\fP
+This does exactly the same as \fBif\fP, except that
+it displays the following text only if the query evaluates to
+false instead of true.
+.TP
+\fBelse\fP
+This can be used after an \fBif\fP or
+\fBif\-not\fP directive. The meaning is obvious.
+.TP
+\fBendif\fP
+Ends an \fBif\fP or \fBnot\-if\fP. Note that
+these constructions may be nested!
+.TP
+\fBswitch\fP \fIkeyword\fP
+This, in combination with \fBcase\fP, does exactly the same as \fBif\fP.
+However no text will be displayed untill after the first case directive.
+.TP
+\fBcase\fP \fIpattern(s)\fP
+This, in combination with \fBswitch\fP, does exactly the same as \fBif\fP,
+except that you can use multiple case statements within one switch.
+Note that multiple case queries can evaluate to true; the text
+following each of these directives will be shown.
+.TP
+\fBendswitch\fP
+Ends an \fBswitch\fP block. Note that these constructions may be nested!
+.LP
+Note that there is no such thing as a \fBbreak\fP directive:
+the next \fBcase\fP or following \fBendswitch\fP directive automatically
+ends the current \fBcase\fP block.
+.LP
+.SH CGI binaries
+The server, as of version 2.0, supports running system and user CGI
+binaries. This means that anyone can run their own CGI binaries.
+What is different about this server is that it runs users' CGI binaries
+under their own user ID. This means that they have full access to their
+files \- they can read/write/update any file that they own.
+.LP
+CGI binaries must be in the directory named \fBcgi\-bin\fP which
+must be in either the WWW server's virtual / or in the user's
+WWW directory (see the local configuration
+section about a user's WWW directory). Since version 2.2, CGI binaries
+can be in subdirectories of the \fBcgi\-bin\fP directory.
+.LP
+The server is completely CGI/1.1 compliant (except that it cheats with
+local file redirections). You can read about the CGI specification at
+NCSA's WWW site.
+.LP
+Supported environment variables are:
+.TP
+.B SERVER_SOFTWARE
+The name and version of the xs-httpd that started the binary.
+Format: xs-httpd/version
+.TP
+.B SERVER_NAME
+The server's hostname, DNS alias, or IP address as it would appear
+in self-referencing URLs.
+.TP
+.B GATEWAY_INTERFACE
+The revision of the CGI specification to which this server
+complies. Format: CGI/revision
+.TP
+.B SERVER_PROTOCOL
+The name and revision of the information protcol this request came
+in with. Format: protocol/revision
+.TP
+.B SERVER_PORT
+The port number to which the request was sent.
+.TP
+.B REQUEST_METHOD
+The method with which the request was made. For HTTP, this is
+"GET", "HEAD", "POST", etc.
+.TP
+.B PATH_INFO
+The extra path information, as given by the client. In other
+words, scripts can be accessed by their virtual pathname, followed
+by extra information at the end of this path. The extra
+information is sent as PATH_INFO. This information is
+decoded by the server if it comes from a URL before it is passed
+to the CGI script.
+.TP
+.B PATH_TRANSLATED
+The server provides a translated version of PATH_INFO, which takes
+the path and does any virtual-to-physical mapping to it.
+.TP
+.B SCRIPT_NAME
+A virtual path to the script being executed, used for
+self-referencing URLs.
+.TP
+.B QUERY_STRING
+The information which follows the ? in the URL which referenced
+this script. This is the query information. It will not be
+decoded in any fashion. This variable is always set when
+there is query information, regardless of command line decoding.
+.TP
+.B REMOTE_HOST
+The hostname making the request. If the server does not have this
+information, it will set REMOTE_ADDR and leave this unset.
+.TP
+.B REMOTE_ADDR
+The IP address in text of the remote host making the request.
+.TP
+.B AUTH_TYPE
+If the server supports user authentication, and the script is
+protected, this is the protocol-specific authentication method used
+to validate the user.
+.TP
+.B REMOTE_USER
+If the the script is protected, this is the username the remote
+user has authenticated with.
+.TP
+.B REMOTE_PASSWORD
+If the the script is protected, this is the password the remote
+user used.
+.TP
+.B CONTENT_TYPE
+For queries which have attached information, such as HTTP POST and
+PUT, this is the content type of the data.
+.TP
+.B CONTENT_LENGTH
+The length of the said content as given by the client.
+.LP
+The following \fIHTTP_* headers\fP are only available if the client
+chooses to add this extra information when requesting an URL from
+the server.
+.TP
+.B HTTP_REFERER
+The URL that refered to the active page.
+.TP
+.B HTTP_COOKIE
+The cookie the client uses for identification.
+Usually the server doesn't request cookies, so the client won't offer any.
+.TP
+.B HTTP_ACCEPT
+The MIME types that the client is willing to accept.
+.TP
+.B HTTP_ACCEPT_ENCODING
+The encoding types the client can decode without user intervention
+(e.g. gzip or compress).
+.TP
+.B HTTP_ACCEPT_LANGUAGE
+The natural document language that the client (user) prefers.
+.TP
+.B HTTP_HOST
+The host that the client wishes to retreive data from (currently ignored
+by the server).
+.LP
+XS\-HTTPD has one enhancement on the CGI specifications. It doesn't only
+support the \fBnph\-\fP naming convention (No Parse Headers), but
+also the \fBnid\-\fP naming convention (to use both, first put
+\fBnph\-\fP and then \fBnid\-\fP). This makes the CGI binary run
+under (by default) nobody/nogroup, instead of the user's own UID.
+For example, if you name your CGI binary \fInid\-form.cgi\fP,
+it will run that binary under nobody/nogroup instead of your own
+UID (this is to protect yourself from accidental damage).
+.LP
+There is one \fIreserved\fP CGI binary name known as \fBerror\fP.
+This binary gets called whenever something goes wrong. Users may have
+their own personal \fBerror\fP CGI binary. This binary gets called
+if the server can decode the user's name but something goes wrong
+anyway (for instance, one of those user's files can't be found).
+If there is a system \fBerror\fP CGI binary, that one will be called if
+anything goes wrong, except in the case that the user has a personal
+\fBerror\fP CGI binary.
+.LP
+This can be used to create friendly error message with links to
+appropriate (existing :) pages.
+.LP
+A few environment variables are set before \fBerror\fP is called:
+.TP
+.B ERROR_CODE
+This variable is set to one of the following values:
+.TP
+o
+.B USER_UNKNOWN
+\- the specified user is unknown
+.TP
+o
+.B POST_ON_NON_CGI
+\- a POST method was attempted to
+a non\-CGI binary
+.TP
+o
+.B INVALID_PATH
+\- an invalid path was specified,
+for example one with \fB..\fP in it
+.TP
+o
+.B DIR_NOT_AVAIL
+\- the directory is protected by
+a \fB.noxs\fP file
+.TP
+o
+.B NOT_REGULAR
+\- the file to be retrieved is not a
+regular file
+.TP
+o
+.B PERMISSION
+\- the file's permission deny access to
+the file
+.TP
+o
+.B NOT_FOUND
+\- the requested file cannot be found
+.TP
+o
+.B NO_RELATIVE_URLS
+\- URL not starting with a /
+are not supported
+.TP
+o
+.B UNKNOWN_METHOD
+\- the requested method is not
+\fBPOST\fP, \fBGET\fP or \fBHEAD\fP.
+.TP
+o
+.B UNAUTHORIZED
+\- the user has attempted to access a file that is protected by a
+username and password combination. The user has filled in wrong
+username/password combination.
+.TP
+.B ERROR_READABLE
+This variable contains the text that the server would
+normally send to the remote client. This can be used in
+case you do not want to process some of the \fBERROR_CODE\fPs
+above.
+.TP
+.B ERROR_URL
+The URL that was requested (without the server name)
+.TP
+.B ERROR_URL_EXPANDED
+The URL that was requested with /~\fBuser\fP/ expanded
+.TP
+.B ERROR_URL_ESCAPED
+The request URL as above, but with \fB<\fP, \fB>\fP
+and \fB&\fP substituted to make it printable
+Of course, regular CGI variables are also set, such as
+.B REQUEST_METHOD.
+.LP
+.SH ACKNOWLEDGEMENTS
+I thank all the members at MCGV Stack who are actively involved in the
+entire WWW happening.
+.SH "SEE ALSO"
+http://www.stack.nl/~sven/xs\-httpd/
+.br
+xspasswd(1), imagemap(1), clearxs(1), readxs(1), gfxcount(1), xsindex(1),
+httpdc(1)
+.SH COPYRIGHT
+All the programs in the XS\-HTTPD package are copyright (C) 1995, 1996
+by Sven Berkvens, except the imagemapper.
+.SH AUTHOR
+The author of this WWW server and its accompanying programs is
+Sven Berkvens (sven@stack.nl). I made all the programs,
+except the imagemapper, which I took from the NCSA distribution,
+but I cleaned it up.
+.LP
+New features have been added by other people at Stack. If you have
+problems with this version please contact the Stack maintainers
+(xs-httpd@stack.nl) about it and don't bother Sven Berkvens.
