@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.80 2002/06/12 14:00:19 johans Exp $ */
+/* $Id: httpd.c,v 1.81 2002/06/12 14:32:33 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.80 2002/06/12 14:00:19 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.81 2002/06/12 14:32:33 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -262,6 +262,11 @@ load_config DECL0
 		warn("fopen(`%s' [read])", config_path);
 
 	memset(&config, 0, sizeof config);
+
+	/* Set simple defaults - others follow the parsing */
+	config.usecharset = 1;
+	config.userestrictaddr = 1;
+	config.usevirtualhost = 1;
 
 	if (confd)
 	/* skip this loop if there is no config file and use defaults below */
