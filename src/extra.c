@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: extra.c,v 1.9 2001/05/22 12:19:29 johans Exp $ */
+/* $Id: extra.c,v 1.10 2002/01/23 16:43:23 johans Exp $ */
 
 #include	"config.h"
 
@@ -27,6 +27,7 @@
 #include	"httpd.h"
 #include	"mystring.h"
 
+#ifndef		HAVE_STRCASESTR
 extern	const	char	*
 strcasestr DECL2CC(char *, big, char *, little)
 {
@@ -57,6 +58,7 @@ strcasestr DECL2CC(char *, big, char *, little)
 	free(newbig); free(newlittle);
 	return(result);
 }
+#endif		/* HAVE_STRCASESTR */
 
 extern	int
 mysleep DECL1(int, seconds)

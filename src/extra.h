@@ -1,7 +1,9 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
 #ifndef		NOFORWARDS
+#ifndef		HAVE_STRCASESTR
 extern	const	char	*strcasestr		PROTO((const char *, const char *));
+#endif		/* HAVE_STRCASESTR */
 extern	int	mysleep			PROTO((int));
 #ifndef		HAVE_KILLPG
 extern	int	killpg			PROTO((pid_t, int));
