@@ -2,7 +2,7 @@
 
 /* Based on xs-httpd/2.3 */
 
-#define		SERVER_IDENT	"xs-httpd/3.0 beta/0.1"
+#define		SERVER_IDENT	"xs-httpd/3.0 beta/0.2"
 
 #define		SENDBUFSIZE	8192
 #define		MYBUFSIZ	1024
