@@ -55,18 +55,16 @@ AC_ARG_WITH(rootdir,
 	rootdir=${withval},
 	rootdir=${prefix}/lib/httpd)
 miscdir=${rootdir}
-AC_ARG_DIR(cgidir, cgi-bin)
-AC_ARG_DIR(fontdir, gfxcount)
-AC_ARG_DIR(icondir, icons)
-AC_ARG_DIR(docdir, htdocs)
-AC_ARG_DIR(logdir, logs)
+XS_ARG_DIR(cgidir, cgi-bin)
+XS_ARG_DIR(fontdir, gfxcount)
+XS_ARG_DIR(icondir, icons)
+XS_ARG_DIR(docdir, htdocs)
+XS_ARG_DIR(logdir, logs)
 
-AC_CHECK_FUNCS(crypt,,
-	AC_CHECK_LIB(crypt, crypt, AC_DEFINE(HAVE_CRYPT) ldcrypt="-lcrypt"))
-AC_CHECK_FUNCS(socket,,
-	AC_CHECK_LIB(socket, socket, httpd_ldflags="${httpd_ldflags} -lsocket"))
-AC_CHECK_FUNCS(MD5Init,,
-	AC_CHECK_LIB(md, MD5Init, httpd_ldflags="${httpd_ldflags} -lmd"))
+XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, ldcrypt)
+XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd_ldflags)
+XS_FUNC_IN_LIB(MD5Init, HAVE_MD5, md, httpd_ldflags)
+XS_FUNC_IN_LIB(pcre_exec, HAVE_PCRE, pcre, httpd_ldflags)
 AM_CONDITIONAL([MD5], [test x$ac_cv_lib_md_MD5Init = xyes])
 AC_REPLACE_FUNCS(err setenv setgroups strptime strsep snprintf)
 
@@ -102,10 +100,10 @@ then
 	fi
 fi
 
-# AC_SHOW_HELP([--enable options], [default in brackets:])
-AC_ARG_DEFAULT(ssi, WANT_SSI, yes,
+# XS_SHOW_HELP([--enable options], [default in brackets:])
+XS_ARG_DEFAULT(ssi, WANT_SSI, yes,
 	[enable server-side includes])
-AC_ARG_DEFAULT(ipv6, INET6, yes,
+XS_ARG_DEFAULT(ipv6, INET6, yes,
 	[enable ipv6 support])
 # This is now enabled by default
 AC_DEFINE(SCRIPT_METHODS, "script.methods",
@@ -113,10 +111,10 @@ AC_DEFINE(SCRIPT_METHODS, "script.methods",
 # This is now enabled by default
 AC_DEFINE(COMPRESS_METHODS, "compress.methods",
 	[File describing compression extensions and programs])
-# AC_SHOW_HELP([--enable options], [disabled by default:])
-AC_ARG_DEFAULT(perl, HANDLE_PERL, no,
+# XS_SHOW_HELP([--enable options], [disabled by default:])
+XS_ARG_DEFAULT(perl, HANDLE_PERL, no,
 	[enable persistent perl interpreter])
-AC_ARG_DEFAULT(warnings, DUMMY, no,
+XS_ARG_DEFAULT(warnings, DUMMY, no,
 	[enable extra compiler warnings])
 
 if test x${enable_warnings} = xyes
@@ -139,9 +137,9 @@ fi
 
 dnl Test runs for required global variables
 
-AC_NEED_CONST(sys_errlist, NEED_SYS_ERRLIST_DECL, stdio.h)
-AC_NEED_CONST(optarg, NEED_OPTARG_AND_OPTIND, unistd.h)
-AC_NEED_CONST(environ, NEED_DECL_ENVIRON, unistd.h)
+XS_NEED_CONST(sys_errlist, NEED_SYS_ERRLIST_DECL, stdio.h)
+XS_NEED_CONST(optarg, NEED_OPTARG_AND_OPTIND, unistd.h)
+XS_NEED_CONST(environ, NEED_DECL_ENVIRON, unistd.h)
 
 dnl AC_EGREP_HEADER(sys_errlist, stdio.h,, AC_DEFINE(NEED_SYS_ERRLIST_DECL))
 dnl AC_EGREP_HEADER(optarg, getopt.h,, AC_DEFINE(NEED_OPTARG_AND_OPTIND))
