@@ -737,7 +737,7 @@ process_request DECL0
 	unsetenv("HTTP_ACCEPT"); unsetenv("HTTP_ACCEPT_ENCODING");
 	unsetenv("HTTP_ACCEPT_LANGUAGE"); unsetenv("HTTP_HOST");
 	unsetenv("HTTP_NEGOTIONATE"); unsetenv("HTTP_PRAGMA");
-	unsetenv("HTTP_CLIENT_IP");
+	unsetenv("HTTP_CLIENT_IP"); unsetenv("HTTP_VIA");
 	unsetenv("IF_MODIFIED_SINCE"); unsetenv("IF_UNMODIFIED_SINCE");
 	unsetenv("IF_RANGE");
 
@@ -861,6 +861,11 @@ process_request DECL0
 				setenv("HTTP_PRAGMA", param, 1);
 			else if (!strcasecmp("Client-ip", extra))
 				setenv("HTTP_CLIENT_IP", param, 1);
+			else if (!strcasecmp("X-Forwarded-For", extra))
+				/* People should use the HTTP/1.1 variant */
+				setenv("HTTP_CLIENT_IP", param, 1);
+			else if (!strcasecmp("Via", extra))
+				setenv("HTTP_VIA", param, 1);
 			else if (!strcasecmp("If-modified-since", extra))
 				setenv("IF_MODIFIED_SINCE", param, 1);
 			else if (!strcasecmp("If-unmodified-since", extra))
