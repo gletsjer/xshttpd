@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.115 2003/03/16 12:29:43 johans Exp $ */
+/* $Id: httpd.c,v 1.116 2003/03/16 12:36:00 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.115 2003/03/16 12:29:43 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.116 2003/03/16 12:36:00 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -328,6 +328,10 @@ load_config DECL0
 					if (!config.localmode)
 						config.localmode = atoi(value);
 				}
+				else if (!current &&
+						(!strcasecmp("UserId", key) || 
+						 !strcasecmp("GroupId", key)))
+					errx(1, "%s directive should be in <System> section", key);
 				else if (!current)
 					errx(1, "illegal directive: '%s'", key);
 				else if (!strcasecmp("Hostname", key))
