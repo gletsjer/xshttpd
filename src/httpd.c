@@ -95,8 +95,8 @@ extern	int	setpriority PROTO((int, int, int));
 
 /* Global variables */
 
-int		port, headers, localmode, netbufind, netbufsiz, readlinemode,
-		headonly, postonly;
+int		headers, localmode, netbufind, netbufsiz, readlinemode,
+		headonly, postonly, forcehost;
 static	int	sd, reqs, number, mainhttpd = 1;
 gid_t		group_id, origegid;
 uid_t		user_id, origeuid;
@@ -104,17 +104,12 @@ char		netbuf[MYBUFSIZ], remotehost[MAXHOSTNAMELEN], orig[MYBUFSIZ],
 		currenttime[80], dateformat[MYBUFSIZ], real_path[XS_PATH_MAX],
 		thishostname[MAXHOSTNAMELEN], version[16], error_path[XS_PATH_MAX],
 		access_path[XS_PATH_MAX], refer_path[XS_PATH_MAX], rootdir[XS_PATH_MAX],
-		total[XS_PATH_MAX], name[XS_PATH_MAX];
+		total[XS_PATH_MAX], name[XS_PATH_MAX], port[NI_MAXSERV];
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[SENDBUFSIZE],
 		thisdomain[MAXHOSTNAMELEN], message503[MYBUFSIZ],
 		*startparams;
 FILE		*access_log = NULL, *refer_log = NULL;
 time_t		modtime;
-#ifdef		INET6
-static	struct	in6_addr	thisaddress6;
-#else		/* INET6 */
-static	struct	in_addr	thisaddress;
-#endif		/* INET6 */
 #ifdef		HANDLE_SSL
 int		do_ssl;
 SSL_CTX	*ssl_ctx;
@@ -1025,12 +1020,8 @@ standalone_main DECL0
 {
 	int			csd = 0, count, temp;
 	size_t			clen;
-#ifdef		INET6
-	struct	sockaddr_in6	sa6_server, sa6_client;
-#else		/* INET 6 */
-	struct	sockaddr_in	sa_server, sa_client;
-#endif		/* INET 6 */
-	const	struct	hostent	*remote;
+	struct	addrinfo	hints, *res;
+	struct	sockaddr_storage	saddr;
 	pid_t			*childs, pid;
 	struct	rlimit		limit;
 
@@ -1040,11 +1031,15 @@ standalone_main DECL0
 	detach(); open_logs(0);
 
 	setprocname("xs(MAIN): Initializing deamons...");
-#ifdef		INET6
-	if ((sd = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP)) == -1)
-#else		/* INET 6 */
-	if ((sd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == -1)
-#endif		/* INET 6 */
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = PF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+	if ((getaddrinfo(forcehost ? thishostname : NULL, port, &hints, &res)))
+		err(1, "getaddrinfo()");
+
+	/* only look at the first address */
+	if ((sd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1)
 		err(1, "socket()");
 
 	temp = 1;
@@ -1055,21 +1050,8 @@ standalone_main DECL0
 	if ((setsockopt(sd, SOL_SOCKET, SO_KEEPALIVE, &temp, sizeof(temp))) == -1)
 		err(1, "setsockopt(KEEPALIVE)");
 
-#ifdef		INET6
-	memset(&sa6_server, 0, sizeof(sa6_server));
-	sa6_server.sin6_family = AF_INET6;
-	sa6_server.sin6_addr = thisaddress6;
-	sa6_server.sin6_port = htons(port);
-	if (bind(sd, (struct sockaddr *)&sa6_server, sizeof(sa6_server)) == -1)
+	if (bind(sd, res->ai_addr, res->ai_addrlen) == -1)
 		err(1, "bind()");
-#else		/* INET6 */
-	memset(&sa_server, 0, sizeof(sa_server));
-	sa_server.sin_family = AF_INET;
-	sa_server.sin_addr = thisaddress;
-	sa_server.sin_port = htons(port);
-	if (bind(sd, (struct sockaddr *)&sa_server, sizeof(sa_server)) == -1)
-		err(1, "bind()");
-#endif		/* INET6 */
 
 	if (listen(sd, MAXLISTEN))
 		err(1, "listen()");
@@ -1165,15 +1147,10 @@ standalone_main DECL0
 		filedescrs();
 		setprocname("xs(%d): [Reqs: %06d] Waiting for a connection...",
 			count + 1, reqs);
-#ifdef		INET6
-		clen = sizeof(sa6_client);
-		csd = accept(sd, (struct sockaddr *)&sa6_client, &clen);
-#else		/* INET 6 */
-		clen = sizeof(sa_client);
-		csd = accept(sd, (struct sockaddr *)&sa_client, &clen);
-#endif		/* INET 6 */
-		if (csd < 0)
+		clen = sizeof(saddr);
+		if ((csd = accept(sd, (struct sockaddr *)&saddr, &clen)) < 0)
 		{
+			perror("500 Foobar");
 			if (errno == EINTR)
 				child_handler(SIGCHLD);
 			continue;
@@ -1186,8 +1163,6 @@ standalone_main DECL0
 		sl.l_onoff = 1; sl.l_linger = 600;
 		setsockopt(csd, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl));
 #if 0
-#ifndef		__linux__
-#ifndef		INET6
 #ifdef		SO_SNDBUF
 		temp = SENDBUFSIZE + 64;
 		setsockopt(csd, SOL_SOCKET, SO_SNDBUF, &temp, sizeof(temp));
@@ -1196,8 +1171,6 @@ standalone_main DECL0
 		temp = 512;
 		setsockopt(csd, SOL_SOCKET, SO_RCVBUF, &temp, sizeof(temp));
 #endif		/* SO_RCVBUF */
-#endif		/* INET6 */
-#endif		/* __linux__ */
 #endif		/* 0 */
 
 		dup2(csd, 0); dup2(csd, 1);
@@ -1212,34 +1185,22 @@ standalone_main DECL0
 		setvbuf(stdin, _IONBF, NULL, 0);
 #endif		/* SETVBUF_REVERSED */
 
-#ifdef		INET6
-		inet_ntop(AF_INET6, (void *)sa6_client.sin6_addr.s6_addr, remotehost,
-				sizeof(remotehost));
-		setenv("REMOTE_ADDR", remotehost, 1);
-#else		/* INET 6 */
-		setenv("REMOTE_ADDR", inet_ntoa(sa_client.sin_addr), 1);
-#endif		/* INET 6 */
-#ifdef		INET6
-		if ((remote = gethostbyaddr((char *)&sa6_client.sin6_addr,
-			sizeof(struct in6_addr), sa6_client.sin6_family)))
-#else		/* INET 6 */
-		if ((remote = gethostbyaddr((char *)&sa_client.sin_addr,
-			sizeof(struct in_addr), sa_client.sin_family)))
-#endif		/* INET 6 */
+		if (getnameinfo((struct sockaddr *)&saddr, clen,
+			remotehost, sizeof(remotehost), NULL, 0, NULL) < 0)
 		{
-			strncpy(remotehost, remote->h_name, MAXHOSTNAMELEN);
+			/* too bad */
+			unsetenv("REMOTE_HOST");
+		}
+		else
+		{
 			remotehost[MAXHOSTNAMELEN-1] = '\0';
 			setenv("REMOTE_HOST", remotehost, 1);
-		} else
+			setenv("REMOTE_ADDR", remotehost, 1);
+		}
+		if (!getnameinfo((struct sockaddr *)&saddr, clen,
+			remotehost, sizeof(remotehost), NULL, 0, NI_NUMERICHOST))
 		{
-#ifdef		INET6
-			inet_ntop(AF_INET6, (void *)(sa6_client.sin6_addr.s6_addr), remotehost,
-					sizeof(remotehost));
-#else		/* INET 6 */
-			strncpy(remotehost, inet_ntoa(sa_client.sin_addr), MAXHOSTNAMELEN);
-			remotehost[MAXHOSTNAMELEN-1] = '\0';
-#endif		/* INET 6 */
-			unsetenv("REMOTE_HOST");
+			setenv("REMOTE_ADDR", remotehost, 1);
 		}
 #ifdef		HANDLE_SSL
 		if (do_ssl) {
@@ -1282,9 +1243,7 @@ setup_environment DECL0
 	setenv("SERVER_SOFTWARE", SERVER_IDENT, 1);
 	setenv("SERVER_NAME", thishostname, 1);
 	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
-	snprintf(buffer, 16, "%d", port);
-	buffer[15] = '\0';
-	setenv("SERVER_PORT", buffer, 1);
+	setenv("SERVER_PORT", port, 1);
 	snprintf(buffer, 16, "%d", localmode);
 	buffer[15] = '\0';
 	setenv("LOCALMODE", buffer, 1);
@@ -1297,9 +1256,6 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	const	struct	passwd	*userinfo;
 	const	struct	group	*groupinfo;
 	int			option, num, fport = 0;
-#ifndef 	INET6
-	const	struct	hostent	*hp;
-#endif		/* INET6 */
 
 	origeuid = geteuid(); origegid = getegid();
 #ifdef		HAVE_SETPRIORITY
@@ -1319,9 +1275,10 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			strcat(startparams, " ");
 	}
 
-	port = 80; number = HTTPD_NUMBER; localmode = 1;
+	number = HTTPD_NUMBER; localmode = 1;
 	strncpy(rootdir, HTTPD_ROOT, XS_PATH_MAX);
 	rootdir[XS_PATH_MAX-1] = '\0';
+	strcpy(port, "http");
 	message503[0] = 0;
 #ifdef		THISDOMAIN
 	strncpy(thisdomain, THISDOMAIN, MAXHOSTNAMELEN);
@@ -1329,11 +1286,6 @@ main DECL3(int, argc, char **, argv, char **, envp)
 #else		/* Not THISDOMAIN */
 	thisdomain[0] = 0;
 #endif		/* THISDOMAIN */
-#ifdef		INET6
-	memcpy(thisaddress6.s6_addr, &in6addr_any, sizeof(in6addr_any));
-#else		/* INET 6 */
-	thisaddress.s_addr = htonl(INADDR_ANY);
-#endif		/* INET 6 */
 	if (gethostname(thishostname, MAXHOSTNAMELEN) == -1)
 		errx(1, "gethostname() failed");
 	if ((userinfo = getpwnam(HTTPD_USERID)))
@@ -1363,14 +1315,14 @@ main DECL3(int, argc, char **, argv, char **, envp)
 				errx(1, "Invalid number of processes");
 			break;
 		case 'p':
-			if ((port = atoi(optarg)) <= 0)
-				errx(1, "Invalid port number");
+			strncpy(port, optarg, NI_MAXSERV);
+			port[NI_MAXSERV-1] = '\0';
 			fport = 1;
 			break;
 		case 's':
 #ifdef		HANDLE_SSL
 			if (!fport)
-				port = 443;
+				strcpy(port, "https");
 			do_ssl = 1;
 			/* override defaults */
 			snprintf(access_path, XS_PATH_MAX,
@@ -1407,22 +1359,9 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			rootdir[XS_PATH_MAX-1] = 0;
 			break;
 		case 'a':
-#ifdef		INET6
-			/* TBD -Koresh */
 			strncpy(thishostname, optarg, MAXHOSTNAMELEN);
-#else		/* INET6 */
-			if ((thisaddress.s_addr = inet_addr(optarg)) == -1)
-			{
-				if ((hp = gethostbyname(optarg)))
-					memcpy((char *)&thisaddress,
-						hp->h_addr, hp->h_length);
-				else
-					errx(1, "gethostbyname(`%s') failed",
-						optarg);
-			}
-			strncpy(thishostname, optarg, MAXHOSTNAMELEN);
-#endif		/* INET6 */
 			thishostname[MAXHOSTNAMELEN-1] = '\0';
+			forcehost = 1;
 			break;
 		case 'r':
 			strncpy(thisdomain, optarg, MAXHOSTNAMELEN);

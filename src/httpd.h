@@ -22,10 +22,10 @@
 
 extern	char	remotehost[], orig[], dateformat[], rootdir[], currenttime[],
 		version[], netbuf[], thishostname[], real_path[], total[],
-		name[];
+		name[], port[];
 extern	FILE	*access_log, *refer_log;
 extern	time_t	modtime;
-extern	int	port, headers, localmode, netbufind, netbufsiz, readlinemode,
+extern	int		headers, localmode, netbufind, netbufsiz, readlinemode,
 		headonly, postonly;
 extern	gid_t	group_id, origegid;
 extern	uid_t	user_id, origeuid;
