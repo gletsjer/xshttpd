@@ -1138,6 +1138,17 @@ standalone_main DECL0
 			process_request();
 		alarm(0); reqs++;
 		fflush(stdout); fflush(stdin); fflush(stderr);
+
+		/* (in)sanity check */
+		if (count > number)
+		{
+			fprintf(stderr, "[%s] httpd(pid %ld): MEMORY CORRUPTION %d [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
+				currenttime, (long)getpid(), sig,
+				remotehost[0] ? remotehost : "(none)",
+				orig[0] ? orig : "(none)", env ? env : "(none)",
+				referer[0] ? referer : "(none)");
+			exit(1);
+		}
 	}
 	/* NOTREACHED */
 }
