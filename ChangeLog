@@ -1,3 +1,13 @@
+Changes since 3.0 beta 11
+- Preserve QUERY_STRING in directory redirects
+- Optionally switch to user id for virtual hosts
+- Fix nph-scripts
+- Fix nph-scripts in combination with SSL
+- Append port number in HTTP_HOST even when MSIE is used
+- Fix abort/skip bug in SSL CGI scripts
+- Don't expect the user to always give -s as first argument
+- Minor cleanups
+
 Changes since 3.0 beta 10
 - Optionally display virtual hosts with euid of dir owner
 - Fix bug which might allow source access to global /cgi-bin files
