@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.130 2004/05/31 18:16:00 johans Exp $ */
+/* $Id: httpd.c,v 1.131 2004/06/13 11:47:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.130 2004/05/31 18:16:00 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.131 2004/06/13 11:47:39 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1940,6 +1940,7 @@ int
 main DECL3(int, argc, char **, argv, char **, envp)
 {
 	int			option, num;
+	int			nolog = 0;
 	enum { optionp, optiond, optionhd, optionhn, optionaa, optionrr, optionee };
 	char *		longopt[7] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
 	uid_t		uid = 0;
@@ -1979,7 +1980,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 #endif		/* THISDOMAIN */
 	snprintf(config_path, XS_PATH_MAX, "%s/httpd.conf", calcpath(HTTPD_ROOT));
 	config_path[XS_PATH_MAX-1] = '\0';
-	while ((option = getopt(argc, argv, "a:c:d:g:l:m:n:p:r:su:vA:D:E:R:")) != EOF)
+	while ((option = getopt(argc, argv, "a:c:d:g:l:m:n:p:r:su:vA:D:E:R:N")) != EOF)
 	{
 		switch(option)
 		{
@@ -2047,6 +2048,10 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	 	case 'E':
 			longopt[optionee] = optarg;
 			break;
+		case 'N':
+			nolog = 1;
+			strcpy(config_path, "/dev/null");
+			break;
 		case 'v':
 			fprintf(stdout, "%s\n", SERVER_IDENT);
 			return 0;
@@ -2064,7 +2069,16 @@ main DECL3(int, argc, char **, argv, char **, envp)
 		config = strdup(longopt[option]); \
 	}
 
-	SET_OPTION(optionp,  config.port);
+	if (nolog)
+	{
+			config.pidfile =
+					config.system->logaccess =
+					config.system->logreferer =
+					config.system->logerror =
+					strdup("/dev/null");
+	}
+	if (config.sockets)
+			SET_OPTION(optionp,  config.sockets[0].port);
 	SET_OPTION(optiond,  config.systemroot);
 	SET_OPTION(optionhd, config.system->htmldir);
 	SET_OPTION(optionhn, config.system->hostname);
