@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.172 2005/03/21 20:24:09 johans Exp $ */
+/* $Id: httpd.c,v 1.173 2005/03/31 14:38:28 johans Exp $ */
 
 #include	"config.h"
 
@@ -105,7 +105,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.172 2005/03/21 20:24:09 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.173 2005/03/31 14:38:28 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -361,6 +361,8 @@ load_config()
 					config.virtualhostdir = strdup(value);
 				else if (!strcasecmp("UseLocalScript", key))
 					config.uselocalscript = !strcasecmp("true", value);
+				else if (!strcasecmp("UsePcreRedir", key))
+					config.usepcreredir = !strcasecmp("true", value);
 				else if (!strcasecmp("ScriptCpuLimit", key))
 					config.script_cpu_limit = atoi(value);
 				else if (!strcasecmp("ScriptTimeout", key))

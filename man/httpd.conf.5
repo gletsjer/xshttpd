@@ -134,6 +134,15 @@ DNS and logged with hostname information. You can disable this features
 by setting UseDnsLookup to false. Note that this will also make the
 environment variable REMOTE_HOST useless.
 .TP
+.B UsePcreRedir [true|false]
+By default *.redir files contain an absolute or relative URL to redirect to,
+but if this option is enabled, it make contain a path substitution as well.
+This substitution must be of the form
+\fBs/\fP\fIpattern\fP\fB/\fP\fIreplacement\fP\fB/\fP
+Where pattern is a \fBpcrepattern(3)\fP-like regular expression that must
+match the full path (without hostname). The replacement may contain grouped
+backreferences indicated with \fB\\\fP\fIn\fP.
+.TP
 .B Priority
 The system priority that the daemon will be running at. A lower priority causes
 more favorable scheduling. The default priority is 0.

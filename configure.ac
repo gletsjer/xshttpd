@@ -15,7 +15,6 @@ AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "$ppmtogif",
 	[ppmtogif-like program used to create graphic counters])
 
 dnl Checks for libraries.
-LDFLAGS="-L/usr/local/lib"
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -62,11 +61,12 @@ XS_ARG_DIR(icondir, icons)
 XS_ARG_DIR(docdir, htdocs)
 XS_ARG_DIR(logdir, logs)
 
-XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, ldcrypt)
-XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd_ldflags)
-XS_FUNC_IN_LIB(MD5Init, HAVE_MD5, md, httpd_ldflags)
-XS_FUNC_IN_LIB(pcre_exec, HAVE_PCRE, pcre, httpd_ldflags)
+XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
+XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)
+XS_FUNC_IN_LIB(MD5Init, HAVE_MD5, md, httpd)
+XS_FUNC_IN_LIB(pcre_exec, HAVE_PCRE, pcre, httpd)
 AM_CONDITIONAL([MD5], [test x$ac_cv_lib_md_MD5Init = xyes])
+AM_CONDITIONAL([PCRE], [test x$ac_cv_lib_pcre_pcre_exec = xyes])
 AC_REPLACE_FUNCS(err setenv setgroups strptime strsep snprintf)
 
 AC_MSG_CHECKING(if you want SSL support)
@@ -78,17 +78,9 @@ AC_ARG_WITH(ssl,
 
 if test x${with_ssl} = xyes
 then
-	AC_CHECK_LIB(crypto, SSLeay_version,
-		ac_cv_lib_crypto=yes,
-		AC_MSG_ERROR(SSL support requires libcrypto))
-	if test x${ac_cv_lib_crypto} = xyes
-	then
-	AC_CHECK_LIB(ssl, SSL_version,
-		ac_cv_lib_ssl=yes,
-		AC_MSG_ERROR(SSL support requires libssl),
-		-lcrypto)
-	fi
-	if test x${ac_cv_lib_ssl} = xyes
+	XS_FUNC_IN_LIB(SSLeay_version, HAVE_SSLEAY, crypto, httpd)
+	XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, httpd)
+	if test x${ac_cv_lib_ssl_SSL_version} = xyes
 	then
 		httpd_ldflags="${httpd_ldflags} -lcrypto -lssl"
 		httpd_cflags="${httpd_cflags} -I/usr/local/include -I/usr/local/ssl/include"
@@ -98,6 +90,8 @@ then
 			[File containing public SSL certificate])
 		AC_DEFINE(KEY_FILE, "key.pem",
 			[File containing private SSL server key])
+	else
+		AC_MSG_ERROR([Cannot find libraries for --with-ssl])
 	fi
 fi
 
@@ -167,7 +161,8 @@ AC_MSG_RESULT($domain)
 AC_DEFINE_UNQUOTED(THISDOMAIN, "$domain",
 	[The name of your domain, including leading dot. This is used to strip out referrers from your own site.])
 
-AC_SUBST(ldcrypt)
+AC_SUBST(libxs_ldflags)
+AC_SUBST(libxs_cflags)
 AC_SUBST(httpd_ldflags)
 AC_SUBST(httpd_cflags)
 AC_OUTPUT([Makefile fonts/Makefile icons/Makefile man/Makefile misc/Makefile src/Makefile])

@@ -7,19 +7,23 @@ error_SOURCES = error.c local.c
 
 libxs_a_SOURCES = decode.c extra.c path.c procname.c xscrypt.c
 if MD5
-	libxs_a_SOURCES += digcalc.c 
+httpd_SOURCES += digcalc.c 
+endif
+if PCRE
+httpd_SOURCES += pcre_sub.c 
 endif
 libxs_a_LIBADD = @LIBOBJS@		# AC_REPLACE_FUNS sources
+libxs_a_CFLAGS = @libxs_cflags@
 
 httpd_CFLAGS = @httpd_cflags@ -DBUILD_HTTPD
-httpd_LDFLAGS = @httpd_ldflags@ @ldcrypt@
-xspasswd_LDFLAGS = @ldcrypt@
-xschpass_LDFLAGS = @ldcrypt@
+httpd_LDFLAGS = @httpd_ldflags@ @libxs_ldflags@
+xspasswd_LDFLAGS = @libxs_ldflags@
+xschpass_LDFLAGS = @libxs_ldflags@
 LDADD = libxs.a				# default for all *_PROGRAMS
 
 EXTRA_DIST = cgi.h config.h confpatch.h confuser.h convert.h decode.h \
 	digcalc.h err.h extra.h htconfig.h httpd.h local.h methods.h \
 	mygetopt.h mystring.h \
-	path.h procname.h setenv.h ssi.h ssl.h xscounter.h xscrypt.h
+	path.h pcre_sub.h procname.h setenv.h ssi.h ssl.h xscounter.h xscrypt.h
 
-EXTRA_DIST += digcalc.c
+EXTRA_DIST += digcalc.c pcre_sub.c

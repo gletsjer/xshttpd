@@ -49,11 +49,22 @@ int main() { return $1, 0; }
 		AC_MSG_RESULT(unknown))
 	])
 
-# AC_FUNC_IN_LIB(function, define, library, ldvar)
+# AC_FUNC_IN_LIB(function, define, library, buildprog)
 AC_DEFUN([XS_FUNC_IN_LIB], [
 	AC_CHECK_FUNCS($1,
-		AC_DEFINE($2,, "Define to 1 if you have the `$3' functions."),
+		AC_DEFINE($2,, [Define to 1 if you have the `$3' functions.]),
+		[AC_CHECK_LIB($3,
+			$1,
+			AC_DEFINE($2) $4_ldflags="${$4_ldflags} -l$3",
+			[
+LDFLAGS="-L/usr/local/lib"
+unset ac_cv_lib_$3_$1
 		AC_CHECK_LIB($3,
 			$1,
-			AC_DEFINE($2) $4="${$4} -l$3"))
+			[AC_DEFINE($2)
+$4_ldflags="${$4_ldflags} -L/usr/local/lib -l$3"
+$4_cflags="${$4_cflags} -I/usr/local/include"])
+LDFLAGS=
+			])
+		])
 	])

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.132 2005/03/29 16:24:24 johans Exp $ */
+/* $Id: methods.c,v 1.133 2005/03/31 14:38:28 johans Exp $ */
 
 #include	"config.h"
 
@@ -92,6 +92,9 @@
 #include	"mygetopt.h"
 #include	"mystring.h"
 #include	"htconfig.h"
+#ifdef		HAVE_PCRE
+#include	"pcre_sub.h"
+#endif		/* HAVE_PCRE */
 
 static int	getfiletype		(int);
 #ifdef	INET6
@@ -343,7 +346,7 @@ sendcompressed(int fd, const char *method)
 		error("500 Unable to open temporary file");
 		exit(1);
 	}
-	remove(mkstemp);
+	remove(prefix);
 #else		/* HAVE_MKSTEMP */
 	char		*tmp;
 
@@ -852,7 +855,26 @@ do_get(char *params)
 		}
 		total[size] = 0;
 		(void) strtok(total, "\r\n");
-		redirect(total, permanent);
+#ifdef		HAVE_PCRE
+		if (config.usepcreredir &&
+			strlen(total) > 3 &&
+			's' == total[0] && '/' == total[1])
+		{
+			char	*p, *subst, *replacement;
+			for (p = total + 2, replacement = NULL; *p; p++)
+				if ('/' == *p && '\\' != p[-1])
+				{
+					*p = 0;
+					if (!replacement)
+						replacement = p + 1;
+				}
+			subst = pcre_subst(params, total + 2, replacement);
+			redirect(subst, permanent);
+			free(subst);
+		}
+		else
+#endif		/* HAVE_PCRE */
+			redirect(total, permanent);
 		close(fd);
 		return;
 	}
