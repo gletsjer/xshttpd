@@ -188,11 +188,13 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			strncpy(base, calcpath(getenv("HTTP_HOST")), XS_PATH_MAX-1);
 			base[XS_PATH_MAX-2] = '\0';
 			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
-				strncpy(base, calcpath(HTTPD_ROOT), XS_PATH_MAX-1);
+				strncpy(base, calcpath(engine
+					? HTTPD_DOCUMENT_ROOT : HTTPD_ROOT), XS_PATH_MAX-1);
 		}
 		else
 #endif		/* SIMPLE_VIRTUAL_HOSTING */
-			strncpy(base, calcpath(HTTPD_ROOT), XS_PATH_MAX-1);
+			strncpy(base, calcpath(engine ? HTTPD_DOCUMENT_ROOT : HTTPD_ROOT),
+				XS_PATH_MAX-1);
 		strcat(base, "/");
 		base[XS_PATH_MAX-2] = '\0';
 		if (engine)

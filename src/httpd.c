@@ -1408,7 +1408,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			break;
 		case 'a':
 #ifdef		INET6
-			/* TODO -Koresh */
+			/* TBD -Koresh */
 			strncpy(thishostname, optarg, MAXHOSTNAMELEN);
 #else		/* INET6 */
 			if ((thisaddress.s_addr = inet_addr(optarg)) == -1)
