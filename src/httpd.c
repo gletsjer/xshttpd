@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.61 2001/11/08 11:10:06 johans Exp $ */
+/* $Id: httpd.c,v 1.62 2002/01/12 11:03:45 johans Exp $ */
 
 #include	"config.h"
 
@@ -773,8 +773,18 @@ check_auth DECL1(FILE *, authfile)
 			fclose(authfile); return(0);
 		}
 	}
-	fclose(authfile);
-	server_error("401 Wrong user/password combination", "UNAUTHORIZED");
+//	server_error("401 Wrong user/password combination", "UNAUTHORIZED");
+	if (headers)
+	{
+		secprintf("%s 401 Wrong user/password combination\r\n", version);
+		secprintf("WWW-authenticate: basic realm=\"this page\"\r\n");
+		stdheaders(1, 1, 1);
+	}
+	secprintf("\r\n<HTML><HEAD><TITLE>Wrong password</TITLE></HEAD>\n");
+	secprintf("<BODY><H1>Wrong user/password combination</H1>\n");
+	secprintf("You don't have permission to view this page.\n");
+	secprintf("</BODY></HTML>\n");
+	fclose(authfile); return(1);
 	return(1);
 }
 
