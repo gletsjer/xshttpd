@@ -655,15 +655,15 @@ do_get DECL1(char *, params)
 	/* Check for directory permissions */
 	if (stat(base, &statbuf))
 	{
-		error("500 Cannot stat current directory");
+		error("404 Requested URL not found");
 		return;
 	}
-	if (userinfo && (statbuf.st_mode & (S_IWGRP | S_IWOTH)))
+	if (userinfo && (statbuf.st_mode & S_IWGRP) && (statbuf.st_mode & S_IWOTH))
 	{
-		error("403 User directory is writable");
+		error("403 User directory is world-writable");
 		return;
 	}
-	if (userinfo && (statbuf.st_uid != geteuid()))
+	if (userinfo && statbuf.st_uid && (statbuf.st_uid != geteuid()))
 	{
 		error("403 Invalid owner of user directory");
 		return;
