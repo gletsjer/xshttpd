@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/httpd.c)
-AM_INIT_AUTOMAKE(xshttpd, 30b11)
+AM_INIT_AUTOMAKE(xshttpd, 30b13)
 AM_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
