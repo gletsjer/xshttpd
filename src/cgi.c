@@ -259,6 +259,8 @@ do_script DECL2C_(char *, path, int, headers)
 			break;
 		*(nextslash++) = '/';
 	}
+#if 0
+	/* I don't get this part --johans */
 	if (nextslash)
 	{
 		*nextslash = '/';
@@ -266,6 +268,7 @@ do_script DECL2C_(char *, path, int, headers)
 		setenv("PATH_TRANSLATED", convertpath(nextslash), 1);
 		*nextslash = 0;
 	}
+#endif
 
 	if (strstr(name, "..") || strstr(name, "/.x"))
 	{
@@ -275,15 +278,33 @@ do_script DECL2C_(char *, path, int, headers)
 			printf("[Invalid URI]\n");
 		goto END;
 	}
+#ifdef		SUPPORT_PHP3
+	if (php3)
+	{
+		if (userinfo)
+			sprintf(fullpath, "/~%s/%s", userinfo->pw_name, name);
+		else
+			sprintf(fullpath, "/%s", name);
+	}
+	else
+#endif		/* SUPPORT_PHP3 */
 	if (userinfo)
 		sprintf(fullpath, "/~%s/%s/%s", userinfo->pw_name,
 			HTTPD_SCRIPT_ROOT, name);
 	else
 		sprintf(fullpath, "/%s/%s", HTTPD_SCRIPT_ROOT, name);
 	if (was_slash)
+	{
 		setenv("SCRIPT_NAME", "/", 1);
+		setenv("PATH_INFO", "/", 1);
+		setenv("PATH_TRANSLATED", convertpath("/"), 1);
+	}
 	else
+	{
 		setenv("SCRIPT_NAME", fullpath, 1);
+		setenv("PATH_INFO", fullpath, 1);
+		setenv("PATH_TRANSLATED", convertpath(fullpath), 1);
+	}
 
 	if (headers)
 	{
