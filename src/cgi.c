@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.68 2002/11/11 19:06:11 johans Exp $ */
+/* $Id: cgi.c,v 1.69 2002/11/12 18:05:38 johans Exp $ */
 
 #include	"config.h"
 
@@ -374,6 +374,7 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 	}
 
 #ifdef		HANDLE_SSL
+			fprintf(stderr, "HERE\n", received);
 	if (ssl_post)
 	{
 		writetodo = atoi(getenv("CONTENT_LENGTH"));
@@ -406,8 +407,10 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 #endif		/* HANDLE_SSL */
 	netbufind = netbufsiz = 0; readlinemode = READCHAR;
 	head[0] = '\0';
+#ifndef		HANDLE_SSL
 	while (readline(r[0], errmsg) == ERR_NONE)
 		fprintf(stderr, errmsg);
+#endif		/* HANDLE_SSL */
 	if (!nph)
 	{
 		int ctype = 0, status = 0;
@@ -557,7 +560,10 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 			if (written == -1)
 			{
 				if ((errno == EINTR) || (errno == EWOULDBLOCK))
+				{
+					usleep(300);
 					continue;
+				}
 				secprintf("[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
 					strerror(errno), fileno(stdout), temp,
 					writetodo);
