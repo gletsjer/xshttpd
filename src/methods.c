@@ -429,7 +429,7 @@ do_get DECL1(char *, params)
 {
 	char			*temp, auth[XS_PATH_MAX], base[XS_PATH_MAX];
 	const	char		*file, *question;
-	int			fd, wasdir;
+	int			fd, wasdir, permanent;
 	size_t			size;
 	struct	stat		statbuf;
 	const	struct	passwd	*userinfo;
@@ -592,9 +592,18 @@ do_get DECL1(char *, params)
 			return;
 		}
 	}
+	/* Check for *.redir instructions */
+	permanent = 0;
 	snprintf(total, XS_PATH_MAX, "%s%s.redir", base, file);
 	total[XS_PATH_MAX-1] = '\0';
-	if ((fd = open(total, O_RDONLY, 0)) >= 0)
+	if ((fd = open(total, O_RDONLY, 0)) < 0)
+	{
+		snprintf(total, XS_PATH_MAX, "%s%s.Redir", base, file);
+		total[XS_PATH_MAX-1] = '\0';
+		if ((fd = open(total, O_RDONLY, 0)) >= 0)
+			permanent = 1;
+	}
+	if (fd >= 0)
 	{
 		if ((size = read(fd, total, MYBUFSIZ)) <= 0)
 		{
@@ -602,7 +611,7 @@ do_get DECL1(char *, params)
 			close(fd); return;
 		}
 		total[size] = 0;
-		strtok(total, "\r\n"); redirect(total, 0);
+		strtok(total, "\r\n"); redirect(total, permanent);
 		close(fd); return;
 	}
 	snprintf(total, XS_PATH_MAX, "%s/.redir", base);

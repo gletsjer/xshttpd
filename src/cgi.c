@@ -182,17 +182,27 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		file = path + strlen(name) + 3;
 	} else
 	{
+#ifdef		SIMPLE_VIRTUAL_HOSTING
+		if (getenv("HTTP_HOST"))
+		{
+			strncpy(base, calcpath(getenv("HTTP_HOST")), XS_PATH_MAX-1);
+			base[XS_PATH_MAX-2] = '\0';
+			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
+				strncpy(base, calcpath(HTTPD_ROOT), XS_PATH_MAX-1);
+		}
+		else
+#endif		/* SIMPLE_VIRTUAL_HOSTING */
+			strncpy(base, calcpath(HTTPD_ROOT), XS_PATH_MAX-1);
+		strcat(base, "/");
+		base[XS_PATH_MAX-2] = '\0';
 		if (engine)
 		{
 			file = path + 1;
-			strncpy(base, calcpath(HTTPD_DOCUMENT_ROOT), XS_PATH_MAX-1);
-			base[XS_PATH_MAX-2] = '\0';
-			strcat(base, "/");
 		}
 		else if (!was_slash)
 		{
 			file = path + 1;
-			strncpy(base, calcpath(HTTPD_SCRIPT_ROOT_P), XS_PATH_MAX-1);
+			strncat(base, HTTPD_SCRIPT_ROOT_P, XS_PATH_MAX-strlen(base)-1);
 			base[XS_PATH_MAX-2] = '\0';
 			strcat(base, "/");
 		} else
@@ -200,7 +210,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			snprintf(tempbuf, sizeof(tempbuf), "cgi/nph-slash%s", path + 1);
 			tempbuf[sizeof(tempbuf)-1] = '\0';
 			file = tempbuf;
-			strncpy(base, calcpath(HTTPD_SCRIPT_ROOT_P), XS_PATH_MAX-1);
+			strncat(base, HTTPD_SCRIPT_ROOT_P, XS_PATH_MAX-strlen(base)-1);
 			base[XS_PATH_MAX-2] = '\0';
 			strcat(base, "/");
 		}
