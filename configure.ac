@@ -78,6 +78,15 @@ AC_ARG_DEFAULT(compress, HANDLE_COMPRESSED,
 AC_ARG_DEFAULT(setrlimit, USE_SETRLIMIT,
 	[  --disable-setrlimit     disable resource limits for CGI scripts])
 
+dnl Test runs for required global variables
+
+AC_NEED_CONST(sys_errlist, stdio.h, NEED_SYS_ERRLIST_DECL)
+AC_NEED_CONST(optarg, unistd.h, NEED_OPTARG_AND_OPTIND)
+AC_NEED_CONST(environ, unistd.h, NEED_DECL_ENVIRON)
+dnl AC_EGREP_HEADER(sys_errlist, stdio.h,, AC_DEFINE(NEED_SYS_ERRLIST_DECL))
+dnl AC_EGREP_HEADER(optarg, getopt.h,, AC_DEFINE(NEED_OPTARG_AND_OPTIND))
+dnl AC_EGREP_HEADER(eniviron, unistd.h,, AC_DEFINE(NEED_DECL_ENVIRON))
+
 AC_SUBST(miscdir)
 AC_SUBST(cgidir)
 AC_SUBST(fontdir)
@@ -86,6 +95,7 @@ AC_SUBST(docdir)
 AC_SUBST(logdir)
 
 AC_DEFINE(NEED_DECL_ENVIRON)
+AC_DEFINE(NEED_OPTARG_AND_OPTIND)
 AC_SUBST(ldcrypt)
 AC_SUBST(httpd_ldflags)
 AC_SUBST(httpd_cflags)

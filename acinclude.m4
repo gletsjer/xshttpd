@@ -16,3 +16,15 @@ AC_DEFUN(AC_ARG_DIR, [
 		$1=${rootdir}/$2)
 	])
 
+AC_DEFUN(AC_NEED_CONST, [
+	AC_MSG_CHECKING("for $1")
+	AC_TRY_RUN([
+#include <$2>
+int main() { return $1, 0; }
+],
+		AC_MSG_RESULT(found),
+		AC_MSG_RESULT(will use my own)
+		AC_DEFINE($3),
+		AC_MSG_RESULT(unknown))
+	])
+

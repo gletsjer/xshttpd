@@ -51,10 +51,21 @@ default compress.methods for more details. */
   
 #undef HANDLE_COMPRESSED 
 #define COMPRESS_METHODS "compress.methods"
- 
+
 /* Do we want to use setrlimit() to limit CGI programs in what they do? */
  
 #undef USE_SETRLIMIT 
+
+/* If you need to declare sys_errlist and sys_nerr in the program itself,
+define NEED_SYS_ERRLIST_DECL. */
+ 
+#undef NEED_SYS_ERRLIST_DECL 
+
+/* Does your system declare optarg and optind by itself? If not, the
+programs will declare it themselves. If you need the programs to
+declare the symbols by themselves, #define NEED_OPTARG_AND_OPTIND. */
+  
+#undef NEED_OPTARG_AND_OPTIND 
 
 /* Does your system declare environ by itself? If not, the prorgams will
 declare it themselves. If you need the programs to declare the symbols,

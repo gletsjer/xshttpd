@@ -1,6 +1,7 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
 /* Based on xs-httpd/2.3 */
+#include	<sys/types.h>
 
 #define		SERVER_IDENT	"xs-httpd/3.0 beta/0.7"
 
