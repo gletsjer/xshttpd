@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.82 2002/06/23 17:31:34 johans Exp $ */
+/* $Id: httpd.c,v 1.83 2002/06/23 18:11:35 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.82 2002/06/23 17:31:34 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.83 2002/06/23 18:11:35 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1292,7 +1292,7 @@ process_request DECL0
 	{
 		headers = 1.0;
 		strcpy(version, "HTCPCP/1.0");
-		error("418 Duh... I'm a webserver, no coffee for you!");
+		error("418 Duh... I'm a webserver Jim, not a coffeepot!");
 		return;
 	} else
 		setenv("SERVER_PROTOCOL", version, 1);
