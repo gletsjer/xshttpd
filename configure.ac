@@ -81,8 +81,6 @@ AC_ARG_DEFAULT(ipv6, INET6, yes,
 	[  --disable-ipv6          disable ipv6 support])
 AC_ARG_DEFAULT(virtual, SIMPLE_VIRTUAL_HOSTING, yes,
 	[  --disable-virtual       disable simple virtual hosting])
-AC_ARG_DEFAULT(restrict, RESTRICTXS, yes,
-	[  --disable-restrict      disable restricted .noxs access])
 AC_ARG_DEFAULT(script, HANDLE_SCRIPT, yes,
 	[  --disable-script        disable scripting support (PHP)])
 AC_ARG_DEFAULT(compress, HANDLE_COMPRESSED, yes,

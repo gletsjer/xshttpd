@@ -27,7 +27,8 @@ struct configuration {
 	unsigned	execasuser: 1;
 	unsigned	usessl: 1;
 	unsigned	usecharset: 1;
-	unsigned	padding: 5;
+	unsigned	userestrictaddr: 1;
+	unsigned	padding: 4;
 	struct virtual *	system;
 	struct virtual *	users;
 	struct virtual *	virtual;

@@ -417,7 +417,6 @@ sendcompressed DECL2_C(int, fd, char *, method)
 }
 #endif		/* HANDLE_COMPRESSED */
 
-#ifdef		RESTRICTXS
 extern	int
 allowxs DECL1(char *, file)
 {
@@ -425,6 +424,8 @@ allowxs DECL1(char *, file)
 	char	allowhost[256];
 	FILE	*rfile;
 
+	if (!config.userestrictaddr)
+		return 1; /* always allowed */
 	if (!(remoteaddr = getenv("REMOTE_ADDR")))
 		return 0; /* access denied */
 	if (!(rfile = fopen(file, "r")))
@@ -448,7 +449,6 @@ allowxs DECL1(char *, file)
 	fclose(rfile);
 	return 0;
 }
-#endif		/* RESTRICTXS */
 
 extern	VOID
 do_get DECL1(char *, params)
@@ -717,11 +717,7 @@ do_get DECL1(char *, params)
 	/* Check for *.noxs permissions */
 	snprintf(total, XS_PATH_MAX, "%s/.noxs", base);
 	total[XS_PATH_MAX-1] = '\0';
-#ifdef		RESTRICTXS
 	if (!stat(total, &statbuf) && !allowxs(total))
-#else		/* RESTRICTXS */
-	if (!stat(total, &statbuf))
-#endif		/* RESTRICTXS */
 	{
 		server_error("403 Directory is not available", "DIR_NOT_AVAIL");
 		return;

@@ -31,15 +31,6 @@ for more information about these SSI's. */
 
 #undef VIRTUAL_UID
 
-/* Define this if you want to allow certain hosts to read a directory even
- * if it contains a .noxs file. You can list the IP numbers of the host
- * that should have access in the .noxs file (no hostnames). You may list
- * only the start of an IP number to allow a range of hostnames.
- * E.g. if .noxs contains 192.168.1, access will be granted to
- * 192.168.1.0 - 192.168.1.255 and denied to the rest of the world. */
- 
-#undef RESTRICTXS
-
 /* Generic file interpretation support (read: PHP)
  * This extension allows files with certain extensions to be parsed
  * by an external interpreter. You will have to specify the extensions
