@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.7 2003/01/31 13:39:53 johans Exp $ */
+/* $Id: httpdc.c,v 1.8 2003/10/03 13:31:06 johans Exp $ */
 
 #include	"config.h"
 
@@ -223,7 +223,7 @@ main DECL2(int, argc, char **, argv)
 			pidfilename = optarg;
 			break;
 		default:
-			err(1, "Usage: %s [-d rootdir]", argv[0]);
+			err(1, "Usage: %s [-d rootdir] [-p pidfile]", argv[0]);
 		}
 	}
 	if (argc != optind)
