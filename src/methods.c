@@ -620,8 +620,6 @@ do_get DECL1(char *, params)
 			return;
 		}
 	}
-	strncpy(currentdir, base, XS_PATH_MAX);
-	currentdir[XS_PATH_MAX-1] = '\0';
 
 	if (question)
 	{
@@ -650,6 +648,7 @@ do_get DECL1(char *, params)
 	{
 		setenv("PATH_INFO", params, 1);
 		setenv("PATH_TRANSLATED", temp, 1);
+		setenv("SCRIPT_FILENAME", temp, 1);
 	}
 	else
 	{
@@ -668,6 +667,7 @@ do_get DECL1(char *, params)
 				setenv("PATH_INFO", temp, 1);
 				asprintf(&fp, "%s%s", fullpath, temp);
 				setenv("PATH_TRANSLATED", fp, 1);
+				setenv("SCRIPT_FILENAME", fp, 1);
 				*temp = 0;
 				free(fp);
 				break;
@@ -686,6 +686,8 @@ do_get DECL1(char *, params)
 		file = temp + 1;
 		*temp = '/';
 	}
+	strncpy(currentdir, base, XS_PATH_MAX);
+	currentdir[XS_PATH_MAX-1] = '\0';
 
 	if ((!*file) && (wasdir))
 		strcat(real_path, filename = INDEX_HTML);

@@ -1,5 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: local.c,v 1.8 2002/11/27 18:34:53 johans Exp $ */
+/* $Id: local.c,v 1.9 2003/12/27 19:53:22 johans Exp $ */
+
 
 #include	"config.h"
 
