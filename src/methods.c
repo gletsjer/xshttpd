@@ -457,6 +457,7 @@ allowxs DECL1C(char *, file)
 		}
 
 		/* allow any host if the local port matches :port in .noxs */
+#ifdef		HAVE_GETADDRINFO
 		if (strlen(allowhost) > 1 && ':' == allowhost[0])
 		{
 			int cport = atoi(allowhost + 1);
@@ -482,6 +483,7 @@ allowxs DECL1C(char *, file)
 				return 1; /* access granted */
 			}
 		}
+#endif		/* HAVE_GETADDRINFO */
 	}
 
 	fclose(rfile);
