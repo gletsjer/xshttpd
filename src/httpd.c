@@ -685,7 +685,7 @@ size_t
 secread(int fd, void *buf, size_t count)
 {
 #ifdef		HANDLE_SSL
-	if (do_ssl)
+	if (do_ssl && fd == 0)
 		return SSL_read(ssl, buf, count);
 	else
 #endif		/* HANDLE_SSL */
@@ -708,7 +708,7 @@ secfwrite(void *buf, size_t size, size_t count, FILE *stream)
 {
 #ifdef		HANDLE_SSL
 	if (do_ssl)
-		return SSL_write(ssl, buf, size);
+		return SSL_write(ssl, buf, size), count;
 	else
 #endif		/* HANDLE_SSL */
 		return fwrite(buf, size, count, stream);
@@ -734,6 +734,7 @@ secprintf(const char *format, ...)
 size_t
 secfputs(char *buf, FILE *stream)
 {
+	fprintf(stderr, "SSL FPUTS: %s\n", buf);
 #ifdef		HANDLE_SSL
 	if (do_ssl)
 		return SSL_write(ssl, buf, strlen(buf));

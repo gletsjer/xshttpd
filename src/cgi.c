@@ -125,7 +125,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		if (headers)
 			error("403 Invalid pathname");
 		else
-			printf("[Invalid pathname]\n");
+			secprintf("[Invalid pathname]\n");
 		goto END;
 	}
 	currentgid = -1;
@@ -140,13 +140,13 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			if (headers)
 				error("404 User is unknown");
 			else
-				printf("[User `%s' is unknown]\n", name);
+				secprintf("[User `%s' is unknown]\n", name);
 			goto END;
 		}
 		if (transform_user_dir(base, userinfo, headers))
 		{
 			if (!headers)
-				printf("[User directory error]\n");
+				secprintf("[User directory error]\n");
 			goto END;
 		}
 		size = strlen(base);
@@ -168,7 +168,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			if (headers)
 				error("500 Effective UID is not valid");
 			else
-				printf("[UID error]\n");
+				secprintf("[UID error]\n");
 			goto END;
 		}
 		file = path + strlen(name) + 3;
@@ -179,7 +179,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			if (headers)
 				error("500 PHP not yet supported");
 			else
-				printf("[PHP not yet supported]\n");
+				secprintf("[PHP not yet supported]\n");
 			goto END;
 		}
 		if (!was_slash)
@@ -206,7 +206,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			if (headers)
 				error("500 Effective UID is not valid");
 			else
-				printf("[UID error]\n");
+				secprintf("[UID error]\n");
 			goto END;
 		}
 	}
@@ -222,7 +222,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		if (headers)
 			error("403 Not a CGI path");
 		else
-			printf("[Not a CGI path]\n");
+			secprintf("[Not a CGI path]\n");
 		goto END;
 	}
 
@@ -249,7 +249,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			if (headers)
 				error("403 Nonexistent CGI binary");
 			else
-				printf("[Nonexistent CGI binary]\n");
+				secprintf("[Nonexistent CGI binary]\n");
 			goto END;
 		}
 		if ((statbuf.st_mode & S_IFMT) == S_IFREG)
@@ -269,7 +269,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		if (headers)
 			error("400 Invalid URI");
 		else
-			printf("[Invalid URI]\n");
+			secprintf("[Invalid URI]\n");
 		goto END;
 	}
 #ifdef		HANDLE_SCRIPT
@@ -316,7 +316,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				fullpath, strerror(errno));
 			error(errmsg);
 		} else
-			printf("[Cannot stat(`%s'): %s]\n",
+			secprintf("[Cannot stat(`%s'): %s]\n",
 				fullpath, strerror(errno));
 		goto END;
 	}
@@ -327,7 +327,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			sprintf(errmsg, "403 `%s' is writable", fullpath);
 			error(errmsg);
 		} else
-			printf("[`%s' is writable]\n", fullpath);
+			secprintf("[`%s' is writable]\n", fullpath);
 		goto END;
 	}
 	if (userinfo && (statbuf.st_uid != currentuid))
@@ -337,7 +337,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			sprintf(errmsg, "403 Invalid owner for `%s'", fullpath);
 			error(errmsg);
 		} else
-			printf("[Invalid owner for `%s']\n", fullpath);
+			secprintf("[Invalid owner for `%s']\n", fullpath);
 		goto END;
 	}
 	nph = (!strncmp(name, "nph-", 4) || strstr(name, "/nph-"));
@@ -352,7 +352,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			if (headers)
 				error(errmsg);
 			else
-				printf("[%s]\n", errmsg);
+				secprintf("[%s]\n", errmsg);
 			goto END;
 		}
 	}
@@ -363,7 +363,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		if (headers)
 			error(errmsg);
 		else
-			printf("[%s]\n", errmsg);
+			secprintf("[%s]\n", errmsg);
 		goto END;
 	case 0:
 #ifndef		DONT_USE_SETRLIMIT
@@ -387,15 +387,15 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 #ifdef		HAVE_SETSID
 		if (setsid() == -1)
 		{
-			printf("Content-type: text/plain\r\n\r\n");
-			printf("[setsid() failed]\n");
+			secprintf("Content-type: text/plain\r\n\r\n");
+			secprintf("[setsid() failed]\n");
 			exit(1);
 		}
 #else		/* Not HAVE_SETSID */
 		if (setpgrp(getpid(), 0)) == -1)
 		{
-			printf("Content-type: text/plain\r\n\r\n");
-			printf("[setpgrp() failed]\n");
+			secprintf("Content-type: text/plain\r\n\r\n");
+			secprintf("[setpgrp() failed]\n");
 			exit(1);
 		}
 #endif		/* HAVE_SETSID */
@@ -415,9 +415,9 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				(getuid() != currentuid) ||
 				(getgid() != currentgid))
 			{
-				printf("Content-type: text/plain\r\n\r\n");
-				printf("[Invalid UID setting]\n");
-				printf("UID = %ld, EUID = %ld\n",
+				secprintf("Content-type: text/plain\r\n\r\n");
+				secprintf("[Invalid UID setting]\n");
+				secprintf("UID = %ld, EUID = %ld\n",
 					(long)getuid(), (long)geteuid());
 				exit(1);
 			}
@@ -425,8 +425,8 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		setenv("PATH", SCRIPT_PATH, 1);
 		if (chdir(base))
 		{
-			printf("Content-type: text/plain\r\n\r\n");
-			printf("[Cannot change directory]\n");
+			secprintf("Content-type: text/plain\r\n\r\n");
+			secprintf("[Cannot change directory]\n");
 			exit(1);
 		}
 #ifdef		HANDLE_SCRIPT
@@ -446,8 +446,8 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			error(errmsg);
 		} else
 		{
-			printf("Content-type: text/plain\r\n\r\n");
-			printf("[execl(`%s') failed: %s]",
+			secprintf("Content-type: text/plain\r\n\r\n");
+			secprintf("[execl(`%s') failed: %s]",
 				fullpath, strerror(errno));
 		}
 		exit(1);
@@ -469,7 +469,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				if (headers)
 					error("503 Script did not end header");
 				else
-					printf("[Script did not end header]\n");
+					secprintf("[Script did not end header]\n");
 				goto END;
 			}
 			received = strlen(errmsg);
@@ -497,49 +497,49 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				if (headers)
 					error("503 Script gave invalid header");
 				else
-					printf("[Script gave invalid header]\n");
+					secprintf("[Script gave invalid header]\n");
 				goto END;
 			}
 		}
 		if (headers)
 		{
-			printf("%s %s\r\n", version, status[0] ? status :
+			secprintf("%s %s\r\n", version, status[0] ? status :
 				(location[0] ? "302 Moved" : "200 OK"));
-			printf("Content-type: %s\r\n",
+			secprintf("Content-type: %s\r\n",
 				(!contenttype[0]) ? "text/html" : contenttype);
 			if (cachecontrol[0])
 			{
 				if (headers >= 11)
-					printf("Cache-control: %s\r\n", cachecontrol);
+					secprintf("Cache-control: %s\r\n", cachecontrol);
 				else
-					printf("Pragma: no-cache\r\n");
+					secprintf("Pragma: no-cache\r\n");
 			}
 			if (cookie[0])
-				printf("Set-cookie: %s\r\n", cookie);
+				secprintf("Set-cookie: %s\r\n", cookie);
 			switch(location[0])
 			{
 			case '/':
 				if (port == 80)
-					printf("Location: http://%s%s\r\n",
+					secprintf("Location: http://%s%s\r\n",
 						thishostname, location);
 				else
-					printf("Location: http://%s:%d%s\r\n",
+					secprintf("Location: http://%s:%d%s\r\n",
 						thishostname, port, location);
 				break;
 			case 0:
 				break;
 			default:
-				printf("Location: %s\r\n", location);
+				secprintf("Location: %s\r\n", location);
 				break;
 			}
 			setcurrenttime();
-			printf("Date: %s\r\nLast-modified: %s\r\n",
+			secprintf("Date: %s\r\nLast-modified: %s\r\n",
 				currenttime, currenttime);
-			printf("Server: %s\r\n\r\n", SERVER_IDENT);
+			secprintf("Server: %s\r\n\r\n", SERVER_IDENT);
 		} else
 		{
 			if (location[0])
-				printf("[Internal `location' not supported]\n");
+				secprintf("[Internal `location' not supported]\n");
 		}
 	} else
 	{
@@ -550,12 +550,12 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				if (headers)
 					error("503 Script did not end header");
 				else
-					printf("[Script did not end header]\n");
+					secprintf("[Script did not end header]\n");
 				goto END;
 			}
 			received = strlen(errmsg);
 			if (headers)
-				printf("%s", errmsg);
+				secprintf("%s", errmsg);
 			while ((received > 0) && (errmsg[received - 1] < 32))
 				errmsg[--received] = 0;
 			if (!errmsg[0])
@@ -568,17 +568,17 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		writetodo = totalwritten; temp = netbuf + netbufind;
 		while (writetodo > 0)
 		{
-			switch(written = write(fileno(stdout), temp, writetodo))
+			switch(written = secwrite(fileno(stdout), temp, writetodo))
 			{
 			case -1:
 				if (errno == EINTR)
 					break;
-				printf("[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
+				secprintf("[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
 					strerror(errno), fileno(stdout), temp,
 					writetodo);
 				goto END;
 			case 0:
-				printf("[Connection closed: couldn't write]\n");
+				secprintf("[Connection closed: couldn't write]\n");
 				goto END;
 			default:
 				writetodo -= written;
@@ -594,24 +594,24 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		{
 			if (errno == EINTR)
 				continue;
-			printf("[read() error from CGI: %s]", strerror(errno));
+			secprintf("[read() error from CGI: %s]", strerror(errno));
 			break;
 		} else if (received == 0)
 			break;
 		writetodo = received; temp = errmsg;
 		while (writetodo > 0)
 		{
-			switch(written = write(fileno(stdout), temp, writetodo))
+			switch(written = secwrite(fileno(stdout), temp, writetodo))
 			{
 			case -1:
 				if (errno == EINTR)
 					break;
-				printf("[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
+				secprintf("[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
 					strerror(errno), fileno(stdout), temp,
 					writetodo);
 				goto END;
 			case 0:
-				printf("[Connection closed: couldn't write]\n");
+				secprintf("[Connection closed: couldn't write]\n");
 				goto END;
 			default:
 				writetodo -= written;
