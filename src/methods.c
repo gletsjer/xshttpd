@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.99 2004/03/20 14:48:53 johans Exp $ */
+/* $Id: methods.c,v 1.100 2004/03/25 22:15:57 johans Exp $ */
 
 #include	"config.h"
 
@@ -652,7 +652,11 @@ do_get DECL1(char *, params)
 		(statbuf.st_mode & S_IFMT) == S_IFREG)
 	{
 		setenv("PATH_INFO", params, 1);
+		if (!getenv("ORIG_PATH_INFO"))
+			setenv("ORIG_PATH_INFO", params, 1);
 		setenv("PATH_TRANSLATED", temppath, 1);
+		if (!getenv("ORIG_PATH_TRANSLATED"))
+			setenv("ORIG_PATH_TRANSLATED", temppath, 1);
 		setenv("SCRIPT_FILENAME", temppath, 1);
 	}
 	else
@@ -693,7 +697,7 @@ do_get DECL1(char *, params)
 	currentdir[XS_PATH_MAX-1] = '\0';
 
 	if ((!*file) && (wasdir))
-		strcat(real_path, filename = INDEX_HTML);
+		filename = INDEX_HTML;
 	else
 		filename = file;
 
@@ -983,16 +987,16 @@ do_get DECL1(char *, params)
 	return;
 
 	NOTFOUND:
+	if ((temp = strchr(real_path, '?')))
+		*temp = '\0';
 	if (!strcmp(filename, INDEX_HTML) && strcmp(INDEX_HTML, INDEX_HTML_2))
 	{
-		strcpy(real_path + strlen(real_path) - strlen(INDEX_HTML),
-			filename = INDEX_HTML_2);
+		filename = INDEX_HTML_2;
 	}
 	else if (!strcmp(filename, INDEX_HTML_2) &&
 			strcmp(INDEX_HTML_2, INDEX_HTML_3))
 	{
-		strcpy(real_path + strlen(real_path) - strlen(INDEX_HTML_2),
-			filename = INDEX_HTML_3);
+		filename = INDEX_HTML_3;
 		snprintf(file, XS_PATH_MAX, "/%s", INDEX_HTML_3);
 	}
 	else
@@ -1003,11 +1007,6 @@ do_get DECL1(char *, params)
 	}
 
 	/* add original arguments back to real_path */
-	if (question)
-	{
-		strcat(real_path, "?");
-		strcat(real_path, question + 1);
-	}
 	params = real_path;
 	wasdir = 0;
 	goto RETRY;

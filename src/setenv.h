@@ -7,3 +7,7 @@ extern	int	setenv		PROTO((const char *, const char *, int));
 extern	VOID	unsetenv	PROTO((const char *));
 #endif		/* NOFORWARDS */
 #endif		/* HAVE_SETENV */
+
+#ifdef		NEED_DECL_ENVIRON
+extern	char	**environ;
+#endif		/* NEED_DECL_ENVIRON */

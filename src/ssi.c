@@ -42,6 +42,7 @@
 #include	"methods.h"
 #include	"mystring.h"
 #include	"htconfig.h"
+#include	"setenv.h"
 
 #ifndef		NOFORWARDS
 static	int	xsc_initdummy		PROTO((void));
@@ -545,8 +546,13 @@ dir_last_mod DECL2(char *, here, size_t *, size)
 			return(ERR_CONT);
 		}
 		thetime = localtime(&statbuf.st_mtime);
-	} else
-		thetime = localtime(&modtime);
+	} else {
+		if ((path = getenv("ORIG_PATH_TRANSLATED")) && 
+				!stat(path, &statbuf))
+			thetime = localtime(&statbuf.st_mtime);
+		else
+			thetime = localtime(&modtime);
+	}
 
 	strftime(buffer, MYBUFSIZ - 1, dateformat, thetime);
 	*size += strlen(buffer);
@@ -641,6 +647,29 @@ dir_argument DECL2(char *, here, size_t *, size)
 	(void)here;
 	(void)size;
 	return(ERR_NONE);
+}
+
+static	int
+dir_printenv DECL2(char *, here, size_t *, size)
+{
+	char **p, *c;
+
+	if (*here != ' ')
+	{
+		for (p = environ; ((c = *p)); ++p)
+			secprintf("<br>%s\n", c);
+		return(ERR_NONE);
+	}
+	if (!(c = strstr(here, "-->")))
+	{
+		secprintf("[Incomplete directive in printenv]\n");
+		return(ERR_CONT);
+	}
+	*c = '\0';
+	secprintf("%s=%s", here+1, getenv(here + 1));
+	*c = '-';
+	(void)size;
+	return ERR_NONE;
 }
 
 static	int
@@ -817,6 +846,7 @@ static	directivestype	directives[] =
 	{ "agent-short",	dir_agent_short,	0	},
 	{ "agent-long",		dir_agent_long,		0	},
 	{ "argument",		dir_argument,		0	},
+	{ "printenv",		dir_printenv,		1	},
 	{ "referer",		dir_referer,		0	},
 	{ "if",			dir_if,			1	},
 	{ "if-not",		dir_if_not,		1	},

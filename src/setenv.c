@@ -15,10 +15,6 @@
 static	char	*findenv		 PROTO((const char *, int *));
 #endif		/* NOFORWARDS */
 
-#ifdef		NEED_DECL_ENVIRON
-extern	char	**environ;
-#endif		/* NEED_DECL_ENVIRON */
-
 extern	char	*
 getenv DECL1C(char *, name)
 {
