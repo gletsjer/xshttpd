@@ -52,10 +52,11 @@ to start the WWW server. Also, if you want users'
 CGI binaries to be executed under their own user ID, you will have to
 start the WWW server as root.
 
-The server has a number of options. You can specify these options either on
-the command line or in the httpd.conf configuration file. Please use the
-configuration file for standard settings, see \fBhttpd.conf(5)\fP for
-details. Not all options are available from the command line:
+The server has a number of options. You can specify these options either
+on the command line or in the httpd.conf configuration file. Please use
+the more flexible configuration file for standard settings, see
+\fBhttpd.conf(5)\fP for details. Not all options are available from the
+command line!
 
 .TP
 .B \-c configfile
@@ -139,12 +140,11 @@ file in which the server will place references to local files.
 .SH EXAMPLE
 A typical startup sequence could be:
 .LP
-httpd \-n 64 \-u http \-g www \-r .stack.nl \-l 2
+httpd \-n 64 \-u http \-g www \-s
 .LP
 which will start 64 servers (64 concurrent connections possible),
 and run it under user ID http and group ID www.
-It will ignore any references coming from *.stack.nl
-and it will pass 2 as a parameter to \fBtransform_user_dir\fP.
+It wil listen to port 443 for https (SSL) connections.
 .SH Other features
 .SH Automatic decompression
 One of the nice features of the WWW server is automatic decompression.

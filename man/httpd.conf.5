@@ -25,6 +25,10 @@ The httpd.conf configuration file has the following general layout:
  <User>
  ... options for user homedirs ...
  </User>
+
+ <Socket>
+ ... options for binding specific sockets ...
+ </Socket>
 .LP
 Options and their values must be seperated by whitespaces.
 .br
@@ -43,24 +47,6 @@ The following options can be set in the global section:
 The main httpd directory which contains all the data subdirectories
 (like htdocs, cgi-bin, logs, ...).
 .TP
-.B ListenAddress <hostname>
-The hostname or IP-address the webserver should bind on.
-.TP
-.B ListenPort <port>
-The service name or port number to bind on. If you want to listen to
-multiple ports, you will have to run multiple httpds.
-.TP
-.B ListenFamily [IPv4|IPv6]
-The address family to use: IPv6 is only available when enabled at
-compile-time. The default is to leave the family unspecified - which
-means that your operating system can choose: in this case the httpd can
-even listen to both IPv4 and IPv6 addresses. Note that most operation
-systems don't allow binding to multi-family sockets, in which case you
-will need to start httpds for IPv4 and IPv6 seperately.
-.TP
-.B Instances <number>
-The number of parallell services to run.
-.TP
 .B PidFile <filename>
 The file to store the current pid and the last startup command line.
 This will be used by
@@ -78,12 +64,6 @@ The groupname or numeric gid that will be used to process all requests.
 If enabled then filenames and CGI's in a user directory will be read and
 executed with the permissions of that user. This is the default.
 .I [cannot be disabled yet]
-.TP
-.B UseSSL [true|false]
-If enabled, use SSL instead of plain text. This can only be used if SSL
-support is enabled at compile time. If this option is set then the
-'https' (443) port will be used by default, instead of 'http' (80). This
-option is disabled by default.
 .TP
 .B SSLCertificate <filename>
 The location of the x509 certificate to be used for SSL connections.
@@ -133,6 +113,41 @@ for details.
 .TP
 .B LocalMode <number>
 t.b.d.
+
+.LP
+.SH SOCKET OPTIONS
+It is possible to bind to multiple sockets at the same time (e.g.
+http and https, or IPv4 and IPv6), using multiple <Socket> blocks
+in the configuration. The following options are valid within a
+Socket-block:
+
+.B ListenAddress <hostname>
+The hostname or IP-address the webserver should bind on. If the
+hostname resolves to multiple IP-addresses, the webserver will only
+bind to the first address resolved.
+.TP
+.B ListenPort <port>
+The service name or port number to bind on. If you want to listen to
+multiple ports, you can add more Socket-blocks.
+.TP
+.B ListenFamily [IPv4|IPv6]
+The address family to use: IPv6 is only available when enabled at
+compile-time. The default is to leave the family unspecified - which
+means that your operating system can choose: in this case the httpd can
+even listen to both IPv4 and IPv6 addresses. Note that most operation
+systems don't allow binding to multi-family sockets, in which case you
+will need to start httpds for IPv4 and IPv6 seperately.
+.TP
+.B Instances <number>
+The number of parallell services to run.
+.TP
+.B UseSSL [true|false]
+If enabled, use SSL instead of plain text. This can only be used if SSL
+support is enabled at compile time. If this option is set then the
+'https' (443) port will be used by default, instead of 'http' (80). This
+option is disabled by default. Note that you may include both blocks with
+and without UseSSL.
+.TP
 
 .LP
 .SH SECTION OPTIONS
