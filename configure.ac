@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/httpd.c)
-AM_INIT_AUTOMAKE(xshttpd, 32b12)
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.2 beta/0.12")
+AM_INIT_AUTOMAKE(xshttpd, 32b14)
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.2 beta/0.14")
 AM_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
