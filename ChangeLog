@@ -1,4 +1,5 @@
 Changes since 3.1 beta 3
+- Use SO_REUSEPORT instead of SO_REUSEADDR
 - Be RFC2324 compatible... well, sortof...
 
 Changes since 3.1 beta 2
