@@ -717,6 +717,8 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 			{
 				if (errno == EINTR)
 					break;
+				else if (errno == EAGAIN)
+					continue;
 				secprintf("[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
 					strerror(errno), fileno(stdout), temp,
 					writetodo);
