@@ -647,12 +647,14 @@ do_get DECL1(char *, params)
 			goto RETRY;
 		} else
 		{
+			char *http_host = getenv("HTTP_HOST");
+
 			if (port != 80)
 				sprintf(total, "http://%s:%d%s/",
-					getenv("HTTP_HOST") || thishostname, port, orig);
+					(http_host ? http_host : thishostname), port, orig);
 			else
 				sprintf(total, "http://%s%s/",
-					getenv("HTTP_HOST") || thishostname, orig);
+					(http_host ? http_host : thishostname), orig);
 			redirect(total, 1);
 			return;
 		}
