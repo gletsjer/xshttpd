@@ -65,8 +65,8 @@ AC_MSG_CHECKING(if you want SSL support)
 AC_ARG_WITH(ssl,
 	[  --with-ssl              crypto support],
 	AC_MSG_RESULT($with_ssl)
-	 AC_CHECK_LIB(crypto, main,
-	  AC_CHECK_LIB(ssl, main,
+	 AC_CHECK_LIB(crypto, SSLeay_version,
+	  AC_CHECK_LIB(ssl, SSL_version,
        httpd_ldflags="${httpd_ldflags} -lcrypto -lssl"
 	   httpd_cflags="${httpd_cflags} -I/usr/local/include -I/usr/local/ssl/include"
 	   AC_DEFINE(HANDLE_SSL),,

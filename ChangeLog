@@ -4,6 +4,7 @@ Changes since 3.0 beta 11
 - Fix nph-scripts
 - Fix nph-scripts in combination with SSL
 - Append port number in HTTP_HOST even when MSIE is used
+- Don't show files in group/world writable homedirs
 - Fix abort/skip bug in SSL CGI scripts
 - Don't expect the user to always give -s as first argument
 - Minor cleanups
