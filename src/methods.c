@@ -444,7 +444,7 @@ do_get DECL1(char *, params)
 	struct	stat		statbuf;
 	const	struct	passwd	*userinfo;
 	FILE			*authfile;
-#ifdef HANDLE_COMPRESSED
+#if			defined(HANDLE_COMPRESSED) || defined(HANDLE_SCRIPT)
 	const	ctypes		*search = NULL;
 #endif		/* HANDLE_COMPRESSED */
 
