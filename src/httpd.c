@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.144 2004/10/25 18:53:41 johans Exp $ */
+/* $Id: httpd.c,v 1.145 2004/11/13 16:35:07 johans Exp $ */
 
 #include	"config.h"
 
@@ -104,7 +104,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.144 2004/10/25 18:53:41 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.145 2004/11/13 16:35:07 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1574,7 +1574,7 @@ process_request DECL0
 		if ((temp = strchr(http_host, ':')))
 			*temp = '\0';
 		temp = http_host + strlen(http_host);
-		while (*(--temp) == '.')
+		while (temp > http_host && *(--temp) == '.')
 			*temp = '\0';
 		if (strcmp(config.port, config.usessl ? "https" : "http") &&
 			strcmp(config.port, config.usessl ? "443" : "80"))
