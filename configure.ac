@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/httpd.c)
-AM_INIT_AUTOMAKE(xshttpd, 33b08)
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.08", [Server version])
+AM_INIT_AUTOMAKE(xshttpd, 33b09)
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.09", [Server version])
 AM_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
@@ -38,7 +38,7 @@ dnl AC_FUNC_SETVBUF_REVERSED
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_FUNC_WAIT3
-AC_CHECK_FUNCS(gethostname mktime select strerror strstr strcasestr)
+AC_CHECK_FUNCS(gethostname mktime select strcasestr strerror strpbrk strsep strstr)
 
 dnl SEPERATOR
 AC_CHECK_FUNCS(bcopy bzero getaddrinfo getnameinfo killpg mkstemp mmap setenv seteuid setegid setresuid setresgid setrlimit setsid setpriority sigemptyset tempnam vfork setproctitle)
