@@ -588,7 +588,10 @@ do_get DECL1(char *, params)
 		if ((temp = strstr(file, search->ext)) &&
 			(*(temp + size) == '\0' || *(temp + size) == '?'))
 		{
-			do_script(params, search->prog, headers);
+			if (!strcmp(search->prog, "internal:404"))
+				error("404 Requested URL not found");
+			else
+				do_script(params, search->prog, headers);
 			return;
 		}
 		search = search->next;
