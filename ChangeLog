@@ -1,3 +1,6 @@
+Changes since 3.1 beta 3
+- Be RFC2324 compatible... well, sortof...
+
 Changes since 3.1 beta 2
 - Hook up with a perl library (experimental)
 
