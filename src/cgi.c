@@ -522,6 +522,14 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				if (port == 80)
 					secprintf("Location: http://%s%s\r\n",
 						thishostname, location);
+#ifdef		HANDLE_SSL
+				else if (do_ssl && port == 443)
+					printf("Location: https://%s%s\r\n",
+						thishostname, location);
+				else if (do_ssl)
+					printf("Location: https://%s:%d%s\r\n",
+						thishostname, port, location);
+#endif		/* HANDLE_SSL */
 				else
 					secprintf("Location: http://%s:%d%s\r\n",
 						thishostname, port, location);
