@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.173 2005/03/31 14:38:28 johans Exp $ */
+/* $Id: httpd.c,v 1.174 2005/04/03 16:52:28 johans Exp $ */
 
 #include	"config.h"
 
@@ -105,7 +105,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.173 2005/03/31 14:38:28 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.174 2005/04/03 16:52:28 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1785,7 +1785,7 @@ setup_environment()
 		!strcmp(config.port, "https") ? "443" :
 		config.port,
 		1);
-	snprintf(buffer, 16, "%d", config.localmode);
+	snprintf(buffer, 16, "%hu", config.localmode);
 	buffer[15] = '\0';
 	setenv("LOCALMODE", buffer, 1);
 	setenv("HTTPD_ROOT", config.systemroot, 1);

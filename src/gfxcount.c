@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: gfxcount.c,v 1.9 2004/12/02 14:14:39 johans Exp $ */
+/* $Id: gfxcount.c,v 1.10 2005/04/03 16:52:28 johans Exp $ */
 
 #include	"config.h"
 
@@ -52,7 +52,7 @@ loaddigit(int num)
 	char		buffer[BUFSIZ], words[4][BUFSIZ], *search;
 	int		word, size;
 
-	sprintf(filename, "%s%c.ppm", dirname, num + '0');
+	sprintf(filename, "%s%d.ppm", dirname, num + '0');
 	if (!(file = fopen(filename, "r")))
 	{
 		sprintf(buffer, "Could not read digit from file `%s': %s",

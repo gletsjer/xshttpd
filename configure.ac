@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/httpd.c)
-AM_INIT_AUTOMAKE(xshttpd, 33b14)
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.14", [Server version])
+AM_INIT_AUTOMAKE(xshttpd, 33b15)
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.15", [Server version])
 AM_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
@@ -15,6 +15,8 @@ AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "$ppmtogif",
 	[ppmtogif-like program used to create graphic counters])
 
 dnl Checks for libraries.
+CFLAGS="${CFLAGS} -I/usr/local/include"
+LDFLAGS="${LDFLAGS} -L/usr/local/lib"
 
 dnl Checks for header files.
 AC_HEADER_STDC
@@ -79,7 +81,7 @@ AC_ARG_WITH(ssl,
 if test x${with_ssl} = xyes
 then
 	XS_FUNC_IN_LIB(SSLeay_version, HAVE_SSLEAY, crypto, httpd)
-	XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, httpd)
+	XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, httpd, -lcrypto)
 	if test x${ac_cv_lib_ssl_SSL_version} = xyes
 	then
 		httpd_ldflags="${httpd_ldflags} -lcrypto -lssl"
