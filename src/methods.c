@@ -1025,7 +1025,7 @@ loadscripttypes DECL0
 #ifndef		HANDLE_PERL
 		if (!strncmp(line, "internal:perl", 13))
 			continue;
-#endif		HANDLE_PERL
+#endif		/* HANDLE_PERL */
 		if (!(new = (ctypes *)malloc(sizeof(ctypes))))
 			errx(1, "Out of memory in loadscripttypes()");
 		if (prev)
@@ -1063,10 +1063,8 @@ loadssl	DECL0
 extern	VOID
 loadperl	DECL0
 {
-	char *embedding[] = { "", HTTPD_ROOT "/persistent.pl" };
-	char filename [1024];
+	const char *embedding[] = { "", HTTPD_ROOT "/persistent.pl" };
 	int exitstatus = 0;
-	STRLEN n_a;
 
 	if (!(perl = perl_alloc()))
 	   errx(1, "No memory!");

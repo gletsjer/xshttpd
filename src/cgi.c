@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.59 2002/05/10 08:31:20 johans Exp $ */
+/* $Id: cgi.c,v 1.60 2002/06/11 15:21:31 johans Exp $ */
 
 #include	"config.h"
 
@@ -61,7 +61,7 @@ static	const	char	*skipspaces	PROTO((const char *));
 static	VOID	time_is_up		PROTO((int));
 #endif		/* NOFORWARDS */
 #ifdef		HANDLE_PERL
-static	char *	perlargs[] = { "", NULL };
+const	char *	perlargs[] = { "", NULL };
 #endif		/* HANDLE_PERL */
 
 pid_t			child;

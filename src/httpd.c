@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.75 2002/06/11 14:58:52 johans Exp $ */
+/* $Id: httpd.c,v 1.76 2002/06/11 15:21:31 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.75 2002/06/11 14:58:52 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.76 2002/06/11 15:21:31 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -253,7 +253,7 @@ load_config DECL0
 	FILE	*confd;
 	char	line[MYBUFSIZ], key[MYBUFSIZ], value[MYBUFSIZ],
 			thishostname[NI_MAXHOST];
-	char	*comment, *end, *username, *groupname;
+	char	*comment, *end, *username = NULL, *groupname = NULL;
 	struct passwd	*pwd;
 	struct group	*grp;
 	struct virtual	*last = NULL;
@@ -1343,7 +1343,7 @@ process_request DECL0
 		return;
 	}
 
-	if (temp = strchr(http_host, ':'))
+	if ((temp = strchr(http_host, ':')))
 		*temp = '\0';
 	for (current = config.virtual; current; current = current->next)
 	{

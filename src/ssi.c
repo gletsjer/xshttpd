@@ -205,7 +205,7 @@ xsc_counter DECL2_C(int, mode, char *, args)
 	char			counterfile[XS_PATH_MAX], host[XS_PATH_MAX];
 	const	char		*lockfile;
 	struct stat		statbuf;
-	int			fd = -1, timer, total, x, y, z, comp, already;
+	int			fd = -1, timer, total, x, y, z, comp, already = 0;
 	static	countstr	counter;
 
 	if (cnt_readbefore)
@@ -223,7 +223,6 @@ xsc_counter DECL2_C(int, mode, char *, args)
 		}
 	}
 
-	already = 0;
 	strncpy(counterfile, calcpath(CNT_DATA), XS_PATH_MAX);
 	counterfile[XS_PATH_MAX-1] = '\0';
 

@@ -13,6 +13,9 @@ extern	VOID	loadscripttypes		PROTO((void));
 extern	VOID	loadssl				PROTO((void));
 #endif		/* HANDLE_SSL */
 extern	VOID	loadfiletypes		PROTO((void));
+#ifdef		HANDLE_PERL
+extern	VOID	loadperl			PROTO((void));
+#endif		/* HANDLE_PERL */
 extern	int	getfiletype		PROTO((int));
 extern	int	allowxs			PROTO((char *));
 

@@ -21,7 +21,7 @@
 #endif
 
 extern	char	remotehost[], orig[], dateformat[], rootdir[], currentdir[],
-		currenttime[], version[], netbuf[], thishostname[], real_path[],
+		currenttime[], version[], netbuf[], real_path[],
 		name[], port[];
 extern	FILE	*access_log, *refer_log;
 extern	time_t	modtime;
