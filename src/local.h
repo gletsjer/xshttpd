@@ -5,3 +5,4 @@ extern	int	transform_user_dir	PROTO((char *, const struct passwd *,
 						int));
 #endif		/* NOFORWARDS */
 
+extern int	localmode;

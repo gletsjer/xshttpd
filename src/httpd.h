@@ -25,10 +25,10 @@ extern	char	remotehost[], orig[], dateformat[], rootdir[], currentdir[],
 		name[], port[];
 extern	FILE	*access_log, *refer_log;
 extern	time_t	modtime;
-extern	int		headers, localmode, netbufind, netbufsiz, readlinemode,
+extern	int		headers, netbufind, netbufsiz, readlinemode,
 		headonly, postonly;
-extern	gid_t	group_id, origegid;
-extern	uid_t	user_id, origeuid;
+extern	gid_t	origegid;
+extern	uid_t	origeuid;
 
 #ifndef		NOFORWARDS
 extern	VOID	stdheaders		PROTO((int, int, int));

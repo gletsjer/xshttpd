@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: local.c,v 1.6 2001/05/22 12:19:30 johans Exp $ */
+/* $Id: local.c,v 1.7 2002/06/12 13:14:19 johans Exp $ */
 
 #include	"config.h"
 
@@ -12,6 +12,9 @@
 #include	"httpd.h"
 #include	"local.h"
 #include	"mystring.h"
+#ifdef		BUILD_HTTPD
+# include	"htconfig.h"
+#endif		/* BUILD_HTTPD */
 
 #ifndef		NOFORWARDS
 static	int	transform_user_dir1	PROTO((char *, const struct passwd *,
@@ -26,7 +29,11 @@ extern	int
 transform_user_dir DECL3_C_(char *, base, struct passwd *, userinfo,
 			int, errors)
 {
+#ifdef		BUILD_HTTPD
+	switch(config.localmode)
+#else		/* BUILD_HTTPD */
 	switch(localmode)
+#endif		/* BUILD_HTTPD */
 	{
 	case 1:
 		return(transform_user_dir1(base, userinfo, errors));

@@ -13,7 +13,7 @@ gfxcount_SOURCES = gfxcount.c err.c extra.c
 httpdc_SOURCES = httpdc.c path.c err.c extra.c
 xsindex_SOURCES = xsindex.c err.c extra.c
 
-httpd_CFLAGS = @httpd_cflags@
+httpd_CFLAGS = @httpd_cflags@ -DBUILD_HTTPD
 httpd_LDADD = @LIBOBJS@
 httpd_LDFLAGS = @httpd_ldflags@ @ldcrypt@
 xspasswd_LDFLAGS = @ldcrypt@

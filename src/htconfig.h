@@ -19,7 +19,8 @@ struct configuration {
 	char *		systemroot;
 	char *		address;
 	char *		port;
-	int		instances;
+	unsigned short	instances;
+	unsigned short	localmode;
 	char *		pidfile;
 	uid_t		userid;
 	gid_t 		groupid;

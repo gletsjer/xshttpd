@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.76 2002/06/11 15:21:31 johans Exp $ */
+/* $Id: httpd.c,v 1.77 2002/06/12 13:14:19 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,12 +100,12 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.76 2002/06/11 15:21:31 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.77 2002/06/12 13:14:19 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
 
-int		headers, localmode, netbufind, netbufsiz, readlinemode,
+int		headers, netbufind, netbufsiz, readlinemode,
 		headonly, postonly, forcehost;
 static	int	sd, reqs, mainhttpd = 1;
 gid_t		origegid;
@@ -304,6 +304,8 @@ load_config DECL0
 #endif		/* HANDLE_SSL */
 				else
 					config.usessl = 0;
+			else if (!strcasecmp("LocalMode", key))
+				config.localmode = atoi(value);
 			else if (!current)
 				errx(1, "illegal directive: '%s'", key);
 			else if (!strcasecmp("Hostname", key))
@@ -415,6 +417,8 @@ load_config DECL0
 		config.pidfile = strdup(PID_PATH);
 	if (!username)
 		username = strdup(HTTPD_USERID);
+	if (!config.localmode)
+		config.localmode = 1;
 	if (!(config.userid = atoi(username)))
 	{
 		if (!(pwd = getpwnam(username)))
@@ -1698,7 +1702,7 @@ setup_environment DECL0
 		!strcmp(config.port, "https") ? "443" :
 		config.port,
 		1);
-	snprintf(buffer, 16, "%d", localmode);
+	snprintf(buffer, 16, "%d", config.localmode);
 	buffer[15] = '\0';
 	setenv("LOCALMODE", buffer, 1);
 	setenv("HTTPD_ROOT", rootdir, 1);
@@ -1732,7 +1736,6 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			strcat(startparams, " ");
 	}
 
-	localmode = 1;
 	strncpy(rootdir, HTTPD_ROOT, XS_PATH_MAX);
 	rootdir[XS_PATH_MAX-1] = '\0';
 	message503[0] = 0;
@@ -1797,7 +1800,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			thisdomain[NI_MAXHOST-1] = '\0';
 			break;
 		case 'l':
-			if ((localmode = atoi(optarg)) <= 0)
+			if ((config.localmode = atoi(optarg)) <= 0)
 				errx(1, "Argument to -l is invalid");
 			break;
 		case 'm':
