@@ -1,4 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
+/* $Id: path.c,v 1.5 2004/03/20 14:48:53 johans Exp $ */
 
 #include	"config.h"
 
