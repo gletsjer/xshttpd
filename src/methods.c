@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.104 2004/05/24 18:50:30 johans Exp $ */
+/* $Id: methods.c,v 1.105 2004/05/27 22:55:40 johans Exp $ */
 
 #include	"config.h"
 
@@ -636,7 +636,7 @@ do_get DECL1(char *, params)
 		wasdir = (file[strlen(file) - 1] == '/');
 	else
 		wasdir = 0;
-	if (strstr(file, "/..") || strstr(file, "/.xs") || strstr(file, "/.noxs") || strstr(file, ".redir") || strstr(file, ".Redir"))
+	if (strstr(file, "/..") || strstr(file, "/.xs") || strstr(file, "/.noxs") || strstr(file, ".redir") || strstr(file, ".Redir") || strstr(file, ".charset"))
 	{
 		server_error("403 Invalid path specified", "INVALID_PATH");
 		return;

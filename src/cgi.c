@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.80 2004/05/24 19:00:04 johans Exp $ */
+/* $Id: cgi.c,v 1.81 2004/05/27 22:55:40 johans Exp $ */
 
 #include	"config.h"
 
@@ -620,7 +620,8 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 		totalwritten += received;
 	}
 
-	logrequest(path, totalwritten);
+	if (!getenv("ERROR_CODE"))
+		logrequest(path, totalwritten);
 	END:
 	close(p[0]); close(p[1]); fflush(stdout);
 	close(r[0]); close(r[1]); fflush(stdout);
