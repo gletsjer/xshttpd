@@ -4,6 +4,7 @@ is not complete. Refer to cvs comments for more information.
 Changes since 3.2 gamma 1
 - Remove superfluous double quotes from logs (rewrite as single quote)
 - Allow configurable priority - and separate prio for user CGI's
+- Kill LocalMode option - use %u with full path in Users/HtmlDir
 
 Changes since 3.2 beta 36
 - Accomodate new autoconf (259) and automake (1.8) versions
