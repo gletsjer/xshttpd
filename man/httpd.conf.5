@@ -128,6 +128,12 @@ same syntax as the global script.methods file, see
 .BR httpd(1)
 for details.
 .TP
+.B UseDnsLookup [true|false]
+By default the IP addresses of incoming connections are resolved through
+DNS and logged with hostname information. You can disable this features
+by setting UseDnsLookup to false. Note that this will also make the
+environment variable REMOTE_HOST useless.
+.TP
 .B Priority
 The system priority that the daemon will be running at. A lower priority causes
 more favorable scheduling. The default priority is 0.

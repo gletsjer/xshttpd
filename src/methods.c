@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.130 2005/02/05 19:47:06 johans Exp $ */
+/* $Id: methods.c,v 1.131 2005/03/10 16:34:54 johans Exp $ */
 
 #include	"config.h"
 
@@ -124,7 +124,7 @@ static	char	charset[XS_PATH_MAX];
 static	PerlInterpreter *	perl = NULL;
 #endif		/* HANDLE_PERL */
 
-void
+static void
 senduncompressed(int fd)
 {
 #ifdef		WANT_SSI
@@ -328,7 +328,7 @@ senduncompressed(int fd)
 	close(fd);
 }
 
-void
+static void
 sendcompressed(int fd, const char *method)
 {
 	pid_t		pid;
@@ -446,7 +446,7 @@ v6masktonum(int mask, struct in6_addr *addr6)
 }
 #endif		/* INET6 */
 
-int
+static int
 allowxs(FILE *rfile)
 {
 	char	*remoteaddr, *slash;
@@ -1323,7 +1323,7 @@ loadperl()
 }
 #endif		/* HANDLE_PERL */
 
-int
+static int
 getfiletype(int print)
 {
 	const	ftypes	*search;

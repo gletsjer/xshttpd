@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.170 2005/01/22 11:31:24 johans Exp $ */
+/* $Id: httpd.c,v 1.171 2005/03/10 16:34:54 johans Exp $ */
 
 #include	"config.h"
 
@@ -103,7 +103,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.170 2005/01/22 11:31:24 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.171 2005/03/10 16:34:54 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -258,6 +258,7 @@ load_config()
 	config.userestrictaddr = 1;
 	config.usevirtualhost = 1;
 	config.usecompressed = 1;
+	config.usednslookup = 1;
 	config.script_timeout = 6;
 	config.sockets = NULL;
 	config.priority = 0;
@@ -351,6 +352,8 @@ load_config()
 					config.usevirtualhost = !strcasecmp("true", value);
 				else if (!strcasecmp("UseVirtualUid", key))
 					config.usevirtualuid = !strcasecmp("true", value);
+				else if (!strcasecmp("UseDnsLookup", key))
+					config.usednslookup = !strcasecmp("true", value);
 				else if (!strcasecmp("VirtualHostDir", key))
 					config.virtualhostdir = strdup(value);
 				else if (!strcasecmp("UseLocalScript", key))
@@ -1690,8 +1693,9 @@ standalone_socket(char id)
 
 #ifdef		HAVE_GETNAMEINFO
 #ifndef		BROKEN_GETNAMEINFO
-		if (!getnameinfo((struct sockaddr *)&saddr, clen,
-			remotehost, sizeof(remotehost), NULL, 0, 0))
+		if (!config.usednslookup ||
+			!getnameinfo((struct sockaddr *)&saddr, clen,
+				remotehost, sizeof(remotehost), NULL, 0, 0))
 		{
 			remotehost[NI_MAXHOST-1] = '\0';
 			setenv("REMOTE_HOST", remotehost, 1);
