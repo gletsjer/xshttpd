@@ -1,5 +1,7 @@
 # Example configuration file XS-httpd
 
+# A configuration file is optional, it will work without
+
 SystemRoot	/usr/local/lib/httpd
 
 #ListenAddress	www.stack.nl
@@ -13,23 +15,23 @@ ExecAsUser	true
 UseSSL		false
 
 <System>
-Hostname	www.stack.nl
-HtmlDir		htdocs
-ExecDir		cgi-bin
+#Hostname	www.stack.nl
+#HtmlDir	htdocs
+#PhExecDir	cgi-bin
 LogAccess	logs/access_log
 LogError	logs/error_log
 LogReferer	logs/referer_log
 </System>
 
 <Users>
-Hostname	www.stack.nl
-HtmlDir		.html
-ExecDir		cgi-bin
+#Hostname	www.stack.nl
+#HtmlDir	.html
+#ExecDir	cgi-bin
+#PhExecDir	cgi-bin
 </Users>
 
 <Virtual>
-Hostname	www.ipv6.stack.nl
-HtmlDir		/www/ipv6
-ExecDir		cgi-bin
+#Hostname	www.ipv6.stack.nl
+#HtmlDir	/www/ipv6
 </Virtual>
 
