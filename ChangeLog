@@ -1,6 +1,14 @@
 This file is probably out of date. However the manual pages should
 be (mostly) accurate. For a list of changes, please see cvs comments.
 
+Changes since 3.2 beta 25
+- <!--#last-modified--> now looks at the original URL
+- Original URL is kept in $ORIG_PATH_INFO and $ORIG_PATH_TRANSLATED
+  and restored to $PATH_INFO and $PATH_TRANSLATED when appropriate,
+  instead of overwriting with <!--#include--> or <!--#run-cgi--> filenames
+- New SSI <!--#printenv--> which takes an optional argument (for debugging)
+- SCRIPT_NAME would be wrong for a directory index with arguments
+
 Changes since 3.2 beta 24
 - Fix typo that caused PATH_TRANSLATED and friends to be unset
 
