@@ -19,6 +19,7 @@ struct configuration {
 	char *		systemroot;
 	char *		address;
 	char *		port;
+	int			family;
 	unsigned short	instances;
 	unsigned short	localmode;
 	char *		pidfile;

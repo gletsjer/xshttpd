@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.84 2002/07/01 17:03:52 johans Exp $ */
+/* $Id: httpd.c,v 1.85 2002/08/08 10:50:45 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.84 2002/07/01 17:03:52 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.85 2002/08/08 10:50:45 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -287,6 +287,11 @@ load_config DECL0
 				config.address = strdup(value);
 			else if (!strcasecmp("ListenPort", key))
 				config.port = strdup(value);
+			else if (!strcasecmp("ListenFamily", key))
+				config.family =
+					!strcasecmp("IPv4", value) ? PF_INET :
+					!strcasecmp("IPv6", value) ? PF_INET6 :
+					PF_UNSPEC;
 			else if (!strcasecmp("Instances", key))
 				config.instances = atoi(value);
 			else if (!strcasecmp("PidFile", key))
@@ -1441,12 +1446,11 @@ standalone_main DECL0
 
 #ifdef		HAVE_GETADDRINFO
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = PF_UNSPEC;
+	hints.ai_family = config.family;
 #ifdef		__linux__
 #ifdef		INET6
-	hints.ai_family = PF_INET6;
-#else		/* INET6 */
-	hints.ai_family = PF_INET;
+	if (config.family == PF_UNSPEC)
+		hints.ai_family = PF_INET6;
 #endif		/* INET6 */
 #endif		/* __linux__ */
 	hints.ai_socktype = SOCK_STREAM;
