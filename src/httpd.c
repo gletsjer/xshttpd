@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.101 2003/01/19 22:07:08 johans Exp $ */
+/* $Id: httpd.c,v 1.102 2003/01/22 17:37:33 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.101 2003/01/19 22:07:08 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.102 2003/01/22 17:37:33 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -120,7 +120,6 @@ char		netbuf[MYBUFSIZ], remotehost[NI_MAXHOST], orig[MYBUFSIZ],
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[SENDBUFSIZE],
 		thisdomain[NI_MAXHOST], message503[MYBUFSIZ],
 		*startparams;
-FILE		*refer_log = NULL;
 time_t		modtime;
 #ifdef		HANDLE_SSL
 SSL_CTX	*ssl_ctx;
@@ -1410,8 +1409,9 @@ process_request DECL0
 
 	if (current->logstyle == traditional &&
 			referer[0] &&
+			current->openreferer &&
 			(!thisdomain[0] || !strcasestr(referer, thisdomain)))
-		fprintf(refer_log, "%s -> %s\n", referer, params);
+		fprintf(current->openreferer, "%s -> %s\n", referer, params);
 
 	setenv("REQUEST_METHOD", line, 1);
 	if (!strcmp("GET", line))
