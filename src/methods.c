@@ -107,7 +107,7 @@ typedef	struct	ftypes
 typedef	struct	ctypes
 {
 	struct	ctypes	*next;
-	char		prog[XS_PATH_MAX], ext[16];
+	char		prog[XS_PATH_MAX], ext[16], name[16];
 } ctypes;
 #endif		/* WANT_CTYPES */
 
@@ -206,6 +206,12 @@ senduncompressed DECL1(int, fd)
 		if (!html)
 			secprintf("Content-length: %ld\r\n", (long)size);
 #endif		/* WANT_SSI */
+		if (getenv("CONTENT_ENCODING"))
+		{
+			html = 0;
+			secprintf("Content-encoding: %s\r\n", getenv("CONTENT_ENCODING"));
+			unsetenv("CONTENT_ENCODING");
+		}
 		strftime(modified, sizeof(modified),
 			"%a, %d %b %Y %T GMT", gmtime(&modtime));
 		secprintf("Last-modified: %s\r\n\r\n", modified);
@@ -740,7 +746,15 @@ do_get DECL1(char *, params)
 
 #ifdef		HANDLE_COMPRESSED
 	if (search)
-		sendcompressed(fd, search->prog);
+	{
+		if ((temp = strstr(getenv("HTTP_ACCEPT_ENCODING"), search->name)))
+		{
+			setenv("CONTENT_ENCODING", search->name, 1);
+			senduncompressed(fd);
+		}
+		else
+			sendcompressed(fd, search->prog);
+	}
 	else
 #endif		/* HANDLE_COMPRESSED */
 		senduncompressed(fd);
@@ -855,7 +869,8 @@ loadcompresstypes DECL0
 		else
 			ctype = new;
 		prev = new; new->next = NULL;
-		if (sscanf(line, "%s %s", new->prog, new->ext) != 2)
+		if (sscanf(line, "%s %s %s", new->prog, new->ext, new->name) != 3 &&
+			sscanf(line, "%s %s", new->prog, new->ext) != 2)
 			errx(1, "Unable to parse `%s' in `%s'", line, path);
 	}
 	fclose(methods);

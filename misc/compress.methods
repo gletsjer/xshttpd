@@ -20,6 +20,14 @@
 # can make frontends for types that require multiple filters. In that case,
 # it can be helpful to know that the list is traversed as displayed here,
 # from top to bottom.
+#
+# A new feature is the compress type (optional third field). If it is
+# specified, the webserver will first check if the browser understands
+# the encoding used. In that case, the document will be sent compressed
+# but with the proper Content-Encoding specification. The browser will
+# automatically uncompress the document before the user views it. This
+# reduces disk space, webserver load and bandwith ;-)
 
-/usr/bin/gunzip		.gz
+/usr/bin/uncompress	.Z	compress
+/usr/bin/gunzip		.gz	gzip
 #/usr/local/bunzip2	.bz2
