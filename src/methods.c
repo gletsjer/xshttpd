@@ -1159,9 +1159,11 @@ loadssl	DECL0
 		SSLeay_add_all_algorithms();
 		SSL_load_error_strings();
 		ssl_ctx = SSL_CTX_new(SSLv23_server_method());
-		if (!SSL_CTX_use_certificate_file(ssl_ctx, calcpath(CERT_FILE),
+		if (!SSL_CTX_use_certificate_file(ssl_ctx,
+				calcpath(config.system->sslcertificate),
 				SSL_FILETYPE_PEM) ||
-			!SSL_CTX_use_PrivateKey_file(ssl_ctx, calcpath(KEY_FILE),
+			!SSL_CTX_use_PrivateKey_file(ssl_ctx,
+				calcpath(config.system->sslprivatekey),
 				SSL_FILETYPE_PEM) ||
 			!SSL_CTX_check_private_key(ssl_ctx))
 			errx(1, "Cannot initialise SSL");

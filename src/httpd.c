@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.119 2003/06/18 12:25:32 johans Exp $ */
+/* $Id: httpd.c,v 1.120 2003/06/18 13:25:57 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.119 2003/06/18 12:25:32 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.120 2003/06/18 13:25:57 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -377,6 +377,10 @@ load_config DECL0
 						current->groupid = grp->gr_gid;
 					}
 				}
+				else if (!strcasecmp("SSLCertificate", key))
+						current->sslcertificate = strdup(value);
+				else if (!strcasecmp("SSLPrivateKey", key))
+						current->sslprivatekey = strdup(value);
 				else
 					err(1, "illegal directive: '%s'", key);
 			}
@@ -504,6 +508,10 @@ load_config DECL0
 			errx(1, "Invalid groupname: %s", groupname);
 		config.system->groupid = grp->gr_gid;
 	}
+	if (!config.system->sslcertificate)
+			config.system->sslcertificate = CERT_FILE;
+	if (!config.system->sslprivatekey)
+			config.system->sslprivatekey = KEY_FILE;
 	/* Set up users section */
 	if (!config.users)
 	{
@@ -523,6 +531,8 @@ load_config DECL0
 			err(1, "illegal virtual block without hostname");
 		if (!current->htmldir)
 			err(1, "illegal virtual block without directory");
+		if (current->sslcertificate)
+			err(1, "virtual host certificates not supported");
 		if (!current->execdir)
 			current->execdir = strdup(HTTPD_SCRIPT_ROOT);
 		if (!current->phexecdir)

@@ -9,6 +9,8 @@ extern struct virtual {
 	char *		logaccess;
 	char *		logerror;
 	char *		logreferer;
+	char *		sslcertificate;
+	char *		sslprivatekey;
 	uid_t		userid;
 	gid_t		groupid;
 	FILE *		openaccess;
