@@ -1,4 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
+/* $Id */
 
 #include	"config.h"
 
@@ -228,7 +229,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 			base[XS_PATH_MAX-2] = '\0';
 			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
 				strncpy(base, calcpath(engine
-					? HTTPD_DOCUMENT_ROOT : HTTPD_ROOT), XS_PATH_MAX-1);
+					? HTTPD_DOCUMENT_ROOT : rootdir), XS_PATH_MAX-1);
 #ifdef		VIRTUAL_UID
 			else
 			{
@@ -252,7 +253,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 		}
 		else
 #endif		/* SIMPLE_VIRTUAL_HOSTING */
-			strncpy(base, calcpath(engine ? HTTPD_DOCUMENT_ROOT : HTTPD_ROOT),
+			strncpy(base, calcpath(engine ? HTTPD_DOCUMENT_ROOT : rootdir),
 				XS_PATH_MAX-1);
 		strcat(base, "/");
 		base[XS_PATH_MAX-2] = '\0';
@@ -487,8 +488,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 				inbuf[written] = '\0';
 				if (write(q[1], inbuf, written) < written) {
 					fprintf(stderr, "[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
-						strerror(errno), q[1], temp,
-						writetodo);
+						strerror(errno), q[1], temp, writetodo);
 					goto END;
 				}
 				writetodo -= written;
