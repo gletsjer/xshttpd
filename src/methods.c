@@ -649,10 +649,10 @@ do_get DECL1(char *, params)
 		{
 			if (port != 80)
 				sprintf(total, "http://%s:%d%s/",
-					thishostname, port, orig);
+					getenv("HTTP_HOST") || thishostname, port, orig);
 			else
 				sprintf(total, "http://%s%s/",
-					thishostname, orig);
+					getenv("HTTP_HOST") || thishostname, orig);
 			redirect(total, 1);
 			return;
 		}
