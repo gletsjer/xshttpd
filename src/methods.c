@@ -547,9 +547,11 @@ do_get DECL1(char *, params)
 			file = temp;
 		} else
 			file = params + strlen(params);
-	} else
+	}
+	else
 	{
 		file = params;
+		*base = 0;
 		if (config.usevirtualhost &&
 			current == config.system &&
 			(http_host = getenv("HTTP_HOST")))
@@ -574,6 +576,7 @@ do_get DECL1(char *, params)
 				}
 			}
 		}
+		if (!*base)
 		{
 			size = strlen(current->execdir);
 			if (!strncmp(params + 1, current->execdir, size))
