@@ -34,6 +34,11 @@
 #ifdef		HAVE_MEMORY_H
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
+#ifndef		NONEWSTYLE
+#include	<stdarg.h>
+#else		/* NONEWSTYLE */
+#include	<optarg.h>
+#endif		/* NONEWSTYLE */
 
 #include	"httpd.h"
 #include	"local.h"
@@ -43,7 +48,6 @@
 #include	"path.h"
 #include	"convert.h"
 #include	"setenv.h"
-#include	"mystring.h"
 
 #ifndef		NOFORWARDS
 static	const	char	*skipspaces	PROTO((const char *));
@@ -73,6 +77,42 @@ time_is_up DECL1(int, sig)
 	alarm_handler(sig);
 }
 
+#ifndef		NONEWSTYLE
+static	int
+append(char *buffer, int prepend, char *format, ...)
+#else		/* NONEWSTYLE */
+static	int
+append(buffer, prepend, format, va_list)
+char	*buffer;
+int		prepend;
+const	char	*format;
+va_decl
+#endif		/* NONEWSTYLE */
+{
+	va_list	ap;
+	size_t	len;
+	char	line[HEADSIZE];
+
+	va_start(ap, format);
+	vsnprintf(line, HEADSIZE, format, ap);
+	va_end(ap);
+	line[HEADSIZE - 1] = '\0';
+	if (strlen(buffer) + strlen(line) + 1 > HEADSIZE)
+		return 0;
+	if (prepend)
+	{
+		len = HEADSIZE - strlen(line) - 1;
+		strncat(line, buffer, len);
+		memcpy(buffer, line, HEADSIZE);
+	}
+	else
+	{
+		len = HEADSIZE - strlen(buffer);
+		strncat(buffer, line, len);
+	}
+	return 1;
+}
+
 extern	VOID
 do_script DECL3CC_(char *, path, char *, engine, int, headers)
 {
@@ -83,7 +123,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
 				base[XS_PATH_MAX], *temp, name[XS_PATH_MAX], *nextslash,
-				tempbuf[XS_PATH_MAX + 32];
+				tempbuf[XS_PATH_MAX + 32], head[HEADSIZE];
 	const	char		*file, *argv1, *header;
 	int			p[2], nph, count, nouid, dossi, was_slash;
 	unsigned	int	left;
@@ -523,9 +563,10 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		exit(0);
 
 	netbufind = netbufsiz = 0; readlinemode = READCHAR;
+	head[0] = '\0';
 	if (!nph)
 	{
-		int ctype = 0, first = 1;
+		int ctype = 0, status = 0;
 		while (1)
 		{
 			if (readline(p[0], errmsg) != ERR_NONE)
@@ -544,20 +585,24 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				break;
 			if (!headers)
 				continue;
-			if (first)
+
+			/* Look for status header */
+			if (!status)
 			{
-				/* If people want to change the 'Status' header
-				 * then it must be indicated on the first line
-				 * since we send output immediately...
-				 */
-				first = 0;
 				if (!strncasecmp(header, "Status:", 7))
-					secprintf("%s %s\r\n", version, skipspaces(header + 7));
+				{
+					status = 1;
+					append(head, 1, "%s %s\r\n",
+						version, skipspaces(header + 7));
+					continue;
+				}
 				else if (!strncasecmp(header, "Location:", 9))
-					secprintf("%s 302 Moved\r\n", version);
-				else
-					secprintf("%s 200 OK\r\n", version);
+				{
+					status = 1;
+					append(head, 1, "%s 302 Moved\r\n", version, head);
+				}
 			}
+
 			if (!strncasecmp(header, "Location:", 9))
 			{
 				char location[MYBUFSIZ];
@@ -567,50 +612,55 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				{
 				case '/':
 					if (!strcmp(port, "80"))
-						secprintf("Location: http://%s%s\r\n",
+						append(head, 0, "Location: http://%s%s\r\n",
 							thishostname, location);
 #ifdef		HANDLE_SSL
 					else if (do_ssl && !strcmp(port, "443"))
-						secprintf("Location: https://%s%s\r\n",
+						append(head, 0, "Location: https://%s%s\r\n",
 							thishostname, location);
 					else if (do_ssl)
-						secprintf("Location: https://%s:%s%s\r\n",
+						append(head, 0, "Location: https://%s:%s%s\r\n",
 							thishostname, port, location);
 #endif		/* HANDLE_SSL */
 					else
-						secprintf("Location: http://%s:%s%s\r\n",
+						append(head, 0, "Location: http://%s:%s%s\r\n",
 							thishostname, port, location);
 					break;
 				case 0:
 					break;
 				default:
-					secprintf("Location: %s\r\n", location);
+					append(head, 0, "Location: %s\r\n", location);
 					break;
 				}
 			}
 			else if (!strncasecmp(header, "Content-type:", 13))
 			{
 				ctype = 1;
-				secprintf("Content-type: %s\r\n", skipspaces(header + 13));
+				append(head, 0, "Content-type: %s\r\n",
+					skipspaces(header + 13));
 			}
 			else if (!strncasecmp(header, "Cache-control:", 14))
 			{
 				if (headers >= 11)
-					secprintf("Cache-control: %s\r\n", skipspaces(header + 14));
+					append(head, 0, "Cache-control: %s\r\n",
+						skipspaces(header + 14));
 				else
-					secprintf("Pragma: no-cache\r\n");
+					append(head, 0, "Pragma: no-cache\r\n");
 			}
 			else
-				secprintf("%s\r\n", header);
+				append(head, 0, "%s\r\n", header);
 		}
 		if (headers)
 		{
+			if (!status)
+				append(head, 1, "%s 220 OK\r\n", version);
 			if (!ctype)
-				secprintf("Content-type: text/html\r\n");
+				append(head, 0, "Content-type: text/html\r\n");
 			setcurrenttime();
-			secprintf("Date: %s\r\nLast-modified: %s\r\n",
-				currenttime, currenttime);
-			secprintf("Server: %s\r\n\r\n", SERVER_IDENT);
+			append(head, 0, "Date: %s\r\nLast-modified: %s\r\nServer: %s\r\n",
+				currenttime, currenttime, SERVER_IDENT);
+			head[HEADSIZE-1] = '\0';
+			secprintf("%s\r\n", head);
 		}
 	} else
 	{

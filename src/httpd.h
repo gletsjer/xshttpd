@@ -7,6 +7,7 @@
 
 #define		SENDBUFSIZE	8192
 #define		MYBUFSIZ	1024
+#define		HEADSIZE	8192
 
 #define		ERR_NONE	0
 #define		ERR_CONT	1
