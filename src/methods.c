@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.110 2004/10/22 12:07:53 johans Exp $ */
+/* $Id: methods.c,v 1.111 2004/10/23 11:59:59 johans Exp $ */
 
 #include	"config.h"
 
@@ -88,9 +88,10 @@
 
 #ifndef		NOFORWARDS
 static int	getfiletype		PROTO((int));
-static int	allowxs			PROTO((const char *));
+static int	allowxs			PROTO((FILE *));
 static VOID	senduncompressed	PROTO((int));
 static VOID	sendcompressed		PROTO((int, const char *));
+static FILE *	find_file		PROTO((const char *, const char *, const char *));
 #endif		/* NOFORWARDS */
 
 /* Global structures */
@@ -412,17 +413,14 @@ sendcompressed DECL2_C(int, fd, char *, method)
 }
 
 extern	int
-allowxs DECL1C(char *, file)
+allowxs DECL1(FILE *, rfile)
 {
 	char	*remoteaddr, *slash;
 	char	allowhost[256];
-	FILE	*rfile;
 
 	if (!config.userestrictaddr)
 		return 1; /* always allowed */
 	if (!(remoteaddr = getenv("REMOTE_ADDR")))
-		return 0; /* access denied */
-	if (!(rfile = fopen(file, "r")))
 		return 0; /* access denied */
 
 	while (fgets(allowhost, 256, rfile))
@@ -493,13 +491,36 @@ allowxs DECL1C(char *, file)
 	return 0;
 }
 
+static	FILE	*
+find_file DECL3CCC(char *, orgbase, char *, base, char *, file)
+{
+	char		path[XS_PATH_MAX], *p;
+	FILE		*fd;
+	size_t		len = strlen(orgbase);
+
+	/* Check after redirection */
+	/* Ugly way to do this recursively */
+	snprintf(path, XS_PATH_MAX, "%s/", base);
+	for (p = path;
+		(p == path || !strncmp(orgbase, path, len)) &&
+		(p = strrchr(path, '/'));
+		*p = '\0')
+	{
+		snprintf(p, XS_PATH_MAX - (p - path), "/%s", file);
+		path[XS_PATH_MAX-1] = '\0';
+		if ((fd = fopen(path, "r")))
+			return fd;
+	}
+
+	return NULL;
+}
+
 extern	VOID
 do_get DECL1(char *, params)
 {
-	char			*temp, *cgi, *file, *question, *p,
-			auth[XS_PATH_MAX], base[XS_PATH_MAX],
-			orgbase[XS_PATH_MAX], total[XS_PATH_MAX],
-			temppath[XS_PATH_MAX];
+	char			*temp, *file, *cgi, *question,
+			base[XS_PATH_MAX], orgbase[XS_PATH_MAX],
+			total[XS_PATH_MAX], temppath[XS_PATH_MAX];
 	const	char		*filename, *http_host;
 	int			fd, wasdir, permanent, script = 0, tmp;
 	size_t			size;
@@ -745,9 +766,8 @@ do_get DECL1(char *, params)
 	}
 	
 	/* Check for *.noxs permissions */
-	snprintf(total, XS_PATH_MAX, "%s/.noxs", base);
-	total[XS_PATH_MAX-1] = '\0';
-	if (!stat(total, &statbuf) && !allowxs(total))
+	if ((authfile = find_file(orgbase, base, ".noxs")) &&
+		!allowxs(authfile))
 	{
 		server_error("403 Directory is not available", "DIR_NOT_AVAIL");
 		return;
@@ -798,45 +818,28 @@ do_get DECL1(char *, params)
 	charset[0] = '\0';
 	if (config.usecharset)
 	{
+		FILE		*charfile;
+
 		/* Check for *.charset preferences */
 		snprintf(total, XS_PATH_MAX, "%s%s.charset", base, filename);
 		total[XS_PATH_MAX-1] = '\0';
-		if ((fd = open(total, O_RDONLY, 0)) < 0)
+		if ((charfile = fopen(total, "r")) ||
+			(charfile = find_file(orgbase, base, ".charset")))
 		{
-			snprintf(total, XS_PATH_MAX, "%s.charset", base);
-			total[XS_PATH_MAX-1] = '\0';
-			fd = open(total, O_RDONLY, 0);
-		}
-		if (fd >= 0)
-		{
-			if (read(fd, charset, XS_PATH_MAX) < 0)
+			if (!fread(charset, 1, XS_PATH_MAX, charfile))
 				charset[0] = '\0';
 			else
 				charset[XS_PATH_MAX-1] = '\0';
 			if ((temp = strchr(charset, '\n')))
 				temp[0] = '\0';
-			close(fd);
+			fclose(charfile);
 		}
 	}
 
-	/* Check after redirection */
-	/* Ugly way to do this recursively */
-	snprintf(auth, XS_PATH_MAX, "%s/", base);
-	for (p = auth;
-		(p == auth || !strncmp(orgbase, auth, strlen(orgbase))) &&
-		(p = strrchr(auth, '/'));
-		*p = '\0')
+	if ((authfile = find_file(orgbase, base, AUTHFILE)) &&
+		check_auth(authfile))
 	{
-		snprintf(p, XS_PATH_MAX - (p - auth), "/%s", AUTHFILE);
-		auth[XS_PATH_MAX-1] = '\0';
-		if ((authfile = fopen(auth, "r")))
-		{
-			if (check_auth(authfile))
-				return;
-			else
-				/* one password is sufficient */
-				break;
-		}
+		return;
 	}
 
 	snprintf(total, XS_PATH_MAX, "%s%s", base, filename);

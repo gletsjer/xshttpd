@@ -35,6 +35,7 @@
 #define		DECL3_C_(t1,v1,t2,v2,t3,v3) (t1 v1, const t2 v2, t3 v3)
 #define		DECL3CC_(t1,v1,t2,v2,t3,v3) (const t1 v1, const t2 v2, t3 v3)
 #define		DECL3C__(t1,v1,t2,v2,t3,v3) (const t1 v1, t2 v2, t3 v3)
+#define		DECL3CCC(t1,v1,t2,v2,t3,v3) (const t1 v1, const t2 v2, const t3 v3)
 #endif		/* NOCONST */
 #else		/* Not not NONEWSTYLE */
 #define		DECL0			()
