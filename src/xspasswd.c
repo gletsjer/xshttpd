@@ -17,7 +17,7 @@
 extern	int
 main DECL2(int, argc, char **, argv)
 {
-	char		pwd[128], username[32], passbak[32], total[64],
+	char		pwd[128], username[32], passbak[32], total[66],
 			line[BUFSIZ], newfile[XS_PATH_MAX];
 	const	char	*password;
 	int		found, passwdlock;
@@ -34,7 +34,8 @@ main DECL2(int, argc, char **, argv)
 		errx(1, "Username may not contain a colon");
 	if (!(password = (const char *)getpass("Please enter a password: ")))
 		errx(1, "Password input failed");
-	strcpy(passbak, password);
+	strncpy(passbak, password, 32);
+	passbak[31] = '\0';
 	if (!(password = (const char *)getpass("Please reenter password: ")))
 		errx(1, "Password input failed");
 	if (strcmp(password, passbak))
@@ -43,7 +44,9 @@ main DECL2(int, argc, char **, argv)
 	if (!fgets(line, 16, stdin))
 		errx(1, "Lock input failed");
 	passwdlock = ((line[0] == 'y') || (line[0] == 'Y'));
-	strcpy(pwd, password); password = pwd;
+	strncpy(pwd, password, 128);
+	pwd[127] = '\0';
+	password = pwd;
 	xs_encrypt(pwd);
 	sprintf(total, "%c%s:%s", passwdlock ? 'L' : 'U', username, password);
 	authinp = fopen(AUTHFILE, "r");
