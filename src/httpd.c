@@ -1144,8 +1144,11 @@ standalone_main DECL0
 		/* (in)sanity check */
 		if (count > number)
 		{
-			fprintf(stderr, "[%s] httpd(pid %ld): MEMORY CORRUPTION %d [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
-				currenttime, (long)getpid(), sig,
+			const	char	*env;
+
+			env = getenv("QUERY_STRING");
+			fprintf(stderr, "[%s] httpd(pid %ld): MEMORY CORRUPTION [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
+				currenttime, (long)getpid(),
 				remotehost[0] ? remotehost : "(none)",
 				orig[0] ? orig : "(none)", env ? env : "(none)",
 				referer[0] ? referer : "(none)");
