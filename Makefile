@@ -47,7 +47,7 @@ LDFLAGS	=
 LD_CRYPT	= -lcrypt
 
 # Enable only when using SSL
-LD_SSL	= -L/usr/local/lib -L /usr/local/ssl/lib -lcrypto -lssl
+#LD_SSL	= -L/usr/local/lib -L /usr/local/ssl/lib -lcrypto -lssl
 
 # Where should systemwide user-usable binaries be installed? This includes
 # the WWW server itself, the controller (httpdc) and also the authentication
