@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.49 2001/02/14 14:58:31 johans Exp $ */
+/* $Id: httpd.c,v 1.50 2001/02/14 15:27:24 johans Exp $ */
 
 #include	"config.h"
 
@@ -1019,7 +1019,7 @@ process_request DECL0
 			if ((*http_host < 'a' || *http_host > 'z') &&
 				(*http_host < 'A' || *http_host > 'Z') &&
 				(*http_host < '0' || *http_host > '9') &&
-				*http_host != '-' && *http_host != '.')
+				*http_host != '-' && *http_host != '.' && *http_host != ':')
 			{
 				server_error("400 Invalid Host Header", "BAD_REQUEST");
 				return;
