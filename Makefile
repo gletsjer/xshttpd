@@ -142,7 +142,6 @@ install:	all
 		$(CP) clearxs $(BINDIR)/
 		$(CP) readxs $(BINDIR)/
 		$(CP) xsindex $(BINDIR)/
-		$(CP) php-wrapper $(BINDIR)/
 		$(CP) xschpass $(CGIDIR)/
 		$(CP) imagemap $(CGIDIR)/
 		$(CP) error $(CGIDIR)/
