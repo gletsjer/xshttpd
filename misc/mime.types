@@ -2,8 +2,8 @@ text/x-compress-html		html.Z
 text/x-gzip-html		html.gz
 text/html			html
 text/html			htm
-text/html			php
 text/html			php3
+text/html			php
 text/css			css
 image/gif			gif
 image/jpeg			jpg
@@ -88,3 +88,8 @@ video/quicktime			mov
 video/x-msvideo			avi
 video/x-sgi-movie		movie
 x-conference/x-cooltalk		ice
+text/vnd.wap.wml		wml
+image/vnd.wap.wbmp		wbmp
+application/vnd.wap.wmlc		wmlc
+text/vnd.wap.wmlscript		wmls
+application/vnd.wap.wmlscriptc		wmlsc
