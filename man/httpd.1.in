@@ -52,7 +52,11 @@ to start the WWW server. Also, if you want users'
 CGI binaries to be executed under their own user ID, you will have to
 start the WWW server as root.
 
-The server has a number of options:
+The server has a number of options. You can specify these options either on
+the command line or in the httpd.conf configuration file. Please use the
+configuration file for standard settings, see \fBhttpd.conf(5)\fP for
+details. Not all options are available from the command line:
+
 .TP
 .B \-c configfile
 Uses the specified configuration file instead of the default
