@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.87 2002/08/16 12:35:27 johans Exp $ */
+/* $Id: httpd.c,v 1.88 2002/08/16 12:53:52 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.87 2002/08/16 12:35:27 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.88 2002/08/16 12:53:52 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1399,11 +1399,8 @@ process_request DECL0
 	if ((temp = strchr(http_host, ':')))
 		*temp = '\0';
 	for (current = config.virtual; current; current = current->next)
-	{
-		fprintf(stderr, "got %s check %s\n", http_host, current->hostname);
 		if (!strcasecmp(http_host, current->hostname))
 			break;
-	}
 	if (params[0] && params[1] == '~')
 		current = config.users;
 	else if (!current)
