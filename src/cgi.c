@@ -733,9 +733,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 			written = secwrite(fileno(stdout), temp, writetodo);
 			if (written == -1)
 			{
-				if (errno == EINTR)
-					break;
-				else if (errno == EWOULDBLOCK)
+				if ((errno == EINTR) || (errno == EWOULDBLOCK))
 					continue;
 				secprintf("[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
 					strerror(errno), fileno(stdout), temp,
