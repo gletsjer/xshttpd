@@ -1,6 +1,9 @@
 This file is probably out of date. However the manual pages should
 be (mostly) accurate. For a list of changes, please see cvs comments.
 
+Changes since 3.2 beta 28
+- Deal with standard HTTP server headers supplied by CGI scripts
+
 Changes since 3.2 beta 27
 - Document the use of SSL in 'man httpd' and include SSL-Makefile
 

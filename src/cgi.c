@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.78 2004/02/22 14:10:50 johans Exp $ */
+/* $Id: cgi.c,v 1.79 2004/05/24 16:42:46 johans Exp $ */
 
 #include	"config.h"
 
@@ -416,7 +416,8 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 #endif		/* HANDLE_SSL */
 	if (!nph)
 	{
-		int ctype = 0, status = 0;
+		int	ctype = 0, status = 0, lastmod = 0, server = 0;
+
 		while (1)
 		{
 			if (readline(p[0], errmsg) != ERR_NONE)
@@ -487,6 +488,12 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 				append(head, 0, "Content-type: %s\r\n",
 					skipspaces(header + 13));
 			}
+			else if (!strncasecmp(header, "Last-modified:", 14))
+			{
+				append(head, 0, "Last-modified: %s\r\n",
+					skipspaces(header + 14));
+				lastmod = 1;
+			}
 			else if (!strncasecmp(header, "Cache-control:", 14))
 			{
 				if (showheader >= 11)
@@ -494,6 +501,27 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 						skipspaces(header + 14));
 				else
 					append(head, 0, "Pragma: no-cache\r\n");
+			}
+			else if (!strncasecmp(header, "Server:", 7))
+			{
+				/* Append value to SERVER_IDENT */
+				if (!strncasecmp(skipspaces(header + 7),
+					SERVER_IDENT, strlen(SERVER_IDENT)))
+				{
+					append(head, 0, "Server: %s\r\n",
+						skipspaces(header + 7));
+				}
+				else
+				{
+					append(head, 0, "Server: %s %s\r\n",
+						SERVER_IDENT,
+						skipspaces(header + 7));
+				}
+				server = 1;
+			}
+			else if (!strncasecmp(header, "Date:", 5))
+			{
+				/* Thank you, I do know how to tell time */
 			}
 			else
 				append(head, 0, "%s\r\n", header);
@@ -505,8 +533,12 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 			if (!ctype)
 				append(head, 0, "Content-type: text/html\r\n");
 			setcurrenttime();
-			append(head, 0, "Date: %s\r\nLast-modified: %s\r\nServer: %s\r\n",
-				currenttime, currenttime, SERVER_IDENT);
+			if (!lastmod)
+				append(head, 0, "Last-modified: %s\r\n",
+					currenttime);
+			if (!server)
+				append(head, 0, "Server: %s\r\n", SERVER_IDENT);
+			append(head, 0, "Date: %s\r\n", currenttime);
 			head[HEADSIZE-1] = '\0';
 			secprintf("%s\r\n", head);
 		}
