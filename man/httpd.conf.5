@@ -107,6 +107,17 @@ If enabled files in virtual host directories will be retreived with the
 permissions of the owner over the virtual host rootdir. This can be
 useful if different users maintain different sites.
 .TP
+.B VirtualHostDir <directory>
+When virtual hosts are enabled, the server also supports "automatic"
+detection of virtual hostnames - that is without specific <Virtual>
+blocks in the configuration file. If the
+.I VirtualHostDir
+contains subdirectories with names that match a requested hostname, then
+this subdirectory will be used as the HTML root directory for the
+virtual host data. The \fIVirtualHostDir\fP may be an absolute path or
+relative to \fISystemRoot\fP - if the setting is omited then
+\fIVirtualHostDir\fP will be the same as \fISystemRoot\fP.
+.TP
 .B UseLocalScript [true|false]
 If enabled all directories will be checked for the presence of a
 \.xsscripts file. This can be used to specify how files with certain

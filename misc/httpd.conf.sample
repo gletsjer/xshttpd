@@ -18,6 +18,7 @@ GroupId		nogroup
 #Hostname	www.stack.nl
 #HtmlDir	htdocs
 #PhExecDir	cgi-bin
+VirtualHostDir	vhosts
 LogAccess	logs/access_log
 LogError	logs/error_log
 LogReferer	logs/referer_log

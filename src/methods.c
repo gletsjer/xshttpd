@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.113 2004/10/25 18:53:41 johans Exp $ */
+/* $Id: methods.c,v 1.114 2004/11/13 17:06:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -652,7 +652,13 @@ do_get DECL1(char *, params)
 			current == config.system &&
 			(http_host = getenv("HTTP_HOST")))
 		{
-			strncpy(base, calcpath(http_host), XS_PATH_MAX-1);
+			if (config.virtualhostdir)
+				snprintf(base, XS_PATH_MAX, "%s/%s",
+					calcpath(config.virtualhostdir),
+					http_host);
+			else
+				strncpy(base, calcpath(http_host),
+					XS_PATH_MAX-1);
 			base[XS_PATH_MAX-2] = '\0';
 			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
 				*base = '\0';

@@ -53,6 +53,7 @@ extern struct configuration {
 	/* unsigned	padding: 8; */
 	char *		sslcertificate;
 	char *		sslprivatekey;
+	char *		virtualhostdir;
 	char *		defaultcharset;
 	struct virtual *	system;
 	struct virtual *	users;
