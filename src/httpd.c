@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.33 2001/01/23 20:12:13 johans Exp $ */
+/* $Id: httpd.c,v 1.34 2001/01/26 11:08:17 johans Exp $ */
 
 #include	"config.h"
 
@@ -34,7 +34,6 @@
 #include	<arpa/inet.h>
 
 #include	<fcntl.h>
-#include	<string.h>
 #include	<stdio.h>
 #include	<errno.h>
 #include	<netdb.h>
@@ -719,6 +718,7 @@ secfwrite(void *buf, size_t size, size_t count, FILE *stream)
 		return fwrite(buf, size, count, stream);
 }
 
+#ifndef		NONEWSTYLE
 size_t
 secprintf(const char *format, ...)
 {
@@ -735,6 +735,26 @@ secprintf(const char *format, ...)
 #endif		/* HANDLE_SSL */
 		return printf("%s", buf);
 }
+#else		/* NONEWSTYLE */
+size_t
+secprintf(format, va_alist)
+const	char	*format;
+va_dcl
+{
+	va_list	ap;
+	char	buf[4096];
+
+	va_start(ap);
+	vsnprintf(buf, 4096, format, ap);
+	va_end(ap);
+#ifdef		HANDLE_SSL
+	if (do_ssl)
+		return SSL_write(ssl, buf, strlen(buf));
+	else
+#endif		/* HANDLE_SSL */
+		return printf("%s", buf);
+}
+#endif		/* NONEWSTYLE */
 
 size_t
 secfputs(char *buf, FILE *stream)
