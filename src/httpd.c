@@ -1367,6 +1367,9 @@ main DECL3(int, argc, char **, argv, char **, envp)
 		case 'a':
 			strncpy(thishostname, optarg, MAXHOSTNAMELEN);
 			thishostname[MAXHOSTNAMELEN-1] = '\0';
+			break;
+		case 'f':
+			/* This breaks backwards compatibility with documentation */
 			forcehost = 1;
 			break;
 		case 'r':
@@ -1394,11 +1397,11 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			error_path[XS_PATH_MAX-1] = '\0';
 			break;
 		default:
-			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number] [-d rootdir]\n[-r refer-ignore-domain] [-l localmode] [-a address] [-m service-message]\n[-A access-log-path] [-E error-log-path] [-R referer-log-path]");
+			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number] [-d rootdir]\n[-r refer-ignore-domain] [-l localmode] [-a address] [-m service-message]\n[-f] [-s] [-A access-log-path] [-E error-log-path] [-R referer-log-path]");
 		}
 	}
 	initsetprocname(argc, argv, envp);
 	setup_environment();
-        standalone_main();
+	standalone_main();
 	exit(0);
 }
