@@ -1,0 +1,15 @@
+Changes since 3.0 beta 7
+- Fix default port selection on systems without getaddrinfo()
+- Added optional define BROKEN_GETNAMEINFO (no offline check yet)
+- Replaced old MAXHOSTNAMELEN by NI_MAXHOST (self-defined if needed)
+- Removed/rewritten all functions that require libnsl
+- Several small bug-fixes (now compiles clean on Solaris and IRIX)
+
+Changes since 3.0 beta 6
+- Easy to configure and install (using ./configure)
+- Support for server-side includes in CGI binaries
+- Allowing arbitrary CGI headers
+- Rewrite and improvement of IPv6 support
+- Added command line -f option for binding to a single iface
+- Many small bug- and security-fixes
+

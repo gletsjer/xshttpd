@@ -1,0 +1,5 @@
+This program expects that RFC2553 defined functions and constants are
+available on your system. The configure script will autodetect the
+presence of these functions. If these functions are not available, the
+program will still function properly. However reverse nameserver lookups
+(e.g. for logging) won't work without the getnameinfo() function.

@@ -1,0 +1,10 @@
+Mailing list:
+Questions about the use or development of this webserver can be directed
+at the mailinglist, <xshttpd-devel@lists.stack.nl>
+You can subscribe to this mailinglist via http://lists.stack.nl/
+A seperate list for announcements about new versions is also available.
+
+Download sites (anonymous FTP):
+ftp.stack.nl:/pub/xs-httpd/xshttpd-30b07.tar.gz
+mud.stack.nl:/pub/xs-httpd/xshttpd-30b07.tar.gz
+

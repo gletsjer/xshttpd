@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.39 2001/01/28 14:13:14 johans Exp $ */
+/* $Id: httpd.c,v 1.40 2001/01/28 17:59:51 johans Exp $ */
 
 #include	"config.h"
 
@@ -39,6 +39,7 @@
 #include	<netdb.h>
 #ifndef		NI_MAXSERV
 #define		NI_MAXSERV	32
+#define		NI_MAXHOST	1025
 #endif		/* NI_MAXSERV */
 #ifdef		HAVE_TIME_H
 #ifdef		SYS_TIME_WITH_TIME
@@ -102,13 +103,13 @@ int		headers, localmode, netbufind, netbufsiz, readlinemode,
 static	int	sd, reqs, number, mainhttpd = 1;
 gid_t		group_id, origegid;
 uid_t		user_id, origeuid;
-char		netbuf[MYBUFSIZ], remotehost[MAXHOSTNAMELEN], orig[MYBUFSIZ],
+char		netbuf[MYBUFSIZ], remotehost[NI_MAXHOST], orig[MYBUFSIZ],
 		currenttime[80], dateformat[MYBUFSIZ], real_path[XS_PATH_MAX],
-		thishostname[MAXHOSTNAMELEN], version[16], error_path[XS_PATH_MAX],
+		thishostname[NI_MAXHOST], version[16], error_path[XS_PATH_MAX],
 		access_path[XS_PATH_MAX], refer_path[XS_PATH_MAX], rootdir[XS_PATH_MAX],
 		total[XS_PATH_MAX], name[XS_PATH_MAX], port[NI_MAXSERV];
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[SENDBUFSIZE],
-		thisdomain[MAXHOSTNAMELEN], message503[MYBUFSIZ],
+		thisdomain[NI_MAXHOST], message503[MYBUFSIZ],
 		*startparams;
 FILE		*access_log = NULL, *refer_log = NULL;
 time_t		modtime;
@@ -1248,7 +1249,7 @@ standalone_main DECL0
 		if (!getnameinfo((struct sockaddr *)&saddr, clen,
 			remotehost, sizeof(remotehost), NULL, 0, NI_NUMERICHOST))
 		{
-			remotehost[MAXHOSTNAMELEN-1] = '\0';
+			remotehost[NI_MAXHOST-1] = '\0';
 			/* Fake $REMOTE_ADDR because most people don't
 			 * (want to) understand ::ffff: adresses.
 			 */
@@ -1272,7 +1273,7 @@ standalone_main DECL0
 		if (!getnameinfo((struct sockaddr *)&saddr, clen,
 			remotehost, sizeof(remotehost), NULL, 0, 0))
 		{
-			remotehost[MAXHOSTNAMELEN-1] = '\0';
+			remotehost[NI_MAXHOST-1] = '\0';
 			setenv("REMOTE_HOST", remotehost, 1);
 		}
 #else		/* HAVE GETNAMEINFO and not BROKEN_GETNAMEINFO */
@@ -1376,12 +1377,12 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	strcpy(port, "http");
 	message503[0] = 0;
 #ifdef		THISDOMAIN
-	strncpy(thisdomain, THISDOMAIN, MAXHOSTNAMELEN);
-	thisdomain[MAXHOSTNAMELEN-1] = '\0';
+	strncpy(thisdomain, THISDOMAIN, NI_MAXHOST);
+	thisdomain[NI_MAXHOST-1] = '\0';
 #else		/* Not THISDOMAIN */
 	thisdomain[0] = 0;
 #endif		/* THISDOMAIN */
-	if (gethostname(thishostname, MAXHOSTNAMELEN) == -1)
+	if (gethostname(thishostname, NI_MAXHOST) == -1)
 		errx(1, "gethostname() failed");
 	if ((userinfo = getpwnam(HTTPD_USERID)))
 		user_id = userinfo->pw_uid;
@@ -1454,16 +1455,16 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			rootdir[XS_PATH_MAX-1] = 0;
 			break;
 		case 'a':
-			strncpy(thishostname, optarg, MAXHOSTNAMELEN);
-			thishostname[MAXHOSTNAMELEN-1] = '\0';
+			strncpy(thishostname, optarg, NI_MAXHOST);
+			thishostname[NI_MAXHOST-1] = '\0';
 			break;
 		case 'f':
 			/* This breaks backwards compatibility with documentation */
 			forcehost = 1;
 			break;
 		case 'r':
-			strncpy(thisdomain, optarg, MAXHOSTNAMELEN);
-			thisdomain[MAXHOSTNAMELEN-1] = '\0';
+			strncpy(thisdomain, optarg, NI_MAXHOST);
+			thisdomain[NI_MAXHOST-1] = '\0';
 			break;
 		case 'l':
 			if ((localmode = atoi(optarg)) <= 0)
