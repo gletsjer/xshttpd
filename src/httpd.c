@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.110 2003/02/21 13:33:14 johans Exp $ */
+/* $Id: httpd.c,v 1.111 2003/02/22 20:06:41 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.110 2003/02/21 13:33:14 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.111 2003/02/22 20:06:41 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1786,8 +1786,8 @@ int
 main DECL3(int, argc, char **, argv, char **, envp)
 {
 	int			option, num;
-	enum { optionp, optionhn, optionaa, optionrr, optionee };
-	char *longopt[5] = { NULL, NULL, NULL, NULL, NULL, };
+	enum { optionp, optiond, optionhd, optionhn, optionaa, optionrr, optionee };
+	char *longopt[7] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
 	const struct passwd	*userinfo;
 	const struct group	*groupinfo;
 
@@ -1823,7 +1823,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 #endif		/* THISDOMAIN */
 	snprintf(config_path, XS_PATH_MAX, "%s/httpd.conf", calcpath(HTTPD_ROOT));
 	config_path[XS_PATH_MAX-1] = '\0';
-	while ((option = getopt(argc, argv, "a:c:d:g:l:m:n:p:r:su:vA:R:E:")) != EOF)
+	while ((option = getopt(argc, argv, "a:c:d:g:l:m:n:p:r:su:vA:D:E:R:")) != EOF)
 	{
 		switch(option)
 		{
@@ -1861,7 +1861,10 @@ main DECL3(int, argc, char **, argv, char **, envp)
 		case 'd':
 			if (*optarg != '/')
 				errx(1, "The -d directory must start with a /");
-			config.systemroot = strdup(optarg);
+			longopt[optiond] = optarg;
+			break;
+		case 'D':
+			longopt[optionhd] = optarg;
 			break;
 		case 'r':
 			strncpy(thisdomain, optarg, NI_MAXHOST);
@@ -1892,42 +1895,26 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			fprintf(stdout, "%s\n", SERVER_IDENT);
 			return 0;
 		default:
-			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number] [-d rootdir]\n[-r refer-ignore-domain] [-l localmode] [-m service-message] [-f] [-s]");
+			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number]\n[-d rootdir] [-D documentdir] [-r refer-ignore-domain] [-l localmode]\n[-A access_log] [-E error_log] [-R referrer_log] [-m service-message] [-s]");
 		}
 	}
 	load_config();
 
 	/* Explicity set these, overriding default or implicit setting */
-	if (longopt[optionp])
-	{
-		if (config.port)
-			free(config.port);
-		config.port = strdup(longopt[optionp]);
+#define	SET_OPTION(option, config) \
+	if (longopt[option]) { \
+		if (config) \
+			free(config); \
+		config = strdup(longopt[option]); \
 	}
-	if (longopt[optionhn])
-	{
-		if (config.system->hostname)
-			free(config.system->hostname);
-		config.system->hostname = strdup(longopt[optionhn]);
-	}
-	if (longopt[optionaa])
-	{
-		if (config.system->logaccess)
-			free(config.system->logaccess);
-		config.system->logaccess = strdup(longopt[optionaa]);
-	}
-	if (longopt[optionrr])
-	{
-		if (config.system->logreferer)
-			free(config.system->logreferer);
-		config.system->logreferer = strdup(longopt[optionrr]);
-	}
-	if (longopt[optionee])
-	{
-		if (config.system->logerror)
-			free(config.system->logerror);
-		config.system->logerror = strdup(longopt[optionee]);
-	}
+
+	SET_OPTION(optionp,  config.port);
+	SET_OPTION(optiond,  config.systemroot);
+	SET_OPTION(optionhd, config.system->htmldir);
+	SET_OPTION(optionhn, config.system->hostname);
+	SET_OPTION(optionaa, config.system->logaccess);
+	SET_OPTION(optionrr, config.system->logreferer);
+	SET_OPTION(optionee, config.system->logerror);
 
 	initsetprocname(argc, argv, envp);
 	setup_environment();
