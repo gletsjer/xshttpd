@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.139 2004/09/22 17:18:01 johans Exp $ */
+/* $Id: httpd.c,v 1.140 2004/09/22 18:30:17 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.139 2004/09/22 17:18:01 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.140 2004/09/22 18:30:17 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -349,6 +349,7 @@ load_config DECL0
 				{
 					if (!config.localmode)
 						config.localmode = atoi(value);
+					warn("LocalMode is deprecated and will be ignored");
 				}
 				else if (!current &&
 						(!strcasecmp("UserId", key) || 
@@ -2074,8 +2075,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			thisdomain[NI_MAXHOST-1] = '\0';
 			break;
 		case 'l':
-			if (!(config.localmode = atoi(optarg)))
-				errx(1, "Argument to -l is invalid");
+			errx(1, "-l is deprecated: use Users/HtmlDir");
 			break;
 		case 'm':
 			strncpy(message503, optarg, MYBUFSIZ);
