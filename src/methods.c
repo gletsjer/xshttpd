@@ -501,7 +501,8 @@ do_get DECL1(char *, params)
 		if (!question || (temp < question))
 		{
 			bcopy(temp + 1, temp, strlen(temp));
-			question--;
+			if (question)
+				question--;
 		}
 		else
 			break;
@@ -509,7 +510,8 @@ do_get DECL1(char *, params)
 		if (!question || (temp < question))
 		{
 			bcopy(temp + 2, temp, strlen(temp));
-			question -= 2;
+			if (question)
+				question -= 2;
 		}
 		else
 			break;
