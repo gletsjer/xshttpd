@@ -550,11 +550,11 @@ do_get DECL1(char *, params)
 			if (!strncmp(params + 1, current->execdir, size))
 			{
 				script = 1;
+				file += size + 2;
 				strncpy(base, calcpath(current->phexecdir), XS_PATH_MAX-1);
 			}
 			else
 				strncpy(base, calcpath(current->htmldir), XS_PATH_MAX-1);
-			file += size + 2;
 		}
 		base[XS_PATH_MAX-2] = '\0';
 		strcat(base, "/");
@@ -572,6 +572,7 @@ do_get DECL1(char *, params)
 	}
 	strncpy(currentdir, base, XS_PATH_MAX);
 	currentdir[XS_PATH_MAX-1] = '\0';
+	fprintf(stderr, "base %s file %s\n", base, file);
 
 	if ((temp = strchr(file, '?')))
 	{
@@ -813,12 +814,7 @@ do_get DECL1(char *, params)
 	/* Do this only after all the security checks */
 	size = strlen(HTTPD_SCRIPT_ROOT);
 	if (script ||
-		(
-		 *cgi &&
-		 !strncmp(cgi, HTTPD_SCRIPT_ROOT, size) &&
-		 cgi[size] == '/'
-		)
-	   )
+		(*cgi && !strncmp(cgi, HTTPD_SCRIPT_ROOT, size) && cgi[size] == '/'))
 	{
 		if (question)
 			*question = '?';
