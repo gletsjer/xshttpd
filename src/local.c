@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: local.c,v 1.10 2004/09/22 17:17:49 johans Exp $ */
+/* $Id: local.c,v 1.11 2004/09/22 18:03:25 johans Exp $ */
 
 
 #include	"config.h"
@@ -38,21 +38,18 @@ transform_user_dir DECL3_C_(char *, base, struct passwd *, userinfo,
 	if (userpos)
 	{
 		int	len = userpos - config.users->htmldir;
-		snprintf(base, XS_PATH_MAX, "%*.*s%s%s",
+		snprintf(base, XS_PATH_MAX, "%*.*s%s%s/",
 			len, len, config.users->htmldir,
 			userinfo->pw_name,
 			userpos + 2);
 	}
 	else
-		strncpy(base, config.users->htmldir, XS_PATH_MAX);
-
-	if (base[0] != '/')
-		snprintf(base, XS_PATH_MAX, "%s/%s",
-			userinfo->pw_dir,
-			base);
+		snprintf(base, XS_PATH_MAX, "%s/%s/",
+			userinfo->pw_dir, config.users->htmldir);
 #else		/* BUILD_HTTPD */
 	sprintf(base, "%s/%s/", userinfo->pw_dir, HTTPD_USERDOC_ROOT);
 #endif		/* BUILD_HTTPD */
+	return(0);
 }
 
 static	int
