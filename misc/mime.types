@@ -4,6 +4,7 @@ text/html			html
 text/html			htm
 text/html			php3
 text/html			php
+text/xml			xhtml
 text/css			css
 image/bmp			bmp
 image/gif			gif
@@ -25,6 +26,7 @@ application/postscript		ai
 application/postscript		eps
 application/postscript		ps
 application/rtf			rtf
+application/xml			xml
 application/x-pn-realaudio	ra
 application/x-pn-realaudio	ram
 application/x-director		dcr
