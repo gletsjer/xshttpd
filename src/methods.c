@@ -674,10 +674,11 @@ do_get DECL1(char *, params)
 		if (search)
 		{
 			/* This is no hack. This is a dirty hack. */
-			unsetenv("SCRIPT_NAME");
+			unsetenv("SCRIPT_NAME"); unsetenv("QUERY_STRING");
 			setenv("SCRIPT_NAME", real_path, 1);
+			setenv("QUERY_STRING", getenv("DOCUMENT_ARGUMENTS"), 1);
 			sendcompressed(fd, search->prog);
-			unsetenv("SCRIPT_NAME");
+			unsetenv("SCRIPT_NAME"); unsetenv("QUERY_STRING");
 		}
 		else
 #endif		/* HANDLE_INTERPRETED */
