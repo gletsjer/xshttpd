@@ -24,3 +24,4 @@ extern	VOID	do_post			PROTO((char *));
 extern	VOID	do_head			PROTO((char *));
 extern	VOID	do_options		PROTO((const char *));
 #endif		/* NOFORWARDS */
+

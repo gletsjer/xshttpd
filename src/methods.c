@@ -66,6 +66,9 @@
 #ifdef		HAVE_MEMORY_H
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
+#ifdef		HAVE_FNMATCH_H
+#include	<fnmatch.h>
+#endif		/* HAVE_FNMATCH_H */
 #ifdef		HANDLE_SSL
 #include	<openssl/ssl.h>
 #endif		/* HANDLE_SSL */
@@ -127,6 +130,15 @@ static	char	charset[XS_PATH_MAX];
 #ifdef		HANDLE_PERL
 static	PerlInterpreter *	perl = NULL;
 #endif		/* HANDLE_PERL */
+
+/* user configurable file handlers */
+#define		HANDLER_NAMES		{ "default", "file", "cgi" }
+#define		NUM_HANDLER_TYPES	3
+enum { handler_default, handler_file, handler_cgi } handler_types;
+
+static const	char	*handler_names[] = HANDLER_NAMES;
+static			int		gethandlertype PROTO((char *, char *));
+/* end of user configurable file handlers */
 
 extern	VOID
 senduncompressed DECL1(int, fd)
@@ -864,6 +876,17 @@ do_get DECL1(char *, params)
 	strncpy(name, filename, XS_PATH_MAX);
 	name[XS_PATH_MAX-1] = '\0';
 
+	/* user-configurable settings before defaults */
+	switch(gethandlertype(base, file)) {
+		case handler_file:
+			goto NOSCRIPT;
+		case handler_cgi:
+			script = 1;
+			break;
+		case handler_default:
+			break;
+	}
+
 	/* Do this only after all the security checks */
 	size = strlen(current->execdir);
 	if (script ||
@@ -890,6 +913,8 @@ do_get DECL1(char *, params)
 		search = search->next;
 	}
 #endif		/* HANDLE_SCRIPT */
+
+NOSCRIPT:
 
 	if (postonly)
 	{
@@ -1169,5 +1194,96 @@ getfiletype DECL1(int, print)
 	if (print)
 		secprintf("Content-type: application/octet-stream\r\n");
 	return(0);
+}
+
+/*
+ * Get the handler type for a file 'file' in the dir 'base'.
+ * returns 0 for default type, -1 for internal error
+ */
+extern int
+gethandlertype(char *base, char *filename)
+{
+	char xshandlers[XS_PATH_MAX];
+	FILE *file;
+	char line[80], pat[80], handstr[80], errmsg[80];
+	char *ptr;
+	int lineno = 0;
+	int i;
+	int matched, ret, eof;
+
+#ifdef		HAVE_FNMATCH
+	snprintf(xshandlers, XS_PATH_MAX, "%s/.xshandlers", base);
+	file = fopen(xshandlers, "r");
+	if (!file)
+	{
+		if (errno == ENOENT)
+			return 0;  /* .xshandlers not present, use default */
+		error("500 Cannot open .xshandlers file");
+		return -1;
+	}
+	while (!(eof = feof(file)))
+	{
+		lineno++;
+		if (fgets(line, sizeof (line), file) == NULL)
+		{
+			sprintf(errmsg, "500 Error while reading .xshandlers file, line %d",
+				lineno);
+			error(errmsg);
+			break;
+		}
+
+		for (ptr = line; *ptr != '\0'; ptr++)
+		{
+			if (*ptr == '#' || *ptr == '\r' || *ptr == '\n')
+			{
+				*ptr = '\0';
+				break;
+			}
+		}
+	
+		if (*line == '\0')
+			continue;
+		
+		ret = sscanf(line, "%s %s", pat, handstr);
+		if (ret == EOF)
+			continue;
+		
+		if (ret != 2)
+		{
+			sprintf(errmsg, "500 Error in .xshandlers file, line %d",
+				lineno);
+			error(errmsg);
+			break;
+		}
+		
+		matched = fnmatch(pat, filename, 0);
+		switch(matched)
+		{
+			case 0:  /* match */
+				break;
+			case FNM_NOMATCH:  /* no match */
+				continue;
+			default:  /* error */
+				sprintf(errmsg, "500 Error in .xshandlers pattern, line %d",
+					lineno);
+				error(errmsg);
+				break;
+		}
+		
+		for (i = 0; i < NUM_HANDLER_TYPES; i++)
+		{
+			if (strcmp(handstr, handler_names[i]) == 0)
+				return i;  /* We have found our handler */
+		}
+		sprintf(errmsg, "500 Unrecognised handler type in line %d", lineno);
+		error(errmsg);
+		break;
+	}
+	
+	fclose(file);
+	if (!eof)
+		return -1;
+#endif		/* HAVE_FNMATCH */
+	return 0;
 }
 
