@@ -82,6 +82,10 @@ character set that is used for HTML files. If this option is not set or
 no .charset file can be found, the clients should assume that plain 7bit
 text is used. This option is enabled by default.
 .TP
+.B DefaultCharset <charset>
+The chacterset to be used if no user-defined charset is specified.
+If this is not specified, then US-ASCII will be used.
+.TP
 .B UseRestrictAddr [true|false]
 If enabled then .noxs files may contain one or more IP addresses (or
 prefixes of IP addresses). Only clients with matching addresses will be
