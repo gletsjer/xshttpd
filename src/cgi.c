@@ -518,15 +518,21 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			if (!header[0])
 				break;
 			if (!strncasecmp(header, "Status:", 7))
-				strcpy(status, skipspaces(header + 7));
+				strncpy(status, skipspaces(header + 7), MYBUFSIZ);
 			else if (!strncasecmp(header, "Location:", 9))
-				strcpy(location, skipspaces(header + 9));
+				strncpy(location, skipspaces(header + 9), MYBUFSIZ);
 			else if (!strncasecmp(header, "Content-type:", 13))
-				strcpy(contenttype, skipspaces(header + 13));
+				strncpy(contenttype, skipspaces(header + 13), MYBUFSIZ);
 			else if (!strncasecmp(header, "Cache-control:", 14))
-				strcpy(cachecontrol, skipspaces(header + 14));
+				strncpy(cachecontrol, skipspaces(header + 14), MYBUFSIZ);
 			else if (!strncasecmp(header, "Set-cookie:", 11))
-				strcpy(cookie, skipspaces(header + 11));
+			{
+				if (!cookie[0])
+					strncpy(cookie, skipspaces(header + 11), MYBUFSIZ);
+				else
+					snprintf(cookie, MYBUFSIZ, "%s, %s",
+						cookie, skipspaces(header + 11));
+			}
 			else if (!strncasecmp(header, "X-Powered-By:", 13))
 				/* ignore */;
 			else

@@ -1194,7 +1194,11 @@ standalone_main DECL0
 #endif		/* __linux__ */
 #endif		/* 0 */
 
-		dup2(csd, 0); dup2(csd, 1); /* close(csd); */
+		dup2(csd, 0); dup2(csd, 1);
+#ifdef		HANDLE_SSL
+		if (!do_ssl)
+#endif		/* HANDLE_SSL */
+			close(csd);
 
 #ifndef		SETVBUF_REVERSED
 		setvbuf(stdin, NULL, _IONBF, 0);
@@ -1355,7 +1359,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			/* override defaults */
 			sprintf(access_path, "%s/ssl_access_log", calcpath(HTTPD_LOG_ROOT));
 			sprintf(error_path, "%s/ssl_error_log", calcpath(HTTPD_LOG_ROOT));
-			sprintf(referer_path, "%s/ssl_referer_log", calcpath(HTTPD_LOG_ROOT));
+			sprintf(refer_path, "%s/ssl_referer_log", calcpath(HTTPD_LOG_ROOT));
 #else		/* HANDLE_SSL */
 			errx(1, "SSL support not enabled at compile-time");
 #endif		/* HANDLE_SSL */
