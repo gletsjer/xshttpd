@@ -46,7 +46,7 @@ main DECL2(int, argc, char **, argv)
 		errx(1, "Lock input failed");
 	passwdlock = ((line[0] == 'y') || (line[0] == 'Y'));
 	pwd = xs_encrypt(password);
-	sprintf(total, "%c%s:%s", passwdlock ? 'L' : 'U', username, password);
+	sprintf(total, "%c%s:%s", passwdlock ? 'L' : 'U', username, pwd);
 	authinp = fopen(AUTHFILE, "r");
 	sprintf(newfile, "%s.new", AUTHFILE);
 	if (!(authout = fopen(newfile, "w")))

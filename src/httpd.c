@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.111 2003/02/22 20:06:41 johans Exp $ */
+/* $Id: httpd.c,v 1.112 2003/02/26 18:12:48 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.111 2003/02/22 20:06:41 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.112 2003/02/26 18:12:48 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -309,14 +309,14 @@ load_config DECL0
 					else
 						config.execasuser = 0;
 				else if (!strcasecmp("UseSSL", key))
+				{
 					if (!strcasecmp("true", value))
 #ifdef		HANDLE_SSL
 						config.usessl = 1;
 #else		/* HANDLE_SSL */
 						errx(1, "SSL support not enabled at compile-time");
 #endif		/* HANDLE_SSL */
-					else
-						config.usessl = 0;
+				}
 				else if (!strcasecmp("UseCharset", key))
 					config.usecharset = !strcasecmp("true", value);
 				else if (!strcasecmp("UseRestrictAddr", key))
@@ -522,7 +522,6 @@ open_logs DECL1(int, sig)
 	gid_t		savedegid;
 	int		tempfile;
 
-	set_signals();
 	savedeuid = savedegid = -1;
 	if (!origeuid)
 	{

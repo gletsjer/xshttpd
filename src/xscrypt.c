@@ -15,5 +15,7 @@ xs_encrypt DECL1C(char *, buffer)
 #ifdef		HAVE_CRYPT
 	/* If you don't have a crypt() function, use plain-text pwd storage */
 	return crypt(buffer, "xs");
+#else		/* HAVE_CRYPT */
+	return buffer;
 #endif		/* HAVE_CRYPT */
 }
