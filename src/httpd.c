@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.157 2004/11/26 19:02:11 johans Exp $ */
+/* $Id: httpd.c,v 1.158 2004/11/26 21:33:38 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.157 2004/11/26 19:02:11 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.158 2004/11/26 21:33:38 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1844,16 +1844,6 @@ standalone_socket(char id)
 
 		sl.l_onoff = 1; sl.l_linger = 600;
 		setsockopt(csd, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl));
-#if 0
-#ifdef		SO_SNDBUF
-		temp = SENDBUFSIZE + 64;
-		setsockopt(csd, SOL_SOCKET, SO_SNDBUF, &temp, sizeof(temp));
-#endif		/* SO_SNDBUF */
-#ifdef		SO_RCVBUF
-		temp = 512;
-		setsockopt(csd, SOL_SOCKET, SO_RCVBUF, &temp, sizeof(temp));
-#endif		/* SO_RCVBUF */
-#endif		/* 0 */
 
 		dup2(csd, 0); dup2(csd, 1);
 		if (!config.usessl)

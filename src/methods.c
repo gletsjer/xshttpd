@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.121 2004/11/26 17:17:27 johans Exp $ */
+/* $Id: methods.c,v 1.122 2004/11/26 21:33:38 johans Exp $ */
 
 #include	"config.h"
 
@@ -734,12 +734,6 @@ do_get(char *params)
 		(statbuf.st_mode & S_IFMT) == S_IFREG)
 	{
 		/* No PATH_INFO for regular files */
-#if		0
-		setenv("PATH_INFO", params, 1);
-		if (!getenv("ORIG_PATH_INFO"))
-			setenv("ORIG_PATH_INFO", params, 1);
-		setenv("PATH_TRANSLATED", temppath, 1);
-#endif		/* 0 */
 		if (!getenv("ORIG_PATH_TRANSLATED"))
 			setenv("ORIG_PATH_TRANSLATED", temppath, 1);
 		setenv("SCRIPT_FILENAME", temppath, 1);

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.87 2004/11/26 17:17:27 johans Exp $ */
+/* $Id: cgi.c,v 1.88 2004/11/26 21:33:38 johans Exp $ */
 
 #include	"config.h"
 
@@ -202,10 +202,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 	nph = (!strncmp(file, "nph-", 4) || strstr(file, "/nph-"));
 	dossi = (!strncmp(file, "ssi-", 4) || strstr(file, "/ssi-"));
-#if		0
-	nouid = (strstr(file, "/nph-nid-") || strstr(file, "/nid-") ||
-		!strncmp(file, "nph-nid-", 8) || !strncmp(file, "nid-", 4));
-#endif	/* not used */
 	p[0] = p[1] = r[0] = r[1] = -1;
 	pipe(r);
 	if (1 /* !nph || do_ssl */)
@@ -401,11 +397,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 #endif		/* HANDLE_SSL */
 	netbufind = netbufsiz = 0; readlinemode = READCHAR;
 	head[0] = '\0';
-#if			0
-	/* This failes with long PHP stuff w/o SSL compiled */
-	while (readline(r[0], errmsg) == ERR_NONE)
-		fprintf(stderr, errmsg);
-#endif		/* HANDLE_SSL */
 	if (!nph)
 	{
 		int	ctype = 0, status = 0, lastmod = 0, server = 0;

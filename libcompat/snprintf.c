@@ -597,10 +597,6 @@ static void fmtfp (char *buffer, size_t *currlen, size_t maxlen,
       if (flags & DP_F_SPACE)
         signvalue = ' ';
 
-#if 0
-  if (flags & DP_F_UP) caps = 1; /* Should characters be upper case? */
-#endif
-
   intpart = ufvalue;
 
   /* 
