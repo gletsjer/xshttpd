@@ -97,6 +97,15 @@ fi
 AC_SHOW_HELP(--enable options (disabled by default):)
 AC_ARG_DEFAULT(virtualuid, VIRTUAL_UID, no,
 	[  --enable-virtualuid     enable variable euid for virtual hosting])
+AC_ARG_DEFAULT(warnings, , no,
+	[  --enable-warnings       show extra compiler warnings])
+
+if test x${enable_warnings} = xyes
+then
+	CFLAGS="-g -Wall -W -pedantic -ansi -Wstrict-prototypes -Wtraditional -Wmissing-prototypes -Wpointer-arith -Wshadow -Waggregate-return -Wcast-qual -Wbad-function-cast -Wwrite-strings"
+else
+	CFLAGS="-g"
+fi
 
 dnl Test runs for required global variables
 
@@ -130,8 +139,6 @@ fi
 AC_DEFINE_UNQUOTED(THISDOMAIN, "$domain")
 AC_MSG_RESULT($domain)
 
-dnl CFLAGS="-g -Wall -W -pedantic -ansi -Wstrict-prototypes -Wtraditional -Wmissing-prototypes -Wpointer-arith -Wshadow -Waggregate-return -Wcast-qual -Wbad-function-cast -Wwrite-strings"
-CFLAGS="-g"
 AC_SUBST(LIBOBJS)
 AC_SUBST(ldcrypt)
 AC_SUBST(httpd_ldflags)

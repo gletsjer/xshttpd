@@ -19,7 +19,7 @@ AC_DEFUN(AC_ARG_DEFAULT, [
 		AC_MSG_RESULT(${enable_$1}),
 		enable_$1=$3
 		 AC_MSG_RESULT($3))
-	if test ${enable_$1} = "yes" ; then AC_DEFINE($2) fi
+	if test ${enable_$1} = "yes" -a -n "$2" ; then AC_DEFINE($2) fi
 	])
 
 AC_DEFUN(AC_SHOW_HELP, [

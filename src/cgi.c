@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.53 2002/01/23 16:43:45 johans Exp $ */
+/* $Id: cgi.c,v 1.54 2002/01/31 16:16:28 johans Exp $ */
 
 #include	"config.h"
 
@@ -79,7 +79,7 @@ eat_content_length DECL0
 	{
 		if ((received = read(1, buf, MYBUFSIZ)) == -1)
 		{
-			if (errno = EINTR)
+			if ((errno == EINTR))
 				continue;
 			else
 			{
@@ -146,7 +146,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 	struct	stat		statbuf;
 	uid_t			savedeuid, currentuid;
 	gid_t			savedegid, currentgid;
-	long			size, received, tobewritten, writetodo,
+	long			size, received, writetodo,
 				totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
 				base[XS_PATH_MAX], *temp, *nextslash,
@@ -160,6 +160,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 	int			q[2];
 	int			ssl_post = 0;
 	int			readerror;
+	long		tobewritten;
 #endif		/* HANDLE_SSL */
 #ifdef		USE_SETRLIMIT
 	struct	rlimit		limits;

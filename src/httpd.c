@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.64 2002/01/31 14:38:36 johans Exp $ */
+/* $Id: httpd.c,v 1.65 2002/01/31 16:16:28 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.64 2002/01/31 14:38:36 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.65 2002/01/31 16:16:28 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -778,7 +778,6 @@ check_auth DECL1(FILE *, authfile)
 			fclose(authfile); return(0);
 		}
 	}
-//	server_error("401 Wrong user/password combination", "UNAUTHORIZED");
 	if (headers)
 	{
 		secprintf("%s 401 Wrong user/password combination\r\n", version);
@@ -1614,7 +1613,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	const	struct	passwd	*userinfo;
 	const	struct	group	*groupinfo;
 	int			option, num;
-	enum { optionp, optionaa, optionrr, optionee, };
+	enum { optionp, optionaa, optionrr, optionee };
 	char *longopt[4] = { NULL, NULL, NULL, NULL, };
 
 	origeuid = geteuid(); origegid = getegid();
@@ -1783,5 +1782,6 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	initsetprocname(argc, argv, envp);
 	setup_environment();
 	standalone_main();
+	(void)copyright;
 	exit(0);
 }
