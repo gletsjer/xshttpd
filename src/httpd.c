@@ -1191,22 +1191,36 @@ standalone_main DECL0
 		setvbuf(stdin, _IONBF, NULL, 0);
 #endif		/* SETVBUF_REVERSED */
 
-		if (getnameinfo((struct sockaddr *)&saddr, clen,
-			remotehost, sizeof(remotehost), NULL, 0, NULL) < 0)
-		{
-			/* too bad */
-			unsetenv("REMOTE_HOST");
-		}
-		else
-		{
-			remotehost[MAXHOSTNAMELEN-1] = '\0';
-			setenv("REMOTE_HOST", remotehost, 1);
-			setenv("REMOTE_ADDR", remotehost, 1);
-		}
 		if (!getnameinfo((struct sockaddr *)&saddr, clen,
 			remotehost, sizeof(remotehost), NULL, 0, NI_NUMERICHOST))
 		{
+			remotehost[MAXHOSTNAMELEN-1] = '\0';
 			setenv("REMOTE_ADDR", remotehost, 1);
+		}
+		/* This is especially for many broken Linux distro's
+		 * who don't understand what getnameinfo() does
+		 * Let's abuse getaddrinfo() instead...
+		 */
+		if (!strncmp(remotehost, "::ffff:", 7))
+		{
+			hints.ai_family = PF_INET;
+			hints.ai_flags = AI_CANONNAME;
+			if (!getaddrinfo(remotehost + 7, NULL, &hints, &res))
+			{
+				setenv("REMOTE_HOST", res->ai_canonname, 1);
+				freeaddrinfo(res);
+			}
+			/* Fake $REMOTE_ADDR because most people don't
+			 * (want to) understand ::ffff: adresses.
+			 */
+			unsetenv("REMOTE_ADDR");
+			setenv("REMOTE_ADDR", remotehost + 7, 1);
+		}
+		else if (!getnameinfo((struct sockaddr *)&saddr, clen,
+			remotehost, sizeof(remotehost), NULL, 0, 0))
+		{
+			remotehost[MAXHOSTNAMELEN-1] = '\0';
+			setenv("REMOTE_HOST", remotehost, 1);
 		}
 #ifdef		HANDLE_SSL
 		if (do_ssl) {
