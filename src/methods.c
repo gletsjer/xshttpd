@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.100 2004/03/25 22:15:57 johans Exp $ */
+/* $Id: methods.c,v 1.101 2004/04/01 09:45:46 johans Exp $ */
 
 #include	"config.h"
 
@@ -697,7 +697,7 @@ do_get DECL1(char *, params)
 	currentdir[XS_PATH_MAX-1] = '\0';
 
 	if ((!*file) && (wasdir))
-		filename = INDEX_HTML;
+		strcat(real_path, filename = INDEX_HTML);
 	else
 		filename = file;
 
@@ -991,11 +991,14 @@ do_get DECL1(char *, params)
 		*temp = '\0';
 	if (!strcmp(filename, INDEX_HTML) && strcmp(INDEX_HTML, INDEX_HTML_2))
 	{
-		filename = INDEX_HTML_2;
+		strcpy(real_path + strlen(real_path) - strlen(INDEX_HTML),
+			filename = INDEX_HTML_2);
 	}
 	else if (!strcmp(filename, INDEX_HTML_2) &&
 			strcmp(INDEX_HTML_2, INDEX_HTML_3))
 	{
+		strcpy(real_path + strlen(real_path) - strlen(INDEX_HTML_2),
+			filename = INDEX_HTML_3);
 		filename = INDEX_HTML_3;
 		snprintf(file, XS_PATH_MAX, "/%s", INDEX_HTML_3);
 	}
@@ -1007,6 +1010,11 @@ do_get DECL1(char *, params)
 	}
 
 	/* add original arguments back to real_path */
+	if (question)
+	{
+		strcat(real_path, "?");
+		strcat(real_path, question + 1);
+	}
 	params = real_path;
 	wasdir = 0;
 	goto RETRY;

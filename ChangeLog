@@ -1,6 +1,10 @@
 This file is probably out of date. However the manual pages should
 be (mostly) accurate. For a list of changes, please see cvs comments.
 
+Changes since 3.2 beta 26
+- Undo change in beta 25 which would lead to different counters being
+  used for 'path/' and 'path/index.html'
+
 Changes since 3.2 beta 25
 - <!--#last-modified--> now looks at the original URL
 - Original URL is kept in $ORIG_PATH_INFO and $ORIG_PATH_TRANSLATED
