@@ -909,7 +909,7 @@ do_get DECL1(char *, params)
 	for (isearch = litype ? litype : itype; isearch; isearch = isearch->next)
 	{
 		size = strlen(isearch->ext);
-		if ((temp = strstr(file, isearch->ext)) &&
+		if ((temp = strstr(filename, isearch->ext)) &&
 			strlen(temp) == strlen(isearch->ext))
 		{
 			if (!strcmp(isearch->prog, "internal:404"))
@@ -920,9 +920,9 @@ do_get DECL1(char *, params)
 				break;
 			}
 			else if (!strcmp(isearch->prog, "internal:exec"))
-				do_script(params, base, file, NULL, headers);
+				do_script(params, base, filename, NULL, headers);
 			else
-				do_script(params, base, file, isearch->prog, headers);
+				do_script(params, base, filename, isearch->prog, headers);
 			return;
 		}
 		/* hack to browse global itype after local litype */
