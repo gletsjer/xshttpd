@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: local.c,v 1.9 2003/12/27 19:53:22 johans Exp $ */
+/* $Id: local.c,v 1.10 2004/09/22 17:17:49 johans Exp $ */
 
 
 #include	"config.h"
@@ -31,22 +31,28 @@ transform_user_dir DECL3_C_(char *, base, struct passwd *, userinfo,
 			int, errors)
 {
 #ifdef		BUILD_HTTPD
-	switch(config.localmode)
-#else		/* BUILD_HTTPD */
-	switch(localmode)
-#endif		/* BUILD_HTTPD */
+	char		*userpos;
+
+	userpos = strstr(config.users->htmldir, "%u");
+
+	if (userpos)
 	{
-	case 1:
-		return(transform_user_dir1(base, userinfo, errors));
-	case 2:
-		return(transform_user_dir2(base, userinfo, errors));
-	case 3:
-		return(transform_user_dir3(base, userinfo, errors));
-	default:
-		if (errors)
-			error("500 Invalid localmode setting");
-		return(1);
+		int	len = userpos - config.users->htmldir;
+		snprintf(base, XS_PATH_MAX, "%*.*s%s%s",
+			len, len, config.users->htmldir,
+			userinfo->pw_name,
+			userpos + 2);
 	}
+	else
+		strncpy(base, config.users->htmldir, XS_PATH_MAX);
+
+	if (base[0] != '/')
+		snprintf(base, XS_PATH_MAX, "%s/%s",
+			userinfo->pw_dir,
+			base);
+#else		/* BUILD_HTTPD */
+	sprintf(base, "%s/%s/", userinfo->pw_dir, HTTPD_USERDOC_ROOT);
+#endif		/* BUILD_HTTPD */
 }
 
 static	int
