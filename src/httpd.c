@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.124 2004/02/22 14:41:49 johans Exp $ */
+/* $Id: httpd.c,v 1.125 2004/02/22 15:11:17 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.124 2004/02/22 14:41:49 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.125 2004/02/22 15:11:17 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -239,6 +239,7 @@ term_handler DECL1(int, sig)
 		fprintf(stderr, "[%s] Received signal %d, shutting down...\n",
 			currenttime, sig);
 		fflush(stderr);
+		close(sd);
 		mainhttpd = 0;
 		killpg(0, SIGTERM);
 	}
@@ -1008,7 +1009,9 @@ server_error DECL2CC(char *, readable, char *, cgi)
 		free(escaped);
 	env = getenv("QUERY_STRING");
 	/* Look for user-defined error script */
-	if (current == config.users && (userinfo = getpwuid(geteuid())))
+	if (current == config.users &&
+		(userinfo = getpwuid(geteuid())) &&
+		userinfo->pw_uid)
 	{
 		char	base[XS_PATH_MAX];
 		(void) transform_user_dir(base, userinfo, 1);
