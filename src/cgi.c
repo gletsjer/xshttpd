@@ -87,7 +87,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				inbuf[MYBUFSIZ], *temp, name[XS_PATH_MAX], *nextslash,
 				tempbuf[XS_PATH_MAX + 32];
 	const	char		*file, *argv1, *header;
-	int			p[2], q[2], nph, count, nouid, was_slash;
+	int			p[2], q[2], nph, count, nouid, was_slash, ssl_post = 0;
 	unsigned	int	left;
 	struct	rlimit		limits;
 	const	struct	passwd	*userinfo;
@@ -382,7 +382,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 #endif		/* DONT_USE_SETRLIMIT */
 #ifdef		HANDLE_SSL
 		/* Posting via SSL takes a lot of extra work */
-		if (do_ssl && !strcmp("POST", getenv("REQUEST_METHOD")))
+		if (do_ssl && (ssl_post = !strcmp("POST", getenv("REQUEST_METHOD"))))
 		{
 			int readerror;
 			writetodo = atoi(getenv("CONTENT_LENGTH"));
@@ -491,14 +491,17 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		exit(1);
 	default:
 		close(p[1]);
-		close(q[1]);
+#ifdef		HANDLE_SSL
+		if (ssl_post)
+			close(q[1]);
+#endif		/* HANDLE_SSL */
 		break;
 	}
 	if (nph)
 		exit(0);
 
-	status[0] = contenttype[0] = location[0] = cachecontrol[0] = 0;
-	cookie[0] = netbufind = netbufsiz = 0; readlinemode = 1;
+	status[0] = contenttype[0] = location[0] = cachecontrol[0] = cookie[0] = 0;
+	netbufind = netbufsiz = 0; readlinemode = 1;
 	if (!nph)
 	{
 		while (1)
@@ -694,7 +697,12 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	}
 	END:
 	close(p[0]); close(p[1]); fflush(stdout);
-	close(q[0]); close(q[1]);
+#ifdef		HANDLE_SSL
+	if (ssl_post)
+	{
+		close(q[0]); close(q[1]);
+	}
+#endif		/* HANDLE_SSL */
 	if (!origeuid)
 	{
 		seteuid(origeuid); setegid(savedegid); seteuid(savedeuid);

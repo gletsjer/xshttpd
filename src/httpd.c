@@ -761,8 +761,8 @@ readline DECL2(int, sd, char *, buf)
 				{
 					mysleep(1); goto TRYAGAIN;
 				}
-				fprintf(stderr, "[%s] httpd: readline(): %s\n",
-					currenttime, strerror(errno));
+				fprintf(stderr, "[%s] httpd: readline(): %s [%d]\n",
+					currenttime, strerror(errno), sd);
 				if (sd == 0)
 					error("503 Unexpected network error");
 				return(ERR_QUIT);
