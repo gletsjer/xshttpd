@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.153 2004/11/26 17:17:27 johans Exp $ */
+/* $Id: httpd.c,v 1.154 2004/11/26 17:45:17 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.153 2004/11/26 17:17:27 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.154 2004/11/26 17:45:17 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1985,11 +1985,6 @@ main(int argc, char **argv, char **envp)
 	origeuid = geteuid(); origegid = getegid();
 	memset(&config, 0, sizeof config);
 
-#ifdef		HAVE_SETPRIORITY
-	if (setpriority(PRIO_PROCESS, (pid_t)0, config.priority))
-		warn("setpriority");
-#endif		/* HAVE_SETPRIORITY */
-
 	for (num = option = 0; option < argc; option++)
 		num += (1 + strlen(argv[option]));
 	if (!(startparams = (char *)malloc(num)))
@@ -2090,6 +2085,11 @@ main(int argc, char **argv, char **envp)
 		}
 	}
 	load_config();
+
+#ifdef		HAVE_SETPRIORITY
+	if (setpriority(PRIO_PROCESS, (pid_t)0, config.priority))
+		warn("setpriority");
+#endif		/* HAVE_SETPRIORITY */
 
 	/* Explicity set these, overriding default or implicit setting */
 #define	SET_OPTION(option, config) \
