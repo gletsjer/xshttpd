@@ -136,11 +136,24 @@ senduncompressed DECL1(int, fd)
 	if (headers)
 	{
 		char *env;
+		int	dynamic = 0;
+
+#ifdef		WANT_SSI
+		if (headonly && getfiletype(0))
+		{
+			errval = sendwithdirectives(fd, &size, 1);
+			close(fd);
+			if (errval == ERR_QUIT)
+				dynamic = 1;
+		}
+#else		/* WANT_SSI */
+		getfiletype(1);
+#endif		/* WANT_SSI */
 		if ((env = getenv("IF_MODIFIED_SINCE")))
 		{
 			struct tm reqtime;
 			strptime(env, "%a, %d %b %Y %T", &reqtime);
-			if (mktime(&reqtime) > modtime)
+			if (!dynamic && mktime(&reqtime) > modtime)
 			{
 				headonly = 1;
 				printf("%s 304 Not modified\r\n", version);
@@ -152,7 +165,7 @@ senduncompressed DECL1(int, fd)
 		{
 			struct tm reqtime;
 			strptime(env, "%a, %d %b %Y %T", &reqtime);
-			if (mktime(&reqtime) > modtime)
+			if (dynamic || mktime(&reqtime) > modtime)
 			{
 				server_error("412 Precondition failed", "PRECONDITION_FAILED");
 				close(fd);
@@ -164,6 +177,13 @@ senduncompressed DECL1(int, fd)
 		else
 			printf("%s 200 OK\r\n", version);
 		stdheaders(0, 0, 0);
+		if (dynamic)
+		{
+			if (headers >= 11)
+				printf("Cache-control: no-cache\r\n");
+			else
+				printf("Pragma: no-cache\r\n");
+		}
 
 #ifndef		WANT_SSI
 		getfiletype(1);
@@ -252,7 +272,7 @@ senduncompressed DECL1(int, fd)
 	{
 		size = 0;
 		alarm((size / MINBYTESPERSEC) + 60);
-		errval = sendwithdirectives(fd, &size);
+		errval = sendwithdirectives(fd, &size, 0);
 		close(fd);
 		switch(errval)
 		{

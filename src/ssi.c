@@ -80,7 +80,7 @@ static	int	parsedirectives		PROTO((char *, size_t *));
 static	int	sendwithdirectives_internal PROTO((int, size_t *));
 #endif		/* NOFORWARDS */
 
-static	int	ssioutput, cnt_readbefore, numincludes;
+static	int	ssioutput, cnt_readbefore, numincludes, silent;
 static	char	ssiarray[16];
 static	int	switchlen;
 static	char	*switchstr;
@@ -824,6 +824,8 @@ print_enabled DECL0
 	int		count, output;
 
 	output = 1;
+	if (silent)
+		return 0;
 	for (count = 0; count <= ssioutput; count++)
 		if (!ssiarray[count])
 			output = 0;
@@ -942,6 +944,8 @@ sendwithdirectives_internal DECL2(int, fd, size_t *, size)
 			}
 		} else
 		{
+			if (silent)
+				return(ERR_QUIT);
 			if (parsedirectives(input, size) == ERR_QUIT)
 			{
 				alarm(0); fclose(parse);
@@ -955,9 +959,10 @@ sendwithdirectives_internal DECL2(int, fd, size_t *, size)
 }
 
 extern	int
-sendwithdirectives DECL2(int, fd, size_t *, size)
+sendwithdirectives DECL3(int, fd, size_t *, size, int, besilent)
 {
 	ssioutput = 0; ssiarray[0] = 1; cnt_readbefore = numincludes = 0;
+	silent = besilent;
 	return(sendwithdirectives_internal(fd, size));
 }
 
