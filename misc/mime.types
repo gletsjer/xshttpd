@@ -5,6 +5,7 @@ text/html			htm
 text/html			php3
 text/html			php
 text/css			css
+image/bmp			bmp
 image/gif			gif
 image/jpeg			jpg
 image/jpeg			jpeg
@@ -35,7 +36,7 @@ application/x-latex		latex
 application/x-netcdf		nc
 application/x-netcdf		cdf
 application/x-sh		sh
-application/x-shockwave-flash		swf
+application/x-shockwave-flash	swf
 application/x-tcl		tcl
 application/x-tex		tex
 application/x-texinfo		texinfo
@@ -68,6 +69,7 @@ audio/x-aiff			aiff
 audio/x-aiff			aifc
 audio/x-mpeg			mp2
 audio/x-mpeg			mp3
+audio/x-ogg			ogg
 audio/x-wav			wav
 image/x-cmu-raster		ras
 image/x-portable-anymap		pnm
@@ -91,6 +93,6 @@ video/x-sgi-movie		movie
 x-conference/x-cooltalk		ice
 text/vnd.wap.wml		wml
 image/vnd.wap.wbmp		wbmp
-application/vnd.wap.wmlc		wmlc
+application/vnd.wap.wmlc	wmlc
 text/vnd.wap.wmlscript		wmls
-application/vnd.wap.wmlscriptc		wmlsc
+application/vnd.wap.wmlscriptc	wmlsc
