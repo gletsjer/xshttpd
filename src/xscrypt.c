@@ -3,7 +3,6 @@
 #include	"config.h"
 
 #include	<unistd.h>
-#include	<string.h>
 #ifdef		HAVE_CRYPT_H
 #include	<crypt.h>
 #endif		/* HAVE_CRYPT_H */
@@ -11,7 +10,7 @@
 #include	"xscrypt.h"
 
 extern	char *
-xs_encrypt DECL1(char *, buffer)
+xs_encrypt DECL1C(char *, buffer)
 {
 #ifdef		HAVE_CRYPT
 	/* If you don't have a crypt() function, use plain-text pwd storage */

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.6 2002/12/23 15:07:58 johans Exp $ */
+/* $Id: httpdc.c,v 1.7 2003/01/31 13:39:53 johans Exp $ */
 
 #include	"config.h"
 
@@ -35,6 +35,10 @@ typedef	struct
 static	pid_t	httpdpid;
 static	char	startparams[BUFSIZ];
 char		rootdir[XS_PATH_MAX];
+
+#include <htconfig.h>
+struct virtual			*current;
+struct configuration	config;
 
 #ifndef		NOFORWARDS
 static	VOID	cmd_help	PROTO((const char *));

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: extra.c,v 1.10 2002/01/23 16:43:23 johans Exp $ */
+/* $Id: extra.c,v 1.11 2003/01/31 13:39:53 johans Exp $ */
 
 #include	"config.h"
 
@@ -7,9 +7,6 @@
 #ifdef		HAVE_SYS_TIME_H
 #include	<sys/time.h>
 #endif		/* HAVE_SYS_TIME_H */
-#ifdef		HAVE_SYS_SYSLIMITS_H
-#include	<sys/syslimits.h>
-#endif		/* HAVE_SYS_SYSLIMITS_H */
 #ifdef		HAVE_TIME_H
 #ifdef		TIME_WITH_SYS_TIME
 #include	<time.h>

@@ -1,7 +1,7 @@
 #include <sys/types.h>
 #include <pwd.h>
 
-struct virtual {
+extern struct virtual {
 	char *		hostname;
 	char *		htmldir;
 	char *		execdir;
@@ -17,7 +17,7 @@ struct virtual {
 	struct virtual *	next;
 } *current;
 
-struct configuration {
+extern struct configuration {
 	char *		systemroot;
 	char *		address;
 	char *		port;

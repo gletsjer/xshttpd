@@ -1,5 +1,5 @@
 #include	"config.h"
-/* $Id: error.c,v 1.8 2001/05/22 12:19:29 johans Exp $ */
+/* $Id: error.c,v 1.9 2003/01/31 13:39:53 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -13,6 +13,10 @@
 #include	"setenv.h"
 #include	"path.h"
 #include	"mystring.h"
+
+#include <htconfig.h>
+struct virtual			*current;
+struct configuration	config;
 
 #ifndef		NOFORWARDS
 extern	VOID	error			PROTO((const char *));

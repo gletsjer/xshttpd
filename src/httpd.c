@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.104 2003/01/27 13:15:14 johans Exp $ */
+/* $Id: httpd.c,v 1.105 2003/01/31 13:39:53 johans Exp $ */
 
 #include	"config.h"
 
@@ -75,9 +75,7 @@
 
 #include	"httpd.h"
 #include	"methods.h"
-#include	"local.h"
 #include	"procname.h"
-#include	"ssi.h"
 #include	"extra.h"
 #include	"cgi.h"
 #include	"xscrypt.h"
@@ -101,30 +99,32 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.104 2003/01/27 13:15:14 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.105 2003/01/31 13:39:53 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
 
 int		headers, netbufind, netbufsiz, readlinemode,
-		headonly, postonly, forcehost;
+		headonly, postonly;
 static	int	sd, reqs, mainhttpd = 1;
 gid_t		origegid;
 uid_t		origeuid;
-char		netbuf[MYBUFSIZ], remotehost[NI_MAXHOST], orig[MYBUFSIZ],
+char		remotehost[NI_MAXHOST],
 		currenttime[80], dateformat[MYBUFSIZ], real_path[XS_PATH_MAX],
-		version[16], error_path[XS_PATH_MAX],
-		access_path[XS_PATH_MAX], refer_path[XS_PATH_MAX],
-		currentdir[XS_PATH_MAX], config_path[XS_PATH_MAX],
-		name[XS_PATH_MAX];
+		version[16], currentdir[XS_PATH_MAX], name[XS_PATH_MAX];
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[SENDBUFSIZE],
-		thisdomain[NI_MAXHOST], message503[MYBUFSIZ],
+		thisdomain[NI_MAXHOST], message503[MYBUFSIZ], orig[MYBUFSIZ],
+		refer_path[XS_PATH_MAX], config_path[XS_PATH_MAX],
+		error_path[XS_PATH_MAX], access_path[XS_PATH_MAX],
+		netbuf[MYBUFSIZ],
 		*startparams;
 time_t		modtime;
 #ifdef		HANDLE_SSL
-SSL_CTX	*ssl_ctx;
-SSL		*ssl;
+SSL_CTX			*ssl_ctx;
+static SSL		*ssl;
 #endif		/* HANDLE_SSL */
+struct virtual			*current;
+struct configuration	config;
 
 /* Static arrays */
 
@@ -153,6 +153,7 @@ static	int	hexdigit		PROTO((int));
 static	int	decode			PROTO((char *));
 
 static	VOID	uudecode		PROTO((char *));
+extern	char	*escape			PROTO((const char *));
 
 static	VOID	process_request		PROTO((void));
 
@@ -806,7 +807,7 @@ uudecode DECL1(char *, buffer)
 	bufin = buffer;
 	while (pr2six[(int)*(bufin++)] <= 63)
 		/* NOTHING HERE */;
-	nprbytes = bufin - buffer - 1;
+	nprbytes = (bufin - buffer) - 1;
 	nbytesdecoded = ((nprbytes + 3) / 4) * 3;
 	bufin = buffer;
 	while (nprbytes > 0)
@@ -1581,6 +1582,7 @@ standalone_main DECL0
 			}
 		}
 	}
+	free(childs);
 
 	CHILD:
 #ifndef		SETVBUF_REVERSED
@@ -1797,7 +1799,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	error_path[XS_PATH_MAX-1] = '\0';
 	refer_path[XS_PATH_MAX-1] = '\0';
 	config_path[XS_PATH_MAX-1] = '\0';
-	while ((option = getopt(argc, argv, "a:c:d:fg:l:m:n:p:r:su:A:R:E:v")) != EOF)
+	while ((option = getopt(argc, argv, "a:c:d:g:l:m:n:p:r:su:A:R:E:v")) != EOF)
 	{
 		switch(option)
 		{
@@ -1833,10 +1835,6 @@ main DECL3(int, argc, char **, argv, char **, envp)
 		case 'a':
 			strncpy(config.system->hostname, optarg, NI_MAXHOST);
 			config.system->hostname[NI_MAXHOST-1] = '\0';
-			break;
-		case 'f':
-			/* This breaks backwards compatibility with documentation */
-			forcehost = 1;
 			break;
 		case 'r':
 			strncpy(thisdomain, optarg, NI_MAXHOST);

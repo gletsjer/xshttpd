@@ -7,9 +7,6 @@
 #ifdef		HAVE_SYS_TIME_H
 #include	<sys/time.h>
 #endif		/* HAVE_SYS_TIME_H */
-#ifdef		HAVE_SYS_SYSLIMITS_H
-#include	<sys/syslimits.h>
-#endif		/* HAVE_SYS_SYSLIMITS_H */
 #include	<sys/types.h>
 #include	<sys/stat.h>
 #ifdef		HAVE_SYS_PARAM_H
@@ -39,7 +36,6 @@
 #include	"httpd.h"
 #include	"extra.h"
 #include	"local.h"
-#include	"cgi.h"
 #include	"path.h"
 #include	"convert.h"
 #include	"xscounter.h"

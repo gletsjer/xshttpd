@@ -24,9 +24,6 @@
 #ifdef		HAVE_SYS_PARAM_H
 #include	<sys/param.h>
 #endif		/* HAVE_SYS_PARAM_H */
-#ifdef		HAVE_SYS_SYSLIMITS_H
-#include	<sys/syslimits.h>
-#endif		/* HAVE_SYS_SYSLIMITS_H */
 
 #include	<netinet/in.h>
 
@@ -83,15 +80,10 @@
 #include	"cgi.h"
 #include	"xscrypt.h"
 #include	"path.h"
-#include	"convert.h"
 #include	"setenv.h"
 #include	"mygetopt.h"
 #include	"mystring.h"
 #include	"htconfig.h"
-
-#ifdef		__linux__
-extern	char	*tempnam(const char *, const char *);
-#endif		/* __linux__ */
 
 #ifdef		HANDLE_COMPRESSED
 #define		WANT_CTYPES	1
@@ -99,6 +91,15 @@ extern	char	*tempnam(const char *, const char *);
 #ifdef		HANDLE_SCRIPT
 #define		WANT_CTYPES	1
 #endif		/* HANDLE_SCRIPT */
+
+#ifndef		NOFORWARDS
+static int	getfiletype		PROTO((int));
+static int	allowxs			PROTO((const char *));
+static VOID	senduncompressed	PROTO((int));
+#ifdef		HANDLE_COMPRESSED
+static VOID	sendcompressed		PROTO((int, const char *));
+#endif		/* HANDLE_COMPRESSED */
+#endif		/* NOFORWARDS */
 
 /* Global structures */
 
@@ -1094,7 +1095,8 @@ loadcompresstypes DECL0
 extern	VOID
 loadscripttypes PROTO((char *base))
 {
-	char		line[MYBUFSIZ], *end, *comment, *path = NULL;
+	char		line[MYBUFSIZ], *end, *comment;
+	const char	*path = NULL;
 	FILE		*methods;
 	ctypes		*prev, *new;
 

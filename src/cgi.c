@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.75 2003/01/22 19:55:36 johans Exp $ */
+/* $Id: cgi.c,v 1.76 2003/01/31 13:39:53 johans Exp $ */
 
 #include	"config.h"
 
@@ -51,8 +51,6 @@
 #include	"ssi.h"
 #include	"cgi.h"
 #include	"extra.h"
-#include	"path.h"
-#include	"convert.h"
 #include	"setenv.h"
 #include	"htconfig.h"
 
@@ -64,7 +62,7 @@ static	VOID	time_is_up		PROTO((int));
 const	char *	perlargs[] = { "", NULL };
 #endif		/* HANDLE_PERL */
 
-pid_t			child;
+static pid_t			child;
 
 
 static	const	char	*
