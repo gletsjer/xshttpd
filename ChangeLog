@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.2 beta 33
+- Last socket instance might have wrong settings
+
 Changes since 3.2 beta 32
 - Fix a bug in naming logfiles (this broke httpdc reload)
 - Prepare for DIGEST-MD5 support (not implemented yet)

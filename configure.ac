@@ -98,7 +98,7 @@ then
 	fi
 fi
 
-AC_SHOW_HELP([--enable options (default in brackets):])
+# AC_SHOW_HELP([--enable options], [default in brackets:])
 AC_ARG_DEFAULT(ssi, WANT_SSI, yes,
 	[enable server-side includes])
 AC_ARG_DEFAULT(ipv6, INET6, yes,
@@ -122,7 +122,7 @@ then
 	AC_ARG_DEFAULT(setrlimit, USE_SETRLIMIT, yes,
 		[enable resource limits for CGI scripts])
 fi
-AC_SHOW_HELP(--enable options (disabled by default):)
+# AC_SHOW_HELP([--enable options], [disabled by default:])
 AC_ARG_DEFAULT(perl, HANDLE_PERL, no,
 	[enable persistent perl interpreter])
 AC_ARG_DEFAULT(warnings, DUMMY, no,
@@ -169,16 +169,16 @@ AC_SUBST(docdir)
 AC_SUBST(logdir)
 
 AC_MSG_CHECKING(for local domain)
-hostname=`( hostname || cat /etc/HOSTNAME ) 2> /dev/null`
+hostname=$( ( hostname || cat /etc/HOSTNAME ) 2> /dev/null )
 if test x$hostname = x -o x$hostname = x${hostname#*.}
 then
 	domain=".stack.nl"
 else
 	domain=".${hostname#*.}"
 fi
+AC_MSG_RESULT($domain)
 AC_DEFINE_UNQUOTED(THISDOMAIN, "$domain",
 	[The name of your domain, including leading dot. This is used to strip out referrers from your own site.])
-AC_MSG_RESULT($domain)
 
 AC_SUBST(AC_LIBOBJ)
 AC_SUBST(ldcrypt)
