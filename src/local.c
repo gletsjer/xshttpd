@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: local.c,v 1.12 2004/09/22 18:30:17 johans Exp $ */
+/* $Id: local.c,v 1.13 2004/11/26 16:45:09 johans Exp $ */
 
 
 #include	"config.h"
@@ -18,8 +18,7 @@
 #endif		/* BUILD_HTTPD */
 
 extern	int
-transform_user_dir DECL3_C_(char *, base, struct passwd *, userinfo,
-			int, errors)
+transform_user_dir(char *base, const struct passwd *userinfo, int errors)
 {
 #ifdef		BUILD_HTTPD
 	char		*userpos;

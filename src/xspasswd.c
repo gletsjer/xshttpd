@@ -16,7 +16,7 @@
 #include	"mystring.h"
 
 extern	int
-main DECL2(int, argc, char **, argv)
+main(int argc, char **argv)
 {
 	char		*pwd, username[32], passbak[32], total[66],
 			line[BUFSIZ], newfile[XS_PATH_MAX];

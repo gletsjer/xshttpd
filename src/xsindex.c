@@ -30,15 +30,15 @@ static	char	mimefile[XS_PATH_MAX];
 static	mime	*mimes;
 
 #ifndef		NOFORWARDS
-static	VOID	usage			PROTO((void));
-static	VOID	loadmime		PROTO((const char *));
+static	void	usage			PROTO((void));
+static	void	loadmime		PROTO((const char *));
 static	const	char	*encode		PROTO((const char *));
 static	const	char	*neatsize	PROTO((long));
 static	const	mime	*findmime	PROTO((const char *));
 #endif		/* NOFORWARDS */
 
-static	VOID
-usage DECL0
+static	void
+usage()
 {
 	fprintf(stderr,
 		"Usage: xsindex [-b] [-f] [-m mimefile] [-s] [-t number] title\n");
@@ -57,8 +57,8 @@ usage DECL0
 	fprintf(stderr, "                Use \"'s if it's more than one word\n");
 }
 
-static	VOID
-loadmime DECL1C(char *, name)
+static	void
+loadmime(const char *name)
 {
 	FILE		*input;
 	char		buffer[BUFSIZ], *end;
@@ -92,7 +92,7 @@ loadmime DECL1C(char *, name)
 }
 
 static	const	char	*
-encode DECL1C(char *, what)
+encode(const char *what)
 {
 	static	char	buffer[BUFSIZ], *put;
 
@@ -123,7 +123,7 @@ encode DECL1C(char *, what)
 }
 
 static	const	char	*
-neatsize DECL1(long, size)
+neatsize(long size)
 {
 	long		temp;
 	static	char	buffer1[BUFSIZ];
@@ -148,7 +148,7 @@ neatsize DECL1(long, size)
 }
 
 static	const	mime	*
-findmime DECL1C(char *, ext)
+findmime(const char *ext)
 {
 	const	mime	*search;
 	const	char	*end;
@@ -177,7 +177,7 @@ findmime DECL1C(char *, ext)
 }
 
 extern	int
-main DECL2(int, argc, char **, argv)
+main(int argc, char **argv)
 {
 	int			option, amount, count;
 	char			**listing, buffer[BUFSIZ];

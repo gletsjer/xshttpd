@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.116 2004/11/23 19:59:11 johans Exp $ */
+/* $Id: methods.c,v 1.117 2004/11/26 16:45:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -103,8 +103,8 @@ static int	getfiletype		PROTO((int));
 static int	v6masktonum		PROTO((int, struct in6_addr *));
 #endif	/* INET6 */
 static int	allowxs			PROTO((FILE *));
-static VOID	senduncompressed	PROTO((int));
-static VOID	sendcompressed		PROTO((int, const char *));
+static void	senduncompressed	PROTO((int));
+static void	sendcompressed		PROTO((int, const char *));
 static FILE *	find_file		PROTO((const char *, const char *, const char *));
 #endif		/* NOFORWARDS */
 
@@ -130,8 +130,8 @@ static	char	charset[XS_PATH_MAX];
 static	PerlInterpreter *	perl = NULL;
 #endif		/* HANDLE_PERL */
 
-extern	VOID
-senduncompressed DECL1(int, fd)
+extern	void
+senduncompressed(int fd)
 {
 #ifdef		WANT_SSI
 	int		errval, html;
@@ -334,8 +334,8 @@ senduncompressed DECL1(int, fd)
 	close(fd);
 }
 
-extern	VOID
-sendcompressed DECL2_C(int, fd, char *, method)
+extern	void
+sendcompressed(int fd, const char *method)
 {
 	pid_t		pid;
 	int		count, processed;
@@ -428,7 +428,7 @@ sendcompressed DECL2_C(int, fd, char *, method)
 
 #ifdef		INET6
 static	int
-v6masktonum	DECL2(int, mask, struct in6_addr *, addr6)
+v6masktonum(int mask, struct in6_addr *addr6)
 {
 	int		x, y, z;
 
@@ -453,7 +453,7 @@ v6masktonum	DECL2(int, mask, struct in6_addr *, addr6)
 #endif		/* INET6 */
 
 extern	int
-allowxs DECL1(FILE *, rfile)
+allowxs(FILE *rfile)
 {
 	char	*remoteaddr, *slash;
 	char	allowhost[256];
@@ -550,7 +550,7 @@ allowxs DECL1(FILE *, rfile)
 }
 
 static	FILE	*
-find_file DECL3CCC(char *, orgbase, char *, base, char *, file)
+find_file(const char *orgbase, const char *base, const char *file)
 {
 	char		path[XS_PATH_MAX], *p;
 	FILE		*fd;
@@ -573,8 +573,8 @@ find_file DECL3CCC(char *, orgbase, char *, base, char *, file)
 	return NULL;
 }
 
-extern	VOID
-do_get DECL1(char *, params)
+extern	void
+do_get(char *params)
 {
 	char			*temp, *file, *cgi, *question,
 			base[XS_PATH_MAX], orgbase[XS_PATH_MAX],
@@ -1102,22 +1102,22 @@ do_get DECL1(char *, params)
 	goto RETRY;
 }
 
-extern	VOID
-do_post DECL1(char *, params)
+extern	void
+do_post(char *params)
 {
 	postonly = 1;
 	do_get(params);
 }
 
-extern	VOID
-do_head DECL1(char *, params)
+extern	void
+do_head(char *params)
 {
 	headonly = 1;
 	do_get(params);
 }
 
-extern	VOID
-do_options DECL1C(char *, params)
+extern	void
+do_options(const char *params)
 {
 	secprintf("%s 200 OK\r\n", version);
 	stdheaders(0, 0, 0);
@@ -1126,8 +1126,8 @@ do_options DECL1C(char *, params)
 	(void)params;
 }
 
-extern	VOID
-loadfiletypes DECL2(char *, orgbase, char *, base)
+extern	void
+loadfiletypes(char *orgbase, char *base)
 {
 	char		line[MYBUFSIZ], *end, *comment;
 	char		*mimepath;
@@ -1187,8 +1187,8 @@ loadfiletypes DECL2(char *, orgbase, char *, base)
 	fclose(mime);
 }
 
-extern	VOID
-loadcompresstypes DECL0
+extern	void
+loadcompresstypes()
 {
 	char		line[MYBUFSIZ], *end, *comment;
 	const	char	*path;
@@ -1227,8 +1227,8 @@ loadcompresstypes DECL0
 	fclose(methods);
 }
 
-extern	VOID
-loadscripttypes DECL2(char *, orgbase, char *, base)
+extern	void
+loadscripttypes(char *orgbase, char *base)
 {
 	char		line[MYBUFSIZ], *end, *comment, *path;
 	FILE		*methods;
@@ -1288,8 +1288,8 @@ loadscripttypes DECL2(char *, orgbase, char *, base)
 }
 
 #ifdef		HANDLE_SSL
-extern	VOID
-loadssl	DECL0
+extern	void
+loadssl()
 {
 	if (config.usessl) {
 		SSLeay_add_all_algorithms();
@@ -1311,8 +1311,8 @@ loadssl	DECL0
 #endif		/* HANDLE_SSL */
 
 #ifdef		HANDLE_PERL
-extern	VOID
-loadperl	DECL0
+extern	void
+loadperl()
 {
 	const char *embedding[] = { "", HTTPD_ROOT "/persistent.pl" };
 	int exitstatus = 0;
@@ -1330,7 +1330,7 @@ loadperl	DECL0
 #endif		/* HANDLE_PERL */
 
 extern	int
-getfiletype DECL1(int, print)
+getfiletype(int print)
 {
 	const	ftypes	*search;
 	const	char	*ext;

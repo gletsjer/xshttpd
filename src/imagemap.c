@@ -15,7 +15,7 @@
 
 	This version by Sven Berkvens (sven@stack.nl).
 */
-/* $Id: imagemap.c,v 1.5 2001/05/22 12:19:30 johans Exp $ */
+/* $Id: imagemap.c,v 1.6 2004/11/26 16:45:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -34,17 +34,17 @@
 
 #ifndef		NOFORWARDS
 static	int	isname			PROTO((int));
-static	VOID	servererr		PROTO((const char *));
+static	void	servererr		PROTO((const char *));
 static	int	pointinpoly		PROTO((void));
 static	int	pointincircle		PROTO((void));
 static	int	pointinrect		PROTO((void));
-static	VOID	sendmesg		PROTO((const char *));
+static	void	sendmesg		PROTO((const char *));
 #endif		/* NOFORWARDS */
 
 static	double	testpoint[2], pointarray[MAXVERTS][2];
 
 extern	int
-main DECL2(int, argc, char **, argv)
+main(int argc, char **argv)
 {
 	char		input[MYBUFSIZ], *mapname, def[MYBUFSIZ],
 			errstr[MYBUFSIZ], *t, mapname2[MYBUFSIZ];
@@ -175,8 +175,8 @@ main DECL2(int, argc, char **, argv)
 	return(0);
 }
 
-static	VOID
-sendmesg DECL1C(char *, url)
+static	void
+sendmesg(const char *url)
 {
 	printf("Location: %s\nContent-type: text/html\n\n", url);
 	printf("<HTML><HEAD><TITLE>Moved</TITLE></HEAD><BODY><H1>Moved</H1>\n");
@@ -186,7 +186,7 @@ sendmesg DECL1C(char *, url)
 }
 
 static	int
-pointinrect DECL0
+pointinrect()
 {
 	return ((testpoint[X] >= pointarray[0][X]) &&
 		(testpoint[X] <= pointarray[1][X]) &&
@@ -195,7 +195,7 @@ pointinrect DECL0
 }
 
 static	int
-pointincircle DECL0
+pointincircle()
 {
 	int		radius1, radius2;
 
@@ -211,7 +211,7 @@ pointincircle DECL0
 }
 
 static	int
-pointinpoly DECL0
+pointinpoly()
 {
 	int		i, numverts, xflag0, crossings;
 	double		*p, *stop, tx, ty, y;
@@ -279,8 +279,8 @@ pointinpoly DECL0
 	return(crossings & 1);
 }
 
-static	VOID
-servererr DECL1C(char *, msg)
+static	void
+servererr(const char *msg)
 {
 	printf("Content-type: text/html\n\n");
 	printf("<HTML><HEAD><TITLE>Mapping server error</TITLE></HEAD>\n");
@@ -292,7 +292,7 @@ servererr DECL1C(char *, msg)
 }
 
 static	int
-isname DECL1(int, c)
+isname(int c)
 {
 	return(!isspace(c));
 }

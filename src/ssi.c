@@ -92,7 +92,7 @@ static	char	*switchstr;
 #define		MODE_RESET	6
 
 static	int
-xsc_initdummy DECL0
+xsc_initdummy()
 {
 	int		fd;
 	countstr	dummy;
@@ -129,7 +129,7 @@ xsc_initdummy DECL0
 }
 
 static	int
-xsc_initcounter DECL1C(char *, filename)
+xsc_initcounter(const char *filename)
 {
 	int		fd, fd2, done;
 	countstr	counter, counter2;
@@ -198,7 +198,7 @@ xsc_initcounter DECL1C(char *, filename)
 }
 
 static	int
-xsc_counter DECL2_C(int, mode, char *, args)
+xsc_counter(int mode, const char *args)
 {
 	char			counterfile[XS_PATH_MAX], host[XS_PATH_MAX];
 	const	char		*lockfile;
@@ -353,7 +353,7 @@ ALREADY:
 }
 
 static	int
-call_counter DECL2_C(int, mode, char *, args)
+call_counter(int mode, const char *args)
 {
 	int		ret;
 	uid_t		savedeuid = -1;
@@ -388,7 +388,7 @@ call_counter DECL2_C(int, mode, char *, args)
 }
 
 static	int
-dir_count_total DECL2(char *, here, size_t *, size)
+dir_count_total(char *here, size_t *size)
 {
 	(void)here;
 	(void)size;
@@ -396,14 +396,14 @@ dir_count_total DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_count_total_gfx DECL2(char *, here, size_t *, size)
+dir_count_total_gfx(char *here, size_t *size)
 {
 	(void)size;
 	return(call_counter(MODE_GFX_ALL, here));
 }
 
 static	int
-dir_count_today DECL2(char *, here, size_t *, size)
+dir_count_today(char *here, size_t *size)
 {
 	(void)here;
 	(void)size;
@@ -411,14 +411,14 @@ dir_count_today DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_count_today_gfx DECL2(char *, here, size_t *, size)
+dir_count_today_gfx(char *here, size_t *size)
 {
 	(void)size;
 	return(call_counter(MODE_GFX_TODAY, here));
 }
 
 static	int
-dir_count_month DECL2(char *, here, size_t *, size)
+dir_count_month(char *here, size_t *size)
 {
 	(void)here;
 	(void)size;
@@ -426,21 +426,21 @@ dir_count_month DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_count_month_gfx DECL2(char *, here, size_t *, size)
+dir_count_month_gfx(char *here, size_t *size)
 {
 	(void)size;
 	return(call_counter(MODE_GFX_MONTH, here));
 }
 
 static	int
-dir_count_reset DECL2(char *, here, size_t *, size)
+dir_count_reset(char *here, size_t *size)
 {
 	(void)size;
 	return(call_counter(MODE_RESET, here));
 }
 
 static	int
-dir_date_format DECL2(char *, here, size_t *, size)
+dir_date_format(char *here, size_t *size)
 {
 	char		*search;
 
@@ -464,7 +464,7 @@ dir_date_format DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_date DECL2(char *, here, size_t *, size)
+dir_date(char *here, size_t *size)
 {
 	char		buffer[MYBUFSIZ];
 	time_t		theclock;
@@ -477,7 +477,7 @@ dir_date DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_include_file DECL2(char *, here, size_t *, size)
+dir_include_file(char *here, size_t *size)
 {
 	int		fd, ret;
 	const	char	*path;
@@ -526,7 +526,7 @@ dir_include_file DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_last_mod DECL2(char *, here, size_t *, size)
+dir_last_mod(char *here, size_t *size)
 {
 	const	char	*path;
 	char		*search, buffer[MYBUFSIZ];
@@ -566,7 +566,7 @@ dir_last_mod DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_remote_host DECL2(char *, here, size_t *, size)
+dir_remote_host(char *here, size_t *size)
 {
 	*size += strlen(remotehost);
 	(void)here;
@@ -574,7 +574,7 @@ dir_remote_host DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_run_cgi DECL2(char *, here, size_t *, size)
+dir_run_cgi(char *here, size_t *size)
 {
 	char	*search, *querystring, *qs, *cgi;
 	int		oldhead;
@@ -622,7 +622,7 @@ dir_run_cgi DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_agent_long DECL2(char *, here, size_t *, size)
+dir_agent_long(char *here, size_t *size)
 {
 	if (getenv("USER_AGENT"))
 		secprintf("%s", getenv("USER_AGENT"));
@@ -634,7 +634,7 @@ dir_agent_long DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_agent_short DECL2(char *, here, size_t *, size)
+dir_agent_short(char *here, size_t *size)
 {
 	if (getenv("USER_AGENT_SHORT"))
 		secprintf("%s", getenv("USER_AGENT_SHORT"));
@@ -646,7 +646,7 @@ dir_agent_short DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_argument DECL2(char *, here, size_t *, size)
+dir_argument(char *here, size_t *size)
 {
 	if (getenv("QUERY_STRING")) {
 		secprintf("%s", getenv("QUERY_STRING"));
@@ -660,7 +660,7 @@ dir_argument DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_printenv DECL2(char *, here, size_t *, size)
+dir_printenv(char *here, size_t *size)
 {
 	char **p, *c;
 
@@ -683,7 +683,7 @@ dir_printenv DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_referer DECL2(char *, here, size_t *, size)
+dir_referer(char *here, size_t *size)
 {
 	if (getenv("HTTP_REFERER"))
 		secprintf("%s", getenv("HTTP_REFERER"));
@@ -695,7 +695,7 @@ dir_referer DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_if DECL2(char *, here, size_t *, size)
+dir_if(char *here, size_t *size)
 {
 	char		*search;
 
@@ -745,7 +745,7 @@ dir_if DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_if_not DECL2(char *, here, size_t *, size)
+dir_if_not(char *here, size_t *size)
 {
 	if (dir_if(here, size) != ERR_NONE)
 		return(ERR_CONT);
@@ -754,7 +754,7 @@ dir_if_not DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_else DECL2(char *, here, size_t *, size)
+dir_else(char *here, size_t *size)
 {
 	ssiarray[ssioutput] = !ssiarray[ssioutput];
 	(void)here;
@@ -763,7 +763,7 @@ dir_else DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_endif DECL2(char *, here, size_t *, size)
+dir_endif(char *here, size_t *size)
 {
 	if (!ssioutput)
 	{
@@ -777,7 +777,7 @@ dir_endif DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_switch DECL2(char *, here, size_t *, size)
+dir_switch(char *here, size_t *size)
 {
 	if (*(here++) != ' ')
 	{
@@ -802,14 +802,14 @@ dir_switch DECL2(char *, here, size_t *, size)
 }
 
 static	int
-dir_endswitch DECL2(char *, here, size_t *, size)
+dir_endswitch(char *here, size_t *size)
 {
 	dir_endif(here, size);
 	return(ERR_NONE);
 }
 
 static	int
-dir_case DECL2(char *, here, size_t *, size)
+dir_case(char *here, size_t *size)
 {
 	char *casestr = malloc(256);
 
@@ -869,7 +869,7 @@ static	directivestype	directives[] =
 };
 
 static	int
-print_enabled DECL0
+print_enabled()
 {
 	int		count, output;
 
@@ -881,7 +881,7 @@ print_enabled DECL0
 }
 
 static	int
-parsedirectives DECL2(char *, parse, size_t *, size)
+parsedirectives(char *parse, size_t *size)
 {
 	char		*here, *search, result[MYBUFSIZ], *store;
 	int		len, printable;
@@ -963,7 +963,7 @@ parsedirectives DECL2(char *, parse, size_t *, size)
 }
 
 static	int
-sendwithdirectives_internal DECL2(int, fd, size_t *, size)
+sendwithdirectives_internal(int fd, size_t *size)
 {
 	char		input[MYBUFSIZ];
 	FILE		*parse;
@@ -1003,7 +1003,7 @@ sendwithdirectives_internal DECL2(int, fd, size_t *, size)
 }
 
 extern	int
-sendwithdirectives DECL2(int, fd, size_t *, size)
+sendwithdirectives(int fd, size_t *size)
 {
 	ssioutput = 0; ssiarray[0] = 1; cnt_readbefore = numincludes = 0;
 	return(sendwithdirectives_internal(fd, size));

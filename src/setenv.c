@@ -16,7 +16,7 @@ static	char	*findenv		 PROTO((const char *, int *));
 #endif		/* NOFORWARDS */
 
 extern	char	*
-getenv DECL1C(char *, name)
+getenv(const char *name)
 {
 	int		offset;
 
@@ -24,7 +24,7 @@ getenv DECL1C(char *, name)
 }
 
 static	char	*
-findenv DECL2C_(char *, name, int *, offset)
+findenv(const char *name, int *offset)
 {
 	int		len;
 	const	char	*np;
@@ -47,7 +47,7 @@ findenv DECL2C_(char *, name, int *, offset)
 }
 
 extern	int
-setenv DECL3CC_(char *, name, char *, value, int, rewrite)
+setenv(char *name, char *value, int rewrite)
 {
 	static	int	alloced = 0;
 	char		*c;
@@ -102,8 +102,8 @@ setenv DECL3CC_(char *, name, char *, value, int, rewrite)
 	return (0);
 }
 
-extern	VOID
-unsetenv DECL1C(char *, name)
+extern	void
+unsetenv(const char *name)
 {
 	char		**p;
 	int		offset;

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: gfxcount.c,v 1.5 2001/05/22 12:19:29 johans Exp $ */
+/* $Id: gfxcount.c,v 1.6 2004/11/26 16:45:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -19,10 +19,10 @@
 
 #ifdef		PATH_PPMTOGIF
 #ifndef		NOFORWARDS
-static	VOID	error			PROTO((const char *, const char *));
-static	VOID	loaddigit		PROTO((int));
-static	VOID	loadfont		PROTO((void));
-static	VOID	buildpicture		PROTO((void));
+static	void	error			PROTO((const char *, const char *));
+static	void	loaddigit		PROTO((int));
+static	void	loadfont		PROTO((void));
+static	void	buildpicture		PROTO((void));
 #endif		/* NOFORWARDS */
 
 typedef	struct
@@ -36,8 +36,8 @@ static	char		dirname[XS_PATH_MAX], filename[XS_PATH_MAX];
 static	font		digit[10];
 static	int		max_x, max_y;
 
-static	VOID
-error DECL2CC(char *, status, char *, message)
+static	void
+error(const char *status, const char *message)
 {
 	printf("Status: %s\r\n", status);
 	printf("Content-type: text/html\r\n\r\n");
@@ -47,8 +47,8 @@ error DECL2CC(char *, status, char *, message)
 	exit(1);
 }
 
-static	VOID
-loaddigit DECL1(int, num)
+static	void
+loaddigit(int num)
 {
 	FILE		*file;
 	char		buffer[BUFSIZ], words[4][BUFSIZ], *search;
@@ -127,8 +127,8 @@ loaddigit DECL1(int, num)
 	fclose(file);
 }
 
-static	VOID
-loadfont DECL0
+static	void
+loadfont()
 {
 	int		number;
 	const	char	*search;
@@ -155,8 +155,8 @@ loadfont DECL0
 	}
 }
 
-static	VOID
-buildpicture DECL0
+static	void
+buildpicture()
 {
 	const	char	*search;
 	char		*data, header[1024];
@@ -218,7 +218,7 @@ buildpicture DECL0
 }
 
 extern	int
-main DECL2(int, argc, char **, argv)
+main(int argc, char **argv)
 {
 	struct	stat	statbuf;
 	char		buffer[XS_PATH_MAX];
@@ -251,7 +251,7 @@ main DECL2(int, argc, char **, argv)
 #else		/* Not PATH_PPMTOGIF */
 
 extern	int
-main DECL2(int, argc, char **, argv)
+main(int argc, char **argv)
 {
 	printf("Content-type: text/html\r\n\r\n");
 	printf("<HTML><HEAD><TITLE>No can do</TITLE></HEAD>\n");

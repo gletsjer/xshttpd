@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: extra.c,v 1.11 2003/01/31 13:39:53 johans Exp $ */
+/* $Id: extra.c,v 1.12 2004/11/26 16:45:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -26,7 +26,7 @@
 
 #ifndef		HAVE_STRCASESTR
 extern	const	char	*
-strcasestr DECL2CC(char *, big, char *, little)
+strcasestr(const char *big, const char *little)
 {
 	size_t		len;
 	char		*search, *newbig, *newlittle;
@@ -58,7 +58,7 @@ strcasestr DECL2CC(char *, big, char *, little)
 #endif		/* HAVE_STRCASESTR */
 
 extern	int
-mysleep DECL1(int, seconds)
+mysleep(int seconds)
 {
 	struct	timeval	timeout;
 
@@ -69,7 +69,7 @@ mysleep DECL1(int, seconds)
 
 #ifndef		HAVE_KILLPG
 extern	int
-killpg DECL2(pid_t, process, int, sig)
+killpg(pid_t process, int sig)
 {
 	if (!process)
 		process = getpid();
@@ -78,7 +78,7 @@ killpg DECL2(pid_t, process, int, sig)
 #endif		/* HAVE_KILLPG */
 
 extern	int
-match DECL2CC(char *, total, char *, pattern)
+match(const char *total, const char *pattern)
 {
 	int		x, y;
 
@@ -112,7 +112,7 @@ match DECL2CC(char *, total, char *, pattern)
 }
 
 extern	int
-match_list DECL2_C(char *, list, char *, browser)
+match_list(char *list, const char *browser)
 {
 	char		*begin, *end, origin;
 	int		matches;
@@ -147,7 +147,7 @@ extern	const	int	sys_nerr;
 #endif		/* NEED_SYS_ERRLIST_DECL */
 
 extern	const	char	*
-strerror DECL1(int, code)
+strerror(int code)
 {
 	if ((code < 0) || (code > sys_nerr))
 		return("Undefined error");

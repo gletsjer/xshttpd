@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: convert.c,v 1.5 2001/05/22 12:19:29 johans Exp $ */
+/* $Id: convert.c,v 1.6 2004/11/26 16:45:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -12,8 +12,8 @@
 #include	"mystring.h"
 #include	"convert.h"
 
-extern	const	char	*
-convertpath DECL1C(char *, org)
+extern const char *
+convertpath(const char *org)
 {
 	static	char		buffer[XS_PATH_MAX];
 	const	struct	passwd	*userinfo;

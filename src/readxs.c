@@ -25,7 +25,7 @@
 #define		MODE_TOTAL	2
 
 extern	int
-main DECL2(int, argc, char **, argv)
+main(int argc, char **argv)
 {
 	int			x, y, z, comp, total, fd, mode = MODE_TOTAL,
 				wrset = 0, wrint = 0, option;

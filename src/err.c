@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: err.c,v 1.3 2001/05/22 12:19:29 johans Exp $ */
+/* $Id: err.c,v 1.4 2004/11/26 16:45:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -14,7 +14,7 @@
 
 #ifndef		HAVE_ERR_H
 #ifndef		NONEWSTYLE
-extern	VOID
+extern	void
 err(int code, const char *format, ...)
 {
 	va_list		ap;
@@ -28,7 +28,7 @@ err(int code, const char *format, ...)
 	exit(code);
 }
 
-extern	VOID
+extern	void
 errx(int code, const char *format, ...)
 {
 	va_list		ap;
@@ -40,7 +40,7 @@ errx(int code, const char *format, ...)
 	exit(code);
 }
 
-extern	VOID
+extern	void
 warn(const char *format, ...)
 {
 	va_list		ap;
@@ -54,7 +54,7 @@ warn(const char *format, ...)
 	errno = olderrno;
 }
 #else		/* Not not NONEWSTYLE */
-extern	VOID
+extern	void
 err(code, format, va_alist)
 int		code;
 const	char	*format;
@@ -71,7 +71,7 @@ va_dcl
 	exit(code);
 }
 
-extern	VOID
+extern	void
 errx(code, format, va_alist)
 int		code;
 const	char	*format;
@@ -86,7 +86,7 @@ va_dcl
 	exit(code);
 }
 
-extern	VOID
+extern	void
 warn(format, va_alist)
 const	char	*format;
 va_dcl

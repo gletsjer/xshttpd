@@ -4,7 +4,7 @@
 #include	<sys/types.h>
 
 extern	int
-setgroups DECL2(int, ngroups, const gid_t, *gidset)
+setgroups(int ngroups, const gid_t *gidset)
 {
 	/* fake success */
 	(void)ngroups;

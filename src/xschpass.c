@@ -19,22 +19,22 @@
 #include	"mystring.h"
 
 #ifndef		NOFORWARDS
-static	VOID	error			PROTO((const char *, ...));
-static	VOID	urldecode		PROTO((char *));
-static	VOID	changepasswd		PROTO((const char *, int));
-static	VOID	generateform		PROTO((void));
+static	void	error			PROTO((const char *, ...));
+static	void	urldecode		PROTO((char *));
+static	void	changepasswd		PROTO((const char *, int));
+static	void	generateform		PROTO((void));
 extern	int	main			PROTO((int, char *[]));
 #endif		/* NOFORWARDS */
 
 #ifndef		NONEWSTYLE
-static	VOID
+static	void
 error(const char *format, ...)
 {
 	va_list		ap;
 
 	va_start(ap, format);
 #else		/* Not not NONEWSTYLE */
-static	VOID
+static	void
 error(format, va_alist)
 const	char	*format;
 va_dcl
@@ -58,8 +58,8 @@ va_dcl
 	exit(1);
 }
 
-static	VOID
-urldecode DECL1(char *, what)
+static	void
+urldecode(char *what)
 {
 	static	const	char	*hexdigits = "0123456789ABCDEF";
 	const	char		*d1, *d2;
@@ -86,8 +86,8 @@ urldecode DECL1(char *, what)
 	*(++what) = 0;
 }
 
-static	VOID
-changepasswd DECL2C_(char *, param, int,  cl)
+static	void
+changepasswd(const char *param, int  cl)
 {
 	char		filename[XS_PATH_MAX], username[BUFSIZ], old[BUFSIZ],
 			new1[BUFSIZ], new2[BUFSIZ], buffer[BUFSIZ], *search,
@@ -205,8 +205,8 @@ changepasswd DECL2C_(char *, param, int,  cl)
 	printf("The password has been changed!</BODY></HTML>\n");
 }
 
-static	VOID
-generateform DECL0
+static	void
+generateform()
 {
 	alarm(180);
 	printf("Content-type: text/html\n\n");
@@ -224,7 +224,7 @@ generateform DECL0
 }
 
 extern	int
-main DECL2(int, argc, char **, argv)
+main(int argc, char **argv)
 {
 	const	char	*param, *cl;
 	int		length;

@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.149 2004/11/23 19:59:11 johans Exp $ */
+/* $Id: httpd.c,v 1.150 2004/11/26 16:45:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -107,7 +107,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.149 2004/11/23 19:59:11 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.150 2004/11/26 16:45:09 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -146,30 +146,30 @@ static	char	six2pr[64] =
 /* Prototypes */
 
 #ifndef		NOFORWARDS
-static	VOID	filedescrs		PROTO((void));
-static	VOID	detach			PROTO((void));
-static	VOID	child_handler		PROTO((int));
-static	VOID	term_handler		PROTO((int));
-static	VOID	load_config		PROTO((void));
-static	VOID	open_logs		PROTO((int));
-static	VOID	core_handler		PROTO((int));
-static	VOID	set_signals		PROTO((void));
+static	void	filedescrs		PROTO((void));
+static	void	detach			PROTO((void));
+static	void	child_handler		PROTO((int));
+static	void	term_handler		PROTO((int));
+static	void	load_config		PROTO((void));
+static	void	open_logs		PROTO((int));
+static	void	core_handler		PROTO((int));
+static	void	set_signals		PROTO((void));
 
 static	int	hexdigit		PROTO((int));
 static	int	decode			PROTO((char *));
 
-static	VOID	uudecode		PROTO((char *));
+static	void	uudecode		PROTO((char *));
 extern	char	*escape			PROTO((const char *));
 
-static	VOID	process_request		PROTO((void));
+static	void	process_request		PROTO((void));
 
-static	VOID	setup_environment	PROTO((void));
-static	VOID	standalone_main		PROTO((void));
-static	VOID	standalone_socket	PROTO((char));
+static	void	setup_environment	PROTO((void));
+static	void	standalone_main		PROTO((void));
+static	void	standalone_socket	PROTO((char));
 #endif		/* NOFORWARDS */
 
-extern	VOID
-stdheaders DECL3(int, lastmod, int, texthtml, int, endline)
+extern	void
+stdheaders(int lastmod, int texthtml, int endline)
 {
 	setcurrenttime();
 	secprintf("Date: %s\r\nServer: %s\r\n", currenttime, SERVER_IDENT);
@@ -184,8 +184,8 @@ stdheaders DECL3(int, lastmod, int, texthtml, int, endline)
 		secprintf("\r\n");
 }
 
-static	VOID
-filedescrs DECL0
+static	void
+filedescrs()
 {
 	close(0); if (open(BITBUCKETNAME, O_RDONLY, 0) != 0)
 		err(1, "Cannot open fd 0 (%s)", BITBUCKETNAME);
@@ -193,8 +193,8 @@ filedescrs DECL0
 		err(1, "Cannot dup2() fd 1");
 }
 
-static	VOID
-detach DECL0
+static	void
+detach()
 {
 	pid_t		x;
 
@@ -213,8 +213,8 @@ detach DECL0
 #endif		/* HAVE_SETSID */
 }
 
-extern	VOID
-setcurrenttime DECL0
+extern	void
+setcurrenttime()
 {
 	time_t		thetime;
 
@@ -223,8 +223,8 @@ setcurrenttime DECL0
 		"%a, %d %b %Y %H:%M:%S GMT", gmtime(&thetime));
 }
 
-static	VOID
-child_handler DECL1(int, sig)
+static	void
+child_handler(int sig)
 {
 #ifdef		NeXT
 	union	wait	status;
@@ -240,8 +240,8 @@ child_handler DECL1(int, sig)
 	(void)sig;
 }
 
-static	VOID
-term_handler DECL1(int, sig)
+static	void
+term_handler(int sig)
 {
 	if (mainhttpd)
 	{
@@ -257,8 +257,8 @@ term_handler DECL1(int, sig)
 	exit(0);
 }
 
-static	VOID
-load_config DECL0
+static	void
+load_config()
 {
 	int	subtype = 0;
 	FILE	*confd;
@@ -615,8 +615,8 @@ load_config DECL0
 	}
 }
 
-static	VOID
-open_logs DECL1(int, sig)
+static	void
+open_logs(int sig)
 {
 	FILE		*pidlog;
 	char		buffer[XS_PATH_MAX];
@@ -785,8 +785,8 @@ open_logs DECL1(int, sig)
 	(void)sig;
 }
 
-extern	VOID
-alarm_handler DECL1(int, sig)
+extern	void
+alarm_handler(int sig)
 {
 	alarm(0); setcurrenttime();
 	fprintf(stderr, "[%s] httpd: Send timed out for `%s'\n",
@@ -795,8 +795,8 @@ alarm_handler DECL1(int, sig)
 	exit(1);
 }
 
-static	VOID
-core_handler DECL1(int, sig)
+static	void
+core_handler(int sig)
 {
 	const	char	*env;
 
@@ -810,8 +810,8 @@ core_handler DECL1(int, sig)
 	exit(1);
 }
 
-static	VOID
-set_signals DECL0
+static	void
+set_signals()
 {
 	struct	sigaction	action;
 
@@ -858,8 +858,8 @@ set_signals DECL0
 #endif		/* SIGSEGV */
 }
 
-extern	VOID
-error DECL1C(char *, message)
+extern	void
+error(const char *message)
 {
 	const	char	*env;
 
@@ -885,8 +885,8 @@ error DECL1C(char *, message)
 	fflush(stdout); fflush(stderr); alarm(0);
 }
 
-extern	VOID
-redirect DECL2C_(char *, redir, int, permanent)
+extern	void
+redirect(const char *redir, int permanent)
 {
 	const	char	*env;
 
@@ -913,7 +913,7 @@ redirect DECL2C_(char *, redir, int, permanent)
 }
 
 static	int
-hexdigit DECL1(int, ch)
+hexdigit(int ch)
 {
 	const	char	*temp, *hexdigits = "0123456789ABCDEF";
 
@@ -927,7 +927,7 @@ hexdigit DECL1(int, ch)
 }
 
 static	int
-decode DECL1(char *, str)
+decode(char *str)
 {
 	char		*posd, chr;
 	const	char	*poss;
@@ -959,8 +959,8 @@ decode DECL1(char *, str)
 	return(ERR_NONE);
 }
 
-static	VOID
-uudecode DECL1(char *, buffer)
+static	void
+uudecode(char *buffer)
 {
 	unsigned char	pr2six[256], bufplain[32], *bufout = bufplain;
 	int		nbytesdecoded, j, nprbytes;
@@ -1000,7 +1000,7 @@ uudecode DECL1(char *, buffer)
 }
 
 extern	int
-check_auth DECL1(FILE *, authfile)
+check_auth(FILE *authfile)
 {
 	char		*search, line[MYBUFSIZ], compare[MYBUFSIZ], *find;
 	const	char	*env;
@@ -1057,7 +1057,7 @@ check_auth DECL1(FILE *, authfile)
 }
 
 extern	char	*
-escape DECL1C(char *, what)
+escape(const char *what)
 {
 	char		*escapebuf, *w;
 
@@ -1089,8 +1089,8 @@ escape DECL1C(char *, what)
 	return(escapebuf);
 }
 
-extern	VOID
-server_error DECL2CC(char *, readable, char *, cgi)
+extern	void
+server_error(const char *readable, const char *cgi)
 {
 	struct	stat		statbuf;
 	char				cgipath[XS_PATH_MAX],
@@ -1153,7 +1153,7 @@ server_error DECL2CC(char *, readable, char *, cgi)
 }
 
 extern	void
-logrequest DECL2(const char *, request, long, size)
+logrequest(const char *request, long size)
 {
 	char		buffer[80], *dynrequest, *dynagent, *p;
 	time_t		theclock;
@@ -1211,7 +1211,7 @@ logrequest DECL2(const char *, request, long, size)
 }
 
 int
-secread DECL3(int, fd, void *, buf, size_t, count)
+secread(int fd, void *buf, size_t count)
 {
 #ifdef		HANDLE_SSL
 	if (config.usessl && fd == 0)
@@ -1222,7 +1222,7 @@ secread DECL3(int, fd, void *, buf, size_t, count)
 }
 
 int
-secwrite DECL3(int, fd, void *, buf, size_t, count)
+secwrite(int fd, void *buf, size_t count)
 {
 #ifdef		HANDLE_SSL
 	if (config.usessl)
@@ -1233,7 +1233,7 @@ secwrite DECL3(int, fd, void *, buf, size_t, count)
 }
 
 int
-secfwrite DECL4(void *, buf, size_t, size, size_t, count, FILE *, stream)
+secfwrite(void *buf, size_t size, size_t count, FILE *stream)
 {
 #ifdef		HANDLE_SSL
 	if (config.usessl)
@@ -1282,7 +1282,7 @@ va_dcl
 #endif		/* NONEWSTYLE */
 
 int
-secfputs DECL2(char *, buf, FILE *, stream)
+secfputs(char *buf, FILE *stream)
 {
 #ifdef		HANDLE_SSL
 	if (config.usessl)
@@ -1293,7 +1293,7 @@ secfputs DECL2(char *, buf, FILE *, stream)
 }
 
 extern	int
-readline DECL2(int, rd, char *, buf)
+readline(int rd, char *buf)
 {
 	char		ch, *buf2;
 
@@ -1336,8 +1336,8 @@ readline DECL2(int, rd, char *, buf)
 	return(ERR_NONE);
 }
 
-static	VOID
-process_request DECL0
+static	void
+process_request()
 {
 	char		line[MYBUFSIZ], extra[MYBUFSIZ], *temp, ch,
 			*params, *url, *ver, http_host[NI_MAXHOST];
@@ -1639,8 +1639,8 @@ process_request DECL0
 		server_error("400 Unknown method", "UNKNOWN_METHOD");
 }
 
-static	VOID
-standalone_main DECL0
+static	void
+standalone_main()
 {
 	struct	socket_config	*sock;
 	pid_t					pid;
@@ -1677,8 +1677,8 @@ standalone_main DECL0
 	}
 }
 
-static	VOID
-standalone_socket DECL1(char, id)
+static	void
+standalone_socket(char id)
 {
 	int			csd = 0, count, temp;
 	socklen_t		clen;
@@ -1978,8 +1978,8 @@ standalone_socket DECL1(char, id)
 	/* NOTREACHED */
 }
 
-static	VOID
-setup_environment DECL0
+static	void
+setup_environment()
 {
 	char		buffer[16];
 
@@ -2000,7 +2000,7 @@ setup_environment DECL0
 }
 
 int
-main DECL3(int, argc, char **, argv, char **, envp)
+main(int argc, char **argv, char **envp)
 {
 	int			option, num;
 	int			nolog = 0;

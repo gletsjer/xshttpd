@@ -1,5 +1,5 @@
 #include	"config.h"
-/* $Id: error.c,v 1.9 2003/01/31 13:39:53 johans Exp $ */
+/* $Id: error.c,v 1.10 2004/11/26 16:45:09 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -19,26 +19,26 @@ struct virtual			*current;
 struct configuration	config;
 
 #ifndef		NOFORWARDS
-extern	VOID	error			PROTO((const char *));
-extern	VOID	redirect		PROTO((const char *, int));
-extern	VOID	server_error		PROTO((const char *, const char *));
+extern	void	error			PROTO((const char *));
+extern	void	redirect		PROTO((const char *, int));
+extern	void	server_error		PROTO((const char *, const char *));
 static	int	difference		PROTO((const char *, const char *));
 static	int	check_user		PROTO((const struct passwd *));
-static	VOID	user_unknown		PROTO((void));
-static	VOID	post_on_non_cgi		PROTO((void));
-static	VOID	invalid_path		PROTO((void));
-static	VOID	dir_not_avail		PROTO((void));
-static	VOID	not_regular		PROTO((void));
-static	VOID	permission		PROTO((void));
-static	VOID	not_found		PROTO((void));
-static	VOID	no_relative_urls	PROTO((void));
-static	VOID	bad_request		PROTO((void));
-static	VOID	unknown_method		PROTO((void));
-static	VOID	unauthorized		PROTO((void));
-static	VOID	precondition_failed	PROTO((void));
-static	VOID	local_no_page		PROTO((void));
-static	VOID	local_invalid_link	PROTO((void));
-static	VOID	local_no_pay		PROTO((void));
+static	void	user_unknown		PROTO((void));
+static	void	post_on_non_cgi		PROTO((void));
+static	void	invalid_path		PROTO((void));
+static	void	dir_not_avail		PROTO((void));
+static	void	not_regular		PROTO((void));
+static	void	permission		PROTO((void));
+static	void	not_found		PROTO((void));
+static	void	no_relative_urls	PROTO((void));
+static	void	bad_request		PROTO((void));
+static	void	unknown_method		PROTO((void));
+static	void	unauthorized		PROTO((void));
+static	void	precondition_failed	PROTO((void));
+static	void	local_no_page		PROTO((void));
+static	void	local_invalid_link	PROTO((void));
+static	void	local_no_pay		PROTO((void));
 #endif		/* NOFORWARDS */
 
 typedef	struct
@@ -54,8 +54,8 @@ static	char		buffer[BUFSIZ], *temp;
 char			rootdir[XS_PATH_MAX];
 int			localmode;
 
-extern	VOID
-error DECL1C(char *, what)
+extern	void
+error(const char *what)
 {
 	printf("Content-type: text/html\r\n\r\n");
 	printf("<HTML><HEAD><TITLE>500 Error occurred</TITLE></HEAD\n");
@@ -65,16 +65,16 @@ error DECL1C(char *, what)
 	exit(0);
 }
 
-extern	VOID
-redirect DECL2C_(char *, redir, int, code)
+extern	void
+redirect(const char *redir, int code)
 {
 	printf("[redirect() called - transform_user_dir() is broken]\n");
 	(void)redir;
 	(void)code;
 }
 
-extern	VOID
-server_error DECL2CC(char *, readable, char *, code)
+extern	void
+server_error(const char *readable, const char *code)
 {
 	printf("[server_error() called - transform_user_dir() is broken]\n");
 	(void)readable;
@@ -82,7 +82,7 @@ server_error DECL2CC(char *, readable, char *, code)
 }
 
 static	int
-difference DECL2CC(char *, what1, char *, what2)
+difference(const char *what1, const char *what2)
 {
 	int		rank;
 	const	char	*search, *follow;
@@ -107,7 +107,7 @@ difference DECL2CC(char *, what1, char *, what2)
 }
 
 static	int
-check_user DECL1C(struct passwd *, userinfo)
+check_user(const struct passwd *userinfo)
 {
 	char		dirname[XS_PATH_MAX], *end;
 
@@ -124,8 +124,8 @@ check_user DECL1C(struct passwd *, userinfo)
 	return(0);
 }
 
-static	VOID
-user_unknown DECL0
+static	void
+user_unknown()
 {
 	userrank		top[10];
 	const	struct	passwd	*user;
@@ -187,8 +187,8 @@ user_unknown DECL0
 	printf(".\n");
 }
 
-static	VOID
-post_on_non_cgi DECL0
+static	void
+post_on_non_cgi()
 {
 	printf("You or your browser has attempted to use the <B>POST</B>\n");
 	printf("method on something that is not a CGI binary. <B>POST</B>\n");
@@ -197,8 +197,8 @@ post_on_non_cgi DECL0
 	printf("<A HREF=\"/\">Get out of here!</A>\n");
 }
 
-static	VOID
-invalid_path DECL0
+static	void
+invalid_path()
 {
 	printf("You have asked for a URL that the server does not like.\n");
 	printf("In particular, the server does not accept paths with\n");
@@ -206,8 +206,8 @@ invalid_path DECL0
 	printf("<A HREF=\"/\">Get out of here!</A>\n");
 }
 
-static	VOID
-not_found DECL0
+static	void
+not_found()
 {
 	char		prefix[BUFSIZ], base[XS_PATH_MAX], filename[XS_PATH_MAX];
 	const	char	*begin, *match;
@@ -288,16 +288,16 @@ not_found DECL0
 	printf(".\n");
 }
 
-static	VOID
-not_regular DECL0
+static	void
+not_regular()
 {
 	printf("What you requested is neither a directory nor a file.\n");
 	printf("This error should never occur. Please notify the\n");
 	printf("system administration of this machine.\n");
 }
 
-static	VOID
-permission DECL0
+static	void
+permission()
 {
 	printf("The file <B>%s</B>, which you tried to retrieve from\n",
 		error_url_escaped);
@@ -307,8 +307,8 @@ permission DECL0
 	printf("<P><A HREF=\"/\">Get out of here!</A>\n");
 }
 
-static	VOID
-dir_not_avail DECL0
+static	void
+dir_not_avail()
 {
 	printf("The directory in which the file <B>%s</B> is located\n",
 		error_url_escaped);
@@ -317,8 +317,8 @@ dir_not_avail DECL0
 	printf("<P><A HREF=\"/\">Get out of here!</A>\n");
 }
 
-static	VOID
-no_relative_urls DECL0
+static	void
+no_relative_urls()
 {
 	printf("Your browser has made a <EM>relative</EM> request to\n");
 	printf("this server. This server, however, does not support\n");
@@ -326,8 +326,8 @@ no_relative_urls DECL0
 	printf("<P><A HREF=\"/\">Get out of here!</A>\n");
 }
 
-static	VOID
-bad_request DECL0
+static	void
+bad_request()
 {
 	const	char	*env;
 
@@ -338,8 +338,8 @@ bad_request DECL0
 	printf("<P><A HREF=\"/\">Get out of here!</A>\n");
 }
 
-static	VOID
-unknown_method DECL0
+static	void
+unknown_method()
 {
 	const	char	*env;
 
@@ -352,23 +352,23 @@ unknown_method DECL0
 	printf("<P><A HREF=\"/\">Get out of here!</A>\n");
 }
 
-static	VOID
-unauthorized DECL0
+static	void
+unauthorized()
 {
 	printf("You have entered a usercode/password combination\n");
 	printf("which is not valid for the URL that you have requested\n");
 	printf("Please try again with another usercode and/or password.\n");
 }
 
-static	VOID
-precondition_failed DECL0
+static	void
+precondition_failed()
 {
 	printf("You have asked for a certain precondition which is not met\n");
 	printf("by the requested data. So this data will not be shown.\n");
 }
 
-static	VOID
-local_no_page DECL0
+static	void
+local_no_page()
 {
 	const	char	*env;
 	char		filename[XS_PATH_MAX];
@@ -393,8 +393,8 @@ local_no_page DECL0
 	printf(".\n");
 }
 
-static	VOID
-local_invalid_link DECL0
+static	void
+local_invalid_link()
 {
 	strcpy(buffer, error_url_escaped + 2);
 	if ((temp = strchr(buffer, '/')))
@@ -406,8 +406,8 @@ local_invalid_link DECL0
 	printf("The problem will then be corrected as soon as possible.\n");
 }
 
-static	VOID
-local_no_pay DECL0
+static	void
+local_no_pay()
 {
 	char		filename[XS_PATH_MAX];
 
@@ -427,7 +427,7 @@ local_no_pay DECL0
 }
 
 extern	int
-main DECL2(int, argc, char **, argv)
+main(int argc, char **argv)
 {
 	if (getenv("HTTPD_ROOT"))
 		strcpy(rootdir, getenv("HTTPD_ROOT"));

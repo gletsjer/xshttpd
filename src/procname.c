@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: procname.c,v 1.11 2004/05/27 23:35:26 johans Exp $ */
+/* $Id: procname.c,v 1.12 2004/11/26 16:45:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -63,7 +63,7 @@ static	char	*procnamestart, *procnameend;
 
 #ifndef		HAVE_SETPROCTITLE
 #ifndef		NONEWSTYLE
-extern	VOID
+extern	void
 setprocname(const char *name, ...)
 {
 	va_list		ap;
@@ -74,7 +74,7 @@ setprocname(const char *name, ...)
 
 	va_start(ap, name);
 #else		/* Not not NONEWSTYLE */
-extern	VOID
+extern	void
 setprocname(name, va_alist)
 const	char	*name;
 va_dcl
@@ -126,8 +126,8 @@ va_dcl
 }
 #endif		/* HAVE_SETPROCTITLE */
 
-extern	VOID
-initsetprocname DECL3(int, argc, char **, argv, char **, envp)
+extern	void
+initsetprocname(int argc, char **argv, char **envp)
 {
 #ifndef		PS_STRINGS
 	/* start with empty environment */

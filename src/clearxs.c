@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: clearxs.c,v 1.4 2001/05/22 12:19:28 johans Exp $ */
+/* $Id: clearxs.c,v 1.5 2004/11/26 16:45:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -26,7 +26,7 @@
 #define		MODE_NONE	3
 
 extern	int
-main DECL2(int, argc, char **, argv)
+main(int argc, char **argv)
 {
 	int		option, x, fd, mode = MODE_NONE;
 	countstr	counter;

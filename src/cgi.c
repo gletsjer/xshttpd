@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.84 2004/09/22 17:18:01 johans Exp $ */
+/* $Id: cgi.c,v 1.85 2004/11/26 16:45:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -54,10 +54,9 @@
 #include	"setenv.h"
 #include	"htconfig.h"
 
-#ifndef		NOFORWARDS
-static	const	char	*skipspaces	PROTO((const char *));
-static	VOID	time_is_up		PROTO((int));
-#endif		/* NOFORWARDS */
+static	const	char	*skipspaces(const char *);
+static	void		time_is_up(int);
+
 #ifdef		HANDLE_PERL
 const	char *	perlargs[] = { "", NULL };
 #endif		/* HANDLE_PERL */
@@ -65,8 +64,8 @@ const	char *	perlargs[] = { "", NULL };
 static pid_t			child;
 
 
-static	const	char	*
-skipspaces DECL1C(char *, string)
+static const char *
+skipspaces(const char *string)
 {
 	while ((*string == ' ') || (*string == '\t'))
 		string++;
@@ -74,7 +73,7 @@ skipspaces DECL1C(char *, string)
 }
 
 static	int
-eat_content_length DECL0
+eat_content_length()
 {
 	int		to_read, received;
 	char		buf[MYBUFSIZ];
@@ -98,8 +97,8 @@ eat_content_length DECL0
 	return 0;
 }
 
-static	VOID
-time_is_up DECL1(int, sig)
+static	void
+time_is_up(int sig)
 {
 	if (child != (pid_t)-1)
 	{
@@ -146,8 +145,8 @@ va_decl
 	return 1;
 }
 
-extern	VOID
-do_script DECL5(const char *, path, const char *, base, const char *, file, const char *, engine, int, showheader)
+extern	void
+do_script(const char *path, const char *base, const char *file, const char *engine, int showheader)
 {
 	long			received, writetodo,
 				totalwritten;

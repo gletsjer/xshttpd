@@ -10,7 +10,7 @@
 #include	"xscrypt.h"
 
 extern	char *
-xs_encrypt DECL1C(char *, buffer)
+xs_encrypt(const char *buffer)
 {
 #ifdef		HAVE_CRYPT
 	/* If you don't have a crypt() function, use plain-text pwd storage */

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.9 2004/03/06 12:47:31 johans Exp $ */
+/* $Id: httpdc.c,v 1.10 2004/11/26 16:45:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -24,7 +24,7 @@
 typedef	struct
 {
 	const	char	*command;
-	VOID		(*func)
+	void		(*func)
 #ifndef		NONEWSTYLE
 				(const char *);
 #else		/* Not NONEWSTYLE */
@@ -42,12 +42,12 @@ struct virtual			*current;
 struct configuration	config;
 
 #ifndef		NOFORWARDS
-static	VOID	cmd_help	PROTO((const char *));
-static	VOID	cmd_status	PROTO((const char *));
-static	VOID	cmd_kill	PROTO((const char *));
-static	VOID	cmd_reload	PROTO((const char *));
-static	VOID	cmd_restart	PROTO((const char *));
-static	VOID	control		PROTO((const char *));
+static	void	cmd_help	PROTO((const char *));
+static	void	cmd_status	PROTO((const char *));
+static	void	cmd_kill	PROTO((const char *));
+static	void	cmd_reload	PROTO((const char *));
+static	void	cmd_restart	PROTO((const char *));
+static	void	control		PROTO((const char *));
 #endif		/* NOFORWARDS */
 
 static	command	commands[]=
@@ -63,8 +63,8 @@ static	command	commands[]=
 	{ NULL,		NULL,		NULL				}
 };
 
-static	VOID
-cmd_help DECL1C(char *, args)
+static	void
+cmd_help(const char *args)
 {
 	command		*search;
 
@@ -77,8 +77,8 @@ cmd_help DECL1C(char *, args)
 	(void)args;
 }
 
-static	VOID
-cmd_status DECL1C(char *, args)
+static	void
+cmd_status(const char *args)
 {
 	if (kill(httpdpid, 0))
 	{
@@ -101,8 +101,8 @@ cmd_status DECL1C(char *, args)
 	(void)args;
 }
 
-static	VOID
-cmd_kill DECL1C(char *, args)
+static	void
+cmd_kill(const char *args)
 {
 	if (kill(httpdpid, SIGTERM))
 		warn("kill");
@@ -111,8 +111,8 @@ cmd_kill DECL1C(char *, args)
 	(void)args;
 }
 
-static	VOID
-cmd_restart DECL1C(char *, args)
+static	void
+cmd_restart(const char *args)
 {
 	int		timeout;
 
@@ -139,8 +139,8 @@ cmd_restart DECL1C(char *, args)
 	(void)args;
 }
 
-static	VOID
-cmd_reload DECL1C(char *, args)
+static	void
+cmd_reload(const char *args)
 {
 	if (kill(httpdpid, SIGHUP))
 		warn("kill()");
@@ -149,8 +149,8 @@ cmd_reload DECL1C(char *, args)
 	(void)args;
 }
 
-static	VOID
-control DECL1C(char *, args)
+static	void
+control(const char *args)
 {
 	char		buffer[BUFSIZ], *space;
 	command		*search;
@@ -181,8 +181,8 @@ control DECL1C(char *, args)
 	fprintf(stderr, "Command `%s' not found\n", buffer);
 }
 
-static	VOID
-getpidfilename DECL1(char **, pidfilename)
+static	void
+getpidfilename(char **pidfilename)
 {
 	char		*p, buffer[BUFSIZ], config_path[XS_PATH_MAX];
 	FILE		*conffile;
@@ -206,8 +206,8 @@ getpidfilename DECL1(char **, pidfilename)
 	fclose(conffile);
 }
 
-static	VOID
-loadpidfile DECL1C(char *, pidfilename)
+static	void
+loadpidfile(const char *pidfilename)
 {
 	char		buffer[BUFSIZ], pidname[XS_PATH_MAX];
 	FILE		*pidfile;
@@ -231,7 +231,7 @@ loadpidfile DECL1C(char *, pidfilename)
 }
 
 extern	int
-main DECL2(int, argc, char **, argv)
+main(int argc, char **argv)
 {
 	char		buffer[BUFSIZ];
 	char		*pidfilename = NULL;
