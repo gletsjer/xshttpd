@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.52 2001/12/26 14:09:17 johans Exp $ */
+/* $Id: cgi.c,v 1.53 2002/01/23 16:43:45 johans Exp $ */
 
 #include	"config.h"
 
@@ -559,7 +559,8 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 			}
 		}
 		setenv("PATH", SCRIPT_PATH, 1);
-		if (chdir(base))
+		snprintf(tempbuf, 1+strrchr(fullpath, '/') - fullpath, "%s", fullpath);
+		if (chdir(tempbuf))
 		{
 			secprintf("Content-type: text/plain\r\n\r\n");
 			secprintf("[Cannot change directory]\n");
