@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.62 2002/01/12 11:03:45 johans Exp $ */
+/* $Id: httpd.c,v 1.63 2002/01/12 13:43:31 johans Exp $ */
 
 #include	"config.h"
 
@@ -97,6 +97,11 @@ extern	char	*tempnam(const char *, const char *);
 extern	int	setpriority PROTO((int, int, int));
 #endif		/* NOFORWARDS */
 #endif		/* HPUX */
+
+#ifndef		lint
+static char copyright[] =
+"$Id: httpd.c,v 1.63 2002/01/12 13:43:31 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+#endif
 
 /* Global variables */
 
