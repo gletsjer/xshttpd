@@ -1,12 +1,6 @@
 .TH HTTPD 5 "12 June 2002"
-.SH NAME
+.SH FILENAME
 httpd.conf \- XS httpd configuration file
-.SH SYNOPSIS
-.ta 8n
-.B httpd.conf
-[
-.I options
-]
 .LP
 .SH HTTPD.CONF LAYOUT
 .LP
@@ -142,6 +136,14 @@ This substitution must be of the form
 Where pattern is a \fBpcrepattern(3)\fP-like regular expression that must
 match the full path (without hostname). The replacement may contain grouped
 backreferences indicated with \fB\\\fP\fIn\fP.
+This will only work if xs-httpd is compiled with PCRE support.
+.TP
+.B UseLdapAuth [true|false]
+By default .xspasswd contain (encrypted) passwords. If this option is
+enabled, they may also contain LDAP information, in which case the webserver
+will first check the LDAP database for a matching username and then the
+passwords in this file. See \fBxsauth(5)\fP for more details.
+This will only work if xs-httpd is compiled with LDAP support.
 .TP
 .B Priority
 The system priority that the daemon will be running at. A lower priority causes
@@ -271,7 +273,7 @@ entire WWW happening.
 http://www.stack.nl/~sven/xs\-httpd/
 .br
 httpd(1), xspasswd(1), imagemap(1), clearxs(1), readxs(1), gfxcount(1),
-xsindex(1), httpdc(1)
+xsindex(1), httpdc(1), xsauth(5), xsscripts(5)
 .SH COPYRIGHT
 All the programs in the XS\-HTTPD package are copyright (C) 1995-2005
 by Sven Berkvens and Johan van Selst, except the imagemapper, 

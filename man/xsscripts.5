@@ -1,0 +1,82 @@
+.TH HTTPD 5 "12 June 2002"
+.SH FILENAME
+.B \.xsscripts
+\- XS httpd file interpreter settings
+.LP
+.SH CONCEPT
+Traditionally all files in a user's \fI.html\fP directory contain static
+data. Mostly HTML markup data, but also images and archives. However most
+people desire more than only static HTML.
+
+So webservers offer Server-Side Includes, to allow conditional blocks, page
+counters and even output from external programs in HTML text (see
+\fBhttpd(1)\fP for a full overview). But even SSI's may not offer all the
+flexibility that people look for, so it is possible to include your own
+programs (be it shell scripts, compiled C progs, PHP or anything else you can
+start from Unix prompt) by placing them in the \fI/cgi-bin\fP subdirectory.
+
+Rather than being confined to a single directory, XS\-httpd also offers a
+flexible mechanism to let the users specify which files should be executed
+and which should be offered with full source to the website visitor. This
+allows you a per-file configuration so that you can have any file interpreted
+as a program, rather than being confined to the /cgi-bin directory, which
+is more typing and a also clear indication to any visitor that it is a program.
+
+Users can include the interpretion settings through a \fI.xsscripts\fP file
+which may be placed in any html directory. The settings apply recursively
+to all subdirectories. The system administration may also include global
+settings through the \fIscript.methods\fP file in the main XS\-httpd
+configuration directory. This may be convenient if you want, for instance,
+all *.php files to be parsed by a PHP interpreter.
+
+.SH FILE LAYOUT
+
+Every line contains the name of the interpreter that should be run, and a
+suffix of the filenames from the html directory that are to be handled by
+this interpreter. To have all files with the extension .pl interpreted
+by Perl, add the following line:
+
+	/usr/local/bin/perl		.pl
+
+Lines starting with # will be ignored as comments.
+
+.SH BUILT-IN INTERPRETERS
+
+Apart from external programs, several built-in directives can be specified
+as well, to handle files with a certain extension in a special way.
+The directives that can be used are:
+
+.TP
+.B internal:404
+To generate a '404 Not Found' error whenever a matching file is requested.
+This can for instance be used for files that are only included in other
+HTML files (standard header or footer) and never requested directly.
+Give these a special extension like .htmli
+.TP
+.B internal:text
+Disable special parsing of server-side includes for matching documents.
+By default all documents that generate html will be parsed for special
+SSI tags and have them interpreted by the webserver.
+.TP
+.B internal:exec
+Directly execute the program, without an interpreter. The files with a
+matching extension should have the execute bit set with chmod(1).
+
+.SH ACKNOWLEDGEMENTS
+I thank all the members at MCGV Stack who are actively involved in the
+entire WWW happening.
+.SH "SEE ALSO"
+http://www.stack.nl/~sven/xs\-httpd/
+.br
+httpd(1), httpd.conf(5)
+.SH COPYRIGHT
+All the programs in the XS\-HTTPD package are copyright (C) 1995-2005
+by Sven Berkvens and Johan van Selst, except the imagemapper, 
+.SH AUTHOR
+The original author of this WWW server and its accompanying programs
+is Sven Berkvens, except the imagemapper which was taken from the NCSA
+distribution and cleaned up. The current maintainer is Johan van Selst.
+.LP
+New features have been added by other people at Stack. If you have
+problems with this version please contact the Stack maintainers
+(xs\-httpd@stack.nl) about it and don't bother Sven.

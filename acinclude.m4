@@ -49,7 +49,7 @@ int main() { return $1, 0; }
 		AC_MSG_RESULT(unknown))
 	])
 
-# AC_FUNC_IN_LIB(function, define, library, buildprog, extra)
+# AC_FUNC_IN_LIB(function, define, library, buildprog, extra-lib)
 AC_DEFUN([XS_FUNC_IN_LIB], [
 	AC_CHECK_FUNCS($1,
 		AC_DEFINE($2,, [Define to 1 if you have the `$3' functions.]),
@@ -58,4 +58,14 @@ AC_DEFUN([XS_FUNC_IN_LIB], [
 			AC_DEFINE($2) $4_ldflags="${$4_ldflags} -l$3",
 			$5)
 		])
+	])
+
+# XS_CHECK_WITH(function, desc, default)
+AC_DEFUN([XS_CHECK_WITH], [
+	AC_MSG_CHECKING([if you want $2])
+	AC_ARG_WITH($1,
+		AC_HELP_STRING([--with-$1], [$2 ($3)]),
+		AC_MSG_RESULT($with_$1),
+		with_$1=$3
+		AC_MSG_RESULT($3))
 	])

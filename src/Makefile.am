@@ -10,7 +10,10 @@ if MD5
 httpd_SOURCES += digcalc.c 
 endif
 if PCRE
-httpd_SOURCES += pcre_sub.c 
+httpd_SOURCES += pcre.c 
+endif
+if LDAP
+httpd_SOURCES += ldap.c 
 endif
 libxs_a_LIBADD = @LIBOBJS@		# AC_REPLACE_FUNS sources
 libxs_a_CFLAGS = @libxs_cflags@
@@ -20,10 +23,11 @@ httpd_LDFLAGS = @httpd_ldflags@ @libxs_ldflags@
 xspasswd_LDFLAGS = @libxs_ldflags@
 xschpass_LDFLAGS = @libxs_ldflags@
 LDADD = libxs.a				# default for all *_PROGRAMS
+DEFAULT_INCLUDES =
 
 EXTRA_DIST = cgi.h config.h confpatch.h confuser.h convert.h decode.h \
-	digcalc.h err.h extra.h htconfig.h httpd.h local.h methods.h \
+	digcalc.h err.h extra.h htconfig.h httpd.h ldap.h local.h methods.h \
 	mygetopt.h mystring.h \
-	path.h pcre_sub.h procname.h setenv.h ssi.h ssl.h xscounter.h xscrypt.h
+	path.h pcre.h procname.h setenv.h ssi.h ssl.h xscounter.h xscrypt.h
 
-EXTRA_DIST += digcalc.c pcre_sub.c
+EXTRA_DIST += digcalc.c ldap.c pcre.c

@@ -66,18 +66,28 @@ XS_ARG_DIR(logdir, logs)
 XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)
 XS_FUNC_IN_LIB(MD5Init, HAVE_MD5, md, httpd)
-XS_FUNC_IN_LIB(pcre_exec, HAVE_PCRE, pcre, httpd)
 AM_CONDITIONAL([MD5], [test x$ac_cv_lib_md_MD5Init = xyes])
-AM_CONDITIONAL([PCRE], [test x$ac_cv_lib_pcre_pcre_exec = xyes])
 AC_REPLACE_FUNCS(err setenv setgroups strptime strsep snprintf)
 
-AC_MSG_CHECKING(if you want SSL support)
-AC_ARG_WITH(ssl,
-	AC_HELP_STRING([--with-ssl], [crypto support (yes)]),
-	AC_MSG_RESULT($with_ssl),
-	with_ssl=yes
-	AC_MSG_RESULT(yes))
+XS_CHECK_WITH(pcre, PCRE support, yes)
+if test x${with_pcre} = xyes
+then
+	XS_FUNC_IN_LIB(pcre_exec, HAVE_PCRE, pcre, httpd)
+	AM_CONDITIONAL([PCRE], [test x$ac_cv_lib_pcre_pcre_exec = xyes])
+else
+	AM_CONDITIONAL([PCRE], false)
+fi
 
+XS_CHECK_WITH(ldap, LDAP authentication support, yes)
+if test x${with_ldap} = xyes
+then
+	XS_FUNC_IN_LIB(ldap_initialize, AUTH_LDAP, ldap, httpd)
+	AM_CONDITIONAL([LDAP], [test x$ac_cv_lib_ldap_ldap_initialize = xyes])
+else
+	AM_CONDITIONAL([LDAP], false)
+fi
+
+XS_CHECK_WITH(ssl, SSL crypto support, yes)
 if test x${with_ssl} = xyes
 then
 	XS_FUNC_IN_LIB(SSLeay_version, HAVE_SSLEAY, crypto, httpd)

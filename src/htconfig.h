@@ -56,7 +56,8 @@ extern struct configuration {
 	unsigned	usecompressed: 1;
 	unsigned	usednslookup: 1;
 	unsigned	usepcreredir: 1;
-	unsigned	padding: 6;
+	unsigned	useldapauth: 1;
+	unsigned	padding: 5;
 	char *		sslcertificate;
 	char *		sslprivatekey;
 	char *		virtualhostdir;

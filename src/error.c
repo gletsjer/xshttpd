@@ -1,5 +1,4 @@
-#include	"config.h"
-/* $Id: error.c,v 1.14 2005/01/15 19:27:31 johans Exp $ */
+/* $Id: error.c,v 1.15 2005/04/03 19:41:28 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -9,12 +8,13 @@
 #include	<stdlib.h>
 #include	<pwd.h>
 
+#include	"config.h"
 #include	"local.h"
 #include	"setenv.h"
 #include	"path.h"
 #include	"mystring.h"
+#include	"htconfig.h"
 
-#include <htconfig.h>
 struct virtual			*current;
 struct configuration	config;
 

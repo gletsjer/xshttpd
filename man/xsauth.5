@@ -1,0 +1,77 @@
+.TH HTTPD 5 "12 June 2002"
+.SH FILENAME
+.B \.xsauth
+\- XS httpd authentication file
+.LP
+.SH CONCEPT
+An .xsauth file informs the xs\-httpd webserver which authenticated users
+should be granted read access to a directory-hierarchy. Only users mentioned
+in this file can view the available data.
+
+An .xsauth file is created with the \fBxspasswd(1)\fP utility. This can
+also be used to add more username and password combinations later.
+However this utility can not be used to remove users or to add special
+options: for this you will need to edit the file manually. 
+
+If you want to disallow access through the webinterface completely, or
+you want to restrict access based on IP addresses, use a \fI.noxs\fP file
+instead.
+.LP
+.SH PASSWORD ENTRIES
+Normal password entries consist of a 'L' (locked) or 'U' (unlocked),
+indicating if the password entry may be modified through the webinterface,
+using the \fBxschpass(1)\fP CGI binary. This letter is immediately followed by
+the username, a colon and the encrypted version of the password.
+
+On systems that don't have a standard \fBcrypt(3)\fP function available,
+all passwords will be stored unencryped instead.
+.LP
+.SH LDAP AUTHENTICATION
+If LDAP authentication is enabled through the system-wide UseLdapAuthentication
+configuration setting, then special directives can be used in \fI.xspasswd\fP
+files to enable password checks via a removed authentication server.
+
+.TP
+.B ldaphost=...
+Set the hostname or IP address of the LDAP server.
+.TP
+.B ldapuri=...
+Set the LDAP server name in URL format, starting with ldap:// or ldaps://.
+Setting ldapuri overrides the ldaphost setting - and vice versa.
+.TP
+.B ldapattr=...
+Set username attribute. The LDAP server will be queried for a matching
+$ldapattr=$username entry. The default is \fIuid\fP.
+.TP
+.B ldapdn=...
+Set the base DN (directory name) for the LDAP query. Setting a DN is mandatory.
+.TP
+.B ldapversion=...
+Protocol version to use. The default is 3, but for older servers one may
+want to use 2 instead.
+.TP
+.B ldapgroups=...
+List of groups of which the user should be a member. If the username is
+found in any of these groups, then access will be granted. If no groups
+are specified, then a matching username and password will be enough
+to be granted access.
+
+
+.SH ACKNOWLEDGEMENTS
+I thank all the members at MCGV Stack who are actively involved in the
+entire WWW happening.
+.SH "SEE ALSO"
+http://www.stack.nl/~sven/xs\-httpd/
+.br
+httpd(1), xspasswd(1), httpd.conf(5)
+.SH COPYRIGHT
+All the programs in the XS\-HTTPD package are copyright (C) 1995-2005
+by Sven Berkvens and Johan van Selst, except the imagemapper, 
+.SH AUTHOR
+The original author of this WWW server and its accompanying programs
+is Sven Berkvens, except the imagemapper which was taken from the NCSA
+distribution and cleaned up. The current maintainer is Johan van Selst.
+.LP
+New features have been added by other people at Stack. If you have
+problems with this version please contact the Stack maintainers
+(xs\-httpd@stack.nl) about it and don't bother Sven.

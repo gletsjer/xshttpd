@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.14 2004/12/02 14:14:39 johans Exp $ */
+/* $Id: httpdc.c,v 1.15 2005/04/03 19:41:28 johans Exp $ */
 
 #include	"config.h"
 
@@ -20,6 +20,7 @@
 #include	"mystring.h"
 #include	"httpd.h"
 #include	"path.h"
+#include	"htconfig.h"
 
 typedef	struct
 {
@@ -32,7 +33,6 @@ static	pid_t	httpdpid;
 static	char	startparams[BUFSIZ];
 char		rootdir[XS_PATH_MAX];
 
-#include <htconfig.h>
 struct virtual			*current;
 struct configuration	config;
 

@@ -1,10 +1,11 @@
 /* Copyright (C) 2005 by Johan van Selst (johans@stack.nl) */
-/* $Id: pcre_sub.c,v 1.1 2005/03/31 14:38:28 johans Exp $ */
+/* $Id: pcre.c,v 1.1 2005/04/03 19:41:28 johans Exp $ */
 
 #include	"config.h"
-#include	"pcre_sub.h"
+#include	"pcre.h"
 
 #include	<stdio.h>
+#include	<string.h>
 #include	<pcre.h>
 
 #define		OVSIZE	30	/* allows \0 through \9 */
@@ -13,7 +14,7 @@ char *
 pcre_subst(const char * const string, const char * const pattern, const char * const replacement)
 {
 	int		erroffset, rc, ovector[OVSIZE];
-	char		*subval, *result;
+	char		*result;
 	const char	*error, *prev, *next, **list;
 	pcre 		*re;
 
@@ -29,7 +30,7 @@ pcre_subst(const char * const string, const char * const pattern, const char * c
 	result[0] = '\0';
 	strncat(result, string, ovector[0]);
 	pcre_get_substring_list(string, ovector, rc, &list);
-	for (prev = replacement; next = strchr(prev, '\\'); prev = next + 2)
+	for (prev = replacement; (next = strchr(prev, '\\')); prev = next + 2)
 	{
 		int	loc = next[1] - '0';
 		if (loc < 0 || loc > 9 || loc >= rc)

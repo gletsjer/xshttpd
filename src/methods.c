@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.133 2005/03/31 14:38:28 johans Exp $ */
+/* $Id: methods.c,v 1.134 2005/04/03 19:41:28 johans Exp $ */
 
 #include	"config.h"
 
@@ -93,7 +93,7 @@
 #include	"mystring.h"
 #include	"htconfig.h"
 #ifdef		HAVE_PCRE
-#include	"pcre_sub.h"
+#include	"pcre.h"
 #endif		/* HAVE_PCRE */
 
 static int	getfiletype		(int);
