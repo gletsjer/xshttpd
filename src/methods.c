@@ -968,7 +968,8 @@ getfiletype DECL1(int, print)
 		return(0);
 	}
 	for (count = 0; ext[count] && (count < 16); count++)
-		extension[count] = tolower(ext[count]);
+		if (isupper(extension[count]))
+			extension[count] = tolower(ext[count]);
 	extension[count] = 0;
 	search = ftype;
 	while (search)

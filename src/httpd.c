@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.44 2001/02/02 12:43:43 johans Exp $ */
+/* $Id: httpd.c,v 1.45 2001/02/08 12:44:59 johans Exp $ */
 
 #include	"config.h"
 
@@ -456,7 +456,7 @@ hexdigit DECL1(int, ch)
 {
 	const	char	*temp, *hexdigits = "0123456789ABCDEF";
 
-	if ((temp = strchr(hexdigits, toupper(ch))))
+	if ((temp = strchr(hexdigits, islower(ch) ? toupper(ch) : ch)))
 		return(temp - hexdigits);
 	else
 	{
@@ -945,8 +945,10 @@ process_request DECL0
 				setenv("HTTP_USER_AGENT", browser, 1);
 				strtok(browser, "/");
 				for (temp = browser; *temp; temp++)
-					*temp = tolower(*temp);
-				*browser = toupper(*browser);
+					if (isupper(*temp))
+						*temp = tolower(*temp);
+				if (islower(*browser))
+					*browser = toupper(*browser);
 				setenv("USER_AGENT_SHORT", browser, 1);
 			} else if (!strcasecmp("Referer", extra))
 			{

@@ -46,9 +46,11 @@ strcasestr DECL2CC(char *, big, char *, little)
 	bcopy(little, newlittle, len);
 
 	for (search = newlittle; *search; )
-		*(search++) = tolower(*search);
+		if (isupper(*(search++)))
+			*search = tolower(*search);
 	for (search = newbig; *search; )
-		*(search++) = tolower(*search);
+		if (isupper(*(search++)))
+			*search = tolower(*search);
 	search = strstr(newbig, newlittle);
 	result = big + (search - newbig);
 	free(newbig); free(newlittle);
@@ -101,7 +103,8 @@ match DECL2CC(char *, total, char *, pattern)
 		} else
 		{
 			if ((pattern[y] != '?') &&
-				(tolower(total[x]) != tolower(pattern[y])))
+				((isupper(total[x]) ? tolower(total[x]) : total[x])
+				 != (isupper(pattern[y]) ? tolower(pattern[y]) : pattern[y])))
 				return(0);
 		}
 	}

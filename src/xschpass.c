@@ -72,8 +72,10 @@ urldecode DECL1(char *, what)
 			*what = 0;
 		if (*what == '%')
 		{
-			if ((d1 = strchr(hexdigits, toupper(what[1]))) &&
-			    (d2 = strchr(hexdigits, toupper(what[2]))))
+			if ((d1 = strchr(hexdigits,
+					islower(what[1]) ? toupper(what[1]) : what[1])) &&
+			    (d2 = strchr(hexdigits,
+					islower(what[2]) ? toupper(what[2]) : what[2])))
 			{
 				*what = (d1-hexdigits)*16 + (d2-hexdigits);
 				bcopy(what+3, what+1, strlen(what)-2);
