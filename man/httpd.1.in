@@ -136,6 +136,11 @@ file in which the server will place all error messages.
 .B \-R referer\-log\-path
 If you give this option to the server, you will override the default
 file in which the server will place references to local files.
+.TP
+.B \-N
+This option disables reading of the configuration file and writing of
+logfiles and pidfile. This can be useful for testing, non-superuser
+execution or in combination with the -m option.
 .LP
 .SH EXAMPLE
 A typical startup sequence could be:
