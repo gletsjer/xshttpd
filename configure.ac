@@ -78,6 +78,8 @@ AC_ARG_DEFAULT(ipv6, INET6,
 	[  --disable-ipv6          disable ipv6 support])
 AC_ARG_DEFAULT(virtual, SIMPLE_VIRTUAL_HOSTING,
 	[  --disable-virtual       disable simple virtual hosting])
+AC_ARG_DEFAULT(virtual, VIRTUAL_UID,
+	[  --disable-virtual-uid   disable variable euid for virtual hosting])
 AC_ARG_DEFAULT(restrict, RESTRICTXS,
 	[  --disable-restrict      disable restricted .noxs access])
 AC_ARG_DEFAULT(script, HANDLE_SCRIPT,

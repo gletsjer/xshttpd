@@ -229,6 +229,26 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
 				strncpy(base, calcpath(engine
 					? HTTPD_DOCUMENT_ROOT : HTTPD_ROOT), XS_PATH_MAX-1);
+#ifdef		VIRTUAL_UID
+			else
+			{
+				/* We got a virtual host, now set euid */
+				if (!origeuid)
+				{
+					setegid(currentgid = statbuf.st_gid);
+					setgroups(1, (const gid_t *)&statbuf.st_gid);
+					seteuid(statbuf.st_uid);
+				}
+				if (!(currentuid = geteuid()))
+				{
+					if (showheader)
+						error("500 Effective UID is not valid");
+					else
+						secprintf("[UID error]\n");
+					goto END;
+				}
+			}
+#endif		/* VIRTUAL_UID */
 		}
 		else
 #endif		/* SIMPLE_VIRTUAL_HOSTING */

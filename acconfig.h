@@ -26,6 +26,11 @@ for more information about these SSI's. */
  
 #undef SIMPLE_VIRTUAL_HOSTING
 
+/* When using virtual hosting, use the effective uid of the owner of
+ * the virtual root directory instead of the unprivileged http user */
+
+#undef VIRTUAL_UID
+
 /* Define this if you want to allow certain hosts to read a directory even
  * if it contains a .noxs file. You can list the IP numbers of the host
  * that should have access in the .noxs file (no hostnames). You may list

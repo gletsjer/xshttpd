@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.53 2001/02/21 11:17:45 johans Exp $ */
+/* $Id: httpd.c,v 1.54 2001/03/19 14:50:46 johans Exp $ */
 
 #include	"config.h"
 
@@ -1213,9 +1213,14 @@ process_request DECL0
 				*http_host != '-' && *http_host != '.' && *http_host != ':' &&
 				*http_host != '[' && *http_host != ']')
 			{
-				server_error("400 Invalid Host Header", "BAD_REQUEST");
+				error("400 Invalid Host Header");
 				return;
 			}
+		if (!strchr(getenv("HTTP_HOST"), '.'))
+		{
+			error("400 Invalid Host Header");
+			return;
+		}
 	}
 	else if (headers >= 11)
 	{
