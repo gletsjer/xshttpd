@@ -1,0 +1,24 @@
+# This file lists the possible compression types that are understood by the
+# WWW server. It works very simply: if somebody asks for (for example)
+# index.html, and this file does not exist, but index.html.gz does exist,
+# then index.html will be 'generated' out of index.html.gz using the method
+# specified with .gz. Note that this process does not actually create
+# index.html in that same directory. It creates a file in the temporary
+# directory which is removed immediately after usage.
+#
+# If somebody asks directly for index.html.gz, he will get it in the
+# compressed format. This way, nice things like the following can be done:
+#
+# Get <A HREF="xshttpd.tar">the uncompressed tar</A>, or get the
+# <A HREF="xshttpd.tar.gz">the compressed tar</A>.
+#
+# The user only has to have the compressed version, because if somebody
+# asks for the uncompressed version, the server will uncompress it on the
+# fly for that user.
+#
+# Note that only one compression type per file is possible. Of course, you
+# can make frontends for types that require multiple filters. In that case,
+# it can be helpful to know that the list is traversed as displayed here,
+# from top to bottom.
+
+/usr/bin/gunzip		.gz

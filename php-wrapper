@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# This is a small wrapper program to use PHP with the xshttpd
+# Actually, it is more like a hack
+
+unset SERVER_SOFTWARE SERVER_NAME GATEWAY_INTERFACE REQUEST_METHOD
+/usr/local/bin/php -q

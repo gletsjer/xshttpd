@@ -1,0 +1,41 @@
+text/x-compress-html	html.Z	/icons/xs-zip.gif	COMP	Compressed HTML
+text/x-gzip-html	html.gz	/icons/xs-zip.gif	GZIP	GNU zipped HTML
+text/html		html	/icons/xs-html.gif	HTML	HTML text
+text/html		htm	/icons/xs-html.gif	HTML	HTML text
+image/gif		gif	/icons/xs-gif.gif	GIF	GIF image
+image/jpeg		jpg	/icons/xs-jpeg.gif	JPEG	JPEG image
+image/jpeg		jpeg	/icons/xs-jpeg.gif	JPEG	JPEG image
+image/jpeg		jpe	/icons/xs-jpeg.gif	JPEG	JPEG image
+image/x-xbitmap		xbm	/icons/xs-image.gif	XBM	XBM image (B&W)
+image/x-xpixmap		xpm	/icons/xs-image.gif	XPM	XPM image (color)
+image/tiff		tiff	/icons/xs-image.gif	TIFF	TIFF image
+image/tiff		tif	/icons/xs-image.gif	TIFF	TIFF image
+image/ief		ief	/icons/xs-image.gif	IEF	IEF image
+application/octet-stream bin	/icons/xs-bin.gif	BIN	Binary file
+application/postscript	ai	/icons/xs-ps.gif	PS	PostScript file
+application/postscript	eps	/icons/xs-ps.gif	PS	PostScript file
+application/postscript	ps	/icons/xs-ps.gif	PS	PostScript file
+application/zip		zip	/icons/xs-zip.gif	ZIP	(PK)ZIP file
+application/x-gtar	gtar	/icons/xs-tar.gif	TAR	TAR file
+application/x-tar	tar	/icons/xs-tar.gif	TAR	TAR file
+application/x-ustar	ustar	/icons/xs-tar.gif	TAR	TAR file
+application/x-compress	Z	/icons/xs-zip.gif	COMP	Compressed file
+application/x-gzip	gz	/icons/xs-zip.gif	GZIP	GNU zipped file
+audio/basic		au	/icons/xs-audio.gif	AUDIO	Basic audio file
+audio/basic		snd	/icons/xs-audio.gif	AUDIO	Basic audio file
+audio/x-aiff		aif	/icons/xs-audio.gif	AUDIO	AIFF audio file
+audio/x-aiff		aiff	/icons/xs-audio.gif	AUDIO	AIFF audio file
+audio/x-aiff		aifc	/icons/xs-audio.gif	AUDIO	AIFF audio file
+audio/x-wav		wav	/icons/xs-audio.gif	AUDIO	WAV audio file
+text/plain		txt	/icons/xs-txt.gif	TEXT	Normal text
+text/richtext		rtx	/icons/xs-txt.gif	TEXT	Rich text
+video/mpeg		mpeg	/icons/xs-video.gif	VIDEO	MPEG video
+video/mpeg		mpg	/icons/xs-video.gif	VIDEO	MPEG video
+video/mpeg		mpe	/icons/xs-video.gif	VIDEO	MPEG video
+video/quicktime		qt	/icons/xs-video.gif	VIDEO	QuickTime video
+video/quicktime		mov	/icons/xs-video.gif	VIDEO	QuickTime video
+video/x-msvideo		avi	/icons/xs-video.gif	VIDEO	MicroSoft video
+video/x-sgi-movie	movie	/icons/xs-video.gif	VIDEO	SGI video
+back			..	/icons/xs-back.gif	BACK	Back
+directory		.directory. /icons/xs-dir.gif	DIR	Directory
+application/octet-stream unknown /icons/xs-unknown.gif	???	Unknown file type
