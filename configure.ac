@@ -161,7 +161,7 @@ AC_SUBST(docdir)
 AC_SUBST(logdir)
 
 AC_MSG_CHECKING(for local domain)
-hostname=$( ( hostname || cat /etc/HOSTNAME ) 2> /dev/null )
+hostname=` ( hostname || cat /etc/HOSTNAME ) 2> /dev/null `
 if test x$hostname = x -o x$hostname = x${hostname#*.}
 then
 	domain=".stack.nl"
@@ -172,7 +172,6 @@ AC_MSG_RESULT($domain)
 AC_DEFINE_UNQUOTED(THISDOMAIN, "$domain",
 	[The name of your domain, including leading dot. This is used to strip out referrers from your own site.])
 
-AC_SUBST(AC_LIBOBJ)
 AC_SUBST(ldcrypt)
 AC_SUBST(httpd_ldflags)
 AC_SUBST(httpd_cflags)

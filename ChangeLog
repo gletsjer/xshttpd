@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.2 beta 36
+- Accomodate new autoconf (259) and automake (1.8) versions
+
 Changes since 3.2 beta 35
 - SERVER_NAME uses the requested HTTP_HOST instead of default hostname
 
