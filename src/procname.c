@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: procname.c,v 1.16 2004/12/03 13:54:26 johans Exp $ */
+/* $Id: procname.c,v 1.17 2005/01/08 13:25:35 johans Exp $ */
 
 #include	"config.h"
 
@@ -45,6 +45,7 @@ struct		pst_swapinfo;
 #include	<unistd.h>
 #include	<stdlib.h>
 #include	<stdarg.h>
+#include	<err.h>
 #ifdef		HAVE_MEMORY_H
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
