@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.128 2005/01/22 11:31:24 johans Exp $ */
+/* $Id: methods.c,v 1.129 2005/01/26 22:07:57 johans Exp $ */
 
 #include	"config.h"
 
@@ -67,10 +67,9 @@
 #include	<EXTERN.h>
 #include	<perl.h>
 #endif		/* HANDLE_PERL */
-#ifndef		s6_addr16
-#define		s6_addr16	__u6_addr.__u6_addr16
+#ifndef		s6_addr32
 #define		s6_addr32	__u6_addr.__u6_addr32
-#endif		/* s6_addr16 */
+#endif		/* s6_addr32 */
 #ifndef		IN6_ARE_MASKED_ADDR_EQUAL
 #define IN6_ARE_MASKED_ADDR_EQUAL(d, a, m)      (       \
 	(((d)->s6_addr32[0] ^ (a)->s6_addr32[0]) & (m)->s6_addr32[0]) == 0 && \

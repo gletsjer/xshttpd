@@ -17,9 +17,9 @@ xspasswd_LDFLAGS = @ldcrypt@
 xschpass_LDFLAGS = @ldcrypt@
 LDADD = libxs.a				# default for all *_PROGRAMS
 
-EXTRA_DIST = cgi.h config.h confpatch.h confuser.h convert.h \
+EXTRA_DIST = cgi.h config.h confpatch.h confuser.h convert.h decode.h \
 	digcalc.h err.h extra.h htconfig.h httpd.h local.h methods.h \
 	mygetopt.h mystring.h \
-	path.h procname.h setenv.h ssi.h xscounter.h xscrypt.h
+	path.h procname.h setenv.h ssi.h ssl.h xscounter.h xscrypt.h
 
 EXTRA_DIST += digcalc.c
