@@ -22,8 +22,9 @@
 #define		S_ISREG(m)      (((m)&(S_IFMT)) == (S_IFREG))
 #endif
 
-extern	char	remotehost[], orig[], dateformat[], rootdir[], currenttime[],
-		version[], netbuf[], thishostname[], real_path[], name[], port[];
+extern	char	remotehost[], orig[], dateformat[], rootdir[], currentdir[],
+		currenttime[], version[], netbuf[], thishostname[], real_path[],
+		name[], port[];
 extern	FILE	*access_log, *refer_log;
 extern	time_t	modtime;
 extern	int		headers, localmode, netbufind, netbufsiz, readlinemode,

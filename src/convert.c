@@ -28,8 +28,10 @@ convertpath DECL1C(char *, org)
 		else if (transform_user_dir(buffer, userinfo, 0))
 			strcpy(buffer, "PERMISSION_DENIED");
 		strncat(buffer, org + 3 + strlen(person), XS_PATH_MAX - 64);
-	} else
+	} else if (org[0] == '/')
 		strncpy(buffer, org, XS_PATH_MAX - 1);
+	else
+		snprintf(buffer, XS_PATH_MAX, "%s%s", currentdir, org);
 	buffer[XS_PATH_MAX - 1] = 0;
 	return(buffer);
 }

@@ -537,7 +537,6 @@ do_get DECL1(char *, params)
 #endif		/* SIMPLE_VIRTUAL_HOSTING */
 			strncpy(base, calcpath(HTTPD_DOCUMENT_ROOT), XS_PATH_MAX-1);
 		base[XS_PATH_MAX-2] = '\0';
-		strncpy(currentdir, base, XS_PATH_MAX);
 		strcat(base, "/");
 		if (!origeuid)
 		{
@@ -551,6 +550,8 @@ do_get DECL1(char *, params)
 			return;
 		}
 	}
+	strncpy(currentdir, base, XS_PATH_MAX);
+	currentdir[XS_PATH_MAX-1] = '\0';
 
 	size = strlen(HTTPD_SCRIPT_ROOT);
 	if ((*file && (!strncmp(file + 1, HTTPD_SCRIPT_ROOT, size)) &&
@@ -972,7 +973,6 @@ getfiletype DECL1(int, print)
 		extension[count] =
 			isupper(ext[count]) ? tolower(ext[count]) : ext[count];
 	extension[count] = 0;
-	fprintf(stderr, "MIME: %s %s\n", extension, ext);
 	search = ftype;
 	while (search)
 	{

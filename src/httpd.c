@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.45 2001/02/08 12:44:59 johans Exp $ */
+/* $Id: httpd.c,v 1.46 2001/02/11 17:36:55 johans Exp $ */
 
 #include	"config.h"
 
@@ -108,7 +108,7 @@ char		netbuf[MYBUFSIZ], remotehost[NI_MAXHOST], orig[MYBUFSIZ],
 		currenttime[80], dateformat[MYBUFSIZ], real_path[XS_PATH_MAX],
 		thishostname[NI_MAXHOST], version[16], error_path[XS_PATH_MAX],
 		access_path[XS_PATH_MAX], refer_path[XS_PATH_MAX], rootdir[XS_PATH_MAX],
-		name[XS_PATH_MAX], port[NI_MAXSERV];
+		currentdir[XS_PATH_MAX], name[XS_PATH_MAX], port[NI_MAXSERV];
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[SENDBUFSIZE],
 		thisdomain[NI_MAXHOST], message503[MYBUFSIZ],
 		*startparams;
