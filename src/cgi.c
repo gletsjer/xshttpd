@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.65 2002/10/01 12:51:47 johans Exp $ */
+/* $Id: cgi.c,v 1.66 2002/10/18 09:22:25 johans Exp $ */
 
 #include	"config.h"
 
@@ -157,7 +157,7 @@ do_script DECL5(char *, path, char *, base, char *, file, char *, engine, int, s
 				*temp, *nextslash,
 				head[HEADSIZE];
 	const	char		*argv1, *header;
-	int			p[2], nph, count, nouid, dossi,
+	int			p[2], r[2], nph, count, nouid, dossi,
 				written;
 	unsigned	int	left;
 #ifdef		HANDLE_SSL
@@ -220,7 +220,8 @@ do_script DECL5(char *, path, char *, base, char *, file, char *, engine, int, s
 	dossi = (!strncmp(file, "ssi-", 4) || strstr(file, "/ssi-"));
 	nouid = (strstr(file, "/nph-nid-") || strstr(file, "/nid-") ||
 		!strncmp(file, "nph-nid-", 8) || !strncmp(file, "nid-", 4));
-	p[0] = -1; p[1] = -1;
+	p[0] = p[1] = r[0] = r[1] = -1;
+	pipe(r);
 	if (1 /* !nph || do_ssl */)
 	{
 		if (pipe(p))
@@ -235,6 +236,7 @@ do_script DECL5(char *, path, char *, base, char *, file, char *, engine, int, s
 	}
 
 #ifdef		HANDLE_SSL
+	q[0] = q[1] = -1;
 	if (config.usessl && (ssl_post = !strcmp("POST", getenv("REQUEST_METHOD"))))
 	{
 		if (pipe(q))
@@ -274,8 +276,9 @@ do_script DECL5(char *, path, char *, base, char *, file, char *, engine, int, s
 		setrlimit(RLIMIT_MEMLOCK, &limits);
 #endif		/* RLIMIT_MEMLOCK */
 #endif		/* USE_SETRLIMIT */
-		if (1 /* !nph || do_ssl */)
-			dup2(p[1], 1);
+
+		dup2(p[1], 1);
+		dup2(r[1], 2);
 #ifdef		HANDLE_SSL
 		/* Posting via SSL takes a lot of extra work */
 		dup2(q[0], 0);
@@ -360,6 +363,7 @@ do_script DECL5(char *, path, char *, base, char *, file, char *, engine, int, s
 		exit(1);
 	default:
 		close(p[1]);
+		close(r[1]);
 #ifdef		HANDLE_SSL
 		if (ssl_post)
 			close(q[0]);
@@ -400,6 +404,8 @@ do_script DECL5(char *, path, char *, base, char *, file, char *, engine, int, s
 #endif		/* HANDLE_SSL */
 	netbufind = netbufsiz = 0; readlinemode = READCHAR;
 	head[0] = '\0';
+	while (readline(r[0], errmsg) == ERR_NONE)
+		fprintf(stderr, errmsg);
 	if (!nph)
 	{
 		int ctype = 0, status = 0;
@@ -570,6 +576,7 @@ do_script DECL5(char *, path, char *, base, char *, file, char *, engine, int, s
 	logrequest(path, totalwritten);
 	END:
 	close(p[0]); close(p[1]); fflush(stdout);
+	close(r[0]); close(r[1]); fflush(stdout);
 #ifdef		HANDLE_SSL
 	if (ssl_post)
 	{

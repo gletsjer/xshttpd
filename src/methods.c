@@ -573,12 +573,10 @@ do_get DECL1(char *, params)
 	strncpy(currentdir, base, XS_PATH_MAX);
 	currentdir[XS_PATH_MAX-1] = '\0';
 
-	if ((temp = strchr(file, '?')))
+	if (question)
 	{
-		*temp = 0;
-		setenv("QUERY_STRING", temp + 1, 1);
-		if ((temp = strchr(real_path, '?')))
-			*temp = 0;
+		setenv("QUERY_STRING", question + 1, 1);
+		*question = 0;
 	}
 
 	if (*file)
