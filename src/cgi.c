@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.66 2002/10/18 09:22:25 johans Exp $ */
+/* $Id: cgi.c,v 1.67 2002/10/18 09:37:52 johans Exp $ */
 
 #include	"config.h"
 
@@ -149,7 +149,7 @@ va_decl
 }
 
 extern	VOID
-do_script DECL5(char *, path, char *, base, char *, file, char *, engine, int, showheader)
+do_script DECL5(const char *, path, const char *, base, const char *, file, const char *, engine, int, showheader)
 {
 	long			received, writetodo,
 				totalwritten;

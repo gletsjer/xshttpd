@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.90 2002/10/01 12:51:47 johans Exp $ */
+/* $Id: httpd.c,v 1.91 2002/10/18 09:37:52 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.90 2002/10/01 12:51:47 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.91 2002/10/18 09:37:52 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -999,7 +999,10 @@ logrequest DECL2(const char *, request, long, size)
 
 	if (!current->openaccess)
 		if (!config.system->openaccess)
+		{
 			warnx("Logfile disappeared???");
+			return;
+		}
 		else
 			alog = config.system->openaccess;
 	else

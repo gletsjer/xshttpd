@@ -418,7 +418,7 @@ sendcompressed DECL2_C(int, fd, char *, method)
 #endif		/* HANDLE_COMPRESSED */
 
 extern	int
-allowxs DECL1(char *, file)
+allowxs DECL1C(char *, file)
 {
 	char	*remoteaddr;
 	char	allowhost[256];
@@ -928,7 +928,7 @@ do_head DECL1(char *, params)
 }
 
 extern	VOID
-do_options DECL1(char *, params)
+do_options DECL1C(char *, params)
 {
 	secprintf("%s 200 OK\r\n", version);
 	stdheaders(0, 0, 0);

@@ -17,10 +17,10 @@ extern	VOID	loadfiletypes		PROTO((void));
 extern	VOID	loadperl			PROTO((void));
 #endif		/* HANDLE_PERL */
 extern	int	getfiletype		PROTO((int));
-extern	int	allowxs			PROTO((char *));
+extern	int	allowxs			PROTO((const char *));
 
 extern	VOID	do_get			PROTO((char *));
 extern	VOID	do_post			PROTO((char *));
 extern	VOID	do_head			PROTO((char *));
-extern	VOID	do_options		PROTO((char *));
+extern	VOID	do_options		PROTO((const char *));
 #endif		/* NOFORWARDS */
