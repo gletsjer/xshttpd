@@ -583,9 +583,11 @@ do_get DECL1(char *, params)
 	search = itype;
 	while (search)
 	{
+		char *end = strchr(file, '?');
 		size = strlen(search->ext);
 		if ((temp = strstr(file, search->ext)) &&
-			(*(temp + size) == '\0' || *(temp + size) == '?'))
+			(!end || end > temp) &&
+ 			(*(temp + size) == '\0' || *(temp + size) == '?'))
 		{
 			if (!strcmp(search->prog, "internal:404"))
 				error("404 Requested URL not found");
