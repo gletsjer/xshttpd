@@ -868,10 +868,10 @@ do_get DECL1(char *, params)
 	name[XS_PATH_MAX-1] = '\0';
 
 #ifdef		HANDLE_SCRIPT
-	loadscripttypes(base);
 	/* check litype for local and itype for global settings */
-	tmp = config.uselocalscript;
-	for (isearch = tmp ? litype : itype; isearch; isearch = isearch->next)
+	if ((tmp = config.uselocalscript))
+		loadscripttypes(base);
+	for (isearch = litype ? litype : itype; isearch; isearch = isearch->next)
 	{
 		size = strlen(isearch->ext);
 		if ((temp = strstr(file, isearch->ext)) &&
@@ -891,7 +891,7 @@ do_get DECL1(char *, params)
 			return;
 		}
 		/* hack to browse global itype after local litype */
-		if (tmp && !isearch->next)
+		if (!isearch->next && tmp && litype)
 		{
 			tmp = 0;
 			isearch = itype;
