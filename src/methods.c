@@ -464,9 +464,10 @@ do_get DECL1(char *, params)
 #endif		/* WANT_CTYPES */
 
 	alarm(240);
+
+	/* Sanitize the requested path */
 	question = strchr(params, '?');
 	while ((temp = strstr(params, "//")))
-	{
 		if (!question || (temp < question))
 		{
 			bcopy(temp + 1, temp, strlen(temp));
@@ -474,7 +475,15 @@ do_get DECL1(char *, params)
 		}
 		else
 			break;
-	}
+	while ((temp = strstr(params, "/./")))
+		if (!question || (temp < question))
+		{
+			bcopy(temp + 2, temp, strlen(temp));
+			question -= 2;
+		}
+		else
+			break;
+
 	strncpy(real_path, params, XS_PATH_MAX);
 	real_path[XS_PATH_MAX-1] = '\0';
 	setprocname("xs: Handling `%s' from `%s'", real_path, remotehost);
@@ -514,9 +523,9 @@ do_get DECL1(char *, params)
 #ifdef		SIMPLE_VIRTUAL_HOSTING
 		if ((host = getenv("HTTP_HOST")))
 		{
-			if (strstr(host, "/"))
+			if (strchr(host, '/'))
 			{
-				server_error("403 Invalid path specified", "INVALID_PATH");
+				error("403 Invalid path specified");
 				return;
 			}
 			strncpy(base, calcpath(host), XS_PATH_MAX-1);
