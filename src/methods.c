@@ -522,15 +522,13 @@ do_get DECL1(char *, params)
 	} else
 	{
 		file = params;
-#ifdef		SIMPLE_VIRTUAL_HOSTING
-		if ((http_host = getenv("HTTP_HOST")))
+		if (config.usevirtualhost && (http_host = getenv("HTTP_HOST")))
 		{
 			strncpy(base, calcpath(http_host), XS_PATH_MAX-1);
 			base[XS_PATH_MAX-2] = '\0';
 			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
 				strncpy(base, calcpath(current->htmldir), XS_PATH_MAX-1);
-#ifdef		VIRTUAL_UID
-			else
+			else if (config.usevirtualuid)
 			{
 				/* We got a virtual host, now set euid */
 				if (!origeuid)
@@ -545,10 +543,8 @@ do_get DECL1(char *, params)
 					return;
 				}
 			}
-#endif		/* VIRTUAL_UID */
 		}
 		else
-#endif		/* SIMPLE_VIRTUAL_HOSTING */
 			strncpy(base, calcpath(current->htmldir), XS_PATH_MAX-1);
 		base[XS_PATH_MAX-2] = '\0';
 		strcat(base, "/");

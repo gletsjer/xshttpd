@@ -79,8 +79,6 @@ AC_ARG_DEFAULT(ssi, WANT_SSI, yes,
 	[  --disable-ssi           disable server-side includes])
 AC_ARG_DEFAULT(ipv6, INET6, yes,
 	[  --disable-ipv6          disable ipv6 support])
-AC_ARG_DEFAULT(virtual, SIMPLE_VIRTUAL_HOSTING, yes,
-	[  --disable-virtual       disable simple virtual hosting])
 AC_ARG_DEFAULT(script, HANDLE_SCRIPT, yes,
 	[  --disable-script        disable scripting support (PHP)])
 AC_ARG_DEFAULT(compress, HANDLE_COMPRESSED, yes,
@@ -91,8 +89,6 @@ then
 		[  --disable-setrlimit     disable resource limits for CGI scripts])
 fi
 AC_SHOW_HELP(--enable options (disabled by default):)
-AC_ARG_DEFAULT(virtualuid, VIRTUAL_UID, no,
-	[  --enable-virtualuid     enable variable euid for virtual hosting])
 AC_ARG_DEFAULT(perl, HANDLE_PERL, no,
 	[  --enable-perl           enable persistent perl interpreter])
 AC_ARG_DEFAULT(warnings, , no,

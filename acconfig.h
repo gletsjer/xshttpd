@@ -19,18 +19,6 @@ for more information about these SSI's. */
 #define CERT_FILE	"cert.pem"
 #define KEY_FILE	"key.pem"
 
-/* Simple virtual hosting: when receiving requests for a virtual hostname,
- * the server will try to access files from the HTTPD_ROOT/hostname/
- * directory instead of HTTPD_DOCUMENT_ROOT. This doesn't effect the
- * location for user www directories (you can tune local.c for that). */
- 
-#undef SIMPLE_VIRTUAL_HOSTING
-
-/* When using virtual hosting, use the effective uid of the owner of
- * the virtual root directory instead of the unprivileged http user */
-
-#undef VIRTUAL_UID
-
 /* Generic file interpretation support (read: PHP)
  * This extension allows files with certain extensions to be parsed
  * by an external interpreter. You will have to specify the extensions

@@ -25,10 +25,12 @@ struct configuration {
 	uid_t		userid;
 	gid_t 		groupid;
 	unsigned	execasuser: 1;
-	unsigned	usessl: 1;
 	unsigned	usecharset: 1;
+	unsigned	usessl: 1;
 	unsigned	userestrictaddr: 1;
-	unsigned	padding: 4;
+	unsigned	usevirtualhost: 1;
+	unsigned	usevirtualuid: 1;
+	unsigned	padding: 2;
 	struct virtual *	system;
 	struct virtual *	users;
 	struct virtual *	virtual;

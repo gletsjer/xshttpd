@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.60 2002/06/11 15:21:31 johans Exp $ */
+/* $Id: cgi.c,v 1.61 2002/06/12 14:00:19 johans Exp $ */
 
 #include	"config.h"
 
@@ -257,16 +257,14 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 		file = path + strlen(name) + 3;
 	} else
 	{
-#ifdef		SIMPLE_VIRTUAL_HOSTING
-		if (getenv("HTTP_HOST"))
+		if (config.usevirtualhost && getenv("HTTP_HOST"))
 		{
 			strncpy(base, calcpath(getenv("HTTP_HOST")), XS_PATH_MAX-1);
 			base[XS_PATH_MAX-2] = '\0';
 			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
 				strncpy(base, calcpath(engine
 					? current->htmldir : rootdir), XS_PATH_MAX-1);
-#ifdef		VIRTUAL_UID
-			else
+			else if (config.usevirtualuid)
 			{
 				/* We got a virtual host, now set euid */
 				if (!origeuid)
@@ -284,10 +282,8 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 					goto END;
 				}
 			}
-#endif		/* VIRTUAL_UID */
 		}
 		else
-#endif		/* SIMPLE_VIRTUAL_HOSTING */
 			strncpy(base, calcpath(engine ? current->htmldir : rootdir),
 				XS_PATH_MAX-1);
 		strcat(base, "/");
