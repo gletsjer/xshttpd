@@ -438,11 +438,36 @@ allowxs DECL1C(char *, file)
 			allowhost[strlen(allowhost) - 1] == '\n')
 		    allowhost[strlen(allowhost) - 1] = '\0';
 
+		/* allow host if prefix(remote_host) matches host/IP in file */
 		if (strlen(allowhost) &&
 			!strncmp(remoteaddr, allowhost, strlen(allowhost)))
 		{
 			fclose(rfile);
 			return 1; /* access granted */
+		}
+
+		/* allow any host if the local port matches :port in .noxs */
+		if (strlen(allowhost) > 1 && ':' == allowhost[0])
+		{
+			int cport = atoi(allowhost + 1);
+			int lport = atoi(getenv("SERVER_PORT"));
+			struct	addrinfo	hints, *res;
+
+			memset(&hints, 0, sizeof(hints));
+			hints.ai_family = PF_UNSPEC;
+			hints.ai_socktype = SOCK_STREAM;
+
+			if (!cport)
+			{
+				if ((getaddrinfo(NULL, allowhost + 1, &hints, &res)))
+					continue;
+				cport = htons(res->ai_family == AF_INET6
+					? ((struct sockaddr_in6 *)res->ai_addr)->sin6_port
+					: ((struct sockaddr_in *)res->ai_addr)->sin_port);
+				freeaddrinfo(res);
+			}
+			if (lport && cport == lport)
+				return 1; /* access granted */
 		}
 	}
 

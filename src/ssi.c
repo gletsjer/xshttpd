@@ -630,13 +630,13 @@ dir_argument DECL2(char *, here, size_t *, size)
 {
 	if (getenv("QUERY_STRING")) {
 		secprintf("%s", getenv("QUERY_STRING"));
-		return(ERR_NONE);
 	} else {
 		secprintf("[Document missing arguments]\n");
 		return(ERR_CONT);
 	}
 	(void)here;
 	(void)size;
+	return(ERR_NONE);
 }
 
 static	int
@@ -736,14 +736,12 @@ dir_endif DECL2(char *, here, size_t *, size)
 static	int
 dir_switch DECL2(char *, here, size_t *, size)
 {
-	char		*search;
-
 	if (*(here++) != ' ')
 	{
 		secprintf("[No parameter for switch]\n");
 		return(ERR_CONT);
 	}
-	if (!(search = strstr(here, "-->")))
+	if (!strstr(here, "-->"))
 	{
 		secprintf("[Incomplete directive in switch]\n");
 		return(ERR_CONT);

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.67 2002/10/18 09:37:52 johans Exp $ */
+/* $Id: cgi.c,v 1.68 2002/11/11 19:06:11 johans Exp $ */
 
 #include	"config.h"
 
@@ -157,7 +157,7 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 				*temp, *nextslash,
 				head[HEADSIZE];
 	const	char		*argv1, *header;
-	int			p[2], r[2], nph, count, nouid, dossi,
+	int			p[2], r[2], nph, count, dossi,
 				written;
 	unsigned	int	left;
 #ifdef		HANDLE_SSL
@@ -218,8 +218,10 @@ do_script DECL5(const char *, path, const char *, base, const char *, file, cons
 
 	nph = (!strncmp(file, "nph-", 4) || strstr(file, "/nph-"));
 	dossi = (!strncmp(file, "ssi-", 4) || strstr(file, "/ssi-"));
+#if		0
 	nouid = (strstr(file, "/nph-nid-") || strstr(file, "/nid-") ||
 		!strncmp(file, "nph-nid-", 8) || !strncmp(file, "nid-", 4));
+#endif	/* not used */
 	p[0] = p[1] = r[0] = r[1] = -1;
 	pipe(r);
 	if (1 /* !nph || do_ssl */)

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.91 2002/10/18 09:37:52 johans Exp $ */
+/* $Id: httpd.c,v 1.92 2002/11/11 19:06:11 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.91 2002/10/18 09:37:52 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.92 2002/11/11 19:06:11 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -879,7 +879,7 @@ check_auth DECL1(FILE *, authfile)
 	secprintf("<BODY><H1>Wrong user/password combination</H1>\n");
 	secprintf("You don't have permission to view this page.\n");
 	secprintf("</BODY></HTML>\n");
-	fclose(authfile); return(1);
+	fclose(authfile);
 	return(1);
 }
 
@@ -1912,5 +1912,5 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	setup_environment();
 	standalone_main();
 	(void)copyright;
-	exit(0);
+	return 0;
 }
