@@ -89,15 +89,6 @@ Uses \fBlocalmode\fP as the parameter to transform_user_dir().
 This way, you can build different options into your local
 configuration. Not recommended for non\-experts.
 .TP
-.B \-a address
-Uses \fBaddress\fP as the internet address to listen
-on. This is very handy on "multi\-homing" server with multiple
-interfaces. Uses this option, you can place servers with different
-functionality on different interfaces. This name is also used for
-redirecting requests back to this host. Therefore, you must use
-a "full" (complete with the host's name and the domain) internet
-address, otherwise remote hosts will not be able to resolve the name.
-.TP
 .B \-s
 Use SSL/TLS encryption for the webserver. If no port is specified,
 the webserver will run on the default https port (443) instead of
@@ -111,18 +102,6 @@ would. Instead of supplying documents, all it will do is display the
 of what you are doing when the server is temporarily out of order.
 Remember that if you are supplying an entire
 sentence, then you have to enclose that sentence in quotes (").
-.TP
-.B \-A access\-log\-path
-If you give this option to the server, you will override the default
-file in which the server will place all retrieved files.
-.TP
-.B \-E error\-log\-path
-If you give this option to the server, you will override the default
-file in which the server will place all error messages.
-.TP
-.B \-R referer\-log\-path
-If you give this option to the server, you will override the default
-file in which the server will place references to local files.
 .LP
 .SH EXAMPLE
 A typical startup sequence could be:
