@@ -397,7 +397,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 	if (stat(fullpath, &statbuf))
 	{
 		if (showheader)
-			server_error("404 Nonexistent CGI binary", "NOT_FOUND");
+			error("403 Nonexistent CGI binary");
 		else
 			secprintf("[Nonexistent CGI binary]\n");
 		goto END;
