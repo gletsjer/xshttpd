@@ -1,5 +1,12 @@
-This file is probably out of date. However the manual pages should
-be (mostly) accurate. For a list of changes, please see cvs comments.
+This file contains an overview of version differences. The list
+is not complete. Refer to cvs comments for more information.
+
+Changes since 3.2 beta 31
+- The multiple sockets implementation did not work. Redone.
+
+Changes since 3.2 beta 30
+- Fix -p (port) command line option
+- New option -N disables configuration file, logging and pidfile
 
 Changes since 3.2 beta 29
 - Enable logging through an external program, such as cronolog

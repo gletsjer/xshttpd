@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.131 2004/06/13 11:47:39 johans Exp $ */
+/* $Id: httpd.c,v 1.132 2004/06/13 14:43:29 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.131 2004/06/13 11:47:39 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.132 2004/06/13 14:43:29 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -158,6 +158,7 @@ static	VOID	process_request		PROTO((void));
 
 static	VOID	setup_environment	PROTO((void));
 static	VOID	standalone_main		PROTO((void));
+static	VOID	standalone_socket	PROTO((char));
 #endif		/* NOFORWARDS */
 
 extern	VOID
@@ -1600,6 +1601,41 @@ process_request DECL0
 static	VOID
 standalone_main DECL0
 {
+	struct	socket_config	*sock;
+	pid_t					pid;
+	char					id = 'A';
+
+	detach(); open_logs(0);
+
+	for (sock = config.sockets; sock->next; sock = sock->next)
+	{
+		config.family	= sock->family;
+		config.address	= sock->address;
+		config.port	= sock->port;
+		config.instances= sock->instances;
+		config.usessl	= sock->usessl;
+
+		switch ((pid = fork()))
+		{
+		case -1:
+			warn("fork() failed");
+			killpg(0, SIGTERM);
+			exit(1);
+		case 0:
+			mainhttpd = 0;
+			standalone_socket(id);
+			exit(0);
+		default:
+			id++;
+		}
+	}
+	/* make myself useful */
+	standalone_socket(id);
+}
+
+static	VOID
+standalone_socket DECL1(char, id)
+{
 	int			csd = 0, count, temp;
 	size_t			clen;
 #ifdef		HAVE_GETADDRINFO
@@ -1616,23 +1652,8 @@ standalone_main DECL0
 #ifdef		HAVE_SETRLIMIT
 	struct	rlimit		limit;
 #endif		/* HAVE_SETRLIMIT */
-	struct	socket_config	*sock;
-
-	/* Speed hack
-	 * gethostbyname("localhost");
-	 */
-
-	detach(); open_logs(0);
 
 	setprocname("xs(MAIN): Initializing deamons...");
-
-	for (sock = config.sockets; sock; sock = sock->next)
-	{
-		config.family	= sock->family;
-		config.address	= sock->address;
-		config.port	= sock->port;
-		config.instances= sock->instances;
-		config.usessl	= sock->usessl;
 
 #ifdef		HAVE_GETADDRINFO
 	memset(&hints, 0, sizeof(hints));
@@ -1730,15 +1751,13 @@ standalone_main DECL0
 		}
 	}
 
-	} /* next config.sockets */
-
 	fflush(stdout);
 	while (1)
 	{
-		setprocname("xs(MAIN): Waiting for dead children");
+		setprocname("xs(MAIN-%c): Waiting for dead children", id);
 		while (mysleep(30))
 			/* NOTHING HERE */;
-		setprocname("xs(MAIN): Searching for dead children");
+		setprocname("xs(MAIN-%c): Searching for dead children", id);
 		for (count = 0; count < config.instances; count++)
 		{
 			if (kill(childs[count], 0))
@@ -1785,15 +1804,15 @@ standalone_main DECL0
 			exit(1);
 		}
 
-		setprocname("xs(%d): [Reqs: %06d] Setting up myself to accept a connection",
-			count + 1, reqs);
+		setprocname("xs(%c%d): [Reqs: %06d] Setting up myself to accept a connection",
+			id, count + 1, reqs);
 		if (!origeuid && (seteuid(origeuid) == -1))
 			err(1, "seteuid(%ld) failed", (long)origeuid);
 		if (!origeuid && (setegid(origegid) == -1))
 			err(1, "setegid(%ld) failed", (long)origegid);
 		filedescrs();
-		setprocname("xs(%d): [Reqs: %06d] Waiting for a connection...",
-			count + 1, reqs);
+		setprocname("xs(%c%d): [Reqs: %06d] Waiting for a connection...",
+			id, count + 1, reqs);
 		clen = sizeof(saddr);
 		if ((csd = accept(sd, (struct sockaddr *)&saddr, &clen)) < 0)
 		{
@@ -1801,8 +1820,8 @@ standalone_main DECL0
 				child_handler(SIGCHLD);
 			continue;
 		}
-		setprocname("xs(%d): [Reqs: %06d] accept() gave me a connection...",
-			count + 1, reqs);
+		setprocname("xs(%c%d): [Reqs: %06d] accept() gave me a connection...",
+			id, count + 1, reqs);
 		if (fcntl(csd, F_SETFL, 0))
 			warn("fcntl() in standalone_main");
 
