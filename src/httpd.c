@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.74 2002/05/10 08:31:21 johans Exp $ */
+/* $Id: httpd.c,v 1.75 2002/06/11 14:58:52 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.74 2002/05/10 08:31:21 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.75 2002/06/11 14:58:52 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1602,7 +1602,7 @@ standalone_main DECL0
 
 #ifdef		HAVE_GETNAMEINFO
 		if (!getnameinfo((struct sockaddr *)&saddr, clen,
-			remotehost, sizeof(remotehost), NULL, 0, NI_NUMERICHOST))
+			remotehost, NI_MAXHOST, NULL, 0, NI_NUMERICHOST))
 		{
 			remotehost[NI_MAXHOST-1] = '\0';
 			/* Fake $REMOTE_ADDR because most people don't
@@ -1671,8 +1671,8 @@ standalone_main DECL0
 		if (message503[0])
 		{
 			alarm(180);
-			secprintf("%s 503 Busy\r\nContent-type: text/plain\r\n\r\n", version);
-			secprintf("%s\n", message503);
+			secprintf("HTTP/1.0 503 Busy\r\nContent-type: text/plain\r\n\r\n");
+			secprintf("%s\r\n", message503);
 		} else
 			process_request();
 		alarm(0); reqs++;
