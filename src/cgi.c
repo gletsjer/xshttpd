@@ -579,18 +579,6 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 						MYBUFSIZ - strlen(cookie));
 				}
 			}
-			else if (!strncasecmp(header, "X-Powered-By:", 13))
-				/* ignore */;
-			else
-			{
-				fprintf(stderr, "[%s] httpd: Invalid header `%s' from script `%s'\n",
-					currenttime, header, name);
-				if (headers)
-					error("503 Script gave invalid header");
-				else
-					secprintf("[Script gave invalid header]\n");
-				goto END;
-			}
 		}
 		status[MYBUFSIZ-1] = '\0';
 		location[MYBUFSIZ-1] = '\0';
