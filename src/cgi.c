@@ -423,7 +423,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 	nouid = (strstr(name, "/nph-nid-") || strstr(name, "/nid-") ||
 		!strncmp(name, "nph-nid-", 8) || !strncmp(name, "nid-", 4));
 	p[0] = -1; p[1] = -1;
-	if (!nph)
+	if (1 /* !nph || do_ssl */)
 	{
 		if (pipe(p))
 		{
@@ -499,7 +499,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 		}
 #endif		/* HANDLE_SSL */
 
-		if (!nph)
+		if (1 /* !nph || do_ssl */)
 			dup2(p[1], 1);
 
 #ifdef		HAVE_SETSID
@@ -580,8 +580,6 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 #endif		/* HANDLE_SSL */
 		break;
 	}
-	if (nph)
-		exit(0);
 
 	netbufind = netbufsiz = 0; readlinemode = READCHAR;
 	head[0] = '\0';
@@ -737,7 +735,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 			{
 				if (errno == EINTR)
 					break;
-				else if (errno == EAGAIN)
+				else if (errno == EWOULDBLOCK)
 					continue;
 				secprintf("[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
 					strerror(errno), fileno(stdout), temp,

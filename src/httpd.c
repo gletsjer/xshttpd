@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.55 2001/03/22 19:02:52 johans Exp $ */
+/* $Id: httpd.c,v 1.56 2001/05/17 09:01:45 johans Exp $ */
 
 #include	"config.h"
 
@@ -1011,7 +1011,7 @@ static	VOID
 process_request DECL0
 {
 	char		line[MYBUFSIZ], extra[MYBUFSIZ], *temp,
-			*params, *url, *ver, *http_host;
+			*params, *url, *ver, http_host[NI_MAXHOST];
 	int		readerror;
 	size_t		size;
 
@@ -1204,22 +1204,45 @@ process_request DECL0
 		(!thisdomain[0] || !strcasestr(referer, thisdomain)))
 		fprintf(refer_log, "%s -> %s\n", referer, params);
 
-	if ((http_host = getenv("HTTP_HOST")))
+	if ((temp = getenv("HTTP_HOST")) &&
+		(temp = strncpy(http_host, temp, NI_MAXHOST)))
 	{
-		for ( ; *http_host; http_host++)
-			if ((*http_host < 'a' || *http_host > 'z') &&
-				(*http_host < 'A' || *http_host > 'Z') &&
-				(*http_host < '0' || *http_host > '9') &&
-				*http_host != '-' && *http_host != '.' &&
-				*http_host != ':' &&
-				*http_host != '[' && *http_host != ']')
+		temp[NI_MAXHOST-1] = '\0';
+		for ( ; *temp; temp++)
+			if ((*temp < 'a' || *temp > 'z') &&
+				(*temp < 'A' || *temp > 'Z') &&
+				(*temp < '0' || *temp > '9') &&
+				*temp != '-' && *temp != '.' &&
+				*temp != ':' &&
+				*temp != '[' && *temp != ']')
 			{
 				server_error("400 Invalid Host Header", "BAD_REQUEST");
 				return;
 			}
+		if ((temp = strchr(http_host, ':')))
+			*temp = '\0';
+		temp = http_host + strlen(http_host);
+		while (*(temp--) == '.')
+			*temp = '\0';
+#ifdef		HANDLE_SSL
+		if (strcmp(port, do_ssl ? "https" : "http"))
+#else		/* HANDLE_SSL */
+		if (strcmp(port, "http"))
+#endif		/* HANDLE_SSL */
+		{
+			if (strlen(http_host) >= NI_MAXHOST - 6)
+			{
+				server_error("400 Invalid Host Header", "BAD_REQUEST");
+				return;
+			}
+			strcat(http_host, ":");
+			strcat(http_host, port);
+		}
+		unsetenv("HTTP_HOST");
 		/* Ignore unqualified names - it could be a subdirectory! */
-		if (!strchr(getenv("HTTP_HOST"), '.'))
-			unsetenv("HTTP_HOST");
+		if (http_host && strchr(http_host, '.'))
+			setenv("HTTP_HOST", http_host, 1);
+		free(http_host);
 	}
 	else if (headers >= 11)
 	{
