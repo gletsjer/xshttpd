@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.65 2002/01/31 16:16:28 johans Exp $ */
+/* $Id: httpd.c,v 1.66 2002/02/14 14:15:51 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.65 2002/01/31 16:16:28 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.66 2002/02/14 14:15:51 johans Exp $ Copyright 1993-2002 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1659,9 +1659,9 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	else
 		group_id = 32766;
 	if ((short)user_id == -1)
-		err(1, "Check your password file: nobody may not have UID -1 or 65535.");
+		warnx("Check your password file: nobody may not have UID -1 or 65535.");
 	if ((short)group_id == -1)
-		err(1, "Check your group file: nogroup may not have GID -1 or 65535.");
+		warnx("Check your group file: nogroup should not have GID -1 or 65535.");
 	snprintf(access_path, XS_PATH_MAX, "%s/access_log", calcpath(HTTPD_LOG_ROOT));
 	snprintf(error_path, XS_PATH_MAX, "%s/error_log", calcpath(HTTPD_LOG_ROOT));
 	snprintf(refer_path, XS_PATH_MAX, "%s/referer_log", calcpath(HTTPD_LOG_ROOT));

@@ -30,8 +30,13 @@ struct		pst_swapinfo;
 #include	<vm/vm.h>
 #endif		/* HAVE_VM_VM_H */
 
-#ifdef		HAVE_MACHINE_VMPARAM_H
+#ifdef		HAVE_SYS_TIME_H
+#include	<sys/time.h>
+#endif		/* HAVE_SYS_TIME_H */
+#ifdef		HAVE_VM_PMAP_H
 #include	<vm/pmap.h>
+#endif		/* HAVE_VM_PMAP_H */
+#ifdef		HAVE_MACHINE_VMPARAM_H
 #include	<machine/vmparam.h>
 #endif		/* HAVE_MACHINE_VMPARAM_H */
 
