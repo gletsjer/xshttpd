@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpd.c,v 1.48 2001/02/12 13:25:29 johans Exp $ */
+/* $Id: httpd.c,v 1.49 2001/02/14 14:58:31 johans Exp $ */
 
 #include	"config.h"
 
@@ -1428,7 +1428,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	access_path[XS_PATH_MAX-1] = '\0';
 	error_path[XS_PATH_MAX-1] = '\0';
 	refer_path[XS_PATH_MAX-1] = '\0';
-	while ((option = getopt(argc, argv, "a:d:g:l:m:n:p:r:su:A:R:E:")) != EOF)
+	while ((option = getopt(argc, argv, "a:d:fg:l:m:n:p:r:su:A:R:E:")) != EOF)
 	{
 		switch(option)
 		{
