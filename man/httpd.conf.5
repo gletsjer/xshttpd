@@ -29,7 +29,10 @@ The httpd.conf configuration file has the following general layout:
 Options and their values must be seperated by whitespaces.
 .br
 The file can have only one System and one User section, but multiple
-Virtual sections (one per virtual hostname).
+Virtual sections (one per virtual hostname). Keep in mind that there
+are fall-back defaults for all options: you are not required to use a
+configuration file and leaving out an option does not mean it will be
+automatically disabled.
 
 .LP
 .SH GLOBAL OPTIONS
@@ -44,7 +47,14 @@ The main httpd directory which contains all the data subdirectories
 The hostname or IP-address the webserver should bind on.
 .TP
 .B ListenPort <port>
-The service name or port number to bind on.
+The service name or port number to bind on. If you want to listen to
+multiple ports, you will have to run multiple httpds.
+.TP
+.B ListenFamily [IPv4|IPv6]
+The address family to use: IPv6 is only available when enabled at
+compile-time. The default is to leave the family unspecified (which
+means that your operating system can choose: in this case the httpd can
+even listen to both IPv4 and IPv6 addresses).
 .TP
 .B Instances <number>
 The number of parallell services to run.
@@ -99,7 +109,17 @@ requested and any <Virtual> directives in the configuration file will be
 ignored.
 .TP
 .B UseVirtualUid [true|false]
-t.b.d.
+If enabled files in virtual host directories will be retreived with the
+permissions of the owner over the virtual host rootdir. This can be
+useful if different users maintain different sites.
+.TP
+.B UseLocalScript [true|false]
+If enabled all directories will be checked for the presence of a
+.xsscripts file. This can be used to specify how files with certain
+extensions should be handled by the webserver. These files use the exact
+same syntax as the global script.methods file, see
+.BR httpd(1)
+for details.
 .TP
 .B LocalMode <number>
 t.b.d.
@@ -110,16 +130,22 @@ The following options can be set in the System, Virtual and User sections:
 
 .TP
 .B Hostname <hostname>
-t.b.d.
+The hostname of the server. This is required for a Virtual section.
+For the System en User sections it defaults to the name of the machine.
 .TP
 .B HtmlDir <directory>
-t.b.d.
+The main directory containing all the HTML files. This defaults to
+SystemRoot/htdocs/ for the main server and ~/.html/ for users.
 .TP
 .B ExecDir <directory>
-t.b.d.
+The path contain the CGI scripts. This is the directory as it is
+specified in the URL, which is not necessary the same as the directory
+on disk (default: cgi-bin).
 .TP
 .B PhExecDir <directory>
-t.b.d.
+Physical CGI directory: this is the subdirectory where scripts are
+stored on disk. However if you do not use the same value as ExecDir, it
+is easy to get confused (default: cgi-bin)
 .TP
 .B VirtualId [true|false]
 t.b.d.
