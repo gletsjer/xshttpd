@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.164 2004/12/03 13:54:26 johans Exp $ */
+/* $Id: httpd.c,v 1.165 2004/12/03 14:10:21 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.164 2004/12/03 13:54:26 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.165 2004/12/03 14:10:21 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -649,7 +649,9 @@ open_logs(int sig)
 		}
 		else
 			warn("cannot open pidfile %s", config.pidfile);
-		signal(SIGHUP, SIG_IGN); killpg(0, SIGHUP);
+		/* the master reloads, the children die */
+		signal(SIGHUP, SIG_IGN);
+		killpg(0, SIGHUP);
 	}
 
 	for (current = config.system; current; current = current->next)
