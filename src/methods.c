@@ -208,7 +208,9 @@ senduncompressed DECL1(int, fd)
 #endif		/* WANT_SSI */
 		if (getenv("CONTENT_ENCODING"))
 		{
+#ifdef		WANT_SSI
 			html = 0;
+#endif		/* WANT_SSI */
 			secprintf("Content-encoding: %s\r\n", getenv("CONTENT_ENCODING"));
 			unsetenv("CONTENT_ENCODING");
 		}

@@ -688,6 +688,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 
 	readlinemode = READBLOCK;
 	totalwritten = 0;
+#ifdef		WANT_SSI
 	if (dossi)
 	{
 		size_t ttw = 0;
@@ -695,7 +696,9 @@ do_script DECL3CC_(char *, path, char *, engine, int, showheader)
 		sendwithdirectives(p[0], &ttw);
 		totalwritten = ttw;
 	}
-	else for (;;)
+	else
+#endif		/* WANT_SSI */
+	for (;;)
 	{
 		received = read(p[0], errmsg, MYBUFSIZ);
 		if (received == -1)
