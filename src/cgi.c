@@ -88,6 +88,9 @@ do_script DECL2C_(char *, path, int, headers)
 				tempbuf[XS_PATH_MAX + 32];
 	const	char		*file, *argv1, *header;
 	int			p[2], nph, count, nouid, was_slash;
+#ifdef		SUPPORT_PHP3
+	int		php3 = strlen(path) > 4 && !strcmp(path+strlen(path)-5, ".php3");
+#endif		/* SUPPORT_PHP3 */
 	unsigned	int	left;
 	struct	rlimit		limits;
 	const	struct	passwd	*userinfo;
@@ -149,8 +152,13 @@ do_script DECL2C_(char *, path, int, headers)
 			goto END;
 		}
 		size = strlen(base);
-		strcpy(base + size, HTTPD_SCRIPT_ROOT);
-		strcat(base + size, "/");
+#ifdef		SUPPORT_PHP3
+		if (!php3)
+#endif		/* SUPPORT_PHP3 */
+		{
+			strcpy(base + size, HTTPD_SCRIPT_ROOT);
+			strcat(base + size, "/");
+		}
 		if (!origeuid)
 		{
 			setegid(currentgid = userinfo->pw_gid);
@@ -168,6 +176,14 @@ do_script DECL2C_(char *, path, int, headers)
 		file = path + strlen(name) + 3;
 	} else
 	{
+		if (php3)
+		{
+			if (headers)
+				error("500 PHP3 not yet supported");
+			else
+				printf("[PHP3 not yet supported]\n");
+			goto END;
+		}
 		if (!was_slash)
 		{
 			file = path + 1;
@@ -198,6 +214,11 @@ do_script DECL2C_(char *, path, int, headers)
 	}
 
 	size = strlen(HTTPD_SCRIPT_ROOT);
+#ifdef		SUPPORT_PHP3
+	if (php3)
+		size = -1;
+	if (!php3)
+#endif		/* SUPPORT_PHP3 */
 	if (strncmp(file, HTTPD_SCRIPT_ROOT, size) || (file[size] != '/'))
 	{
 		if (headers)
@@ -399,6 +420,16 @@ do_script DECL2C_(char *, path, int, headers)
 			printf("[Cannot change directory]\n");
 			exit(1);
 		}
+#ifdef		SUPPORT_PHP3
+		if (php3)
+		{
+			/* PHP's CGI mode sucks big time */
+			unsetenv("SERVER_SOFTWARE"); unsetenv("SERVER_NAME");
+			unsetenv("GATEWAY_INTERFACE"); unsetenv("REQUEST_METHOD");
+			execl(PHP3_PATH, "php", fullpath, argv1, NULL);
+		}
+		else
+#endif		/* SUPPORT_PHP3 */
 		execl(fullpath, name, argv1, NULL);
 		if (nph)
 		{

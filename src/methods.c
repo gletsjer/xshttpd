@@ -511,6 +511,14 @@ do_get DECL1(char *, params)
 		return;
 	}
 
+#ifdef		SUPPORT_PHP3
+	if (strlen(file) > 4 && !strcmp(file + strlen(file) - 5, ".php3"))
+	{
+		do_script(params, headers);
+		return;
+	}
+#endif		/* SUPPORT_PHP3 */
+
 	if (postonly)
 	{
 		server_error("403 Cannot use POST method on non-CGI",

@@ -34,7 +34,12 @@ for more information about these SSI's. */
  * 192.168.1.0 - 192.168.1.255 and denied to the rest of the world. */
 
 #define RESTRICTXS
-  
+ 
+/* PHP3 support
+ */
+#define SUPPORT_PHP3
+#define PHP3_PATH	"/usr/local/bin/php"
+
 /* Define these if you have the respective include file. For example,
 define HAVE_SYS_SYSLIMITS_H if your system has the sys/syslimits.h
 include file. Include files can usually be found in the /usr/include
