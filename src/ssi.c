@@ -552,6 +552,7 @@ dir_last_mod DECL2(char *, here, size_t *, size)
 		}
 		thetime = localtime(&statbuf.st_mtime);
 	} else {
+		/* previous SSI's may have broken $modtime */
 		if ((path = getenv("ORIG_PATH_TRANSLATED")) && 
 				!stat(path, &statbuf))
 			thetime = localtime(&statbuf.st_mtime);
