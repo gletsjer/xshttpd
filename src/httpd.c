@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.102 2003/01/22 17:37:33 johans Exp $ */
+/* $Id: httpd.c,v 1.103 2003/01/23 22:47:20 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.102 2003/01/22 17:37:33 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.103 2003/01/23 22:47:20 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -999,7 +999,8 @@ logrequest DECL2(const char *, request, long, size)
 			buffer, 
 			getenv("REQUEST_METHOD"), request, version,
 			size > 0 ? (long)size : (long)0);
-		if (rlog)
+		if (rlog &&
+			(!thisdomain[0] || !strcasestr(referer, thisdomain)))
 			fprintf(rlog, "%s -> %s\n", referer, request);
 	}
 	else
@@ -1406,12 +1407,6 @@ process_request DECL0
 		current = config.users;
 	else if (!current)
 		current = config.system;
-
-	if (current->logstyle == traditional &&
-			referer[0] &&
-			current->openreferer &&
-			(!thisdomain[0] || !strcasestr(referer, thisdomain)))
-		fprintf(current->openreferer, "%s -> %s\n", referer, params);
 
 	setenv("REQUEST_METHOD", line, 1);
 	if (!strcmp("GET", line))
