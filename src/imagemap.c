@@ -15,6 +15,7 @@
 
 	This version by Sven Berkvens (sven@stack.nl).
 */
+/* $Id: imagemap.c,v 1.5 2001/05/22 12:19:30 johans Exp $ */
 
 #include	"config.h"
 

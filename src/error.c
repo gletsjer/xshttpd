@@ -1,4 +1,5 @@
 #include	"config.h"
+/* $Id: error.c,v 1.8 2001/05/22 12:19:29 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<sys/stat.h>

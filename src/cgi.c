@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id */
+/* $Id: cgi.c,v 1.48 2001/05/22 12:18:32 johans Exp $ */
 
 #include	"config.h"
 
