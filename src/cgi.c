@@ -83,7 +83,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
 				status[MYBUFSIZ], contenttype[MYBUFSIZ], cachecontrol[MYBUFSIZ],
-				location[MYBUFSIZ], base[XS_PATH_MAX], *temp,
+				cookie[MYBUFSIZ], location[MYBUFSIZ], base[XS_PATH_MAX], *temp,
 				name[XS_PATH_MAX], *nextslash,
 				tempbuf[XS_PATH_MAX + 32];
 	const	char		*file, *argv1, *header;
@@ -459,7 +459,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		exit(0);
 
 	status[0] = contenttype[0] = location[0] = cachecontrol[0] = 0;
-	netbufind = netbufsiz = 0; readlinemode = 1;
+	cookie[0] = netbufind = netbufsiz = 0; readlinemode = 1;
 	if (!nph)
 	{
 		while (1)
@@ -487,7 +487,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 			else if (!strncasecmp(header, "Cache-control:", 14))
 				strcpy(cachecontrol, skipspaces(header + 14));
 			else if (!strncasecmp(header, "Set-cookie:", 11))
-				strcpy(cachecontrol, skipspaces(header + 11));
+				strcpy(cookie, skipspaces(header + 11));
 			else if (!strncasecmp(header, "X-Powered-By:", 13))
 				/* ignore */;
 			else
@@ -514,6 +514,8 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				else
 					printf("Pragma: no-cache\r\n");
 			}
+			if (cookie[0])
+				printf("Set-cookie: %s\r\n", cookie);
 			switch(location[0])
 			{
 			case '/':
