@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.132 2004/06/13 14:43:29 johans Exp $ */
+/* $Id: httpd.c,v 1.133 2004/06/19 22:16:03 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.132 2004/06/13 14:43:29 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.133 2004/06/19 22:16:03 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -662,7 +662,7 @@ open_logs DECL1(int, sig)
 			if ('|' != current->logreferer[0])
 			{
 				if (current->openreferer)
-					fclose(current->openaccess);
+					fclose(current->openreferer);
 				if (!(current->openreferer =
 					fopen(calcpath(current->logreferer), "a")))
 				{
@@ -673,7 +673,7 @@ open_logs DECL1(int, sig)
 			else /* use pipe */
 			{
 				if (current->openreferer)
-					pclose(current->openaccess);
+					pclose(current->openreferer);
 				if (!(current->openreferer =
 					popen(current->logreferer + 1, "w")))
 				{
