@@ -303,10 +303,7 @@ open_logs DECL1(int, sig)
 	loadfiletypes();
 #ifdef		HANDLE_COMPRESSED
 	loadcompresstypes();
-#endif		/* HANDLE_INTERPRETED */
-#ifdef		HANDLE_COMPRESSED
-	loadinterprettypes();
-#endif		/* HANDLE_INTERPRETED */
+#endif		/* HANDLE_COMPRESSED */
 	set_signals();
 	if (!origeuid)
 	{

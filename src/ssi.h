@@ -2,6 +2,6 @@
 
 #ifdef		WANT_SSI
 #ifndef		NOFORWARDS
-extern	int	sendwithdirectives	PROTO((int, size_t *, int));
+extern	int	sendwithdirectives	PROTO((int, size_t *));
 #endif		/* NOFORWARDS */
 #endif		/* WANT_SSI */

@@ -447,6 +447,8 @@ do_script DECL2C_(char *, path, int, headers)
 				strcpy(contenttype, skipspaces(header + 13));
 			else if (!strncasecmp(header, "Cache-control:", 14))
 				strcpy(cachecontrol, skipspaces(header + 14));
+			else if (!strncasecmp(header, "Set-cookie:", 11))
+				strcpy(cachecontrol, skipspaces(header + 11));
 			else
 			{
 				fprintf(stderr, "[%s] httpd: Invalid header `%s' from script `%s'\n",

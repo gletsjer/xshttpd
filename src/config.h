@@ -175,13 +175,6 @@ default compress.methods for more details. */
 #define HANDLE_COMPRESSED 
 #define COMPRESS_METHODS "compress.methods"
  
-/* The server can automatically pass files through specific filters or
-interpreters on the server side. If you want to turn on this feature, define
-HANDLE_INTERPRETED. See the default interpret.methods for more details. */
-  
-#define HANDLE_INTERPRETED
-#define INTERPRET_METHODS "interpret.methods"
-  
 /* What is the bit bucket on your system? */
   
 #define BITBUCKETNAME "/dev/null"

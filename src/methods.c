@@ -94,21 +94,18 @@ typedef	struct	ftypes
 	char		name[32], ext[16];
 } ftypes;
 
-#if			defined(HANDLE_COMPRESSED) || defined(HANDLE_INTERPRETED)
+#ifdef HANDLE_COMPRESSED
 typedef	struct	ctypes
 {
 	struct	ctypes	*next;
 	char		prog[XS_PATH_MAX], ext[16];
 } ctypes;
-#endif		/* HANDLE_COMPRESSED || HANDLE_INTERPRETED */
+#endif		/* HANDLE_COMPRESSED */
 
 static	ftypes	*ftype = NULL;
 #ifdef		HANDLE_COMPRESSED
 static	ctypes	*ctype = NULL;
 #endif		/* HANDLE_COMPRESSED */
-#ifdef		HANDLE_INTERPRETED
-static	ctypes	*itype = NULL;
-#endif		/* HANDLE_INTERPRETED */
 
 extern	VOID
 senduncompressed DECL1(int, fd)
@@ -142,13 +139,17 @@ senduncompressed DECL1(int, fd)
 		/* This is extra overhead, overhead, overhead! */
 		if (getfiletype(0))
 		{
-			errval = sendwithdirectives(fd, &size, 1);
-			lseek(fd, SEEK_SET, 0);
-			if (errval == ERR_QUIT)
-				dynamic = 1;
+			char input[MYBUFSIZ];
+
+			/* fgets is better: read() may split HTML tags! */
+			while (read(fd, input, MYBUFSIZ))
+				if (!strstr(input, "<!--#"))
+				{
+					dynamic = 1;
+					break;
+				}
+			lseek(fd, 0, SEEK_SET);
 		}
-#else		/* WANT_SSI */
-		getfiletype(1);
 #endif		/* WANT_SSI */
 		if ((env = getenv("IF_MODIFIED_SINCE")))
 		{
@@ -273,7 +274,7 @@ senduncompressed DECL1(int, fd)
 	{
 		size = 0;
 		alarm((size / MINBYTESPERSEC) + 60);
-		errval = sendwithdirectives(fd, &size, 0);
+		errval = sendwithdirectives(fd, &size);
 		close(fd);
 		switch(errval)
 		{
@@ -304,7 +305,7 @@ senduncompressed DECL1(int, fd)
 	close(fd);
 }
 
-#if			defined(HANDLE_COMPRESSED) || defined(HANDLE_INTERPRETED)
+#ifdef HANDLE_COMPRESSED
 extern	VOID
 sendcompressed DECL2_C(int, fd, char *, method)
 {
@@ -384,7 +385,7 @@ sendcompressed DECL2_C(int, fd, char *, method)
 	}
 	senduncompressed(processed);
 }
-#endif		/* HANDLE_COMPRESSED || HANDLE_INTERPRETED */
+#endif		/* HANDLE_COMPRESSED */
 
 #ifdef		RESTRICTXS
 extern	int
@@ -428,9 +429,9 @@ do_get DECL1(char *, params)
 	struct	stat		statbuf;
 	const	struct	passwd	*userinfo;
 	FILE			*authfile;
-#if			defined(HANDLE_COMPRESSED) || defined(HANDLE_INTERPRETED)
+#ifdef HANDLE_COMPRESSED
 	const	ctypes		*search = NULL;
-#endif		/* HANDLE_COMPRESSED || HANDLE_INTERPRETED */
+#endif		/* HANDLE_COMPRESSED */
 
 	alarm(240);
 	question = strchr(params, '?');
@@ -681,31 +682,7 @@ do_get DECL1(char *, params)
 		sendcompressed(fd, search->prog);
 	else
 #endif		/* HANDLE_COMPRESSED */
-	{
-#ifdef		HANDLE_INTERPRETED
-		int i;
-
-		sprintf(total, "%s%s", base, file);
-		search = itype;
-		while (search)
-		{
-			i = strlen(total) - strlen(search->ext);
-			if (i > 0 && !strcmp(total + i, search->ext))
-				break;
-			search = search->next;
-		}
-		if (search)
-		{
-			/* This is no hack. This is a dirty hack. */
-			unsetenv("SCRIPT_NAME");
-			setenv("SCRIPT_NAME", real_path, 1);
-			sendcompressed(fd, search->prog);
-			unsetenv("SCRIPT_NAME");
-		}
-		else
-#endif		/* HANDLE_INTERPRETED */
 		senduncompressed(fd);
-	}
 	return;
 
 	NOTFOUND:
@@ -822,47 +799,6 @@ loadcompresstypes DECL0
 	fclose(methods);
 }
 #endif		/* HANDLE_COMPRESSED */
-
-#ifdef		HANDLE_INTERPRETED
-extern	VOID
-loadinterprettypes DECL0
-{
-	char		line[MYBUFSIZ], *end, *comment;
-	const	char	*path;
-	FILE		*methods;
-	ctypes		*prev, *new;
-
-	while (itype)
-	{
-		new = itype->next;
-		free(itype); itype = new;
-	}
-	path = calcpath(INTERPRET_METHODS);
-	if (!(methods = fopen(path, "r")))
-		err(1, "fopen(`%s' [read])", path);
-	prev = NULL;
-	while (fgets(line, MYBUFSIZ, methods))
-	{
-		if ((comment = strchr(line, '#')))
-			*comment = 0;
-		end = line + strlen(line);
-		while ((end > line) && (*(end - 1) <= ' '))
-			*(--end) = 0;
-		if (line == end)
-			continue;
-		if (!(new = (ctypes *)malloc(sizeof(ctypes))))
-			errx(1, "Out of memory in loadinterprettypes()");
-		if (prev)
-			prev->next = new;
-		else
-			itype = new;
-		prev = new; new->next = NULL;
-		if (sscanf(line, "%s %s", new->prog, new->ext) != 2)
-			errx(1, "Unable to parse `%s' in `%s'", line, path);
-	}
-	fclose(methods);
-}
-#endif		/* HANDLE_INTERPRETED */
 
 extern	int
 getfiletype DECL1(int, print)

@@ -80,7 +80,7 @@ static	int	parsedirectives		PROTO((char *, size_t *));
 static	int	sendwithdirectives_internal PROTO((int, size_t *));
 #endif		/* NOFORWARDS */
 
-static	int	ssioutput, cnt_readbefore, numincludes, silent;
+static	int	ssioutput, cnt_readbefore, numincludes;
 static	char	ssiarray[16];
 static	int	switchlen;
 static	char	*switchstr;
@@ -824,8 +824,6 @@ print_enabled DECL0
 	int		count, output;
 
 	output = 1;
-	if (silent)
-		return 0;
 	for (count = 0; count <= ssioutput; count++)
 		if (!ssiarray[count])
 			output = 0;
@@ -925,8 +923,8 @@ sendwithdirectives_internal DECL2(int, fd, size_t *, size)
 	alarm(360);
 	if (!(parse = fdopen(fd, "r")))
 	{
-		fprintf(stderr, "[%s] httpd: Could not fdopen: %s\n",
-			currenttime, strerror(errno));
+		fprintf(stderr, "[%s] httpd: Could not fdopen (%d): %s\n",
+			currenttime, fd, strerror(errno));
 		return(ERR_CONT);
 	}
 	while (fgets(input, MYBUFSIZ, parse))
@@ -944,8 +942,6 @@ sendwithdirectives_internal DECL2(int, fd, size_t *, size)
 			}
 		} else
 		{
-			if (silent)
-				return(ERR_QUIT);
 			if (parsedirectives(input, size) == ERR_QUIT)
 			{
 				alarm(0); fclose(parse);
@@ -959,10 +955,9 @@ sendwithdirectives_internal DECL2(int, fd, size_t *, size)
 }
 
 extern	int
-sendwithdirectives DECL3(int, fd, size_t *, size, int, besilent)
+sendwithdirectives DECL2(int, fd, size_t *, size)
 {
 	ssioutput = 0; ssiarray[0] = 1; cnt_readbefore = numincludes = 0;
-	silent = besilent;
 	return(sendwithdirectives_internal(fd, size));
 }
 
