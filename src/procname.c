@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: procname.c,v 1.10 2004/03/20 14:48:53 johans Exp $ */
+/* $Id: procname.c,v 1.11 2004/05/27 23:35:26 johans Exp $ */
 
 #include	"config.h"
 
@@ -61,6 +61,7 @@ extern	char	**environ;
 
 static	char	*procnamestart, *procnameend;
 
+#ifndef		HAVE_SETPROCTITLE
 #ifndef		NONEWSTYLE
 extern	VOID
 setprocname(const char *name, ...)
@@ -123,6 +124,7 @@ va_dcl
 #endif		/* PSTAT_SETCMD */
 #endif		/* PS_STRINGS */
 }
+#endif		/* HAVE_SETPROCTITLE */
 
 extern	VOID
 initsetprocname DECL3(int, argc, char **, argv, char **, envp)
