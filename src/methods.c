@@ -572,7 +572,6 @@ do_get DECL1(char *, params)
 	}
 	strncpy(currentdir, base, XS_PATH_MAX);
 	currentdir[XS_PATH_MAX-1] = '\0';
-	fprintf(stderr, "base %s file %s\n", base, file);
 
 	if ((temp = strchr(file, '?')))
 	{
