@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.124 2004/12/02 14:14:39 johans Exp $ */
+/* $Id: methods.c,v 1.125 2004/12/15 16:19:59 johans Exp $ */
 
 #include	"config.h"
 
@@ -864,7 +864,8 @@ do_get(char *params)
 		while ((temp > total) && (*(temp - 1) < ' '))
 			*(--temp) = 0;
 		strcat(total, filename);
-		strtok(total, "\r\n"); redirect(total, 0);
+		strtok(total, "\r\n");
+		redirect(total, 0);
 		return;
 	}
 	charset[0] = '\0';
@@ -939,31 +940,21 @@ do_get(char *params)
 			wasdir = 0;
 			strcat(real_path, filename = INDEX_HTML);
 			goto RETRY;
-		} else
+		}
+		else
 		{
 			http_host = getenv("HTTP_HOST");
 
-			if (question)
-			{
-				if (strcmp(config.port, "http") && !http_host)
-					snprintf(total, XS_PATH_MAX, "http://%s:%s%s/?%s",
-						current->hostname, config.port,
-						params, question + 1);
-				else
-					snprintf(total, XS_PATH_MAX, "http://%s%s/?%s",
-						(http_host ? http_host : current->hostname),
-						params, question + 1);
-			}
-			else
-			{
-				if (strcmp(config.port, "http") && !http_host)
-					snprintf(total, XS_PATH_MAX, "http://%s:%s%s/",
-						current->hostname, config.port, params);
-				else
-					snprintf(total, XS_PATH_MAX, "http://%s%s/",
-						(http_host ? http_host : current->hostname),
-						params);
-				}
+			/* pretty url with trailing slash */
+			snprintf(total, XS_PATH_MAX, "%s://%s%s%s%s/%s%s",
+				config.usessl ? "https" : "http",
+				http_host ? http_host : current->hostname,
+				strncmp(config.port, "http", 4) ? ":" : "",
+				strncmp(config.port, "http", 4) ? config.port : "",
+				params,
+				question ? "?" : "",
+				question ? question : "");
+
 			total[XS_PATH_MAX-1] = '\0';
 			redirect(total, 1);
 			return;
