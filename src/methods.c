@@ -563,6 +563,14 @@ do_get DECL1(char *, params)
 	strncpy(currentdir, base, XS_PATH_MAX);
 	currentdir[XS_PATH_MAX-1] = '\0';
 
+	if ((temp = strchr(file, '?')))
+	{
+		*temp = 0;
+		setenv("QUERY_STRING", temp + 1, 1);
+		if ((temp = strchr(real_path, '?')))
+			*temp = 0;
+	}
+
 	size = strlen(HTTPD_SCRIPT_ROOT);
 	if ((*file && (!strncmp(file + 1, HTTPD_SCRIPT_ROOT, size)) &&
 		(file[size + 1] == '/')) /* ||
@@ -598,14 +606,6 @@ do_get DECL1(char *, params)
 		server_error("403 Cannot use POST method on non-CGI",
 			"POST_ON_NON_CGI");
 		return;
-	}
-
-	if ((temp = strchr(file, '?')))
-	{
-		*temp = 0;
-		setenv("QUERY_STRING", temp + 1, 1);
-		if ((temp = strchr(real_path, '?')))
-			*temp = 0;
 	}
 
 	if (*file)
