@@ -1050,7 +1050,7 @@ standalone_main DECL0
 		struct	linger	sl;
 
 		/* (in)sanity check */
-		if (count > number)
+		if (count > number || count < 0)
 		{
 			const	char	*env;
 
