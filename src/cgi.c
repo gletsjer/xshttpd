@@ -83,11 +83,11 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 				totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
 				status[MYBUFSIZ], contenttype[MYBUFSIZ], cachecontrol[MYBUFSIZ],
-				cookie[MYBUFSIZ], location[MYBUFSIZ], base[XS_PATH_MAX], *temp,
-				name[XS_PATH_MAX], *nextslash,
+				cookie[MYBUFSIZ], location[MYBUFSIZ], base[XS_PATH_MAX],
+				inbuf[MYBUFSIZ], *temp, name[XS_PATH_MAX], *nextslash,
 				tempbuf[XS_PATH_MAX + 32];
 	const	char		*file, *argv1, *header;
-	int			p[2], nph, count, nouid, was_slash;
+	int			p[2], q[2], nph, count, nouid, was_slash;
 	unsigned	int	left;
 	struct	rlimit		limits;
 	const	struct	passwd	*userinfo;
@@ -380,6 +380,44 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		setrlimit(RLIMIT_MEMLOCK, &limits);
 #endif		/* RLIMIT_MEMLOCK */
 #endif		/* DONT_USE_SETRLIMIT */
+#ifdef		HANDLE_SSL
+		/* Posting via SSL takes a lot of extra work */
+		if (do_ssl && !strcmp("POST", getenv("REQUEST_METHOD")))
+		{
+			int readerror;
+			writetodo = atoi(getenv("CONTENT_LENGTH"));
+			fprintf(stderr, "SECPOST: %ld\n", writetodo);
+			if (pipe(q))
+			{
+				sprintf(errmsg, "500 pipe() failed: %s", strerror(errno));
+				if (headers)
+					error(errmsg);
+				else
+					secprintf("[%s]\n", errmsg);
+				goto END;
+			}
+			while (writetodo > 0)
+			{
+				written = writetodo > MYBUFSIZ ? MYBUFSIZ : writetodo;
+				secread(0, inbuf, written);
+				if (readerror = ERR_get_error()) {
+					fprintf(stderr, "SSL Error: %s\n",
+						ERR_reason_error_string(readerror));
+					goto END;
+				}
+				inbuf[written] = '\0';
+				fprintf(stderr, "SECREAD: %s\n", inbuf);
+				if (write(q[1], inbuf, written) < written) {
+					fprintf(stderr, "[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
+						strerror(errno), q[1], temp,
+						writetodo);
+					goto END;
+				}
+				writetodo -= written;
+			}
+			dup2(q[0], 0);
+		}
+#endif		/* HANDLE_SSL */
 
 		if (!nph)
 			dup2(p[1], 1);
@@ -453,6 +491,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 		exit(1);
 	default:
 		close(p[1]);
+		close(q[1]);
 		break;
 	}
 	if (nph)
@@ -641,6 +680,7 @@ do_script DECL3CC_(char *, path, char *, engine, int, headers)
 	}
 	END:
 	close(p[0]); close(p[1]); fflush(stdout);
+	close(q[0]); close(q[1]);
 	if (!origeuid)
 	{
 		seteuid(origeuid); setegid(savedegid); seteuid(savedeuid);
