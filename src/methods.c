@@ -595,6 +595,22 @@ do_get DECL1(char *, params)
 		file++;
 	cgi = file;
 
+	temp = file;
+	while ((temp = strchr(temp, '/')))
+	{
+		char fullpath[XS_PATH_MAX];
+		*temp = 0;
+		snprintf(fullpath, XS_PATH_MAX, "%s/%s", base, file);
+		if (stat(fullpath, &statbuf))
+			break; /* error later */
+		if ((statbuf.st_mode & S_IFMT) == S_IFREG)
+		{
+			setenv("PATH_INFO", temp + 1, 1);
+			break;
+		}
+		*(temp++) = '/';
+	}
+
 	if ((temp = strrchr(file, '/')))
 	{
 		*temp = 0;
@@ -642,8 +658,10 @@ do_get DECL1(char *, params)
 	}
 	if (userinfo && statbuf.st_uid && (statbuf.st_uid != geteuid()))
 	{
+#if 0
 		error("403 Invalid owner of user directory");
 		return;
+#endif
 	}
 	
 	/* Check for *.noxs permissions */
@@ -818,9 +836,9 @@ do_get DECL1(char *, params)
 	name[XS_PATH_MAX-1] = '\0';
 
 	/* Do this only after all the security checks */
-	size = strlen(HTTPD_SCRIPT_ROOT);
+	size = strlen(current->execdir);
 	if (script ||
-		(*cgi && !strncmp(cgi, HTTPD_SCRIPT_ROOT, size) && cgi[size] == '/'))
+		(*cgi && !strncmp(cgi, current->execdir, size) && cgi[size] == '/'))
 	{
 		do_script(params, base, file, NULL, headers);
 		return;
