@@ -4,4 +4,5 @@
 extern	VOID	err			PROTO((int, const char *, ...));
 extern	VOID	errx			PROTO((int, const char *, ...));
 extern	VOID	warn			PROTO((const char *, ...));
+extern	VOID	warnx			PROTO((const char *, ...));
 #endif		/* NOFORWARDS */

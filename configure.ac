@@ -102,7 +102,7 @@ AC_ARG_DEFAULT(warnings, , no,
 
 if test x${enable_warnings} = xyes
 then
-	CFLAGS="-g -Wall -W -pedantic -ansi -Wstrict-prototypes -Wtraditional -Wmissing-prototypes -Wpointer-arith -Wshadow -Waggregate-return -Wcast-qual -Wbad-function-cast -Wwrite-strings"
+	CFLAGS="-g -O -fsigned-char -pedantic -ansi -trigraphs -Wall -W -Wpointer-arith -Wshadow -pipe -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wimplicit -Wreturn-type -Wformat -Wswitch -Wcomment -Wchar-subscripts -Wuninitialized -Wparentheses -Wcast-align -Waggregate-return -Wnested-externs -Winline"
 else
 	CFLAGS="-g"
 fi
