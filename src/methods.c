@@ -453,10 +453,10 @@ allowxs DECL1(char *, file)
 extern	VOID
 do_get DECL1(char *, params)
 {
-	char			*temp, *file, auth[XS_PATH_MAX], base[XS_PATH_MAX],
-			total[XS_PATH_MAX];
-	const	char		*filename, *question, *http_host;
-	int			fd, wasdir, permanent;
+	char			*temp, *cgi, *file, *question,
+			auth[XS_PATH_MAX], base[XS_PATH_MAX], total[XS_PATH_MAX];
+	const	char		*filename, *http_host;
+	int			fd, wasdir, permanent, script = 0;
 	size_t			size;
 	struct	stat		statbuf;
 	const	struct	passwd	*userinfo;
@@ -545,7 +545,17 @@ do_get DECL1(char *, params)
 			}
 		}
 		else
-			strncpy(base, calcpath(current->htmldir), XS_PATH_MAX-1);
+		{
+			size = strlen(current->execdir);
+			if (!strncmp(params + 1, current->execdir, size))
+			{
+				script = 1;
+				strncpy(base, calcpath(current->phexecdir), XS_PATH_MAX-1);
+			}
+			else
+				strncpy(base, calcpath(current->htmldir), XS_PATH_MAX-1);
+			file += size + 2;
+		}
 		base[XS_PATH_MAX-2] = '\0';
 		strcat(base, "/");
 		if (!origeuid)
@@ -571,43 +581,6 @@ do_get DECL1(char *, params)
 			*temp = 0;
 	}
 
-	size = strlen(HTTPD_SCRIPT_ROOT);
-	if ((*file && (!strncmp(file + 1, HTTPD_SCRIPT_ROOT, size)) &&
-		(file[size + 1] == '/')) /* ||
-		((file[0] == '/') && ((file[1] == '?') || !file[1] )) */ )
-	{
-		do_script(params, NULL, headers);
-		return;
-	}
-
-	RETRY_SCRIPT:
-#ifdef		HANDLE_SCRIPT
-	search = itype;
-	while (search)
-	{
-		char *end = strchr(file, '?');
-		size = strlen(search->ext);
-		if ((temp = strstr(file, search->ext)) &&
-			(!end || end > temp) &&
- 			(*(temp + size) == '\0' || *(temp + size) == '?'))
-		{
-			if (!strcmp(search->prog, "internal:404"))
-				error("404 Requested URL not found");
-			else
-				do_script(params, search->prog, headers);
-			return;
-		}
-		search = search->next;
-	}
-#endif		/* HANDLE_SCRIPT */
-
-	if (postonly)
-	{
-		server_error("403 Cannot use POST method on non-CGI",
-			"POST_ON_NON_CGI");
-		return;
-	}
-
 	if (*file)
 		wasdir = (file[strlen(file) - 1] == '/');
 	else
@@ -618,8 +591,10 @@ do_get DECL1(char *, params)
 		return;
 	}
 
-	/* if (*file == '/')
-		file++; */
+	if (*file == '/' && file[1] != '\0')
+		file++;
+	cgi = file;
+
 	if ((temp = strrchr(file, '/')))
 	{
 		*temp = 0;
@@ -671,6 +646,14 @@ do_get DECL1(char *, params)
 		return;
 	}
 	
+	/* Check for *.noxs permissions */
+	snprintf(total, XS_PATH_MAX, "%s/.noxs", base);
+	total[XS_PATH_MAX-1] = '\0';
+	if (!stat(total, &statbuf) && !allowxs(total))
+	{
+		server_error("403 Directory is not available", "DIR_NOT_AVAIL");
+		return;
+	}
 	/* Check for *.redir instructions */
 	permanent = 0;
 	snprintf(total, XS_PATH_MAX, "%s%s.redir", base, filename);
@@ -710,15 +693,7 @@ do_get DECL1(char *, params)
 		strtok(total, "\r\n"); redirect(total, 0);
 		return;
 	}
-	/* Check for *.noxs permissions */
-	snprintf(total, XS_PATH_MAX, "%s/.noxs", base);
-	total[XS_PATH_MAX-1] = '\0';
-	if (!stat(total, &statbuf) && !allowxs(total))
-	{
-		server_error("403 Directory is not available", "DIR_NOT_AVAIL");
-		return;
-	}
-	charset[0] =  '\0';
+	charset[0] = '\0';
 	if (config.usecharset)
 	{
 		/* Check for *.charset preferences */
@@ -749,9 +724,6 @@ do_get DECL1(char *, params)
 			return;
 	}
 
-#ifdef		HANDLE_COMPRESSED
-	search = NULL;
-#endif		/* HANDLE_COMPRESSED */
 	snprintf(total, XS_PATH_MAX, "%s%s", base, filename);
 	total[XS_PATH_MAX-1] = '\0';
 	if (!lstat(total, &statbuf) && S_ISLNK(statbuf.st_mode) &&
@@ -775,6 +747,8 @@ do_get DECL1(char *, params)
 		if (!search)
 			goto NOTFOUND;
 	}
+	else
+		search = NULL;
 #else		/* Not HANDLE_COMPRESSED */
 		goto NOTFOUND;
 #endif		/* HANDLE_COMPRESSED */
@@ -836,6 +810,49 @@ do_get DECL1(char *, params)
 	strncpy(name, filename, XS_PATH_MAX);
 	name[XS_PATH_MAX-1] = '\0';
 
+	/* Do this only after all the security checks */
+	size = strlen(HTTPD_SCRIPT_ROOT);
+	if (script ||
+		(
+		 *cgi &&
+		 !strncmp(cgi, HTTPD_SCRIPT_ROOT, size) &&
+		 cgi[size] == '/'
+		)
+	   )
+	{
+		if (question)
+			*question = '?';
+		do_script(params, NULL, headers);
+		return;
+	}
+
+#ifdef		HANDLE_SCRIPT
+	search = itype;
+	while (search)
+	{
+		size = strlen(search->ext);
+		if ((temp = strstr(file, search->ext)) &&
+			strlen(temp) == strlen(search->ext))
+		{
+			if (question)
+				*question = '?';
+			if (!strcmp(search->prog, "internal:404"))
+				error("404 Requested URL not found");
+			else
+				do_script(params, search->prog, headers);
+			return;
+		}
+		search = search->next;
+	}
+#endif		/* HANDLE_SCRIPT */
+
+	if (postonly)
+	{
+		server_error("403 Cannot use POST method on non-CGI",
+			"POST_ON_NON_CGI");
+		return;
+	}
+
 #ifdef		HANDLE_COMPRESSED
 	if (search)
 	{
@@ -874,7 +891,7 @@ do_get DECL1(char *, params)
 		}
 		params = file = real_path;
 		wasdir = 0;
-		goto RETRY_SCRIPT;
+		goto RETRY;
 	}
 	server_error("404 Requested URL not found", "NOT_FOUND");
 }
