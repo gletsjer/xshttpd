@@ -288,6 +288,133 @@ be used, otherwise sa_mask will just be assigned 0. */
   
 #define HAVE_SIGEMPTYSET 
   
+/* Does your system have a good working getnameinfo() library call? If so,
+it will be used, otherwise getaddrinfo() is used instead. */
+  
+#define HAVE_GETNAMEINFO
+  
+/* Does your system have the seteuid() and setegid() system/library calls?
+If not, then the programs will use setreuid() and setregid() instead. */
+  
+#define HAVE_SETEUID 
+#define HAVE_SETEGID 
+  
+/* Does your system have the setresuid() en setresgid() system/library calls?
+These are only needed if you do not have seteuid()/setegid() and
+setreuid()/setreuid(). */ 
+  
+#undef HAVE_SETRESUID 
+#undef HAVE_SETRESGID 
+  
+/* Does your system have the strerror() library call? If not, then the
+programs will use their own version. If you need to declare sys_errlist
+and sys_nerr in the program itself, define NEED_SYS_ERRLIST_DECL also. */
+  
+#define HAVE_STRERROR 
+#undef NEED_SYS_ERRLIST_DECL 
+  
+/* Does your system declare optarg and optind by itself? If not, the
+programs will declare it themselves. If you need the programs to
+declare the symbols by themselves, #define NEED_OPTARG_AND_OPTIND. */
+  
+#undef NEED_OPTARG_AND_OPTIND 
+  
+/* Does your system declare environ by itself? If not, the prorgams will
+declare it themselves. If you need the programs to declare the symbols,
+then #define NEED_DECL_ENVIRON. */
+  
+#define NEED_DECL_ENVIRON 
+  
+/* Does your system have the killpg() call? If so, then define HAVE_KILLPG.
+A version of killpg() will be created in extra.c otherwise. */
+  
+#define HAVE_KILLPG 
+  
+/* Does your system have the sigemptyset() library call? If so, it will
+be used, otherwise sa_mask will just be assigned 0. */
+  
+#define HAVE_SIGEMPTYSET 
+  
+/* If your system has a VERY old setvbuf(), the second and third arguments
+will have to be reversed (SysV versions earlier than version 3). If you
+have this very old style setvbuf(), define SETVBUF_REVERSED. */
+  
+#undef SETVBUF_REVERSED 
+  
+/* Does your system know about the type "pid_t"? If not, then define
+NOPID_T instead of undefining it. */
+  
+#undef NOPID_T 
+  
+/* Does your system know about the type "size_t"? If not, then define
+NOSIZE_T instead of undefining it. */
+  
+#undef NOSIZE_T 
+  
+/* Does your system know about the type "uid_t"? If not, then define
+NOUID_T instead of undefining it. */
+  
+#undef NOUID_T 
+  
+/* Does your system know about the type "gid_t"? If not, then define
+NOGID_T instead of undefining it. */
+  
+#undef NOGID_T 
+  
+/* The default PATH environment variable that CGI binaries are started
+with. This is so users' binaries can find the programs that they
+depend on. The path must be given in the normal /bin/sh format. */
+  
+#define SCRIPT_PATH "/usr/bin:/bin:/usr/local/bin"
+  
+/* The name of the access authority file */
+  
+#define AUTHFILE ".xsauth"
+  
+/* Argument to listen(). Leave it as it is, it should be fine. */
+  
+#define MAXLISTEN 50
+  
+/* If your C compiler does not understand prototypes, #define NOPROTOS
+instead of undefining it. You have a really old C compiler if this
+is the case. Consider upgrading to GCC, a fantastic C compiler
+(free!) which runs on nearly every platform. */
+  
+#undef NOPROTOS 
+  
+/* If your C compiler does not even understand forwards, then #define
+NOFORWARDS instead of undefining it. Your compiler is REALLY stupid
+if it does not understand forwards. Read above about GCC! */
+  
+#undef NOFORWARDS 
+  
+/* If your compiler does not understand "new-style" declarations, then
+#define NONEWSTYLE instead of undefining it. Read above about GCC! */
+  
+#undef NONEWSTYLE 
+  
+/* If your compiler does not understand the 'const' keyword, then
+#define NOCONST instead of undefining it. Read above about GCC! */
+  
+#undef NOCONST 
+  
+/* If your compiler does not understand the 'static' keyword, then
+#define NOSTATIC instead of undefining it. Read above about GCC! */
+  
+#undef NOSTATIC 
+  
+/* If your compiler does not understand the 'extern' keyword, then
+#define NOEXTERN instead of undefining it. Read above about GCC! */
+  
+#undef NOEXTERN 
+  
+/* If your compiler does not understand the 'void' keyword, then
+#define NOVOID instead of undefining it. Read above about GCC! */
+  
+#undef NOVOID 
+
+/* Koresh hack */
+  
 /* If your system has a VERY old setvbuf(), the second and third arguments
 will have to be reversed (SysV versions earlier than version 3). If you
 have this very old style setvbuf(), define SETVBUF_REVERSED. */
