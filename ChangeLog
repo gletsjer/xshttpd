@@ -3,6 +3,10 @@ be (mostly) accurate. For a list of changes, please see cvs comments.
 
 Changes since 3.2 beta 28
 - Deal with standard HTTP server headers supplied by CGI scripts
+- Set SCRIPT_FILENAME to accomodate new PHP versions
+- Don't serve *.[Rr]edir files
+- Don't log errors to access_log, even when using an error CGI
+- Use setproctitle() when available instead of setprocname() hacks
 
 Changes since 3.2 beta 27
 - Document the use of SSL in 'man httpd' and include SSL-Makefile
