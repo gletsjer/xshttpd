@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.126 2004/03/06 11:15:40 johans Exp $ */
+/* $Id: httpd.c,v 1.127 2004/03/06 14:51:51 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.126 2004/03/06 11:15:40 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.127 2004/03/06 14:51:51 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -224,8 +224,10 @@ child_handler DECL1(int, sig)
 	int		status;
 #endif		/* NeXT */
 
+#ifdef		HAVE_WAIT3
 	while (wait3(&status, WNOHANG, NULL) > 0)
 		/* NOTHING */;
+#endif		/* HAVE_WAIT3 */
 	set_signals();
 	(void)sig;
 }
