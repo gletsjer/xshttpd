@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.120 2003/06/18 13:25:57 johans Exp $ */
+/* $Id: httpd.c,v 1.121 2003/08/28 13:05:17 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.120 2003/06/18 13:25:57 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.121 2003/08/28 13:05:17 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -785,9 +785,10 @@ redirect DECL2C_(char *, redir, int, permanent)
 	env = getenv("QUERY_STRING");
 	if (headers)
 	{
-		secprintf("%s %s moved\r\nLocation: %s\r\n", version,
+		secprintf("%s %s moved\r\nLocation: %s%s%s\r\n", version,
 			permanent ? "301 Permanently" : "302 Temporarily",
-			redir);
+			redir,
+			env ? "?" : "", env ?: "");
 		stdheaders(1, 1, 1);
 	}
 	if (!headonly)
