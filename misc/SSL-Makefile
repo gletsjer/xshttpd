@@ -3,13 +3,15 @@
 # Copyright (C) 2000-2004 by Johan van Selst (johans@stack.nl)
 #
 # Please read OpenSSL documentation first unless you know what you're doing
-# It will tell you that common name should be the hostname of your webserver
+# It will tell you that certificate common name should be the server hostname
 #
 # Now if you really know what you are doing, type:
 # make -f SSL-Makefile all
 # cp cert.pem key.pem /usr/local/lib/httpd/
 # httpd -s
 
+
+all: cert.pem
 
 ca.pem:
 	openssl req -out ca.pem -new -x509
@@ -25,5 +27,3 @@ cert.pem: ca.pem cert.req
 
 clean:
 	rm cert.req cert.pem key.pem
-
-all: cert.pem
