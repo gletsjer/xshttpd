@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.109 2003/02/20 22:37:28 johans Exp $ */
+/* $Id: httpd.c,v 1.110 2003/02/21 13:33:14 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ extern	int	setpriority PROTO((int, int, int));
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.109 2003/02/20 22:37:28 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.110 2003/02/21 13:33:14 johans Exp $ Copyright 1995-2003 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1786,8 +1786,8 @@ int
 main DECL3(int, argc, char **, argv, char **, envp)
 {
 	int			option, num;
-	enum { optionp, optionaa, optionrr, optionee };
-	char *longopt[4] = { NULL, NULL, NULL, NULL, };
+	enum { optionp, optionhn, optionaa, optionrr, optionee };
+	char *longopt[5] = { NULL, NULL, NULL, NULL, NULL, };
 	const struct passwd	*userinfo;
 	const struct group	*groupinfo;
 
@@ -1823,7 +1823,7 @@ main DECL3(int, argc, char **, argv, char **, envp)
 #endif		/* THISDOMAIN */
 	snprintf(config_path, XS_PATH_MAX, "%s/httpd.conf", calcpath(HTTPD_ROOT));
 	config_path[XS_PATH_MAX-1] = '\0';
-	while ((option = getopt(argc, argv, "c:d:g:l:m:n:p:r:su:v")) != EOF)
+	while ((option = getopt(argc, argv, "a:c:d:g:l:m:n:p:r:su:vA:R:E:")) != EOF)
 	{
 		switch(option)
 		{
@@ -1832,7 +1832,10 @@ main DECL3(int, argc, char **, argv, char **, envp)
 				errx(1, "Invalid number of processes");
 			break;
 		case 'p':
-			config.port = strdup(optarg);
+			longopt[optionp] = optarg;
+			break;
+		case 'a':
+			longopt[optionhn] = optarg;
 			break;
 		case 's':
 #ifdef		HANDLE_SSL
@@ -1876,6 +1879,15 @@ main DECL3(int, argc, char **, argv, char **, envp)
 			strncpy(config_path, optarg, XS_PATH_MAX);
 			config_path[XS_PATH_MAX-1] = '\0';
 			break;
+	 	case 'A':
+			longopt[optionaa] = optarg;
+			break;
+	 	case 'R':
+			longopt[optionrr] = optarg;
+			break;
+	 	case 'E':
+			longopt[optionee] = optarg;
+			break;
 		case 'v':
 			fprintf(stdout, "%s\n", SERVER_IDENT);
 			return 0;
@@ -1888,8 +1900,33 @@ main DECL3(int, argc, char **, argv, char **, envp)
 	/* Explicity set these, overriding default or implicit setting */
 	if (longopt[optionp])
 	{
-		strncpy(config.port, longopt[optionp], NI_MAXSERV);
-		config.port[NI_MAXSERV-1] = '\0';
+		if (config.port)
+			free(config.port);
+		config.port = strdup(longopt[optionp]);
+	}
+	if (longopt[optionhn])
+	{
+		if (config.system->hostname)
+			free(config.system->hostname);
+		config.system->hostname = strdup(longopt[optionhn]);
+	}
+	if (longopt[optionaa])
+	{
+		if (config.system->logaccess)
+			free(config.system->logaccess);
+		config.system->logaccess = strdup(longopt[optionaa]);
+	}
+	if (longopt[optionrr])
+	{
+		if (config.system->logreferer)
+			free(config.system->logreferer);
+		config.system->logreferer = strdup(longopt[optionrr]);
+	}
+	if (longopt[optionee])
+	{
+		if (config.system->logerror)
+			free(config.system->logerror);
+		config.system->logerror = strdup(longopt[optionee]);
 	}
 
 	initsetprocname(argc, argv, envp);
