@@ -246,9 +246,10 @@ is blocked. Subdirectories are \fInot\fP blocked.
 .br
 It is possible to allow access to this directory for a limited
 number of hosts. You can list the IP-addresses to which access
-should be granted in this file (one address per line). Or you
-can use an IP prefix to allow an entire subnet.
-E.g. "131.155.140" will unblock 131.155.140.0 - 131.155.140.255.
+should be granted in this file (one address per line). This works
+for IPv4 as well as IPv6 addresses. Or you can use CIDR notation to
+allow an entire subnet. So including "131.155.140.0/23" will unblock
+131.155.140.0 - 131.155.141.255.
 .TP
 \fB .xsuid\fP
 If this file exists in a certain directory, all files in that
