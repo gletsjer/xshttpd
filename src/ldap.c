@@ -1,11 +1,12 @@
 /* Copyright (C) 2005 by Johan van Selst (johans@stack.nl) */
-/* $Id: ldap.c,v 1.1 2005/04/03 19:41:28 johans Exp $ */
+/* $Id: ldap.c,v 1.2 2005/05/02 10:24:35 johans Exp $ */
 
 #include	"config.h"
 #include	"ldap.h"
 #include	"httpd.h"
 
 #include	<stdio.h>
+#include	<stdlib.h>
 #include	<string.h>
 #include	<ldap.h>
 

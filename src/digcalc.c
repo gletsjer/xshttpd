@@ -29,9 +29,14 @@
 #include <md5.h>
 #include <string.h>
 #include "digcalc.h"
-#define	stricmp	strcasecmp
 
-void CvtHex(
+#define	stricmp			strcasecmp
+#define MD5Update(x,y,z)	MD5Update(x, (const unsigned char *)y, z)
+#define MD5Final(x,y)		MD5Final((unsigned char *)x, y)
+
+static void CvtHex(IN HASH Bin, OUT HASHHEX Hex);
+
+static void CvtHex(
     IN HASH Bin,
     OUT HASHHEX Hex
     )
@@ -52,7 +57,7 @@ void CvtHex(
             Hex[i*2+1] = (j + 'a' - 10);
     };
     Hex[HASHHEXLEN] = '\0';
-};
+}
 
 /* calculate H(A1) as per spec */
 void DigestCalcHA1(
@@ -85,7 +90,7 @@ void DigestCalcHA1(
             MD5Final(HA1, &Md5Ctx);
       };
       CvtHex(HA1, SessionKey);
-};
+}
 
 /* calculate request-digest/response-digest as per HTTP Digest spec */
 void DigestCalcResponse(
@@ -103,9 +108,9 @@ void DigestCalcResponse(
       MD5_CTX Md5Ctx;
       HASH HA2;
       HASH RespHash;
-       HASHHEX HA2Hex;
+      HASHHEX HA2Hex;
 
-      // calculate H(A2)
+      /* calculate H(A2) */
       MD5Init(&Md5Ctx);
       MD5Update(&Md5Ctx, pszMethod, strlen(pszMethod));
       MD5Update(&Md5Ctx, ":", 1);
@@ -117,7 +122,7 @@ void DigestCalcResponse(
       MD5Final(HA2, &Md5Ctx);
        CvtHex(HA2, HA2Hex);
 
-      // calculate response
+      /* calculate response */
       MD5Init(&Md5Ctx);
       MD5Update(&Md5Ctx, HA1, HASHHEXLEN);
       MD5Update(&Md5Ctx, ":", 1);
@@ -134,4 +139,4 @@ void DigestCalcResponse(
       MD5Update(&Md5Ctx, HA2Hex, HASHHEXLEN);
       MD5Final(RespHash, &Md5Ctx);
       CvtHex(RespHash, Response);
-};
+}
