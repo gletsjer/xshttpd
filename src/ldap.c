@@ -1,5 +1,5 @@
 /* Copyright (C) 2005 by Johan van Selst (johans@stack.nl) */
-/* $Id: ldap.c,v 1.2 2005/05/02 10:24:35 johans Exp $ */
+/* $Id: ldap.c,v 1.3 2005/05/02 10:34:59 johans Exp $ */
 
 #include	"config.h"
 #include	"ldap.h"
@@ -19,8 +19,10 @@ check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 	char		filter[MYBUFSIZ];
 	char		*a;
 	char		**vals;
-	char		*attrs[] = { "memberUid", NULL };
+	char		*attrs[] = { NULL, NULL };
 	int		result = 0, i;
+
+	attrs[0] = strdup("memberUid");
 
 	/*
 	 * Search for the group first. Most directory have seperate branches
@@ -59,6 +61,7 @@ check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 	}
 
 leave:
+	free(attrs[0]);
 
 	if (res)
 		ldap_msgfree (res);
