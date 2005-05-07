@@ -266,6 +266,12 @@ will be sent to the remote user's browser. It works simply
 by substituting the server name and the directory that the
 remote user to get to this file by the contents of the file.
 This way, an entire directory can be automatically be redirected.
+.br
+A new feature is to use a substitute command using perl-compatible
+regular expression (pcre). In this case you can use a format like
+\fIs/match/replace/\fP to match the full URL and generate a 
+redirection to an alternative location. The .redir file should
+contain only one line: either a URL or a substitute command.
 .TP
 \fB *.redir\fP
 If a file is requested and a file exists with the same name
