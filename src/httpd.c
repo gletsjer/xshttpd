@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.178 2005/05/18 18:29:51 johans Exp $ */
+/* $Id: httpd.c,v 1.179 2005/05/18 19:43:10 johans Exp $ */
 
 #include	"config.h"
 
@@ -108,7 +108,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.178 2005/05/18 18:29:51 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.179 2005/05/18 19:43:10 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -683,9 +683,8 @@ open_logs(int sig)
 	}
 	if (mainhttpd)
 	{
-		snprintf(buffer, XS_PATH_MAX, calcpath(config.pidfile));
+		snprintf(buffer, XS_PATH_MAX, "%s", calcpath(config.pidfile));
 		buffer[XS_PATH_MAX-1] = '\0';
-		(void) remove(buffer);
 		if ((pidlog = fopen(buffer, "w")))
 		{
 			fprintf(pidlog, "%ld\n", (long)getpid());
