@@ -16,9 +16,9 @@ The httpd.conf configuration file has the following general layout:
  ... options for virtual host ...
  </Virtual>
 
- <User>
+ <Users>
  ... options for user homedirs ...
- </User>
+ </Users>
 
  <Socket>
  ... options for binding specific sockets ...
@@ -26,7 +26,7 @@ The httpd.conf configuration file has the following general layout:
 .LP
 Options and their values must be seperated by whitespaces.
 .br
-The file can have only one System and one User section, but multiple
+The file can have only one System and one Users section, but multiple
 Virtual sections (one per virtual hostname). Keep in mind that there
 are fall-back defaults for all options: you are not required to use a
 configuration file and leaving out an option does not mean it will be
@@ -202,12 +202,12 @@ and without UseSSL.
 
 .LP
 .SH SECTION OPTIONS
-The following options can be set in the System, Virtual and User sections:
+The following options can be set in the System, Virtual and Users sections:
 
 .TP
 .B HostName <hostname>
 The hostname of the server. This is required for a Virtual section.
-For the System en User sections it defaults to the name of the machine.
+For the System en Users sections it defaults to the name of the machine.
 .TP
 .B HostAlias <hostname> [hostname ...]
 One or more aliases for the previously mentioned hostname.
@@ -260,7 +260,7 @@ seperated by commas or whitespace. The default value is \fBindex.html,
 index.htm, index.php\fP (meaning that index.htm will only be tried if
 index.html is not present, etc.).
 .br
-If this option is omitted for the <Virtual> or <User> section, it will
+If this option is omitted for the <Virtual> or <Users> section, it will
 default to the definition in the <System> block. Or the previously
 mentioned default if this is also unspecified.
 
