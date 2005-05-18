@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.177 2005/05/18 15:09:37 johans Exp $ */
+/* $Id: httpd.c,v 1.178 2005/05/18 18:29:51 johans Exp $ */
 
 #include	"config.h"
 
@@ -108,7 +108,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.177 2005/05/18 15:09:37 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.178 2005/05/18 18:29:51 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -143,7 +143,7 @@ static	void	process_request		(void);
 
 static	void	setup_environment	(void);
 static	void	standalone_main		(void);
-static	void	standalone_socket	(char);
+static	void	standalone_socket	(int);
 
 void
 stdheaders(int lastmod, int texthtml, int endline)
@@ -1512,7 +1512,7 @@ standalone_main()
 }
 
 static	void
-standalone_socket(char id)
+standalone_socket(int id)
 {
 	int			csd = 0, count, temp;
 	socklen_t		clen;
