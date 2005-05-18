@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/httpd.c)
-AM_INIT_AUTOMAKE(xshttpd, 33b16)
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.16", [Server version])
+AM_INIT_AUTOMAKE(xshttpd, 33b17)
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.17", [Server version])
 AM_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
@@ -129,9 +129,9 @@ XS_ARG_DEFAULT(warnings, DUMMY, no,
 
 if test x${enable_warnings} = xyes
 then
-	CFLAGS="-g -O -fsigned-char -pedantic -ansi -trigraphs -Wall -W -Wpointer-arith -Wshadow -pipe -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wreturn-type -Wformat -Wswitch -Wcomment -Wchar-subscripts -Wuninitialized -Wparentheses -Wcast-align -Waggregate-return -Wnested-externs -Winline"
+	CFLAGS="${CFLAGS} -g -O -fsigned-char -pedantic -ansi -trigraphs -Wall -W -Wpointer-arith -Wshadow -pipe -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wreturn-type -Wformat -Wswitch -Wcomment -Wchar-subscripts -Wuninitialized -Wparentheses -Wcast-align -Waggregate-return -Wnested-externs -Winline"
 else
-	CFLAGS="-g"
+	CFLAGS="${CFLAGS} -g"
 fi
 
 if test x${enable_perl} = xyes
