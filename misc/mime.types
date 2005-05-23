@@ -91,8 +91,11 @@ model/vrml			wrl
 text/css			css
 text/html			htm
 text/html			html
+text/html			htmli
 text/html			php
 text/html			php3
+text/html			php4
+text/html			php5
 text/plain			asc
 text/plain			txt
 text/richtext			rtx
