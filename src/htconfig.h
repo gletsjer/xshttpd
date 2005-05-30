@@ -39,8 +39,8 @@ extern struct configuration {
 	char *		port;
 	int		family;
 	int		num_sockets;
-	int		script_cpu_limit;
-	int		script_timeout;
+	unsigned int	script_cpu_limit;
+	unsigned int	script_timeout;
 	unsigned short	instances;
 	unsigned short	localmode;
 	int		priority;

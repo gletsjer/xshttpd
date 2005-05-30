@@ -127,9 +127,10 @@ XS_ARG_DEFAULT(perl, HANDLE_PERL, no,
 XS_ARG_DEFAULT(warnings, DUMMY, no,
 	[enable extra compiler warnings])
 
+# -Wformat-pre-promo is not standard
 if test x${enable_warnings} = xyes
 then
-	CFLAGS="${CFLAGS} -g -O -fsigned-char -pedantic -ansi -trigraphs -Wall -W -Wpointer-arith -Wshadow -pipe -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wreturn-type -Wformat -Wswitch -Wcomment -Wchar-subscripts -Wuninitialized -Wparentheses -Wcast-align -Waggregate-return -Wnested-externs -Winline"
+	CFLAGS="${CFLAGS} -g -O -fsigned-char -fshort-enums -funroll-loops -finline-functions -fexpensive-optimizations -pedantic -ansi -trigraphs -Wall -W -Wimplicit -Wpointer-arith -Wshadow -pipe -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wreturn-type -Wformat -Wformat=2 -Wtrigraphs -Wswitch -Wcomment -Wchar-subscripts -Wuninitialized -Wparentheses -Wcast-align -Waggregate-return -Wnested-externs -Winline"
 else
 	CFLAGS="${CFLAGS} -g"
 fi

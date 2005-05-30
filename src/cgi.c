@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.93 2005/03/21 20:24:09 johans Exp $ */
+/* $Id: cgi.c,v 1.94 2005/05/30 15:54:30 johans Exp $ */
 
 #include	"config.h"
 
@@ -74,9 +74,12 @@ static	int
 eat_content_length(void)
 {
 	int		to_read, received;
-	char		buf[MYBUFSIZ];
+	char		*colen, buf[MYBUFSIZ];
 
-	to_read = atoi(getenv("CONTENT_LENGTH"));
+	if (!(colen = getenv("CONTENT_LENGTH")))
+		return 0;
+
+	to_read = atoi(colen);
 
 	while (to_read > 0)
 	{
@@ -151,7 +154,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	int			q[2];
 	int			ssl_post = 0;
 	int			readerror;
-	long		tobewritten;
+	ssize_t		tobewritten;
 #endif		/* HANDLE_SSL */
 #ifdef		HAVE_SETRLIMIT
 	struct	rlimit		limits;
@@ -247,8 +250,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	case 0:
 #ifdef		HAVE_SETRLIMIT
 #ifdef		RLIMIT_CPU
-		limits.rlim_cur = 60 * config.script_cpu_limit;
-		limits.rlim_max = 10 + 60 * config.script_cpu_limit;
+		limits.rlim_cur = 60 * (rlim_t)config.script_cpu_limit;
+		limits.rlim_max = 10 + 60 * (rlim_t)config.script_cpu_limit;
 		setrlimit(RLIMIT_CPU, &limits);
 #endif		/* RLIMIT_CPU */
 #ifdef		RLIMIT_CORE
