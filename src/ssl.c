@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.2 2005/01/22 11:31:24 johans Exp $ */
+/* $Id: ssl.c,v 1.3 2005/05/30 15:54:11 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -39,6 +39,8 @@ setreadmode(int mode, int reset)
 			ERR_reason_error_string(readerror));
 		error("400 SSL Error");
 	}
+	if (ssl)
+		setenv("SSL_CIPHER", SSL_get_cipher(ssl), 1);
 #endif		/* HANDLE_SSL */
 	readlinemode = mode;
 }
@@ -60,7 +62,6 @@ initssl(int csd)
 		secprintf("SSL Flipped...\n");
 		return -1;
 	}
-	setenv("SSL_CIPHER", SSL_get_cipher(ssl), 1);
 #endif		/* HANDLE_SSL */
 	return 0;
 }
