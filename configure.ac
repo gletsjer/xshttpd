@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/httpd.c)
-AM_INIT_AUTOMAKE(xshttpd, 33b17)
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.17", [Server version])
+AM_INIT_AUTOMAKE(xshttpd, 33b18)
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.18", [Server version])
 AM_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
@@ -15,7 +15,7 @@ AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "$ppmtogif",
 	[ppmtogif-like program used to create graphic counters])
 
 dnl Checks for libraries.
-CFLAGS="${CFLAGS} -I/usr/local/include"
+CFLAGS="${CFLAGS} -I/usr/local/include -I/usr/include"
 LDFLAGS="${LDFLAGS} -L/usr/local/lib"
 httpd_cflags="${CFLAGS}"
 libxs_cflags="${CFLAGS}"
