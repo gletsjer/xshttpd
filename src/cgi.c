@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.94 2005/05/30 15:54:30 johans Exp $ */
+/* $Id: cgi.c,v 1.95 2005/06/24 12:58:48 johans Exp $ */
 
 #include	"config.h"
 
@@ -223,7 +223,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 #ifdef		HANDLE_SSL
 	q[0] = q[1] = -1;
-	if (config.usessl && (ssl_post = !strcmp("POST", getenv("REQUEST_METHOD"))))
+	if ((ssl_post = !strcmp("POST", getenv("REQUEST_METHOD"))))
 	{
 		if (pipe(q))
 		{
@@ -398,6 +398,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 
 		close(q[1]);
+		close(0);
 	}
 #endif		/* HANDLE_SSL */
 	setreadmode(READCHAR, 1);
@@ -616,6 +617,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	if (ssl_post)
 	{
 		close(q[0]); close(q[1]);
+		close(0); close(1);
 	}
 #endif		/* HANDLE_SSL */
 #ifdef		HAVE_SIGEMPTYSET
