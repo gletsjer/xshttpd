@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.3 beta 18
+- Fix session termination when entire POST has been read
+
 Changes since 3.3 beta 17
 - Fix missing SSL_CIPHER environment variable
 
