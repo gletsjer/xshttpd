@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(src/httpd.c)
-AM_INIT_AUTOMAKE(xshttpd, 33b18)
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.18", [Server version])
+AM_INIT_AUTOMAKE(xshttpd, 33b19)
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.19", [Server version])
 AM_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
@@ -45,7 +45,7 @@ dnl AC_FUNC_SETVBUF_REVERSED
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_FUNC_WAIT3
-AC_CHECK_FUNCS(gethostname mktime select strcasestr strerror strpbrk strstr)
+AC_CHECK_FUNCS(gethostname mktime select strcasestr strerror strlcat strpbrk strstr)
 
 dnl SEPERATOR
 AC_CHECK_FUNCS(bcopy bzero getaddrinfo getnameinfo killpg mkstemp mmap sendfile seteuid setegid setresuid setresgid setrlimit setsid setpriority sigemptyset tempnam vfork setproctitle)
@@ -71,7 +71,7 @@ XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)
 XS_FUNC_IN_LIB(MD5Init, HAVE_MD5, md, httpd)
 AM_CONDITIONAL([MD5], [test x$ac_cv_lib_md_MD5Init = xyes])
-AC_REPLACE_FUNCS(err setenv setgroups strptime strsep snprintf)
+AC_REPLACE_FUNCS(err setenv setgroups strlcat strptime strsep snprintf)
 
 XS_CHECK_WITH(pcre, PCRE support, yes)
 if test x${with_pcre} = xyes
