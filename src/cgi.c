@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.95 2005/06/24 12:58:48 johans Exp $ */
+/* $Id: cgi.c,v 1.96 2005/07/06 11:27:30 johans Exp $ */
 
 #include	"config.h"
 
@@ -120,20 +120,15 @@ append(char *buffer, int prepend, const char *format, ...)
 	va_start(ap, format);
 	vsnprintf(line, HEADSIZE, format, ap);
 	va_end(ap);
-	line[HEADSIZE - 1] = '\0';
 	if (strlen(buffer) + strlen(line) + 1 > HEADSIZE)
 		return 0;
 	if (prepend)
 	{
-		len = HEADSIZE - strlen(line) - 1;
-		strncat(line, buffer, len);
+		strlcat(line, buffer, HEADSIZE);
 		memcpy(buffer, line, HEADSIZE);
 	}
 	else
-	{
-		len = HEADSIZE - strlen(buffer);
-		strncat(buffer, line, len);
-	}
+		strlcat(buffer, line, HEADSIZE);
 	return 1;
 }
 
@@ -187,7 +182,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	if (showheader)
 	{
 		snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
-		fullpath[XS_PATH_MAX-1] = '\0';
 		if ((nextslash = strrchr(fullpath, '/')))
 		{
 			/* TBD */
@@ -447,7 +441,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			{
 				char location[MYBUFSIZ];
 
-				strncpy(location, skipspaces(header + 9), MYBUFSIZ);
+				strlcpy(location, skipspaces(header + 9), MYBUFSIZ);
 				switch(location[0])
 				{
 				case '/':
@@ -528,7 +522,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			if (!server)
 				append(head, 0, "Server: %s\r\n", SERVER_IDENT);
 			append(head, 0, "Date: %s\r\n", currenttime);
-			head[HEADSIZE-1] = '\0';
 			secprintf("%s\r\n", head);
 		}
 	} else

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.134 2005/04/03 19:41:28 johans Exp $ */
+/* $Id: methods.c,v 1.135 2005/07/06 11:27:30 johans Exp $ */
 
 #include	"config.h"
 
@@ -463,7 +463,6 @@ allowxs(FILE *rfile)
 
 	while (fgets(allowhost, 256, rfile))
 	{
-		allowhost[255] = '\0';
 		if (strlen(allowhost) &&
 			allowhost[strlen(allowhost) - 1] == '\n')
 		    allowhost[strlen(allowhost) - 1] = '\0';
@@ -563,7 +562,6 @@ find_file(const char *orgbase, const char *base, const char *file)
 		*p = '\0')
 	{
 		snprintf(p, XS_PATH_MAX - (p - path), "/%s", file);
-		path[XS_PATH_MAX-1] = '\0';
 		if ((fd = fopen(path, "r")))
 			return fd;
 	}
@@ -611,8 +609,7 @@ do_get(char *params)
 		else
 			break;
 
-	strncpy(real_path, params, XS_PATH_MAX);
-	real_path[XS_PATH_MAX-1] = '\0';
+	strlcpy(real_path, params, XS_PATH_MAX);
 	setprocname("xs: Handling `%s' from `%s'", real_path, remotehost);
 	userinfo = NULL;
 
@@ -658,9 +655,7 @@ do_get(char *params)
 					calcpath(config.virtualhostdir),
 					http_host);
 			else
-				strncpy(base, calcpath(http_host),
-					XS_PATH_MAX-1);
-			base[XS_PATH_MAX-2] = '\0';
+				strlcpy(base, calcpath(http_host), XS_PATH_MAX);
 			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
 				*base = '\0';
 			else if (config.usevirtualuid)
@@ -686,13 +681,12 @@ do_get(char *params)
 			{
 				script = 1;
 				file += size + 2;
-				strncpy(base, calcpath(current->phexecdir), XS_PATH_MAX-1);
+				strlcpy(base, calcpath(current->phexecdir), XS_PATH_MAX);
 			}
 			else
-				strncpy(base, calcpath(current->htmldir), XS_PATH_MAX-1);
+				strlcpy(base, calcpath(current->htmldir), XS_PATH_MAX);
 		}
-		base[XS_PATH_MAX-2] = '\0';
-		strcat(base, "/");
+		strlcat(base, "/", XS_PATH_MAX);
 
 		if (config.usevirtualuid && current->userid && current->groupid)
 		{
@@ -712,7 +706,7 @@ do_get(char *params)
 			return;
 		}
 	}
-	strncpy(orgbase, base, XS_PATH_MAX);
+	strlcpy(orgbase, base, XS_PATH_MAX);
 
 	if (question)
 	{
@@ -774,13 +768,12 @@ do_get(char *params)
 		*temp = 0;
 		size = strlen(base);
 		file[XS_PATH_MAX - (temp - file + 1 + size)] = 0;
-		strcpy(base + size, file);
-		strcat(base + size, "/");
+		strlcat(base, file, XS_PATH_MAX);
+		strlcat(base, "/", XS_PATH_MAX);
 		file = temp + 1;
 		*temp = '/';
 	}
-	strncpy(currentdir, base, XS_PATH_MAX);
-	currentdir[XS_PATH_MAX-1] = '\0';
+	strlcpy(currentdir, base, XS_PATH_MAX);
 
 	if ((!*file) && (wasdir) && current->indexfiles)
 	{
@@ -792,7 +785,6 @@ do_get(char *params)
 
 	RETRY:
 	snprintf(total, XS_PATH_MAX, "%s/.xsuid", base);
-	total[XS_PATH_MAX-1] = '\0';
 	if (!stat(total, &statbuf))
 	{
 		if (!origeuid)
@@ -837,11 +829,9 @@ do_get(char *params)
 	/* Check for *.redir instructions */
 	permanent = 0;
 	snprintf(total, XS_PATH_MAX, "%s%s.redir", base, filename);
-	total[XS_PATH_MAX-1] = '\0';
 	if ((fd = open(total, O_RDONLY, 0)) < 0)
 	{
 		snprintf(total, XS_PATH_MAX, "%s%s.Redir", base, filename);
-		total[XS_PATH_MAX-1] = '\0';
 		if ((fd = open(total, O_RDONLY, 0)) >= 0)
 			permanent = 1;
 	}
@@ -879,7 +869,6 @@ do_get(char *params)
 		return;
 	}
 	snprintf(total, XS_PATH_MAX, "%s/.redir", base);
-	total[XS_PATH_MAX-1] = '\0';
 	if ((fd = open(total, O_RDONLY, 0)) >= 0)
 	{
 		if ((size = read(fd, total, XS_PATH_MAX - strlen(filename) - 16)) <= 0)
@@ -904,7 +893,6 @@ do_get(char *params)
 
 		/* Check for *.charset preferences */
 		snprintf(total, XS_PATH_MAX, "%s%s.charset", base, filename);
-		total[XS_PATH_MAX-1] = '\0';
 		if ((charfile = fopen(total, "r")) ||
 			(charfile = find_file(orgbase, base, ".charset")))
 		{
@@ -925,7 +913,6 @@ do_get(char *params)
 	}
 
 	snprintf(total, XS_PATH_MAX, "%s%s", base, filename);
-	total[XS_PATH_MAX-1] = '\0';
 	if (!lstat(total, &statbuf) && S_ISLNK(statbuf.st_mode) &&
 		userinfo && statbuf.st_uid && (statbuf.st_uid != geteuid()))
 	{
@@ -999,7 +986,6 @@ do_get(char *params)
 				question ? "?" : "",
 				question ? question : "");
 
-			total[XS_PATH_MAX-1] = '\0';
 			redirect(total, 1);
 			return;
 		}
@@ -1018,8 +1004,7 @@ do_get(char *params)
 		server_error("403 File permissions deny access", "PERMISSION");
 		return;
 	}
-	strncpy(name, filename, XS_PATH_MAX);
-	name[XS_PATH_MAX-1] = '\0';
+	strlcpy(name, filename, XS_PATH_MAX);
 
 	/* check for local file type */
 	loadfiletypes(orgbase, base);

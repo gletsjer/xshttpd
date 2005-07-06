@@ -1,5 +1,5 @@
 /* Copyright (C) 2005 by Johan van Selst (johans@stack.nl) */
-/* $Id: ldap.c,v 1.3 2005/05/02 10:34:59 johans Exp $ */
+/* $Id: ldap.c,v 1.4 2005/07/06 11:27:30 johans Exp $ */
 
 #include	"config.h"
 #include	"ldap.h"
@@ -171,8 +171,7 @@ check_auth_ldap(FILE *authfile, const char *user, const char *pass)
 			ptr = strchr (curoffs, ',');
 			if (ptr == NULL)
 				ptr = strchr (curoffs, 0);
-			strncpy (line, curoffs, (ptr - curoffs));
-			line[(ptr - curoffs)] = 0;
+			strlcpy (line, curoffs, (ptr - curoffs));
 
 			if (check_group (ld, ldapdn, user, line))
 			{

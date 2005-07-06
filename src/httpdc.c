@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.15 2005/04/03 19:41:28 johans Exp $ */
+/* $Id: httpdc.c,v 1.16 2005/07/06 11:27:30 johans Exp $ */
 
 #include	"config.h"
 
@@ -205,7 +205,7 @@ loadpidfile(const char *pidfilename)
 	char		buffer[BUFSIZ], pidname[XS_PATH_MAX];
 	FILE		*pidfile;
 
-	strncpy(pidname,
+	strlcpy(pidname,
 		pidfilename == NULL ? calcpath(PID_PATH) : pidfilename,
 		XS_PATH_MAX);
 	if ((pidfile = fopen(pidname, "r")))
@@ -236,7 +236,7 @@ main(int argc, char **argv)
 		switch(option)
 		{
 		case 'd':
-			strncpy(rootdir, optarg, XS_PATH_MAX);
+			strlcpy(rootdir, optarg, XS_PATH_MAX);
 			break;
 		case 'p':
 			pidfilename = optarg;

@@ -35,8 +35,7 @@ main(int argc, char **argv)
 		errx(1, "Username may not contain a colon");
 	if (!(password = (const char *)getpass("Please enter a password: ")))
 		errx(1, "Password input failed");
-	strncpy(passbak, password, 32);
-	passbak[31] = '\0';
+	strlcpy(passbak, password, 32);
 	if (!(password = (const char *)getpass("Please reenter password: ")))
 		errx(1, "Password input failed");
 	if (strcmp(password, passbak))

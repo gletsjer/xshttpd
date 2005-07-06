@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.179 2005/05/18 19:43:10 johans Exp $ */
+/* $Id: httpd.c,v 1.180 2005/07/06 11:27:30 johans Exp $ */
 
 #include	"config.h"
 
@@ -108,7 +108,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.179 2005/05/18 19:43:10 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.180 2005/07/06 11:27:30 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -684,7 +684,6 @@ open_logs(int sig)
 	if (mainhttpd)
 	{
 		snprintf(buffer, XS_PATH_MAX, "%s", calcpath(config.pidfile));
-		buffer[XS_PATH_MAX-1] = '\0';
 		if ((pidlog = fopen(buffer, "w")))
 		{
 			fprintf(pidlog, "%ld\n", (long)getpid());
@@ -982,7 +981,7 @@ check_auth(FILE *authfile)
 		secprintf("understand authentication.\n</BODY></HTML>\n");
 		fclose(authfile); return(1);
 	}
-	strncpy(line, env, MYBUFSIZ); line[MYBUFSIZ - 1] = 0;
+	strlcpy(line, env, MYBUFSIZ);
 	find = line + strlen(line);
 	while ((find > line) && (*(find - 1) < ' '))
 		*(--find) = 0;
@@ -1176,8 +1175,8 @@ process_request()
 	int		readerror;
 	size_t		size;
 
-	strcpy(version, "HTTP/0.9");
-	strcpy(dateformat, "%a %b %e %H:%M:%S %Y");
+	strlcpy(version, "HTTP/0.9", 16);
+	strlcpy(dateformat, "%a %b %e %H:%M:%S %Y", MYBUFSIZ);
 	orig[0] = referer[0] = line[0] =
 		real_path[0] = browser[0] = 0;
 	headonly = postonly = headers = 0;
@@ -1255,12 +1254,12 @@ process_request()
 		if (!strncmp(ver + 5, "1.0", 3))
 		{
 			headers = 10;
-			strcpy(version, "HTTP/1.0");
+			strlcpy(version, "HTTP/1.0", 16);
 		}
 		else
 		{
 			headers = 11;
-			strcpy(version, "HTTP/1.1");
+			strlcpy(version, "HTTP/1.1", 16);
 		}
 		setenv("SERVER_PROTOCOL", version, 1);
 		while (1)
@@ -1289,8 +1288,7 @@ process_request()
 				setenv("CONTENT_TYPE", param, 1);
 			else if (!strcasecmp("User-agent", extra))
 			{
-				strncpy(browser, param, MYBUFSIZ - 1);
-				browser[MYBUFSIZ - 1] = 0;
+				strlcpy(browser, param, MYBUFSIZ);
 				setenv("USER_AGENT", browser, 1);
 				setenv("HTTP_USER_AGENT", browser, 1);
 				(void) strtok(browser, "/");
@@ -1302,7 +1300,7 @@ process_request()
 				setenv("USER_AGENT_SHORT", browser, 1);
 			} else if (!strcasecmp("Referer", extra))
 			{
-				strncpy(referer, param, MYBUFSIZ-16);
+				strlcpy(referer, param, MYBUFSIZ);
 				while (referer[0] &&
 					referer[strlen(referer) - 1] <= ' ')
 					referer[strlen(referer) - 1] = 0;
@@ -1343,7 +1341,7 @@ process_request()
 	} else if (!strncasecmp(ver, "HTCPCP/", 7))
 	{
 		headers = 1;
-		strcpy(version, "HTCPCP/1.0");
+		strlcpy(version, "HTCPCP/1.0", 16);
 		error("418 Duh... I'm a webserver Jim, not a coffeepot!");
 		return;
 	} else
@@ -1388,9 +1386,8 @@ process_request()
 	setenv("SERVER_NAME", config.system->hostname, 1);
 	if ((temp = getenv("HTTP_HOST")))
 	{
-		temp = strncpy(http_host, temp, NI_MAXHOST);
-		temp[NI_MAXHOST-1] = '\0';
-		for ( ; *temp; temp++)
+		strlcpy(http_host, temp, NI_MAXHOST);
+		for (temp = http_host; *temp; temp++)
 			if ((*temp < 'a' || *temp > 'z') &&
 				(*temp < 'A' || *temp > 'Z') &&
 				(*temp < '0' || *temp > '9') &&
@@ -1723,7 +1720,6 @@ standalone_socket(int id)
 		if (!getnameinfo((struct sockaddr *)&saddr, clen,
 			remotehost, NI_MAXHOST, NULL, 0, NI_NUMERICHOST))
 		{
-			remotehost[NI_MAXHOST-1] = '\0';
 			/* Fake $REMOTE_ADDR because most people don't
 			 * (want to) understand ::ffff: adresses.
 			 */
@@ -1749,7 +1745,6 @@ standalone_socket(int id)
 			!getnameinfo((struct sockaddr *)&saddr, clen,
 				remotehost, sizeof(remotehost), NULL, 0, 0))
 		{
-			remotehost[NI_MAXHOST-1] = '\0';
 			setenv("REMOTE_HOST", remotehost, 1);
 		}
 #endif		/* Not BROKEN_GETNAMEINFO */
@@ -1805,7 +1800,6 @@ setup_environment()
 		config.port,
 		1);
 	snprintf(buffer, 16, "%hu", config.localmode);
-	buffer[15] = '\0';
 	setenv("LOCALMODE", buffer, 1);
 	setenv("HTTPD_ROOT", config.systemroot, 1);
 }
@@ -1839,13 +1833,11 @@ main(int argc, char **argv)
 
 	message503[0] = 0;
 #ifdef		THISDOMAIN
-	strncpy(thisdomain, THISDOMAIN, NI_MAXHOST);
-	thisdomain[NI_MAXHOST-1] = '\0';
+	strlcpy(thisdomain, THISDOMAIN, NI_MAXHOST);
 #else		/* Not THISDOMAIN */
 	thisdomain[0] = 0;
 #endif		/* THISDOMAIN */
 	snprintf(config_path, XS_PATH_MAX, "%s/httpd.conf", calcpath(HTTPD_ROOT));
-	config_path[XS_PATH_MAX-1] = '\0';
 	while ((option = getopt(argc, argv, "a:c:d:g:l:m:n:p:r:su:vA:D:E:R:N")) != EOF)
 	{
 		switch(option)
@@ -1890,19 +1882,16 @@ main(int argc, char **argv)
 			longopt[optionhd] = optarg;
 			break;
 		case 'r':
-			strncpy(thisdomain, optarg, NI_MAXHOST);
-			thisdomain[NI_MAXHOST-1] = '\0';
+			strlcpy(thisdomain, optarg, NI_MAXHOST);
 			break;
 		case 'l':
 			errx(1, "-l is deprecated: use Users/HtmlDir");
 			break;
 		case 'm':
-			strncpy(message503, optarg, MYBUFSIZ);
-			message503[MYBUFSIZ-1] = '\0';
+			strlcpy(message503, optarg, MYBUFSIZ);
 			break;
 		case 'c':
-			strncpy(config_path, optarg, XS_PATH_MAX);
-			config_path[XS_PATH_MAX-1] = '\0';
+			strlcpy(config_path, optarg, XS_PATH_MAX);
 			break;
 	 	case 'A':
 			longopt[optionaa] = optarg;
@@ -1915,7 +1904,7 @@ main(int argc, char **argv)
 			break;
 		case 'N':
 			nolog = 1;
-			strcpy(config_path, "/dev/null");
+			strlcpy(config_path, "/dev/null", XS_PATH_MAX);
 			break;
 		case 'v':
 			fprintf(stdout, "%s\n", SERVER_IDENT);

@@ -135,8 +135,7 @@ xsc_initcounter(const char *filename)
 	char		datafile[XS_PATH_MAX];
 	const	char	*lockfile;
 
-	strncpy(datafile, calcpath(CNT_DATA), XS_PATH_MAX);
-	datafile[XS_PATH_MAX-1] = '\0';
+	strlcpy(datafile, calcpath(CNT_DATA), XS_PATH_MAX);
 	if ((fd = open(datafile, O_RDONLY,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
 	{
@@ -154,8 +153,7 @@ xsc_initcounter(const char *filename)
 	}
 
 	done = 0;
-	strncpy(counter2.filename, filename, sizeof(counter2.filename));
-	counter2.filename[sizeof(counter2.filename)-1] = '\0';
+	strlcpy(counter2.filename, filename, sizeof(counter2.filename));
 	counter2.total = counter2.today = counter2.month = 0;
 
 	while (read(fd, &counter, sizeof(counter)) == sizeof(counter))
@@ -220,8 +218,7 @@ xsc_counter(int mode, const char *args)
 		}
 	}
 
-	strncpy(counterfile, calcpath(CNT_DATA), XS_PATH_MAX);
-	counterfile[XS_PATH_MAX-1] = '\0';
+	strlcpy(counterfile, calcpath(CNT_DATA), XS_PATH_MAX);
 
 reopen:
 	if ((fd = open(counterfile, O_RDWR,
@@ -313,7 +310,6 @@ ALREADY:
 			current->hostname, config.port);
 	else
 		snprintf(host, sizeof(host), "http://%s/", current->hostname);
-	host[sizeof(host)-1] = '\0';
 	switch(mode)
 	{
 	case MODE_ALL:
@@ -455,8 +451,7 @@ dir_date_format(char *here, size_t *size)
 		return(ERR_CONT);
 	}
 	*search = 0;
-	strncpy(dateformat, here, MYBUFSIZ - 1);
-	dateformat[MYBUFSIZ - 1] = 0;
+	strlcpy(dateformat, here, MYBUFSIZ);
 	*search = '-';
 	(void)size;
 	return(ERR_NONE);
@@ -812,9 +807,8 @@ dir_case(char *here, size_t *size)
 {
 	char *casestr = malloc(256);
 
-	strncpy(casestr, switchstr, switchlen);
-	casestr[switchlen] = '\0';
-	strcat(casestr, here);
+	strlcpy(casestr, switchstr, switchlen);
+	strlcat(casestr, here, 256);
 
 	dir_endif(here, size);
 	if (dir_if(casestr, size) != ERR_NONE)

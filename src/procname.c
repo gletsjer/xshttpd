@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: procname.c,v 1.17 2005/01/08 13:25:35 johans Exp $ */
+/* $Id: procname.c,v 1.18 2005/07/06 11:27:30 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ setprocname(const char *name, ...)
 			len = procnameend - procnamestart - 2;
 			buffer[len] = 0;
 		}
-		strncpy(procnamestart, buffer, 256);
+		strlcpy(procnamestart, buffer, 256);
 		p = procnamestart + len;
 		while (p < procnameend)
 			*(p++) = '\0';

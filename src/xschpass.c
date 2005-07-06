@@ -80,8 +80,7 @@ changepasswd(const char *param, int  cl)
 	int		found;
 
 	alarm(120); filename[0] = '/';
-	strncpy(filename + 1, param, XS_PATH_MAX - 64);
-	filename[XS_PATH_MAX - 65] = 0;
+	strlcpy(filename + 1, param, XS_PATH_MAX - 64);
 	if (cl > (BUFSIZ - 64))
 		error("400 Too much input from your browser (%d bytes)", cl);
 	if (read(0, buffer, cl) != cl)
@@ -94,23 +93,19 @@ changepasswd(const char *param, int  cl)
 	{
 		for (search2 = search; *search2; search2++) ;
 		if (!strncasecmp("username=", search, 9))
-			strcpy(username, search + 9);
+			strlcpy(username, search + 9, BUFSIZ);
 		else if (!strncasecmp("old=", search, 4))
-			strcpy(old, search + 4);
+			strlcpy(old, search + 4, BUFSIZ);
 		else if (!strncasecmp("new1=", search, 5))
-			strcpy(new1, search + 5);
+			strlcpy(new1, search + 5, BUFSIZ);
 		else if (!strncasecmp("new2=", search, 5))
-			strcpy(new2, search + 5);
+			strlcpy(new2, search + 5, BUFSIZ);
 		else
 		{
 			strtok(search, "=");
 			error("404 Unknown field '%s'", search);
 		}
 		search = search2 + 1;
-		username[BUFSIZ-1] = '\0';
-		old[BUFSIZ-1] = '\0';
-		new1[BUFSIZ-1] = '\0';
-		new2[BUFSIZ-1] = '\0';
 	}
 	if (!username[0] || !old[0] || !new1[0] || !new2[0])
 		error("403 Not all fields were filled in correctly!");
