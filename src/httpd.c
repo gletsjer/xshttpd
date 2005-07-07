@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.180 2005/07/06 11:27:30 johans Exp $ */
+/* $Id: httpd.c,v 1.181 2005/07/07 13:11:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -108,7 +108,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.180 2005/07/06 11:27:30 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.181 2005/07/07 13:11:16 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1171,7 +1171,8 @@ static	void
 process_request()
 {
 	char		line[MYBUFSIZ], extra[MYBUFSIZ], *temp, ch,
-			*params, *url, *ver, http_host[NI_MAXHOST];
+			*params, *url, *ver, http_host[NI_MAXHOST],
+			http_host_long[NI_MAXHOST];
 	int		readerror;
 	size_t		size;
 
@@ -1430,15 +1431,27 @@ process_request()
 	}
 
 	if ((temp = strchr(http_host, ':')))
+	{
+		strlcpy(http_host_long, http_host, NI_MAXHOST);
 		*temp = '\0';
+	}
+	else
+	{
+		snprintf(http_host_long, NI_MAXHOST, "%s:%s",
+			http_host, config.port);
+	}
 	for (current = config.virtual; current; current = current->next)
-		if (!strcasecmp(http_host, current->hostname))
+		if (!strcasecmp(http_host_long, current->hostname) ||
+			!strcasecmp(http_host, current->hostname))
+		{
 			break;
+		}
 		else if (current->aliases)
 		{
 			char	**aliasp;
 			for (aliasp = current->aliases; *aliasp; aliasp++)
-				if (!strcasecmp(http_host, *aliasp))
+				if (!strcasecmp(http_host_long, *aliasp) ||
+					!strcasecmp(http_host, *aliasp))
 					break;
 			if (*aliasp)
 				break;
