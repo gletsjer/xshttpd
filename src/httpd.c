@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.181 2005/07/07 13:11:16 johans Exp $ */
+/* $Id: httpd.c,v 1.182 2005/07/12 19:06:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -108,7 +108,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.181 2005/07/07 13:11:16 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.182 2005/07/12 19:06:16 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1187,6 +1187,7 @@ process_request()
 	unsetenv("PATH_INFO"); unsetenv("PATH_TRANSLATED");
 	unsetenv("ORIG_PATH_INFO"); unsetenv("ORIG_PATH_TRANSLATED");
 	unsetenv("SCRIPT_FILENAME");
+	unsetenv("USER"); unsetenv("HOME"); unsetenv("PWD");
 	unsetenv("ERROR_CODE"); unsetenv("ERROR_READABLE");
 	unsetenv("ERROR_URL"); unsetenv("ERROR_URL_ESCAPED");
 	unsetenv("ERROR_URL_EXPANDED"); unsetenv("REMOTE_USER");

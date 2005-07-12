@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.135 2005/07/06 11:27:30 johans Exp $ */
+/* $Id: methods.c,v 1.136 2005/07/12 19:06:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -641,6 +641,8 @@ do_get(char *params)
 			file = temp;
 		} else
 			file = params + strlen(params);
+		setenv("USER", userinfo->pw_name, 1);
+		setenv("HOME", userinfo->pw_dir, 1);
 	}
 	else
 	{
@@ -705,6 +707,12 @@ do_get(char *params)
 			error("500 Effective UID is not valid");
 			return;
 		}
+		if ((userinfo = getpwuid(current->userid)))
+		{
+			setenv("USER", userinfo->pw_name, 1);
+			setenv("HOME", base, 1);
+			userinfo = NULL;
+		}
 	}
 	strlcpy(orgbase, base, XS_PATH_MAX);
 
@@ -757,6 +765,7 @@ do_get(char *params)
 				setenv("PATH_TRANSLATED", temppath, 1);
 				setenv("SCRIPT_FILENAME", temppath, 1);
 				*temp = 0;
+				setenv("PWD", temppath, 1);
 				break;
 			}
 			*(temp++) = '/';
