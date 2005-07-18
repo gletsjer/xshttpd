@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.182 2005/07/12 19:06:16 johans Exp $ */
+/* $Id: httpd.c,v 1.183 2005/07/18 08:02:30 johans Exp $ */
 
 #include	"config.h"
 
@@ -108,7 +108,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.182 2005/07/12 19:06:16 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.183 2005/07/18 08:02:30 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1144,9 +1144,7 @@ logrequest(const char *request, long size)
 		/* this is combined format + virtual hostname */
 		fprintf(alog, "%s %s - - [%s +0000] \"%s %s %s\" 200 %ld "
 				"\"%s\" \"%s\"\n",
-			getenv("HTTP_HOST")
-				? getenv("HTTP_HOST")
-				: config.system->hostname,
+			current ? current->hostname : config.system->hostname,
 			remotehost,
 			buffer,
 			getenv("REQUEST_METHOD"), dynrequest, version,
