@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.136 2005/07/12 19:06:16 johans Exp $ */
+/* $Id: methods.c,v 1.137 2005/07/19 14:10:56 johans Exp $ */
 
 #include	"config.h"
 
@@ -1216,8 +1216,6 @@ loadfiletypes(char *orgbase, char *base)
 			errx(1, "Unable to parse line `%s' in `%s'",
 				line, mimepath ? mimepath : "local .mimetypes");
 	}
-	if (lftype && ftype)
-		new->next = ftype;
 	fclose(mime);
 }
 
@@ -1343,10 +1341,10 @@ loadperl()
 static int
 getfiletype(int print)
 {
-	const	ftypes	*search;
+	const	ftypes	*search, *flist[] = { lftype, ftype, NULL };
 	const	char	*ext;
 	char		extension[20];
-	int		count;
+	int		i, count;
 
 	if (!(ext = strrchr(name, '.')) || !(*(++ext)))
 	{
@@ -1358,11 +1356,12 @@ getfiletype(int print)
 		extension[count] =
 			isupper(ext[count]) ? tolower(ext[count]) : ext[count];
 	extension[count] = 0;
-	search = lftype ? lftype : ftype;
-	while (search)
+	for (i = 0; i < sizeof(flist); i++)
 	{
-		if (!strcmp(extension, search->ext))
+		for (search = flist[i]; search; search = search->next)
 		{
+			if (strcmp(extension, search->ext))
+				continue;
 			if (print)
 			{
 				if (*charset)
@@ -1381,9 +1380,7 @@ getfiletype(int print)
 						search->name);
 			}
 			return !strcmp(search->name, "text/html");
-
 		}
-		search = search->next;
 	}
 	if (print)
 		secprintf("Content-type: application/octet-stream\r\n");
