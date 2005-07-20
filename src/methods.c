@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.137 2005/07/19 14:10:56 johans Exp $ */
+/* $Id: methods.c,v 1.138 2005/07/20 07:30:17 johans Exp $ */
 
 #include	"config.h"
 
@@ -1341,7 +1341,8 @@ loadperl()
 static int
 getfiletype(int print)
 {
-	const	ftypes	*search, *flist[] = { lftype, ftype, NULL };
+	const	ftypes	*search, *flist[] = { lftype, ftype };
+	const	int	flen = sizeof(flist) / sizeof(ftypes *);
 	const	char	*ext;
 	char		extension[20];
 	int		i, count;
@@ -1356,7 +1357,7 @@ getfiletype(int print)
 		extension[count] =
 			isupper(ext[count]) ? tolower(ext[count]) : ext[count];
 	extension[count] = 0;
-	for (i = 0; i < sizeof(flist); i++)
+	for (i = 0; i < flen; i++)
 	{
 		for (search = flist[i]; search; search = search->next)
 		{
