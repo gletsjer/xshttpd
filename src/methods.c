@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.138 2005/07/20 07:30:17 johans Exp $ */
+/* $Id: methods.c,v 1.139 2005/08/04 12:36:28 johans Exp $ */
 
 #include	"config.h"
 
@@ -1162,7 +1162,7 @@ do_options(const char *params)
 void
 loadfiletypes(char *orgbase, char *base)
 {
-	char		line[MYBUFSIZ], *end, *comment;
+	char		line[MYBUFSIZ], *name, *ext, *comment, *p;
 	const char	*mimepath;
 	FILE		*mime;
 	ftypes		*prev = NULL, *new = NULL;
@@ -1198,23 +1198,24 @@ loadfiletypes(char *orgbase, char *base)
 	{
 		if ((comment = strchr(line, '#')))
 			*comment = 0;
-		end = line + strlen(line);
-		while ((end > line) && (*(end - 1) <= ' '))
-			*(--end) = 0;
-		if (end == line)
-			continue;
-		if (!(new = (ftypes *)malloc(sizeof(ftypes))))
-			errx(1, "Out of memory in loadfiletypes()");
-		if (prev)
-			prev->next = new;
-		else if (base)
-			lftype = new;
-		else
-			ftype = new;
-		prev = new; new->next = NULL;
-		if (sscanf(line, "%s %s", new->name, new->ext) != 2)
-			errx(1, "Unable to parse line `%s' in `%s'",
-				line, mimepath ? mimepath : "local .mimetypes");
+		p = line;
+		for (name = strsep(&p, " \t\n"); ext = strsep(&p, " \t\n"); )
+		{
+			if (!*ext)
+				continue;
+			if (!(new = (ftypes *)malloc(sizeof(ftypes))))
+				errx(1, "Out of memory in loadfiletypes()");
+			if (prev)
+				prev->next = new;
+			else if (base)
+				lftype = new;
+			else
+				ftype = new;
+			prev = new;
+			strlcpy(new->name, name, sizeof(new->name));
+			strlcpy(new->ext,  ext,  sizeof(new->ext));
+			new->next = NULL;
+		}
 	}
 	fclose(mime);
 }
