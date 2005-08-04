@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: decode.c,v 1.1 2005/01/17 20:41:19 johans Exp $ */
+/* $Id: decode.c,v 1.2 2005/08/04 13:21:04 johans Exp $ */
 
 #include	<stdio.h>
 #include	<stdlib.h>
@@ -26,7 +26,7 @@ decode(char *str)
 {
 	char		*posd, chr;
 	const	char	*poss;
-	int		top, bottom;
+	unsigned int	top, bottom;
 
 	poss = posd = str;
 	while ((chr = *poss))

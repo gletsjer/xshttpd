@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.96 2005/07/06 11:27:30 johans Exp $ */
+/* $Id: cgi.c,v 1.97 2005/08/04 13:21:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -42,8 +42,6 @@
 #endif		/* HANDLE_PERL */
 
 #include	"httpd.h"
-#include	"local.h"
-#include	"procname.h"
 #include	"ssi.h"
 #include	"ssl.h"
 #include	"cgi.h"
@@ -103,9 +101,9 @@ time_is_up(int sig)
 {
 	if (child != (pid_t)-1)
 	{
-		killpg(child, SIGTERM);
-		mysleep(1);
-		killpg(child, SIGKILL);
+		(void) killpg(child, SIGTERM);
+		(void) mysleep(1);
+		(void) killpg(child, SIGKILL);
 	}
 	alarm_handler(sig);
 }
@@ -114,7 +112,6 @@ static	int
 append(char *buffer, int prepend, const char *format, ...)
 {
 	va_list	ap;
-	size_t	len;
 	char	line[HEADSIZE];
 
 	va_start(ap, format);
