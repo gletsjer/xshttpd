@@ -1,6 +1,14 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.3 beta 22
+- Allow multiple extensions in mime.types lines and ignore empty definitions
+
+Changes since 3.3 beta 21
+- Fix handling of local .mimetypes files
+- Include example vhost statistics script by Ed Schouten
+- Log configured main vhost name, rather than client's Host: header
+
 Changes since 3.3 beta 20
 - Set $USER, $HOME and $PWD as users might expect
 

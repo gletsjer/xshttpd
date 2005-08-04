@@ -6,6 +6,6 @@ int	setenv		(const char *, const char *, int);
 void	unsetenv	(const char *);
 #endif		/* HAVE_SETENV */
 
-#ifdef		NEED_DECL_ENVIRON
+#if		!HAVE_DECL_ENVIRON
 extern	char	**environ;
-#endif		/* NEED_DECL_ENVIRON */
+#endif		/* HAVE_DECL_ENVIRON */

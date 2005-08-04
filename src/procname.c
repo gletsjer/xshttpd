@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: procname.c,v 1.18 2005/07/06 11:27:30 johans Exp $ */
+/* $Id: procname.c,v 1.19 2005/08/04 15:30:00 johans Exp $ */
 
 #include	"config.h"
 
@@ -52,9 +52,9 @@ struct		pst_swapinfo;
 
 #include	"procname.h"
 
-#ifdef		NEED_DECL_ENVIRON
+#if		!HAVE_DECL_ENVIRON
 extern	char	**environ;
-#endif		/* NEED_DECL_ENVIRON */
+#endif		/* HAVE_DECL_ENVIRON */
 
 static	char	*procnamestart, *procnameend;
 

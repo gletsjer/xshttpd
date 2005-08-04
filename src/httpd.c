@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.183 2005/07/18 08:02:30 johans Exp $ */
+/* $Id: httpd.c,v 1.184 2005/08/04 15:30:00 johans Exp $ */
 
 #include	"config.h"
 
@@ -88,15 +88,6 @@
 #include	"mygetopt.h"
 #include	"htconfig.h"
 
-#ifdef		__linux__
-char	*tempnam(const char *, const char *);
-#endif		/* __linux__ */
-
-/* This is for HP/UX */
-#ifdef		HPUX
-int	setpriority (int, int, int);
-#endif		/* HPUX */
-
 #ifndef		HAVE_SOCKLEN_T
 typedef	size_t	socklen_t;
 #endif		/* HAVE_SOCKLEN_T */
@@ -108,7 +99,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.183 2005/07/18 08:02:30 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.184 2005/08/04 15:30:00 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */

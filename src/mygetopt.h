@@ -4,7 +4,7 @@
 #include	<getopt.h>
 #endif		/* HAVE_GETOPT_H */
 
-#ifdef		NEED_OPTARG_AND_OPTIND
+#if		!HAVE_DECL_OPTARG
 extern	char	*optarg;
 extern	int	optind;
-#endif		/* NEED_OPTARG_AND_OPTIND */
+#endif		/* HAVE_DECL_OPTARG */

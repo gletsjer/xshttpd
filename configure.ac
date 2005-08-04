@@ -1,8 +1,9 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(src/httpd.c)
-AM_INIT_AUTOMAKE(xshttpd, 33b21)
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.21", [Server version])
-AM_CONFIG_HEADER(config.h)
+AC_INIT
+AC_CONFIG_SRCDIR([src/httpd.c])
+AM_INIT_AUTOMAKE(xshttpd, 33b22)
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.22", [Server version])
+AC_CONFIG_HEADERS([config.h])
 
 dnl Checks for programs.
 AC_PROG_CC
@@ -25,7 +26,8 @@ libxs_ldlags="${LDLAGS}"
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
-AC_CHECK_HEADERS(alloca.h crypt.h err.h sys/exec.h getopt.h fcntl.h memory.h sys/mman.h sys/param.h sys/pstat.h sys/resource.h sys/select.h string.h strings.h sys/syslimits.h sys/sysmips.h sys/sysnews.h time.h sys/time.h unistd.h vfork.h vm/vm.h vm/pmap.h machine/vmparam.h)
+
+AC_CHECK_HEADERS(alloca.h crypt.h err.h sys/exec.h getopt.h fcntl.h memory.h sys/mman.h sys/param.h sys/pstat.h sys/resource.h sys/select.h sys/syslimits.h sys/sysmips.h sys/sysnews.h vfork.h vm/vm.h vm/pmap.h machine/vmparam.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -56,8 +58,7 @@ then
 	prefix=/usr/local
 fi
 AC_ARG_WITH(rootdir,
-	AC_HELP_STRING([--with-rootdir=PATH],
-		[directory to install data files (LIBDIR/httpd)]),
+	AS_HELP_STRING(--with-rootdir=PATH,directory to install data files (LIBDIR/httpd)),
 	rootdir=${withval},
 	rootdir=${prefix}/lib/httpd)
 miscdir=${rootdir}
@@ -148,13 +149,7 @@ fi
 
 dnl Test runs for required global variables
 
-XS_NEED_CONST(sys_errlist, NEED_SYS_ERRLIST_DECL, stdio.h)
-XS_NEED_CONST(optarg, NEED_OPTARG_AND_OPTIND, unistd.h)
-XS_NEED_CONST(environ, NEED_DECL_ENVIRON, unistd.h)
-
-dnl AC_EGREP_HEADER(sys_errlist, stdio.h,, AC_DEFINE(NEED_SYS_ERRLIST_DECL))
-dnl AC_EGREP_HEADER(optarg, getopt.h,, AC_DEFINE(NEED_OPTARG_AND_OPTIND))
-dnl AC_EGREP_HEADER(eniviron, unistd.h,, AC_DEFINE(NEED_DECL_ENVIRON))
+AC_CHECK_DECLS([sys_errlist, optarg, environ])
 
 AC_DEFINE_UNQUOTED(HTTPD_ROOT, "$rootdir",
 	[Default root directory for the server. This is were the subdirs /logs, /htdocs and /cgi-bin reside. This can be overriden from RootDir config.])
@@ -181,4 +176,5 @@ AC_SUBST(libxs_ldflags)
 AC_SUBST(libxs_cflags)
 AC_SUBST(httpd_ldflags)
 AC_SUBST(httpd_cflags)
-AC_OUTPUT([Makefile fonts/Makefile icons/Makefile man/Makefile misc/Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile fonts/Makefile icons/Makefile man/Makefile misc/Makefile src/Makefile])
+AC_OUTPUT

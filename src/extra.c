@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: extra.c,v 1.14 2004/12/02 14:37:35 johans Exp $ */
+/* $Id: extra.c,v 1.15 2005/08/04 15:30:00 johans Exp $ */
 
 #include	"config.h"
 
@@ -141,10 +141,10 @@ match_list(char *list, const char *browser)
 
 #ifndef		HAVE_STRERROR
 
-#ifdef		NEED_SYS_ERRLIST_DECL
+#if		!HAVE_DECL_SYS_ERRLIST
 extern	char		*sys_errlist[];
 extern	const	int	sys_nerr;
-#endif		/* NEED_SYS_ERRLIST_DECL */
+#endif		/* HAVE_DECL_SYS_ERRLIST */
 
 const	char	*
 strerror(int code)
