@@ -1,12 +1,18 @@
 /* Copyright (C) 2005 by Johan van Selst (johans@stack.nl) */
-/* $Id: pcre.c,v 1.1 2005/04/03 19:41:28 johans Exp $ */
+/* $Id: pcre.c,v 1.2 2005/08/05 15:21:47 johans Exp $ */
 
 #include	"config.h"
 #include	"pcre.h"
 
 #include	<stdio.h>
 #include	<string.h>
+#ifdef		HAVE_PCRE_H
 #include	<pcre.h>
+#else		/* HAVE_PCRE_H */
+#ifdef		HAVE_PCRE_PCRE_H
+#include	<pcre/pcre.h>
+#endif		/* HAVE_PCRE_PCRE_H */
+#endif		/* HAVE_PCRE_H */
 
 #define		OVSIZE	30	/* allows \0 through \9 */
 
