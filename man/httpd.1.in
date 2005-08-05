@@ -664,15 +664,6 @@ The natural document language that the client (user) prefers.
 The host that the client wishes to retreive data from (currently ignored
 by the server).
 .LP
-XS\-HTTPD has one enhancement on the CGI specifications. It doesn't only
-support the \fBnph\-\fP naming convention (No Parse Headers), but
-also the \fBnid\-\fP naming convention (to use both, first put
-\fBnph\-\fP and then \fBnid\-\fP). This makes the CGI binary run
-under (by default) nobody/nogroup, instead of the user's own UID.
-For example, if you name your CGI binary \fInid\-form.cgi\fP,
-it will run that binary under nobody/nogroup instead of your own
-UID (this is to protect yourself from accidental damage).
-.LP
 By default the output of a CGI script is not parsed for server-side
 includes. Usually there is no point, because CGI allows you to do all
 the fancy stuff SSI offers and more. But for some features (like
