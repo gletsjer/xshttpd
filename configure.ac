@@ -27,7 +27,7 @@ dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 
-AC_CHECK_HEADERS(alloca.h crypt.h err.h sys/exec.h getopt.h fcntl.h memory.h sys/mman.h sys/param.h sys/pstat.h sys/resource.h sys/select.h sys/syslimits.h sys/sysmips.h sys/sysnews.h vfork.h vm/vm.h vm/pmap.h machine/vmparam.h)
+AC_CHECK_HEADERS(alloca.h crypt.h err.h sys/exec.h getopt.h fcntl.h memory.h sys/mman.h sys/param.h sys/pstat.h sys/resource.h sys/select.h sys/syslimits.h sys/sysmips.h sys/sysnews.h sys/time.h time.h vfork.h vm/vm.h vm/pmap.h machine/vmparam.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
