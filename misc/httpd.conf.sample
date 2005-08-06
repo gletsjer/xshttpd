@@ -1,39 +1,43 @@
 # Example configuration file XS-httpd
-
-# A configuration file is optional, it will work without
+#
+# Carefully read 'man httpd.conf' for an explanation of all settings
+# The configuration file is optional, XS will work without
 
 SystemRoot	/usr/local/lib/httpd
 
-#ListenAddress	www.stack.nl
-ListenPort	http
-Instances	20
 PidFile		/var/run/httpd.pid
 VirtualHostDir	vhosts
-
 ExecAsUser	true
+
+<Socket>
+# ListenAddress	www.stack.nl
+ListenPort	http
+ListenFamily	IPv4
+Instances	20
 UseSSL		false
+</Socket>
 
 <System>
 UserId		nobody
 GroupId		nogroup
-#Hostname	www.stack.nl
-#HtmlDir	htdocs
-#PhExecDir	cgi-bin
-#IndexFiles	index.html, index.htm, index.php
+# Hostname	www.stack.nl
+# HtmlDir	htdocs
+# PhExecDir	cgi-bin
+# IndexFiles	index.html, index.htm, index.php
 LogAccess	logs/access_log
 LogError	logs/error_log
-LogReferer	logs/referer_log
+LogStyle	combined
 </System>
 
-<Users>
-#Hostname	www.stack.nl
-#HtmlDir	.html
-#ExecDir	cgi-bin
-#PhExecDir	cgi-bin
-</Users>
+# <Users>
+# Hostname	www.stack.nl
+# HtmlDir	.html
+# ExecDir	cgi-bin
+# PhExecDir	cgi-bin
+# </Users>
 
-#<Virtual>
-#Hostname	www.ipv6.stack.nl
-#HtmlDir	/www/ipv6
-#</Virtual>
+# <Virtual>
+# Hostname	www.ipv6.stack.nl
+# HtmlDir	/www/ipv6
+# </Virtual>
 

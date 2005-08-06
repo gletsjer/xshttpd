@@ -1,6 +1,25 @@
-# PHP and stuff
+# script.methods lists the file types that should not be displayed directly,
+# but rather be handled by an external (or sometimes internal) interpreter.
+# For example PHP files, should be parsed by some PHP interpreter
+# rather than directly displaying the PHP source code to the visitor.
+#
+# The format simply lists all interpreters (external programs) followed
+# by the file extension (incl. dot) that should be handled by this program.
+#
+# Besides external programs, a few internal handlers are available as well:
+#  internal:404		always return a '404 Not Found' error
+#			use this for files that are included/used by others
+#  internal:text	display file source rather than interpreting it as CGI
+#  internal:exec	execute the file as if it were in cgi-bin directory
+#  internal:perl	interpret file through internal persistent perl daemon
+#			httpd must be compiled with --enable-perl for this
+#
+# The global settings may be overridden per directory by .xsscript files
+# that use the same syntax. These .xsscript files apply recursively.
 
-/usr/local/bin/php3	.php3
 /usr/local/bin/php	.php
+/usr/local/bin/php3	.php3
 internal:404		.htmli
-internal:perl		.pl
+#internal:exec		.cgi
+#internal:perl		.pl
+
