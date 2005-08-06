@@ -61,8 +61,9 @@ AC_ARG_WITH(rootdir,
 	AS_HELP_STRING(--with-rootdir=PATH,directory to install data files (LIBDIR/httpd)),
 	rootdir=${withval},
 	rootdir=${prefix}/lib/httpd)
-miscdir=${rootdir}
+configdir=${rootdir}
 XS_ARG_DIR(cgidir, cgi-bin)
+XS_ARG_DIR(contribdir, contrib)
 XS_ARG_DIR(fontdir, gfxcount)
 XS_ARG_DIR(icondir, icons)
 XS_ARG_DIR(docdir, htdocs)
@@ -153,7 +154,8 @@ AC_CHECK_DECLS([sys_errlist, optarg, environ])
 
 AC_DEFINE_UNQUOTED(HTTPD_ROOT, "$rootdir",
 	[Default root directory for the server. This is were the subdirs /logs, /htdocs and /cgi-bin reside. This can be overriden from RootDir config.])
-AC_SUBST(miscdir)
+AC_SUBST(configdir)
+AC_SUBST(contribdir)
 AC_SUBST(cgidir)
 AC_SUBST(fontdir)
 AC_SUBST(icondir)
@@ -176,5 +178,5 @@ AC_SUBST(libxs_ldflags)
 AC_SUBST(libxs_cflags)
 AC_SUBST(httpd_ldflags)
 AC_SUBST(httpd_cflags)
-AC_CONFIG_FILES([Makefile fonts/Makefile icons/Makefile man/Makefile misc/Makefile src/Makefile])
+AC_CONFIG_FILES([Makefile config/Makefile contrib/Makefile fonts/Makefile icons/Makefile man/Makefile src/Makefile])
 AC_OUTPUT
