@@ -3,4 +3,4 @@
 contrib_DATA = SSL-Makefile
 contrib_SCRIPTS = persistent.pl logrotate.sh wwwstats.pl
 
-EXTRA_DIST = $(contrib_DATA)
+EXTRA_DIST = $(contrib_DATA) $(contrib_SCRIPTS)
