@@ -36,7 +36,7 @@ sub sizetofriendly {
 }
 
 # Print a table look at the top
-print "   TRAF \%TRAF  HITS \%HITS DOMAIN\n";
+print "   TRAF \%TRAF  HITS \%HITS     AVG   \%AVG DOMAIN\n";
 
 # Try to open our logfile
 if (open ('httpdlog', "$logfile"))
@@ -66,30 +66,44 @@ if (open ('httpdlog', "$logfile"))
 
 	close ('httpdlog');
 
+	# Calculate the master average
+	$total{'avg'} = $total{'size'} / $total{'hits'};
+
 	for my $i (sort {$domains{$b}{'size'} <=> $domains{$a}{'size'}}
 		keys %domains)
 	{
+		# Calculate the average size
+		$domains{$i}{'avg'} =
+			$domains{$i}{'size'} / $domains{$i}{'hits'};
+
 		# Calculate the percentages for the current domain
 		$percent{'hits'} =
 			($domains{$i}{'hits'} * 100) / $total{'hits'};
 		$percent{'size'} =
 			($domains{$i}{'size'} * 100) / $total{'size'};
+		$percent{'avg'} =
+			($domains{$i}{'avg'} * 100) / $total{'avg'};
 
-		printf ("%7s %5.1lf %5d %5.1lf %s\n",
+		printf "%7s %5.1lf %5d %5.1lf %7s %6.1lf %s\n",
 			# Size
 			&sizetofriendly ($domains{$i}{'size'}),
 			$percent{'size'},
 			# Hits
 			$domains{$i}{'hits'},
 			$percent{'hits'},
+			# Average page site
+			&sizetofriendly ($domains{$i}{'avg'}),
+			$percent{'avg'},
 			# Name
-			$i);
+			$i;
 	}
 }
 
 # Print the grand total
-printf ("%7s %11d       total\n",
+printf "%7s %11d %13s        total\n",
 	# Size
 	&sizetofriendly ($total{'size'}),
 	# Hits
-	$total{'hits'});
+	$total{'hits'},
+	# Average
+	&sizetofriendly ($total{'avg'});
