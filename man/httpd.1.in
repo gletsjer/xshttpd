@@ -283,13 +283,14 @@ Note that unlike the \fIredir\fP commands, it is not allowed to
 generate full URL's in this case: only local URL's are permitted
 (omitting the protocol and hostname).
 .br
-A .redir file may contain multiple lines with redir or rewrite
+A .redir file may contain multiple lines with redir, rewrite or ignore
 directives. All directives in the file will be tried in sequence
-(top to bottom). If none of them matches, no redirection will be
-performed. Any line that doesn't start with a redir or rewrite
-command, will be interpreted as an URL and a redirect to this location
-will be generated - note that this always matches so use it as the
-last line only.
+(top to bottom). If none of them matches - or if an \fIignore\fP
+line matches first, then no redirection will be performed.
+Any line that doesn't start with a redir, rewrite or ignore command,
+will be interpreted as an URL and a redirect to this location will be
+generated - note that this always matches so use it as the last line
+only.
 .TP
 \fB *.redir\fP
 If a file is requested and a file exists with the same name
