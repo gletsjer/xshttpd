@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.139 2005/08/04 12:36:28 johans Exp $ */
+/* $Id: methods.c,v 1.140 2005/08/10 18:21:57 johans Exp $ */
 
 #include	"config.h"
 
@@ -104,6 +104,7 @@ static int	allowxs			(FILE *);
 static void	senduncompressed	(int);
 static void	sendcompressed		(int, const char *);
 static FILE *	find_file		(const char *, const char *, const char *);
+static int	check_redirect		(const char *, const char *, const char *);
 
 /* Global structures */
 
@@ -574,6 +575,7 @@ do_get(char *params)
 {
 	char			*temp, *file, *cgi, *question,
 			base[XS_PATH_MAX], orgbase[XS_PATH_MAX],
+			orgparams[XS_PATH_MAX],
 			total[XS_PATH_MAX], temppath[XS_PATH_MAX];
 	const	char		*filename, *http_host;
 	int			fd, wasdir, permanent, tmp,
@@ -587,6 +589,7 @@ do_get(char *params)
 	alarm(240);
 
 	/* Sanitize the requested path */
+	strlcpy(orgparams, params, XS_PATH_MAX);
 	question = strchr(params, '?');
 	while ((temp = strstr(params, "//")))
 		if (!question || (temp < question))
@@ -835,66 +838,8 @@ do_get(char *params)
 		server_error("403 Directory is not available", "DIR_NOT_AVAIL");
 		return;
 	}
-	/* Check for *.redir instructions */
-	permanent = 0;
-	snprintf(total, XS_PATH_MAX, "%s%s.redir", base, filename);
-	if ((fd = open(total, O_RDONLY, 0)) < 0)
-	{
-		snprintf(total, XS_PATH_MAX, "%s%s.Redir", base, filename);
-		if ((fd = open(total, O_RDONLY, 0)) >= 0)
-			permanent = 1;
-	}
-	if (fd >= 0)
-	{
-		if ((size = read(fd, total, MYBUFSIZ)) <= 0)
-		{
-			error("500 Redirection filename error");
-			close(fd);
-			return;
-		}
-		total[size] = 0;
-		(void) strtok(total, "\r\n");
-#ifdef		HAVE_PCRE
-		if (config.usepcreredir &&
-			strlen(total) > 3 &&
-			's' == total[0] && '/' == total[1])
-		{
-			char	*p, *subst, *replacement;
-			for (p = total + 2, replacement = NULL; *p; p++)
-				if ('/' == *p && '\\' != p[-1])
-				{
-					*p = 0;
-					if (!replacement)
-						replacement = p + 1;
-				}
-			subst = pcre_subst(params, total + 2, replacement);
-			redirect(subst, permanent);
-			free(subst);
-		}
-		else
-#endif		/* HAVE_PCRE */
-			redirect(total, permanent);
-		close(fd);
+	if (check_redirect(orgparams, base, filename))
 		return;
-	}
-	snprintf(total, XS_PATH_MAX, "%s/.redir", base);
-	if ((fd = open(total, O_RDONLY, 0)) >= 0)
-	{
-		if ((size = read(fd, total, XS_PATH_MAX - strlen(filename) - 16)) <= 0)
-		{
-			error("500 Directory redirection filename error");
-			close(fd);
-			return;
-		}
-		close(fd);
-		temp = total + size; *temp = 0;
-		while ((temp > total) && (*(temp - 1) < ' '))
-			*(--temp) = 0;
-		strcat(total, filename);
-		strtok(total, "\r\n");
-		redirect(total, 0);
-		return;
-	}
 	charset[0] = '\0';
 	if (config.usecharset)
 	{
@@ -1389,3 +1334,81 @@ getfiletype(int print)
 	return(0);
 }
 
+int
+check_redirect(const char *params, const char *base, const char *filename)
+{
+	int	fd, size, permanent = 0;
+	FILE	*fp;
+	char	*p, *command, *subst, *orig, *repl,
+		line[XS_PATH_MAX], total[XS_PATH_MAX];
+
+	/* Check for *.redir instructions */
+	snprintf(total, XS_PATH_MAX, "%s%s.redir", base, filename);
+	if ((fd = open(total, O_RDONLY, 0)) < 0)
+	{
+		snprintf(total, XS_PATH_MAX, "%s%s.Redir", base, filename);
+		if ((fd = open(total, O_RDONLY, 0)) >= 0)
+			permanent = 1;
+	}
+	if (fd >= 0)
+	{
+		if ((size = read(fd, total, MYBUFSIZ)) <= 0)
+		{
+			error("500 Redirection filename error");
+			close(fd);
+			return 1;
+		}
+		total[size] = 0;
+		p = total;
+		subst = strsep(&p, " \t\r\n");
+		redirect(subst, permanent);
+		close(fd);
+		return 1;
+	}
+
+	/* check for directory .redir file */
+	snprintf(total, XS_PATH_MAX, "%s/.redir", base);
+	if (!(fp = fopen(total, "r")))
+		return 0;
+
+	while (fgets(line, XS_PATH_MAX, fp))
+	{
+#ifdef		HAVE_PCRE
+		p = line;
+		command = strsep(&p, " \t\r\n");
+		if (!strcasecmp(command, "redir"))
+		{
+			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
+				/* continue */;
+			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
+				/* continue */;
+			if (subst = pcre_subst(params, orig, repl))
+			{
+				redirect(subst, 'R' == command[0]);
+				free(subst);
+				return 1;
+			}
+		}
+		else if (!strcasecmp(command, "rewrite"))
+		{
+			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
+				/* continue */;
+			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
+				/* continue */;
+			if (subst = pcre_subst(params, orig, repl))
+			{
+				do_get(subst);
+				free(subst);
+				return 1;
+			}
+		}
+		else /* no command: redir to url */
+#endif		/* HAVE_PCRE */
+		{
+			redirect(command, 0);
+			return 1;
+		}
+	}
+	fclose(fp);
+	return 0;
+}

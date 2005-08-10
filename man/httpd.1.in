@@ -267,11 +267,30 @@ by substituting the server name and the directory that the
 remote user to get to this file by the contents of the file.
 This way, an entire directory can be automatically be redirected.
 .br
-A new feature is to use a substitute command using perl-compatible
-regular expression (pcre). In this case you can use a format like
-\fIs/match/replace/\fP to match the full URL and generate a 
-redirection to an alternative location. The .redir file should
-contain only one line: either a URL or a substitute command.
+A new addition is to allow a substitute command using perl-compatible
+regular expression (pcre). This feature is only available if the
+\fBUsePcreRedir\fP setting is enabled. In this case you can use a
+format like \fIredir oldurl newurl\fP to match the local part of the
+URL and generate a redirection to an alternative location. The file
+may contain multiple lines. If the \fIRedir\fP directive is written
+with a capital, a permanent redirect (301) will be generated. You may
+generate either a relative URL (local part only) or an absolute URL.
+.br
+The .redir file may also contain directives like \fIrewrite oldurl
+newurl\fP. In this case the same matching sceme as for redirects will
+be used, but rather than generating a redirect, the webserver will try
+to resolve the filename itself and dispay the resolved file directly.
+Note that unlike a \fIredir\fP it is not allowed to generate absolute
+URL's in this case: only relative URL's are permitted (i.e. you must
+omit the protocol and hostname).
+.br
+A .redir file may contain multiple lines with redir or rewrite
+directives. All directives in the file will be tried in sequence
+(top to bottom). If none of them matches, no redirection will be
+performed. Any line that doesn't start with a redir or rewrite
+command, will be interpreted as an URL and a redirect to this location
+will be generated - note that this always matches so use it as the
+last line only.
 .TP
 \fB *.redir\fP
 If a file is requested and a file exists with the same name
