@@ -273,16 +273,15 @@ regular expression (pcre). This feature is only available if the
 format like \fIredir oldurl newurl\fP to match the local part of the
 URL and generate a redirection to an alternative location. The file
 may contain multiple lines. If the \fIRedir\fP directive is written
-with a capital, a permanent redirect (301) will be generated. You may
-generate either a relative URL (local part only) or an absolute URL.
+with a capital, a permanent redirect (301) will be generated.
 .br
 The .redir file may also contain directives like \fIrewrite oldurl
 newurl\fP. In this case the same matching sceme as for redirects will
 be used, but rather than generating a redirect, the webserver will try
 to resolve the filename itself and dispay the resolved file directly.
-Note that unlike a \fIredir\fP it is not allowed to generate absolute
-URL's in this case: only relative URL's are permitted (i.e. you must
-omit the protocol and hostname).
+Note that unlike the \fIredir\fP commands, it is not allowed to
+generate full URL's in this case: only local URL's are permitted
+(omitting the protocol and hostname).
 .br
 A .redir file may contain multiple lines with redir or rewrite
 directives. All directives in the file will be tried in sequence

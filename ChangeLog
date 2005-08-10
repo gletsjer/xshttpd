@@ -3,6 +3,8 @@ is not complete. Refer to cvs comments for more information.
 
 Changes since 3.3 beta 23
 - wwwstats.pl changed to show per domain averages
+- Change how .redir with PCREs work (not backwards compatible)
+- Allow server-side URL rewrites using .redir files and PCREs
 
 Changes since 3.3 beta 22
 - Allow multiple extensions in mime.types lines and ignore empty definitions
