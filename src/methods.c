@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.142 2005/08/10 18:58:20 johans Exp $ */
+/* $Id: methods.c,v 1.143 2005/08/10 18:59:57 johans Exp $ */
 
 #include	"config.h"
 
@@ -1376,7 +1376,7 @@ check_redirect(const char *params, const char *base, const char *filename)
 #ifdef		HAVE_PCRE
 		p = line;
 		command = strsep(&p, " \t\r\n");
-		if (!strcasecmp(command, "ignore"))
+		if (!strcasecmp(command, "pass"))
 		{
 			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
 				/* continue */;
