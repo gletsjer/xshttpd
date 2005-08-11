@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.143 2005/08/10 18:59:57 johans Exp $ */
+/* $Id: methods.c,v 1.144 2005/08/11 13:38:06 johans Exp $ */
 
 #include	"config.h"
 
@@ -1383,10 +1383,11 @@ check_redirect(const char *params, const char *base, const char *filename)
 			if (subst = pcre_subst(params, orig, "x"))
 			{
 				free(subst);
+				fclose(fp);
 				return 0;
 			}
 		}
-		if (!strcasecmp(command, "redir"))
+		else if (!strcasecmp(command, "redir"))
 		{
 			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
 				/* continue */;
@@ -1396,6 +1397,7 @@ check_redirect(const char *params, const char *base, const char *filename)
 			{
 				redirect(subst, 'R' == command[0]);
 				free(subst);
+				fclose(fp);
 				return 1;
 			}
 		}
@@ -1409,6 +1411,7 @@ check_redirect(const char *params, const char *base, const char *filename)
 			{
 				do_get(subst);
 				free(subst);
+				fclose(fp);
 				return 1;
 			}
 		}
@@ -1416,6 +1419,7 @@ check_redirect(const char *params, const char *base, const char *filename)
 #endif		/* HAVE_PCRE */
 		{
 			redirect(command, 0);
+			fclose(fp);
 			return 1;
 		}
 	}
