@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.16 2005/07/06 11:27:30 johans Exp $ */
+/* $Id: httpdc.c,v 1.17 2005/08/19 12:26:18 johans Exp $ */
 
 #include	"config.h"
 
@@ -113,7 +113,7 @@ cmd_restart(const char *args)
 		warn("kill");
 	printf("Main HTTPD killed, children will die automatically.\n");
 	printf("Waiting for children to die... ");
-	timeout = 120;
+	timeout = 600;
 	while (!killpg(httpdpid, 0) && (timeout > 0))
 	{
 		printf("%c\b", (char)*("/-\\|" + (timeout & 3)));
