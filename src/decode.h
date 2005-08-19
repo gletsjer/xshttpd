@@ -3,5 +3,5 @@
 int	decode			(char *);
 void	uudecode		(char *);
 char	*escape			(const char *);
-int	hexdigit		(int);
+int	hexdigit		(int) CONST_FUNC;
 

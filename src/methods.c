@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.144 2005/08/11 13:38:06 johans Exp $ */
+/* $Id: methods.c,v 1.145 2005/08/19 18:27:15 johans Exp $ */
 
 #include	"config.h"
 
@@ -578,7 +578,7 @@ do_get(char *params)
 			orgparams[XS_PATH_MAX],
 			total[XS_PATH_MAX], temppath[XS_PATH_MAX];
 	const	char		*filename, *http_host;
-	int			fd, wasdir, permanent, tmp,
+	int			fd, wasdir, tmp,
 				delay_redir = 0, script = 0;
 	size_t			size;
 	struct	stat		statbuf;
@@ -958,7 +958,7 @@ do_get(char *params)
 		server_error("403 File permissions deny access", "PERMISSION");
 		return;
 	}
-	strlcpy(name, filename, XS_PATH_MAX);
+	strlcpy(orig_filename, filename, XS_PATH_MAX);
 
 	/* check for local file type */
 	loadfiletypes(orgbase, base);
@@ -1144,7 +1144,7 @@ loadfiletypes(char *orgbase, char *base)
 		if ((comment = strchr(line, '#')))
 			*comment = 0;
 		p = line;
-		for (name = strsep(&p, " \t\n"); ext = strsep(&p, " \t\n"); )
+		for (name = strsep(&p, " \t\n"); (ext = strsep(&p, " \t\n")); )
 		{
 			if (!*ext)
 				continue;
@@ -1293,7 +1293,7 @@ getfiletype(int print)
 	char		extension[20];
 	int		i, count;
 
-	if (!(ext = strrchr(name, '.')) || !(*(++ext)))
+	if (!(ext = strrchr(orig_filename, '.')) || !(*(++ext)))
 	{
 		if (print)
 			secprintf("Content-type: text/plain\r\n");
@@ -1380,7 +1380,7 @@ check_redirect(const char *params, const char *base, const char *filename)
 		{
 			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
 				/* continue */;
-			if (subst = pcre_subst(params, orig, "x"))
+			if ((subst = pcre_subst(params, orig, "x")))
 			{
 				free(subst);
 				fclose(fp);
@@ -1393,7 +1393,7 @@ check_redirect(const char *params, const char *base, const char *filename)
 				/* continue */;
 			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
 				/* continue */;
-			if (subst = pcre_subst(params, orig, repl))
+			if ((subst = pcre_subst(params, orig, repl)))
 			{
 				redirect(subst, 'R' == command[0]);
 				free(subst);
@@ -1407,7 +1407,7 @@ check_redirect(const char *params, const char *base, const char *filename)
 				/* continue */;
 			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
 				/* continue */;
-			if (subst = pcre_subst(params, orig, repl))
+			if ((subst = pcre_subst(params, orig, repl)))
 			{
 				do_get(subst);
 				free(subst);

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: path.c,v 1.9 2005/07/06 13:07:11 johans Exp $ */
+/* $Id: path.c,v 1.10 2005/08/19 18:27:15 johans Exp $ */
 
 #include	"config.h"
 
@@ -17,7 +17,6 @@ const	char	*
 calcpath(const char *filename)
 {
 	static	char	buffer[XS_PATH_MAX];
-	size_t		len;
 
 	if (*filename == '/')
 		strlcpy(buffer, filename, XS_PATH_MAX);

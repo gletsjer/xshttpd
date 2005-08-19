@@ -22,7 +22,7 @@
 
 extern	char	remotehost[], dateformat[], currentdir[],
 		currenttime[], version[], real_path[],
-		name[];
+		orig_filename[];
 extern	time_t	modtime;
 extern	int		headers, headonly, postonly;
 extern	gid_t	origegid;

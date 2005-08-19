@@ -63,3 +63,13 @@
 #define		setegid(a)	setregid(-1, (a))
 #endif		/* HAVE_SETRESGID */
 #endif		/* HAVE_SETEGID */
+
+#ifdef		__GNUC__
+#define		PRINTF_LIKE(f, p)	__attribute__ ((format (printf, f, p)))
+#define		CONST_FUNC		__attribute__ ((const))
+#define		NORETURN		__attribute__ ((noreturn))
+#else
+#define		PRINTF_LIKE(f, p)
+#define		CONST_FUNC
+#define		NORETURN
+#endif		/* __GNUC__ */

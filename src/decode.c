@@ -1,12 +1,13 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: decode.c,v 1.2 2005/08/04 13:21:04 johans Exp $ */
+/* $Id: decode.c,v 1.3 2005/08/19 18:27:15 johans Exp $ */
 
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<sys/types.h>
 #include	<string.h>
 #include	<ctype.h>
+#include	"config.h"
 #include	"httpd.h"
 #include	"decode.h"
 
@@ -42,10 +43,13 @@ decode(char *str)
 			poss++;
 		} else
 		{
-			if ((top = hexdigit((int)poss[1])) < 0)
+			if (hexdigit((int)poss[1]) < 0 ||
+				hexdigit((int)poss[2]) < 0)
+			{
 				return(ERR_QUIT);
-			if ((bottom = hexdigit((int)poss[2])) < 0)
-				return(ERR_QUIT);
+			}
+			top = hexdigit((int)poss[1]);
+			bottom = hexdigit((int)poss[2]);
 			*(posd++) = (top << 4) + bottom;
 			poss += 3;
 		}
