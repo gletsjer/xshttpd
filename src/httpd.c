@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.186 2005/08/20 13:32:51 johans Exp $ */
+/* $Id: httpd.c,v 1.187 2005/08/20 13:57:34 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.186 2005/08/20 13:32:51 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.187 2005/08/20 13:57:34 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1925,8 +1925,8 @@ main(int argc, char **argv)
 			strlcpy(config_path, "/dev/null", XS_PATH_MAX);
 			break;
 		case 'v':
-			fprintf(stdout, "%s\n", SERVER_IDENT);
-			fprintf(stdout, "\nCompiled options:\n\t"
+			printf("%s\n", SERVER_IDENT);
+			printf("\nCompiled options:\n\t"
 #ifdef		INET6
 				"+INET6 "
 #else		/* INET6 */

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.17 2005/08/19 12:26:18 johans Exp $ */
+/* $Id: httpdc.c,v 1.18 2005/08/20 13:57:34 johans Exp $ */
 
 #include	"config.h"
 
@@ -41,6 +41,7 @@ static	void	cmd_status	(const char *);
 static	void	cmd_kill	(const char *);
 static	void	cmd_reload	(const char *);
 static	void	cmd_restart	(const char *);
+static	void	cmd_version	(const char *);
 static	void	control		(const char *);
 
 static	command	commands[]=
@@ -51,6 +52,7 @@ static	command	commands[]=
 	{ "kill",	cmd_kill,	"Terminate the httpd"		},
 	{ "reload",	cmd_reload,	"Reload all httpd databases"	},
 	{ "restart",	cmd_restart,	"Restart httpd with previous command lines arguments"	},
+	{ "version",	cmd_version,	"Show httpdc version string"	},
 	{ "quit",	NULL,		"Quit the control program"	},
 	{ "exit",	NULL,		"Quit the control program"	},
 	{ NULL,		NULL,		NULL				}
@@ -139,6 +141,13 @@ cmd_reload(const char *args)
 		warn("kill()");
 	else
 		printf("Databases reloaded...\n");
+	(void)args;
+}
+
+static	void
+cmd_version(const char *args)
+{
+	printf("%s\n", SERVER_IDENT);
 	(void)args;
 }
 
