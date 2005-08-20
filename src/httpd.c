@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.185 2005/08/19 18:27:15 johans Exp $ */
+/* $Id: httpd.c,v 1.186 2005/08/20 13:32:51 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.185 2005/08/19 18:27:15 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.186 2005/08/20 13:32:51 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -576,6 +576,20 @@ load_config()
 		config.pidfile = strdup(PID_PATH);
 	if (!config.localmode)
 		config.localmode = 1;
+	/* Sanity check */
+#ifndef		HANDLE_SSL
+	if (config.usessl)
+		errx(1, "SSL support configured but not compiled in");
+#endif		/* HANDLE_SSL */
+#ifndef		AUTH_LDAP
+	if (config.useldapauth)
+		errx(1, "LDAP support configured but not compiled in");
+#endif		/* AUTH_LDAP */
+#ifndef		USE_PCRE
+	if (config.usepcreredir)
+		errx(1, "PCRE support configured but not compiled in");
+#endif		/* USE_PCRE */
+
 	/* Set up system section */
 	if (!config.system)
 	{
@@ -1912,6 +1926,49 @@ main(int argc, char **argv)
 			break;
 		case 'v':
 			fprintf(stdout, "%s\n", SERVER_IDENT);
+			fprintf(stdout, "\nCompiled options:\n\t"
+#ifdef		INET6
+				"+INET6 "
+#else		/* INET6 */
+				"-INET6 "
+#endif		/* INET6 */
+#ifdef		WANT_SSI
+				"+SSI "
+#else		/* WANT_SSI */
+				"-SSI "
+#endif		/* WANT_SSI */
+#ifdef		HANDLE_SSL
+				"+SSL "
+#else		/* HANDLE_SSL */
+				"-SSL "
+#endif		/* HANDLE_SSL */
+#ifdef		HAVE_CRYPT
+				"+CRYPT "
+#else		/* HAVE_CRYPT */
+				"-CRYPT "
+#endif		/* HAVE_CRYPT */
+#ifdef		HAVE_MD5
+				"+MD5 "
+#else		/* HAVE_MD5 */
+				"-MD5 "
+#endif		/* HAVE_MD5 */
+#ifdef		HAVE_PCRE
+				"+PCRE "
+#else		/* HAVE_PCRE */
+				"-PCRE "
+#endif		/* HAVE_PCRE */
+#ifdef		HANDLE_PERL
+				"+PERL "
+#else		/* HANDLE_PERL */
+				"-PERL "
+#endif		/* HANDLE_PERL */
+#ifdef		AUTH_LDAP
+				"+LDAP "
+#else		/* AUTH_LDAP */
+				"-LDAP "
+#endif		/* AUTH_LDAP */
+				"\nDefault configuration file:\n\t%s\n",
+				config_path);
 			return 0;
 		default:
 			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number]\n[-d rootdir] [-D documentdir] [-r refer-ignore-domain] [-l localmode]\n[-A access_log] [-E error_log] [-R referrer_log] [-m service-message] [-s]");

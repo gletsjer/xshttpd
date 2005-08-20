@@ -1,8 +1,8 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT
 AC_CONFIG_SRCDIR([src/httpd.c])
-AM_INIT_AUTOMAKE(xshttpd, 33b24)
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.24", [Server version])
+AM_INIT_AUTOMAKE(xshttpd, 33b25)
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.25", [Server version])
 AC_CONFIG_HEADERS([config.h])
 
 dnl Checks for programs.
@@ -75,7 +75,7 @@ XS_FUNC_IN_LIB(MD5Init, HAVE_MD5, md, httpd)
 AM_CONDITIONAL([MD5], [test x$ac_cv_lib_md_MD5Init = xyes])
 AC_REPLACE_FUNCS(err setenv setgroups strlcat strlcpy strptime strsep snprintf)
 
-XS_CHECK_WITH(pcre, PCRE support, yes)
+XS_CHECK_WITH(pcre, PCRE support, no)
 if test x${with_pcre} = xyes
 then
 	XS_FUNC_IN_LIB(pcre_exec, HAVE_PCRE, pcre, httpd)
@@ -84,7 +84,7 @@ else
 	AM_CONDITIONAL([PCRE], false)
 fi
 
-XS_CHECK_WITH(ldap, LDAP authentication support, yes)
+XS_CHECK_WITH(ldap, LDAP authentication support, no)
 if test x${with_ldap} = xyes
 then
 	XS_FUNC_IN_LIB(ldap_initialize, AUTH_LDAP, ldap, httpd)
