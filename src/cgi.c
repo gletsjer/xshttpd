@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.97 2005/08/04 13:21:04 johans Exp $ */
+/* $Id: cgi.c,v 1.98 2005/08/29 09:43:19 johans Exp $ */
 
 #include	"config.h"
 
@@ -135,6 +135,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	long			received, writetodo,
 				totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
+				request[MYBUFSIZ],
 				*temp, *nextslash,
 				head[HEADSIZE];
 	const	char		*argv1, *header;
@@ -599,7 +600,18 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	}
 
 	if (!getenv("ERROR_CODE"))
-		logrequest(path, totalwritten);
+	{
+		char	*qs, *pi;
+
+		pi = getenv("PATH_INFO");
+		if ((qs = getenv("QUERY_STRING")))
+			snprintf(request, MYBUFSIZ, "%s%s?%s",
+				path, pi ? pi : "", qs);
+		else
+			snprintf(request, MYBUFSIZ, "%s%s",
+				path, pi ? pi : "");
+		logrequest(request, totalwritten);
+	}
 	END:
 	close(p[0]); close(p[1]); fflush(stdout);
 	close(r[0]); close(r[1]); fflush(stdout);
