@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.3 2005/05/30 15:54:11 johans Exp $ */
+/* $Id: ssl.c,v 1.4 2005/09/05 12:38:30 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -108,7 +108,7 @@ int
 secread(int fd, void *buf, size_t count)
 {
 #ifdef		HANDLE_SSL
-	if (config.usessl && fd == 0)
+	if (ssl && fd == 0)
 		return SSL_read(ssl, buf, count);
 	else
 #endif		/* HANDLE_SSL */

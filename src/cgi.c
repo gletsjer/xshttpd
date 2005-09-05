@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.99 2005/09/05 12:18:54 johans Exp $ */
+/* $Id: cgi.c,v 1.100 2005/09/05 12:38:30 johans Exp $ */
 
 #include	"config.h"
 
@@ -370,7 +370,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			int	offset;
 
 			tobewritten = writetodo > MYBUFSIZ ? MYBUFSIZ : writetodo;
-			tobewritten = secread(0, inbuf, tobewritten);
+			while (!(tobewritten = secread(0, inbuf, tobewritten)))
+				mysleep(1);
 			if ((tobewritten < 0) && ((readerror = ERR_get_error()))) {
 				fprintf(stderr, "SSL Error: %s\n",
 					ERR_reason_error_string(readerror));

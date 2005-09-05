@@ -6,6 +6,7 @@ Changes since 3.3 beta 25
 - PCRE and LDAP support are now *disabled* by default
 - httpd -v option displays compiled in options (better than ldd guessing)
 - Include PATH_INFO and QUERY_STRING info in access logging of CGI's
+- Fix race condition in posting via https
 
 Changes since 3.3 beta 24
 - Fix handling of 'pass' in .redir files
