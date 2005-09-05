@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.98 2005/08/29 09:43:19 johans Exp $ */
+/* $Id: cgi.c,v 1.99 2005/09/05 12:18:54 johans Exp $ */
 
 #include	"config.h"
 
@@ -81,7 +81,7 @@ eat_content_length(void)
 
 	while (to_read > 0)
 	{
-		if ((received = read(1, buf, MYBUFSIZ)) == -1)
+		if ((received = read(1, buf, MYBUFSIZ)) < 0)
 		{
 			if ((errno == EINTR))
 				continue;
@@ -371,19 +371,19 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 			tobewritten = writetodo > MYBUFSIZ ? MYBUFSIZ : writetodo;
 			tobewritten = secread(0, inbuf, tobewritten);
-			if ((tobewritten == -1) && ((readerror = ERR_get_error()))) {
+			if ((tobewritten < 0) && ((readerror = ERR_get_error()))) {
 				fprintf(stderr, "SSL Error: %s\n",
 					ERR_reason_error_string(readerror));
 				goto END;
 			}
 			offset = 0;
 			while ((written = write(q[1], inbuf + offset, tobewritten - offset)) < tobewritten - offset) {
-				if ((written == -1) && (errno != EINTR))
+				if ((written < 0) && (errno != EINTR))
 				{
 					fprintf(stderr, "[Connection closed: %s (fd = %d, todo = %ld]\n",
 						strerror(errno), q[1], writetodo);
 					goto END;
-				} else if (written != -1)
+				} else if (written < 0)
 					offset += written;
 			}
 			writetodo -= tobewritten;
@@ -560,7 +560,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	for (;;)
 	{
 		received = read(p[0], errmsg, MYBUFSIZ);
-		if (received == -1)
+		if (received < 0)
 		{
 			if (errno == EINTR || errno == EWOULDBLOCK)
 			{
@@ -575,7 +575,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		while (writetodo > 0)
 		{
 			written = secwrite(fileno(stdout), temp, writetodo);
-			if (written == -1)
+			if (written < 0)
 			{
 				if ((errno == EINTR) || (errno == EWOULDBLOCK))
 				{
