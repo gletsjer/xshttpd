@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.187 2005/08/20 13:57:34 johans Exp $ */
+/* $Id: httpd.c,v 1.188 2005/09/05 11:46:05 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.187 2005/08/20 13:57:34 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.188 2005/09/05 11:46:05 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -585,10 +585,10 @@ load_config()
 	if (config.useldapauth)
 		errx(1, "LDAP support configured but not compiled in");
 #endif		/* AUTH_LDAP */
-#ifndef		USE_PCRE
+#ifndef		HAVE_PCRE
 	if (config.usepcreredir)
 		errx(1, "PCRE support configured but not compiled in");
-#endif		/* USE_PCRE */
+#endif		/* HAVE_PCRE */
 
 	/* Set up system section */
 	if (!config.system)
