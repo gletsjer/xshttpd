@@ -31,9 +31,9 @@ if (open ('httpdlog', shift))
 			($os, $browser) = '';
 
 			# Step one - get the operating system
-			if ($agent =~ /FreeBSD/)
+			if ($agent =~ /([a-zA-Z]*BSD)/)
 			{
-				$os = 'FreeBSD';
+				$os = "$1";
 			}
 			elsif ($agent =~ /Linux/)
 			{
@@ -83,6 +83,10 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Mozilla Camino';
 			}
+			elsif ($agent =~ / Cerberian Drtrs /)
+			{
+				$browser = 'Bot: Blue Coat Content Control';
+			}
 			elsif ($agent =~ /^curl\//)
 			{
 				$browser = 'Curl';
@@ -95,6 +99,10 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Bot: DomainsDB.net Crawler';
 			}
+			elsif ($agent =~ /^ELinks\//)
+			{
+				$browser = 'ELinks';
+			}
 			elsif ($agent =~ /^fetch /)
 			{
 				$browser = 'Fetch';
@@ -103,11 +111,12 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Mozilla Firefox';
 			}
-			elsif ($agent =~ / Gecko\/[0-9]+$/)
+			elsif ($agent =~ / FrontPage /)
 			{
-				$browser = 'Mozilla Suite';
+				$browser = 'Microsoft FrontPage';
+				$os = 'Windows';
 			}
-			elsif ($agent =~ /Google(bot)?\//)
+			elsif ($agent =~ /Google(bot(\-Image)?)?\//)
 			{
 				$browser = 'Bot: Google Search';
 			}
@@ -123,9 +132,25 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Konqueror';
 			}
+			elsif ($agent =~ /^lftp\//)
+			{
+				$browser = 'Lftp';
+			}
+			elsif ($agent =~ /^Links\//)
+			{
+				$browser = 'Links';
+			}
+			elsif ($agent =~ / Lotus\-Notes\//)
+			{
+				$browser = 'Lotus Notes';
+			}
 			elsif ($agent =~ /^Lynx\//)
 			{
 				$browser = 'Lynx';
+			}
+			elsif ($agent =~ /^msnbot\//)
+			{
+				$browser = 'Bot: MSN Search';
 			}
 			elsif ($agent =~ / Netcraft Web Server Survey/)
 			{
@@ -135,17 +160,17 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Netscape Navigator';
 			}
-			elsif ($agent =~ / Safari\//)
-			{
-				$browser = 'Safari';
-			}
 			elsif ($agent =~ /Opera/)
 			{
 				$browser = 'Opera';
 			}
-			elsif ($agent =~ /^msnbot\//)
+			elsif ($agent =~ /^psbot\//)
 			{
-				$browser = 'Bot: MSN Search';
+				$browser = 'Bot: PicSearch';
+			}
+			elsif ($agent =~ / Safari\//)
+			{
+				$browser = 'Safari';
 			}
 			elsif ($agent =~ / Thunderbird\//)
 			{
@@ -174,6 +199,11 @@ if (open ('httpdlog', shift))
 			elsif ($agent =~ /ZyBorg\//)
 			{
 				$browser = 'Bot: WiseNut Search';
+			}
+			# Mozilla almost at the bottom - a lot of clones
+			elsif ($agent =~ / Gecko\/[0-9]+/)
+			{
+				$browser = 'Mozilla Suite';
 			}
 			# MSIE at the bottom - a lot of spoofers
 			elsif ($agent =~ / MSIE /)
