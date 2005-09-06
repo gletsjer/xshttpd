@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.188 2005/09/05 11:46:05 johans Exp $ */
+/* $Id: httpd.c,v 1.189 2005/09/06 13:52:44 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.188 2005/09/05 11:46:05 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.189 2005/09/06 13:52:44 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1971,7 +1971,7 @@ main(int argc, char **argv)
 				config_path);
 			return 0;
 		default:
-			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number]\n[-d rootdir] [-D documentdir] [-r refer-ignore-domain] [-l localmode]\n[-A access_log] [-E error_log] [-R referrer_log] [-m service-message] [-s]");
+			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number]\n[-d rootdir] [-D documentdir] [-r refer-ignore-domain] [-l localmode]\n[-A access_log] [-E error_log] [-R referrer_log] [-m service-message] [-s] [-v]");
 		}
 	}
 	load_config();
