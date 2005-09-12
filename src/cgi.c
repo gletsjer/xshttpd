@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.100 2005/09/05 12:38:30 johans Exp $ */
+/* $Id: cgi.c,v 1.101 2005/09/12 18:04:19 johans Exp $ */
 
 #include	"config.h"
 
@@ -285,8 +285,13 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		if (!origeuid)
 		{
 			/* Set uid first, euid later! */
-			uid_t uid = geteuid();
-			gid_t gid = getegid();
+			uid_t uid; = geteuid();
+			gid_t gid; = getegid();
+			if (current != config.users)
+			{
+				uid = current->userid;
+				gid = current->groupid;
+			}
 
 			/* mind you, we need to do this as root */
 			seteuid(origeuid);
