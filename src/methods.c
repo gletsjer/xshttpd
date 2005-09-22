@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.146 2005/08/31 19:04:31 johans Exp $ */
+/* $Id: methods.c,v 1.147 2005/09/22 17:35:32 johans Exp $ */
 
 #include	"config.h"
 
@@ -467,6 +467,9 @@ allowxs(FILE *rfile)
 		if (strlen(allowhost) &&
 			allowhost[strlen(allowhost) - 1] == '\n')
 		    allowhost[strlen(allowhost) - 1] = '\0';
+
+		if (!allowhost[0] || '#' == allowhost[0])
+			continue;
 
 		/* allow host if prefix(remote_host) matches host/IP in file */
 		if (strlen(allowhost) &&
@@ -1373,9 +1376,14 @@ check_redirect(const char *params, const char *base, const char *filename)
 
 	while (fgets(line, XS_PATH_MAX, fp))
 	{
-#ifdef		HAVE_PCRE
+		/* strip comments */
+		if (!line[0] || '#' == line[0])
+			continue;
 		p = line;
-		command = strsep(&p, " \t\r\n");
+		/* skip empty lines */
+		if (!(command = strsep(&p, " \t\r\n")))
+			continue;
+#ifdef		HAVE_PCRE
 		if (!strcasecmp(command, "pass"))
 		{
 			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
@@ -1393,7 +1401,7 @@ check_redirect(const char *params, const char *base, const char *filename)
 				/* continue */;
 			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
 				/* continue */;
-			if ((subst = pcre_subst(params, orig, repl)))
+			if ((subst = pcre_subst(params, orig, repl)) && *subst)
 			{
 				redirect(subst, 'R' == command[0]);
 				free(subst);
@@ -1407,7 +1415,7 @@ check_redirect(const char *params, const char *base, const char *filename)
 				/* continue */;
 			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
 				/* continue */;
-			if ((subst = pcre_subst(params, orig, repl)))
+			if ((subst = pcre_subst(params, orig, repl)) && *subst)
 			{
 				do_get(subst);
 				free(subst);
