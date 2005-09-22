@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.148 2005/09/22 18:11:59 johans Exp $ */
+/* $Id: methods.c,v 1.149 2005/09/22 18:24:35 johans Exp $ */
 
 #include	"config.h"
 
@@ -1342,7 +1342,10 @@ check_redirect(const char *params, const char *base, const char *filename)
 {
 	int	fd, size, permanent = 0;
 	FILE	*fp;
-	char	*p, *command, *subst, *orig, *repl,
+	char	*p, *command, *subst,
+#ifdef		HAVE_PCRE
+		*orig, *repl,
+#endif		/* HAVE_PCRE */
 		line[XS_PATH_MAX], total[XS_PATH_MAX];
 
 	/* Check for *.redir instructions */
