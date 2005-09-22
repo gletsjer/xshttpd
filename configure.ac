@@ -47,7 +47,7 @@ dnl AC_FUNC_SETVBUF_REVERSED
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_FUNC_WAIT3
-AC_CHECK_FUNCS(gethostname mktime select strcasestr strerror strlcat strlcpy strpbrk strstr)
+AC_CHECK_FUNCS(gethostname mktime select strcasestr strerror strpbrk strstr)
 
 dnl SEPERATOR
 AC_CHECK_FUNCS(getaddrinfo getnameinfo killpg mkstemp mmap sendfile seteuid setegid setresuid setresgid setrlimit setsid setpriority sigemptyset tempnam vfork setproctitle)
