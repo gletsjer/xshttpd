@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.147 2005/09/22 17:35:32 johans Exp $ */
+/* $Id: methods.c,v 1.148 2005/09/22 18:11:59 johans Exp $ */
 
 #include	"config.h"
 
@@ -598,7 +598,7 @@ do_get(char *params)
 		if (!question || (temp < question))
 		{
 			delay_redir = 1;
-			bcopy(temp + 1, temp, strlen(temp));
+			memmove(temp, temp + 1, strlen(temp));
 			if (question)
 				question--;
 		}
@@ -608,7 +608,7 @@ do_get(char *params)
 		if (!question || (temp < question))
 		{
 			delay_redir = 1;
-			bcopy(temp + 2, temp, strlen(temp));
+			memmove(temp, temp + 2, strlen(temp) - 1);
 			if (question)
 				question -= 2;
 		}

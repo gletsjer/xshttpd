@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: decode.c,v 1.3 2005/08/19 18:27:15 johans Exp $ */
+/* $Id: decode.c,v 1.4 2005/09/22 18:11:59 johans Exp $ */
 
 #include	<stdio.h>
 #include	<stdlib.h>
@@ -36,7 +36,7 @@ decode(char *str)
 		{
 			if (chr == '?')
 			{
-				bcopy(poss, posd, strlen(poss) + 1);
+				memmove(posd, poss, strlen(poss) + 1);
 				return(ERR_NONE);
 			}
 			*(posd++) = chr;
@@ -94,7 +94,7 @@ uudecode(char *buffer)
 			nbytesdecoded--;
 	}
 	if (nbytesdecoded)
-		bcopy((char *)bufplain, buffer, nbytesdecoded);
+		memmove(buffer, (char *)bufplain, nbytesdecoded);
 	buffer[nbytesdecoded] = 0;
 }
 

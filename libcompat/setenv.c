@@ -82,7 +82,7 @@ setenv(const char *name, const char *value, int rewrite)
 			p = (char **)malloc((size_t)(sizeof(char *) * (cnt+2)));
 			if (!p)
 				return(-1);
-			bcopy((char *)environ, (char *)p, cnt * sizeof(char *));
+			bcopy((char *)p, (char *)environ, cnt * sizeof(char *));
 			environ = p;
 		}
 		environ[cnt + 1] = NULL;

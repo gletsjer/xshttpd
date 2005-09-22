@@ -40,14 +40,6 @@
 #define		gid_t		int
 #endif		/* NOGID_T */
 
-#ifndef		HAVE_BCOPY
-#define		bcopy(a,b,c)	memmove((b), (a), (c))
-#endif		/* HAVE_MEMMOVE */
-
-#ifndef		HAVE_BZERO
-#define		bzero(a,b)	memset((a), 0, (b))
-#endif		/* HAVE_BZERO */
-
 #ifndef		HAVE_SETEUID
 #ifdef		HAVE_SETRESUID
 #define		seteuid(a)	setresuid(-1, (a), -1)

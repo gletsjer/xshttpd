@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: gfxcount.c,v 1.10 2005/04/03 16:52:28 johans Exp $ */
+/* $Id: gfxcount.c,v 1.11 2005/09/22 18:11:59 johans Exp $ */
 
 #include	"config.h"
 
@@ -163,7 +163,7 @@ buildpicture()
 	if (!(data = (char *)malloc(max_x * max_y * 3)))
 		error("500 Out of memory",
 			"Not enough memory to build picture");
-	bzero(data, max_x * max_y * 3);
+	memset(data, 0, max_x * max_y * 3);
 	pos_x = 0;
 	for (search = querystring; *search; search++)
 	{
@@ -171,8 +171,8 @@ buildpicture()
 		font_width = digit[number].size_x;
 		for (y = 0; y < digit[number].size_y; y++)
 		{
-			bcopy(digit[number].fontdata + (3 * y * font_width),
-				data + 3 * ((y * max_x) + pos_x),
+			memmove(data + 3 * ((y * max_x) + pos_x),
+				digit[number].fontdata + (3 * y * font_width),
 				3 * font_width);
 		}
 		pos_x += font_width;

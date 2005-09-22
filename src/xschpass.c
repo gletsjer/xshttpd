@@ -61,7 +61,7 @@ urldecode(char *what)
 					islower(what[2]) ? toupper(what[2]) : what[2])))
 			{
 				*what = (d1-hexdigits)*16 + (d2-hexdigits);
-				bcopy(what+3, what+1, strlen(what)-2);
+				memmove(what + 1, what + 3, strlen(what) - 2);
 			}
 		}
 		what++;

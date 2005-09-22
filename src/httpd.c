@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.189 2005/09/06 13:52:44 johans Exp $ */
+/* $Id: httpd.c,v 1.190 2005/09/22 18:11:59 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.189 2005/09/06 13:52:44 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.190 2005/09/22 18:11:59 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1234,8 +1234,6 @@ process_request()
 		error("400 Unable to read request line");
 		return;
 	}
-	size = strlen(line);
-	bzero(line + size, 16);
 	temp = orig + strlen(orig);
 	while ((temp > orig) && (*(temp - 1) <= ' '))
 		*(--temp) = 0;
@@ -1367,9 +1365,8 @@ process_request()
 	if (decode(params))
 		return;
 
-	size = strlen(params);
-	bzero(orig, size + 16);
-	bcopy(params, orig, size);
+	strlcpy(orig, params, MYBUFSIZ);
+	size = strlen(orig);
 
 	if (size < NI_MAXHOST &&
 		sscanf(params, "http://%[^/]%c", http_host, &ch) == 2 &&
@@ -1380,7 +1377,7 @@ process_request()
 		 */
 		setenv("HTTP_HOST", http_host, 1);
 		params += strlen(http_host) + 7;
-		bcopy(params, orig, strlen(params));
+		strlcpy(orig, params, MYBUFSIZ);
 	}
 	else if (params[0] != '/' && strcmp("OPTIONS", line))
 	{

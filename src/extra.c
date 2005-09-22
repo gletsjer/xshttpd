@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: extra.c,v 1.15 2005/08/04 15:30:00 johans Exp $ */
+/* $Id: extra.c,v 1.16 2005/09/22 18:11:59 johans Exp $ */
 
 #include	"config.h"
 
@@ -32,17 +32,13 @@ strcasestr(const char *big, const char *little)
 	char		*search, *newbig, *newlittle;
 	const char	*result;
 
-	len = strlen(big) + 1;
-	if (!(newbig = (char *)malloc(len)))
+	if (!(newbig = strdup(big)))
 		return(NULL);
-	bcopy(big, newbig, len);
-	len = strlen(little) + 1;
-	if (!(newlittle = (char *)malloc(len)))
+	if (!(newlittle = strdup(little)))
 	{
 		free(newbig);
 		return(NULL);
 	}
-	bcopy(little, newlittle, len);
 
 	for (search = newlittle; *search; search++)
 		if (isupper(*search))
