@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.15 2005/04/03 19:41:28 johans Exp $ */
+/* $Id: error.c,v 1.16 2005/09/23 15:07:37 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -56,10 +56,14 @@ void
 error(const char *what)
 {
 	printf("Content-type: text/html\r\n\r\n");
-	printf("<HTML><HEAD><TITLE>500 Error occurred</TITLE></HEAD>\n");
-	printf("<BODY><H1>500 Error occurred</H1>\n");
-	printf("The <TT>error</TT> utility encountered the following\n");
-	printf("error: <B>%s</B></BODY></HTML>\n", what);
+	printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+	printf("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
+		"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n");
+	printf("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n");
+	printf("<head><title>500 Error occurred</title></head>\n");
+	printf("<body><h1>500 Error occurred</h1>\n");
+	printf("<p>The <tt>error</tt> utility encountered the following\n");
+	printf("error: <b>%s</b></p></body></html>\n", what);
 	exit(0);
 }
 
@@ -133,7 +137,8 @@ user_unknown()
 	strcpy(buffer, error_url_escaped + 2);
 	if ((temp = strchr(buffer, '/')))
 		*temp = 0;
-	printf("The user <B>%s</B> is unknown to this system.<P>\n", buffer);
+	printf("<p>The user <b>%s</b> is unknown to this system.</p>\n",
+		buffer);
 	strcpy(buffer, error_url + 2);
 	if ((temp = strchr(buffer, '/')))
 		*(temp++) = 0;
@@ -163,45 +168,46 @@ user_unknown()
 	{
 		if (!said)
 		{
-			printf("There are a few usernames that look similar\n");
-			printf("to what you typed. Perhaps you meant one of\n");
-			printf("these users:\n<UL>\n");
+			printf("<p>There are a few usernames that look\n");
+			printf("similar to what you typed. Perhaps you\n");
+			printf("meant one of these users:</p>\n<ul>\n");
 			said = 1;
 		}
-		printf("<LI><A HREF=\"/%%7E%s/\">%s</A>\n",
+		printf("<li><a href=\"/%%7E%s/\">%s</a></li>\n",
 			top[count].username, top[count].username);
 	}
 	if (said)
-		printf("</UL>\n");
+		printf("</ul>\n");
 	else
 	{
-		printf("There are no usernames here that even look like\n");
-		printf("what you typed...<P>\n");
+		printf("<p>There are no usernames here that even look like\n");
+		printf("what you typed...</p>\n");
 	}
-	printf("You may look at the <A HREF=\"/\">main index page</A>");
+	printf("<p>You may look at the <a href=\"/\">main index page</a>");
 	sprintf(filename, "%s/users.html", HTTPD_DOCUMENT_ROOT);
 	if (!access(calcpath(filename), F_OK))
-		printf(" or the <A HREF=\"/users.html\">user list</A>\n");
-	printf(".\n");
+		printf(" or the <a href=\"/users.html\">user list</a>\n");
+	printf(".</p>\n");
 }
 
 static	void
 post_on_non_cgi()
 {
-	printf("You or your browser has attempted to use the <B>POST</B>\n");
-	printf("method on something that is not a CGI binary. <B>POST</B>\n");
+	printf("<p>You or your browser has attempted to use the <b>POST</b>\n");
+	printf("method on something that is not a CGI binary. <b>POST</b>\n");
 	printf("may only be used on CGI binaries. You can try using the\n");
-	printf("<B>GET</B> and/or <B>HEAD</B> methods instead.<P>\n");
-	printf("<A HREF=\"/\">Get out of here!</A>\n");
+	printf("<b>GET</b> and/or <b>HEAD</b> methods instead.</p>\n");
+
+	printf("<p><a href=\"/\">Get out of here!</a></p>\n");
 }
 
 static	void
 invalid_path()
 {
-	printf("You have asked for a URL that the server does not like.\n");
+	printf("<p>You have asked for a URL that the server does not like.\n");
 	printf("In particular, the server does not accept paths with\n");
-	printf("<B>..</B> in them. Please retry using another URL.<P>\n");
-	printf("<A HREF=\"/\">Get out of here!</A>\n");
+	printf("<b>..</b> in them. Please retry using another URL.</p>\n");
+	printf("<p><a href=\"/\">Get out of here!</a></p>\n");
 }
 
 static	void
@@ -212,7 +218,7 @@ not_found()
 	int		len;
 	struct	stat	statbuf;
 
-	printf("The file <B>%s</B> does not exist on this server.\n",
+	printf("<p>The file <b>%s</b> does not exist on this server.</p>\n",
 		error_url_escaped);
 	if (error_url[1] == '~')
 	{
@@ -273,55 +279,55 @@ not_found()
 	}
 	if ((len >= 0) && strcmp(buffer, error_url) && strcmp(buffer, "/"))
 	{
-		printf("The path does seem to partially exist.\n");
-		printf("Perhaps the path <A HREF=\"%s\">%s</A> will help.\n",
+		printf("<p>The path does seem to partially exist.\n");
+		printf("Perhaps the path <a href=\"%s\">%s</a> will\n",
 			buffer, buffer);
-		printf("<P>Alternatively, y");
+		printf ("help.</p>\n<p>Alternatively, y");
 	} else
-		printf("Y");
-	printf("ou may take a look at <A HREF=\"/\">the main index</A>");
+		printf("<p>Y");
+	printf("ou may take a look at <a href=\"/\">the main index</a>");
 	sprintf(filename, "%s/users.html", HTTPD_DOCUMENT_ROOT);
 	if (!access(calcpath(filename), F_OK))
-		printf(" or the <A HREF=\"/users.html\">user list</A>\n");
-	printf(".\n");
+		printf(" or the <a href=\"/users.html\">user list</a>\n");
+	printf(".</p>\n");
 }
 
 static	void
 not_regular()
 {
-	printf("What you requested is neither a directory nor a file.\n");
+	printf("<p>What you requested is neither a directory nor a file.\n");
 	printf("This error should never occur. Please notify the\n");
-	printf("system administration of this machine.\n");
+	printf("system administration of this machine.</p>\n");
 }
 
 static	void
 permission()
 {
-	printf("The file <B>%s</B>, which you tried to retrieve from\n",
+	printf("<p>The file <b>%s</b>, which you tried to retrieve from\n",
 		error_url_escaped);
 	printf("this server, is protected. You are not allowed to\n");
 	printf("retrieve it. If this seems to be in error, please\n");
-	printf("contact the person that created the file.\n");
-	printf("<P><A HREF=\"/\">Get out of here!</A>\n");
+	printf("contact the person that created the file.</p>\n");
+	printf("<p><a href=\"/\">Get out of here!</a></p>\n");
 }
 
 static	void
 dir_not_avail()
 {
-	printf("The directory in which the file <B>%s</B> is located\n",
+	printf("<p>The directory in which the file <b>%s</b> is located\n",
 		error_url_escaped);
 	printf("is currently not available for retrieval. Perhaps you\n");
-	printf("can try later.\n");
-	printf("<P><A HREF=\"/\">Get out of here!</A>\n");
+	printf("can try later.</p>\n");
+	printf("<p><a href=\"/\">Get out of here!</a></p>\n");
 }
 
 static	void
 no_relative_urls()
 {
-	printf("Your browser has made a <EM>relative</EM> request to\n");
+	printf("<p>Your browser has made a <em>relative</em> request to\n");
 	printf("this server. This server, however, does not support\n");
-	printf("relative URLs.\n");
-	printf("<P><A HREF=\"/\">Get out of here!</A>\n");
+	printf("relative URLs.</p>\n");
+	printf("<p><a href=\"/\">Get out of here!</a></p>\n");
 }
 
 static	void
@@ -330,10 +336,11 @@ bad_request()
 	const	char	*env;
 
 	env = getenv("SERVER_PROTOCOL");
-	printf("Your browser has made a <EM>%s</EM> request to\n", env);
-	printf("this server, which is not valid according to the specification.\n");
-	printf("The server can not possibly give you a sensible answer.\n");
-	printf("<P><A HREF=\"/\">Get out of here!</A>\n");
+	printf("<p>Your browser has made a <em>%s</em> request to\n", env);
+	printf("this server, which is not valid according to the\n");
+	printf ("specification. The server can not possibly give you a\n");
+	printf ("sensible answer.</p>\n");
+	printf("<p><a href=\"/\">Get out of here!</a></p>\n");
 }
 
 static	void
@@ -342,27 +349,28 @@ unknown_method()
 	const	char	*env;
 
 	env = getenv("REQUEST_METHOD");
-	printf("Your browser has used a retrieval method other than\n");
-	printf("<B>GET</B>, <B>POST</B>, <B>HEAD</B> and <B>OPTIONS</B>.\n");
-	printf("In fact it used the method <B>%s</B>,\n",
+	printf("<p>Your browser has used a retrieval method other than\n");
+	printf("<b>GET</b>, <b>POST</b>, <b>HEAD</b> and <b>OPTIONS</b>.\n");
+	printf("In fact it used the method <b>%s</b>,\n",
 		env ? env : "(unknown)");
-	printf("which this server does not understand.\n");
-	printf("<P><A HREF=\"/\">Get out of here!</A>\n");
+	printf("which this server does not understand.</p>\n");
+	printf("<p><a href=\"/\">Get out of here!</a></p>\n");
 }
 
 static	void
 unauthorized()
 {
-	printf("You have entered a usercode/password combination\n");
+	printf("<p>You have entered a usercode/password combination\n");
 	printf("which is not valid for the URL that you have requested\n");
-	printf("Please try again with another usercode and/or password.\n");
+	printf("Please try again with another usercode and/or password.</p>\n");
 }
 
 static	void
 precondition_failed()
 {
-	printf("You have asked for a certain precondition which is not met\n");
-	printf("by the requested data. So this data will not be shown.\n");
+	printf("<p>You have asked for a certain precondition which is\n");
+	printf("not met by the requested data. So this data will not be");
+	printf("shown.</p>\n");
 }
 
 static	void
@@ -374,21 +382,23 @@ local_no_page()
 	strcpy(buffer, error_url_escaped + 2);
 	if ((temp = strchr(buffer, '/')))
 		*temp = 0;
-	printf("The user <B>%s</B>, whom you specified in your URL,\n", buffer);
+	printf("<p>The user <b>%s</b>, whom you specified in your URL,\n",
+		buffer);
 	printf("exists on this system, but has no home page.\n");
 	if ((env = getenv("REMOTE_ADDR")) && !strncmp(env, "131.155.140.", 12))
 	{
 		printf("If you would like to start a home page,\n");
-		printf("please mail to <A HREF=\"mailto:");
+		printf("please mail to <a href=\"mailto:");
 		printf("www@stack.nl\">");
-		printf("www@stack.nl</A> for details.\n");
+		printf("www@stack.nl</a> for details.>");
 	}
-	printf("<P>Perhaps you meant somebody else; in this case, please\n");
-	printf("have a look at the <A HREF=\"/\">main index</A>");
+	printf("</p>\n");
+	printf("<p>Perhaps you meant somebody else; in this case, please\n");
+	printf("have a look at the <a href=\"/\">main index</a>");
 	sprintf(filename, "%s/users.html", HTTPD_DOCUMENT_ROOT);
 	if (!access(calcpath(filename), F_OK))
-		printf(" or the <A HREF=\"/users.html\">user list</A>\n");
-	printf(".\n");
+		printf(" or the <a href=\"/users.html\">user list</a>\n");
+	printf(".</p>\n");
 }
 
 static	void
@@ -397,11 +407,12 @@ local_invalid_link()
 	strcpy(buffer, error_url_escaped + 2);
 	if ((temp = strchr(buffer, '/')))
 		*temp = 0;
-	printf("An error has been made in linking <B>/www/%s</B> to\n", buffer);
+	printf("<p>An error has been made in linking <b>/www/%s</b> to\n",
+		buffer);
 	printf("a correct location. Please contact\n");
 	printf("<A HREF=\"mailto:www@stack.nl\">");
-	printf("www@stack.nl</A>.\n");
-	printf("The problem will then be corrected as soon as possible.\n");
+	printf("www@stack.nl</A>. The problem will then be corrected as\n");
+	printf("soon as possible.</p>\n");
 }
 
 static	void
@@ -412,16 +423,17 @@ local_no_pay()
 	strcpy(buffer, error_url_escaped + 2);
 	if ((temp = strchr(buffer, '/')))
 		*temp = 0;
-	printf("The user <B>%s</B>, whom you specified in your URL,\n", buffer);
+	printf("<p>The user <b>%s</b>, whom you specified in your URL,\n",
+		buffer);
 	printf("has not paid his/her member fee to our computer society\n");
 	printf("this year. The pages will be online again once the author\n");
-	printf("has decided that he/she wants to remain a member.\n");
-	printf("<P>Return to the <A HREF=\"/\">main index</A>\n");
+	printf("has decided that he/she wants to remain a member.</p>\n");
+	printf("<p>Return to the <a href=\"/\">main index</a>\n");
 	printf("for more information about our society");
 	sprintf(filename, "%s/users.html", HTTPD_DOCUMENT_ROOT);
 	if (!access(calcpath(filename), F_OK))
-		printf(" or the <A HREF=\"/users.html\">user list</A>\n");
-	printf(".\n");
+		printf(" or the <a href=\"/users.html\">user list</a>\n");
+	printf(".</p>\n");
 }
 
 int
@@ -442,8 +454,12 @@ main(int argc, char **argv)
 	localmode = atoi(local_mode_str);
 	printf("Content-type: text/html\r\n");
 	printf("Status: %s\r\n\r\n", error_readable);
-	printf("<HTML><HEAD><TITLE>%s</TITLE></HEAD>", error_readable);
-	printf("<BODY><H1>%s</H1>\n", error_readable);
+	printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+	printf("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
+		"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n");
+	printf("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n");
+	printf("<head><title>%s</title></head>\n", error_readable);
+	printf("<body><h1>%s</h1>\n", error_readable);
 	if (!strcmp(error_code, "USER_UNKNOWN"))
 		user_unknown();
 	else if (!strcmp(error_code, "POST_ON_NON_CGI"))
@@ -474,7 +490,7 @@ main(int argc, char **argv)
 		local_invalid_link();
 	else if (!strcmp(error_code, "LOCAL_NO_PAY"))
 		local_no_pay();
-	printf("</BODY></HTML>\n");
+	printf("</body></html>\n");
 	(void)argc;
 	(void)argv;
 	exit(0);
