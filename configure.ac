@@ -166,7 +166,13 @@ AC_MSG_CHECKING(for local domain)
 hostname=` ( hostname || cat /etc/HOSTNAME ) 2> /dev/null `
 if test x$hostname = x -o x$hostname = x${hostname#*.}
 then
-	domain=".stack.nl"
+	domainname=`dnsdomainname 2> /dev/null`
+	if test x$domainname = x
+	then
+		domain=".stack.nl"
+	else
+		domain=".${domainname}"
+	fi
 else
 	domain=".${hostname#*.}"
 fi

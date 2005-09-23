@@ -1,6 +1,11 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.3 beta 29
+- Error messages are now valid xhtml, by Ed Schouten
+- Fix domain detection and S_IFDIR on Linux, by Peter Koeleman
+- Fix perl interpreter usage, by Peter Koeleman
+
 Changes since 3.3 beta 28
 - Allow comments in .redir and .noxs files, fix parsing
 
