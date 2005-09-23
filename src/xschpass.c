@@ -120,7 +120,7 @@ changepasswd(const char *param, int  cl)
 	if (lstat(filename, &statbuf1))
 		error("403 Could not lstat directory '%s': %s",
 			filename, strerror(errno));
-	if ((statbuf1.st_mode & S_IFMT) != S_IFDIR)
+	if (S_ISDIR(statbuf1.st_mode))
 		error("403 '%s' is not a directory", filename);
 	strcat(filename, "/");
 	strcat(filename, AUTHFILE);

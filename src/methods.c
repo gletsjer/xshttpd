@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.149 2005/09/22 18:24:35 johans Exp $ */
+/* $Id: methods.c,v 1.150 2005/09/23 16:18:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -125,7 +125,7 @@ static	ctypes	*ctype = NULL;
 static	ctypes	*itype = NULL, *litype = NULL;
 static	char	charset[XS_PATH_MAX];
 #ifdef		HANDLE_PERL
-static	PerlInterpreter *	perl = NULL;
+PerlInterpreter *	my_perl = NULL;
 #endif		/* HANDLE_PERL */
 
 static void
@@ -929,7 +929,7 @@ do_get(char *params)
 				'.' == params[strlen(params)-1])
 			{
 				params[strlen(params)-2] = '\0';
-				delay_redir = 0; 
+				delay_redir = 0;
 			}
 			/* pretty url with trailing slash */
 			snprintf(total, XS_PATH_MAX, "%s://%s%s%s%s%s%s%s%s",
@@ -1275,13 +1275,13 @@ loadperl()
 	const char *embedding[] = { "", HTTPD_ROOT "/persistent.pl" };
 	int exitstatus = 0;
 
-	if (!(perl = perl_alloc()))
+	if (!(my_perl = perl_alloc()))
 	   errx(1, "No memory!");
-	perl_construct(perl);
+	perl_construct(my_perl);
 
-	exitstatus = perl_parse(perl, NULL, 2, embedding, NULL);
+	exitstatus = perl_parse(my_perl, NULL, 2, embedding, NULL);
 	if (!exitstatus)
-	   exitstatus = perl_run(perl);
+	   exitstatus = perl_run(my_perl);
 	else
 		errx(1, "No perl!");
 }

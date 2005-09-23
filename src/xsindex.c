@@ -252,7 +252,7 @@ main(int argc, char **argv)
 		}
 		if (stat(listing[amount], &statbuf))
 			err(1, "stat(`%s')", listing[amount]);
-		if (statbuf.st_mode & S_IFDIR)
+		if (S_ISDIR(statbuf.st_mode))
 			search = findmime(".directory.");
 		else
 			search = findmime(listing[amount]);
@@ -290,7 +290,7 @@ main(int argc, char **argv)
 	{
 		if (stat(listing[count], &statbuf))
 			err(1, "stat(`%s')", listing[count]);
-		if (strcmp(listing[count], "..") && (statbuf.st_mode & S_IFDIR))
+		if (strcmp(listing[count], "..") && S_ISDIR(statbuf.st_mode))
 			search = findmime(".directory.");
 		else
 			search = findmime(listing[count]);

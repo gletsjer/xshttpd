@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.103 2005/09/22 10:21:10 johans Exp $ */
+/* $Id: cgi.c,v 1.104 2005/09/23 16:18:08 johans Exp $ */
 
 #include	"config.h"
 
@@ -55,6 +55,7 @@ static	int		eat_content_length(void);
 
 #ifdef		HANDLE_PERL
 const	char *	perlargs[] = { "", NULL };
+extern	PerlInterpreter *my_perl;
 #endif		/* HANDLE_PERL */
 
 static pid_t			child;
