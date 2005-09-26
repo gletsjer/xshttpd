@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.150 2005/09/23 16:18:09 johans Exp $ */
+/* $Id: methods.c,v 1.151 2005/09/26 18:03:59 johans Exp $ */
 
 #include	"config.h"
 
@@ -933,10 +933,10 @@ do_get(char *params)
 			}
 			/* pretty url with trailing slash */
 			snprintf(total, XS_PATH_MAX, "%s://%s%s%s%s%s%s%s%s",
-				config.usessl ? "https" : "http",
+				cursock->usessl ? "https" : "http",
 				http_host ? http_host : current->hostname,
-				strncmp(config.port, "http", 4) ? ":" : "",
-				strncmp(config.port, "http", 4) ? config.port : "",
+				strncmp(cursock->port, "http", 4) ? ":" : "",
+				strncmp(cursock->port, "http", 4) ? cursock->port : "",
 				params,
 				delay_redir ? "" : "/",
 				path_info ? path_info : "",

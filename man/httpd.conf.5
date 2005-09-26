@@ -61,14 +61,6 @@ If enabled then filenames and CGI's in a user directory will be read and
 executed with the permissions of that user. This is the default.
 .I [cannot be disabled yet]
 .TP
-.B SSLCertificate <filename>
-The location of the x509 certificate to be used for SSL connections.
-This defaults to \fISystemRoot\fP/cert.pem
-.TP
-.B SSLPrivateKey <filename>
-The location of the x509 certificate's key to be used for SSL connections.
-This defaults to \fISystemRoot\fP/key.pem
-.TP
 .B UseCharset [true|false]
 If enabled then character sets can be set for all files in a directory
 using
@@ -196,9 +188,17 @@ The number of parallell services to run.
 .B UseSSL [true|false]
 If enabled, use SSL instead of plain text. This can only be used if SSL
 support is enabled at compile time. If this option is set then the
-'https' (443) port will be used by default, instead of 'http' (80). This
+ 'https' (443) port will be used by default, instead of 'http' (80). This
 option is disabled by default. Note that you may include both blocks with
 and without UseSSL.
+.TP
+.B SSLCertificate <filename>
+The location of the x509 certificate to be used for SSL connections.
+This defaults to \fISystemRoot\fP/cert.pem
+.TP
+.B SSLPrivateKey <filename>
+The location of the x509 certificate's key to be used for SSL connections.
+This defaults to \fISystemRoot\fP/key.pem
 
 .LP
 .SH SECTION OPTIONS

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.104 2005/09/23 16:18:08 johans Exp $ */
+/* $Id: cgi.c,v 1.105 2005/09/26 18:03:59 johans Exp $ */
 
 #include	"config.h"
 
@@ -450,18 +450,18 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				switch(location[0])
 				{
 				case '/':
-					if (!strcmp(config.port, "http"))
+					if (!strcmp(cursock->port, "http"))
 						append(head, 0, "Location: http://%s%s\r\n",
 							current->hostname, location);
-					else if (config.usessl && !strcmp(config.port, "https"))
+					else if (cursock->usessl && !strcmp(cursock->port, "https"))
 						append(head, 0, "Location: https://%s%s\r\n",
 							current->hostname, location);
-					else if (config.usessl)
+					else if (cursock->usessl)
 						append(head, 0, "Location: https://%s:%s%s\r\n",
-							current->hostname, config.port, location);
+							current->hostname, cursock->port, location);
 					else
 						append(head, 0, "Location: http://%s:%s%s\r\n",
-							current->hostname, config.port, location);
+							current->hostname, cursock->port, location);
 					break;
 				case 0:
 					break;

@@ -2,6 +2,13 @@
 #include <pwd.h>
 #define	MAXINDEXFILES	32
 
+#ifdef		HANDLE_SSL
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#endif		/* HANDLE_SSL */
+
+typedef	enum { none, traditional, combined, virtual }	logstyle_t;
+
 extern struct virtual {
 	char *		hostname;
 	char *		htmldir;
@@ -17,7 +24,7 @@ extern struct virtual {
 	FILE *		openaccess;
 	FILE *		openreferer;
 	FILE *		openerror;
-	enum	{ none, traditional, combined, virtual }		logstyle;
+	logstyle_t	logstyle;
 	unsigned	virtualid: 1;
 	unsigned	padding: 7;
 	struct virtual *	next;
@@ -30,14 +37,16 @@ struct socket_config {
 	unsigned short	instances;
 	unsigned	usessl: 1;
 	unsigned	padding: 7;
+	char *		sslcertificate;
+	char *		sslprivatekey;
+#ifdef		HANDLE_SSL
+	SSL		*ssl;
+#endif		/* HANDLE_SSL */
 	struct socket_config *	next;
-};
+} *cursock;
 
 extern struct configuration {
 	char *		systemroot;
-	char *		address;
-	char *		port;
-	int		family;
 	int		num_sockets;
 	unsigned int	script_cpu_limit;
 	unsigned int	script_timeout;
@@ -48,7 +57,6 @@ extern struct configuration {
 	char *		pidfile;
 	unsigned	execasuser: 1;
 	unsigned	usecharset: 1;
-	unsigned	usessl: 1;
 	unsigned	userestrictaddr: 1;
 	unsigned	usevirtualhost: 1;
 	unsigned	usevirtualuid: 1;
@@ -57,7 +65,7 @@ extern struct configuration {
 	unsigned	usednslookup: 1;
 	unsigned	usepcreredir: 1;
 	unsigned	useldapauth: 1;
-	unsigned	padding: 5;
+	unsigned	padding: 6;
 	char *		sslcertificate;
 	char *		sslprivatekey;
 	char *		virtualhostdir;
@@ -67,3 +75,4 @@ extern struct configuration {
 	struct virtual *	virtual;
 	struct socket_config *	sockets;
 } config;
+

@@ -128,12 +128,6 @@ redirecting requests back to this host. Therefore, you must use
 a "full" (complete with the host's name and the domain) internet
 address, otherwise remote hosts will not be able to resolve the name.
 .TP
-.B \-s
-Use SSL/TLS encryption for the webserver. If no port is specified,
-the webserver will run on the default https port (443) instead of
-the normal http port (80). This option is only available when
-SSL support is enabled at compile-time.
-.TP
 .B \-m service\-message
 If you give this option to the server, it will not function as it normally
 would. Instead of supplying documents, all it will do is display the

@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.190 2005/09/22 18:11:59 johans Exp $ */
+/* $Id: httpd.c,v 1.191 2005/09/26 18:03:59 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.190 2005/09/22 18:11:59 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.191 2005/09/26 18:03:59 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -333,9 +333,19 @@ load_config()
 					else
 						lsock->usessl = 0;
 				else if (!strcasecmp("SSLCertificate", key))
-						config.sslcertificate = strdup(value);
+				{
+					lsock->usessl = 1;
+					config.sslcertificate =
+						lsock->sslcertificate =
+							strdup(value);
+				}
 				else if (!strcasecmp("SSLPrivateKey", key))
-						config.sslprivatekey = strdup(value);
+				{
+					lsock->usessl = 1;
+					config.sslprivatekey =
+						lsock->sslprivatekey =
+							strdup(value);
+				}
 				else if (!strcasecmp("UseCharset", key))
 					config.usecharset = !strcasecmp("true", value);
 				else if (!strcasecmp("DefaultCharset", key))
@@ -570,17 +580,24 @@ load_config()
 			lsock->port = lsock->usessl ? strdup("https") : strdup("http");
 		if (!lsock->instances)
 			lsock->instances = HTTPD_NUMBER;
-		config.usessl |= lsock->usessl;
+		if (lsock->usessl)
+		{
+#ifdef		HANDLE_SSL
+			if (!lsock->sslcertificate)
+				lsock->sslcertificate = config.sslcertificate;
+			if (!lsock->sslprivatekey)
+				lsock->sslprivatekey = config.sslprivatekey;
+#else		/* HANDLE_SSL */
+			/* Sanity check */
+			errx(1, "SSL support configured but not compiled in");
+#endif		/* HANDLE_SSL */
+		}
 	}
 	if (!config.pidfile)
 		config.pidfile = strdup(PID_PATH);
 	if (!config.localmode)
 		config.localmode = 1;
 	/* Sanity check */
-#ifndef		HANDLE_SSL
-	if (config.usessl)
-		errx(1, "SSL support configured but not compiled in");
-#endif		/* HANDLE_SSL */
 #ifndef		AUTH_LDAP
 	if (config.useldapauth)
 		errx(1, "LDAP support configured but not compiled in");
@@ -825,7 +842,6 @@ open_logs(int sig)
 	if (config.usecompressed)
 		loadcompresstypes();
 	loadscripttypes(NULL, NULL);
-	loadssl();
 #ifdef		HANDLE_PERL
 	loadperl();
 #endif		/* HANDLE_PERL */
@@ -1406,8 +1422,8 @@ process_request()
 		temp = http_host + strlen(http_host);
 		while (temp > http_host && *(--temp) == '.')
 			*temp = '\0';
-		if (strcmp(config.port, config.usessl ? "https" : "http") &&
-			strcmp(config.port, config.usessl ? "443" : "80"))
+		if (strcmp(cursock->port, cursock->usessl ? "https" : "http") &&
+			strcmp(cursock->port, cursock->usessl ? "443" : "80"))
 		{
 			if (strlen(http_host) >= NI_MAXHOST - 6)
 			{
@@ -1415,7 +1431,7 @@ process_request()
 				return;
 			}
 			strcat(http_host, ":");
-			strcat(http_host, config.port);
+			strcat(http_host, cursock->port);
 		}
 		unsetenv("HTTP_HOST");
 		/* Ignore unqualified names - it could be a subdirectory! */
@@ -1440,7 +1456,7 @@ process_request()
 	else
 	{
 		snprintf(http_host_long, NI_MAXHOST, "%s:%s",
-			http_host, config.port);
+			http_host, cursock->port);
 	}
 	for (current = config.virtual; current; current = current->next)
 		if (!strcasecmp(http_host_long, current->hostname) ||
@@ -1487,21 +1503,14 @@ process_request()
 static	void
 standalone_main()
 {
-	struct	socket_config	*sock;
 	pid_t					pid;
 	char					id = 'A';
 
 	detach(); open_logs(0);
 
-	for (sock = config.sockets; sock; sock = sock->next)
+	for (cursock = config.sockets; cursock; cursock = cursock->next)
 	{
-		config.family	= sock->family;
-		config.address	= sock->address;
-		config.port	= sock->port;
-		config.instances= sock->instances;
-		config.usessl	= sock->usessl;
-
-		if (sock->next)
+		if (cursock->next)
 			/* spawn auxiliary master */
 			switch ((pid = fork()))
 			{
@@ -1546,9 +1555,9 @@ standalone_socket(int id)
 
 #ifdef		HAVE_GETADDRINFO
 	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = config.family;
+	hints.ai_family = cursock->family;
 #ifdef		__linux__
-	if (config.family == PF_UNSPEC)
+	if (PF_UNSPEC == cursock->family)
 #ifdef		INET6
 		hints.ai_family = PF_INET6;
 #else		/* INET6 */
@@ -1557,8 +1566,8 @@ standalone_socket(int id)
 #endif		/* __linux__ */
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
-	if ((getaddrinfo(config.address ? config.address : NULL, config.port,
-			&hints, &res)))
+	if ((getaddrinfo(cursock->address ? cursock->address : NULL,
+			cursock->port, &hints, &res)))
 		err(1, "getaddrinfo()");
 
 	/* only look at the first address */
@@ -1594,12 +1603,12 @@ standalone_socket(int id)
 	/* Quick patch to run on old systems */
 	memset(&saddr, 0, sizeof(struct sockaddr));
 	saddr.sa_family = PF_INET;
-	if (!strcmp(config.port, "http"))
+	if (!strcmp(cursock->port, "http"))
 		sport = 80;
-	else if (!strcmp(config.port, "https"))
+	else if (!strcmp(cursock->port, "https"))
 		sport = 443;
 	else
-		sport = atoi(config.port) || 80;
+		sport = atoi(cursock->port) || 80;
 	((struct sockaddr_in *)&saddr)->sin_port = htons(sport);
 
 	if (bind(sd, &saddr, sizeof(struct sockaddr)) == -1)
@@ -1608,6 +1617,9 @@ standalone_socket(int id)
 
 	if (listen(sd, MAXLISTEN))
 		err(1, "listen()");
+
+	if (cursock->usessl)
+		loadssl();
 
 #ifdef		HAVE_SETRLIMIT
 #ifdef		RLIMIT_NPROC
@@ -1621,10 +1633,10 @@ standalone_socket(int id)
 #endif		/* HAVE_SETRLIMIT */
 
 	set_signals(); reqs = 0;
-	if (!(childs = (pid_t *)malloc(sizeof(pid_t) * config.instances)))
+	if (!(childs = (pid_t *)malloc(sizeof(pid_t) * cursock->instances)))
 		err(1, "malloc() failed");
 
-	for (count = 0; count < config.instances; count++)
+	for (count = 0; count < cursock->instances; count++)
 	{
 		switch(pid = fork())
 		{
@@ -1647,7 +1659,7 @@ standalone_socket(int id)
 		while (mysleep(30))
 			/* NOTHING HERE */;
 		setprocname("xs(MAIN-%c): Searching for dead children", id);
-		for (count = 0; count < config.instances; count++)
+		for (count = 0; count < cursock->instances; count++)
 		{
 			if (kill(childs[count], 0))
 			{
@@ -1680,7 +1692,7 @@ standalone_socket(int id)
 		struct	linger	sl;
 
 		/* (in)sanity check */
-		if (count > config.instances || count < 0)
+		if (count > cursock->instances || count < 0)
 		{
 			const	char	*env;
 
@@ -1722,7 +1734,7 @@ standalone_socket(int id)
 		setsockopt(csd, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl));
 
 		dup2(csd, 0); dup2(csd, 1);
-		if (!config.usessl)
+		if (!cursock->usessl)
 			close(csd);
 
 #ifndef		SETVBUF_REVERSED
@@ -1808,12 +1820,6 @@ setup_environment()
 	setenv("SERVER_NAME", config.system->hostname, 1);
 	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
 	setenv("SERVER_PORT", "80", 1);
-	setenv("SERVER_PORT",
-		!config.port ? "80" :
-		!strcmp(config.port, "http") ? "80" :
-		!strcmp(config.port, "https") ? "443" :
-		config.port,
-		1);
 	snprintf(buffer, 16, "%hu", config.localmode);
 	setenv("LOCALMODE", buffer, 1);
 	setenv("HTTPD_ROOT", config.systemroot, 1);
@@ -1869,7 +1875,8 @@ main(int argc, char **argv)
 			break;
 		case 's':
 #ifdef		HANDLE_SSL
-			config.usessl = 1;
+			errx(1, "Option not supported: "
+				"set SSL options in httpd.conf");
 #else		/* HANDLE_SSL */
 			errx(1, "SSL support not enabled at compile-time");
 #endif		/* HANDLE_SSL */

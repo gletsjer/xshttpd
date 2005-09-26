@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.4 2005/09/05 12:38:30 johans Exp $ */
+/* $Id: ssl.c,v 1.5 2005/09/26 18:03:59 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -11,16 +11,15 @@
 #include	<errno.h>
 #include	<stdarg.h>
 
-#include	"httpd.h"
-#include	"htconfig.h"
 #include	"config.h"
+#include	"htconfig.h"
+#include	"httpd.h"
 #include	"path.h"
 #include	"ssl.h"
 #include	"extra.h"
 
 #ifdef		HANDLE_SSL
-SSL_CTX			*ssl_ctx;
-static SSL		*ssl;
+static SSL_CTX		*ssl_ctx;
 #endif		/* HANDLE_SSL */
 
 static int	netbufind, netbufsiz, readlinemode;
@@ -39,8 +38,8 @@ setreadmode(int mode, int reset)
 			ERR_reason_error_string(readerror));
 		error("400 SSL Error");
 	}
-	if (ssl)
-		setenv("SSL_CIPHER", SSL_get_cipher(ssl), 1);
+	if (cursock->ssl)
+		setenv("SSL_CIPHER", SSL_get_cipher(cursock->ssl), 1);
 #endif		/* HANDLE_SSL */
 	readlinemode = mode;
 }
@@ -48,14 +47,14 @@ setreadmode(int mode, int reset)
 int
 initssl(int csd)
 {
-	if (!config.usessl)
+	if (!cursock->usessl)
 		return 0;
 
 #ifdef		HANDLE_SSL
-	ssl = SSL_new(ssl_ctx);
-	SSL_set_verify(ssl, SSL_VERIFY_NONE, NULL);
-	SSL_set_fd(ssl, csd);
-	if (!SSL_accept(ssl)) {
+	cursock->ssl = SSL_new(ssl_ctx);
+	SSL_set_verify(cursock->ssl, SSL_VERIFY_NONE, NULL);
+	SSL_set_fd(cursock->ssl, csd);
+	if (!SSL_accept(cursock->ssl)) {
 		fprintf(stderr, "SSL flipped\n");
 		secprintf("%s 500 Failed\r\nContent-type: text/plain\r\n\r\n",
 			version);
@@ -70,7 +69,7 @@ void
 endssl(int csd)
 {
 #ifdef		HANDLE_SSL
-	SSL_free(ssl);
+	SSL_free(cursock->ssl);
 #endif		/* HANDLE_SSL */
 	close(csd);
 }
@@ -78,27 +77,27 @@ endssl(int csd)
 void
 loadssl()
 {
-	if (!config.usessl)
+	if (!cursock->usessl)
 		return;
 
 #ifdef		HANDLE_SSL
-	if (!config.sslcertificate)
-		config.sslcertificate = strdup(CERT_FILE);
-	if (!config.sslprivatekey)
-		config.sslprivatekey = strdup(KEY_FILE);
+	if (!cursock->sslcertificate)
+		cursock->sslcertificate = strdup(CERT_FILE);
+	if (!cursock->sslprivatekey)
+		cursock->sslprivatekey = strdup(KEY_FILE);
 	SSLeay_add_all_algorithms();
 	SSL_load_error_strings();
 	ssl_ctx = SSL_CTX_new(SSLv23_server_method());
 	if (!SSL_CTX_use_certificate_file(ssl_ctx,
-			calcpath(config.sslcertificate),
+			calcpath(cursock->sslcertificate),
 			SSL_FILETYPE_PEM) ||
 		!SSL_CTX_use_PrivateKey_file(ssl_ctx,
-			calcpath(config.sslprivatekey),
+			calcpath(cursock->sslprivatekey),
 			SSL_FILETYPE_PEM) ||
 		!SSL_CTX_check_private_key(ssl_ctx))
 		errx(1, "Cannot initialise SSL %s %s",
-			calcpath(config.sslcertificate),
-			calcpath(config.sslprivatekey));
+			calcpath(cursock->sslcertificate),
+			calcpath(cursock->sslprivatekey));
 	ERR_print_errors_fp(stderr);
 #endif		/* HANDLE_SSL */
 }
@@ -108,8 +107,8 @@ int
 secread(int fd, void *buf, size_t count)
 {
 #ifdef		HANDLE_SSL
-	if (ssl && fd == 0)
-		return SSL_read(ssl, buf, count);
+	if (cursock->ssl && fd == 0)
+		return SSL_read(cursock->ssl, buf, count);
 	else
 #endif		/* HANDLE_SSL */
 		return read(fd, buf, count);
@@ -119,8 +118,8 @@ int
 secwrite(int fd, void *buf, size_t count)
 {
 #ifdef		HANDLE_SSL
-	if (config.usessl)
-		return SSL_write(ssl, buf, count);
+	if (cursock->usessl)
+		return SSL_write(cursock->ssl, buf, count);
 	else
 #endif		/* HANDLE_SSL */
 		return write(fd, buf, count);
@@ -130,8 +129,8 @@ int
 secfwrite(void *buf, size_t size, size_t count, FILE *stream)
 {
 #ifdef		HANDLE_SSL
-	if (config.usessl)
-		return SSL_write(ssl, buf, size), count;
+	if (cursock->usessl)
+		return SSL_write(cursock->ssl, buf, size), count;
 	else
 #endif		/* HANDLE_SSL */
 		return fwrite(buf, size, count, stream);
@@ -147,8 +146,8 @@ secprintf(const char *format, ...)
 	vsnprintf(buf, 4096, format, ap);
 	va_end(ap);
 #ifdef		HANDLE_SSL
-	if (config.usessl)
-		return SSL_write(ssl, buf, strlen(buf));
+	if (cursock->usessl)
+		return SSL_write(cursock->ssl, buf, strlen(buf));
 	else
 #endif		/* HANDLE_SSL */
 		return printf("%s", buf);
@@ -158,8 +157,8 @@ int
 secfputs(char *buf, FILE *stream)
 {
 #ifdef		HANDLE_SSL
-	if (config.usessl)
-		return SSL_write(ssl, buf, strlen(buf));
+	if (cursock->usessl)
+		return SSL_write(cursock->ssl, buf, strlen(buf));
 	else
 #endif		/* HANDLE_SSL */
 		return fputs(buf, stream);

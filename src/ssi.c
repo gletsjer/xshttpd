@@ -305,9 +305,9 @@ reopen:
 		close(fd); return(1);
 	}
 ALREADY:
-	if (strcmp(config.port, "80"))
+	if (strcmp(cursock->port, "80"))
 		snprintf(host, sizeof(host), "http://%s:%s/",
-			current->hostname, config.port);
+			current->hostname, cursock->port);
 	else
 		snprintf(host, sizeof(host), "http://%s/", current->hostname);
 	switch(mode)
