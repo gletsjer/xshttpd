@@ -210,6 +210,9 @@
 /* Define to 1 if you have the <sys/exec.h> header file. */
 #undef HAVE_SYS_EXEC_H
 
+/* Define to 1 if you have the <sys/lock.h> header file. */
+#undef HAVE_SYS_LOCK_H
+
 /* Define to 1 if you have the <sys/mman.h> header file. */
 #undef HAVE_SYS_MMAN_H
 

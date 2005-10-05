@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: procname.c,v 1.19 2005/08/04 15:30:00 johans Exp $ */
+/* $Id: procname.c,v 1.20 2005/10/05 18:40:41 johans Exp $ */
 
 #include	"config.h"
 
@@ -31,6 +31,9 @@ struct		pst_swapinfo;
 #include	<vm/vm.h>
 #endif		/* HAVE_VM_VM_H */
 
+#ifdef		HAVE_SYS_LOCK_H
+#include	<sys/lock.h>
+#endif		/* HAVE_SYS_LOCK_H */
 #ifdef		HAVE_SYS_TIME_H
 #include	<sys/time.h>
 #endif		/* HAVE_SYS_TIME_H */
