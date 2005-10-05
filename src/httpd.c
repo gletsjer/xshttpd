@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.192 2005/09/29 19:06:48 johans Exp $ */
+/* $Id: httpd.c,v 1.193 2005/10/05 18:40:56 johans Exp $ */
 
 #include	"config.h"
 
@@ -20,6 +20,7 @@
 #endif		/* HAVE_SYS_WAIT_H */
 #include	<sys/signal.h>
 #include	<sys/stat.h>
+#include	<sys/utsname.h>
 #ifdef		HAVE_SYS_SELECT_H
 #include	<sys/select.h>
 #endif		/* HAVE_SYS_SELECT_H */
@@ -99,7 +100,7 @@ typedef	size_t	socklen_t;
 
 #ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.192 2005/09/29 19:06:48 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.193 2005/10/05 18:40:56 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 #endif
 
 /* Global variables */
@@ -1929,7 +1930,30 @@ main(int argc, char **argv)
 			strlcpy(config_path, "/dev/null", XS_PATH_MAX);
 			break;
 		case 'v':
-			printf("%s\n", SERVER_IDENT);
+			printf("%s", SERVER_IDENT);
+#if		0
+			{
+				struct utsname	name;
+				uname(&name);
+				printf(" %s/%s", name.sysname, name.release);
+			}
+#endif		/* 0 */
+#ifdef		OPENSSL_VERSION_NUMBER
+			if (OPENSSL_VERSION_NUMBER >> 4 & 0xff)
+				printf(" OpenSSL/%u.%u.%u%c",
+					OPENSSL_VERSION_NUMBER >> 28 & 0xf,
+					OPENSSL_VERSION_NUMBER >> 20 & 0xff,
+					OPENSSL_VERSION_NUMBER >> 12 & 0xff,
+					'a' - 1 + (OPENSSL_VERSION_NUMBER >> 4 & 0xff));
+			else
+				printf(" OpenSSL/%u.%u.%u",
+					OPENSSL_VERSION_NUMBER >> 28 & 0xf,
+					OPENSSL_VERSION_NUMBER >> 20 & 0xff,
+					OPENSSL_VERSION_NUMBER >> 12 & 0xff);
+#endif		/* OPENSSL_VERSION_NUMBER */
+#ifdef		PCRE_MAJOR
+			printf(" PCRE/%u.%u", PCRE_MAJOR, PCRE_MINOR);
+#endif		/* PCRE_MINOR */
 			printf("\nCompiled options:\n\t"
 #ifdef		INET6
 				"+INET6 "
