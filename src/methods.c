@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.151 2005/09/26 18:03:59 johans Exp $ */
+/* $Id: methods.c,v 1.152 2005/10/07 08:18:02 johans Exp $ */
 
 #include	"config.h"
 
@@ -1429,7 +1429,12 @@ check_redirect(const char *params, const char *base, const char *filename)
 		else /* no command: redir to url */
 #endif		/* HAVE_PCRE */
 		{
-			redirect(command, 0);
+			size = strlen(command);
+			if (size && '/' == command[size - 1])
+				command[size - 1] = '\0';
+			snprintf(total, XS_PATH_MAX, "%s/%s",
+				command, filename);
+			redirect(total, 0);
 			fclose(fp);
 			return 1;
 		}
