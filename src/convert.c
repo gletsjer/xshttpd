@@ -1,10 +1,11 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: convert.c,v 1.8 2005/07/06 11:27:30 johans Exp $ */
+/* $Id: convert.c,v 1.9 2005/10/10 18:40:16 johans Exp $ */
 
 #include	"config.h"
 
 #include	<pwd.h>
 #include	<stdio.h>
+#include	<string.h>
 #include	<sys/stat.h>
 
 #include	"httpd.h"

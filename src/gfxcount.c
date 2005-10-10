@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: gfxcount.c,v 1.11 2005/09/22 18:11:59 johans Exp $ */
+/* $Id: gfxcount.c,v 1.12 2005/10/10 18:40:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -234,7 +234,7 @@ main(int argc, char **argv)
 	if (dirname[0] && (dirname[strlen(dirname) - 1] != '/'))
 	{
 		if (!stat(dirname, &statbuf) && (S_ISDIR(statbuf.st_mode)))
-			strcat(dirname, "/");
+			strlcat(dirname, "/", XS_PATH_MAX);
 	}
 	if (!(querystring = getenv("QUERY_STRING")) || !(*querystring))
 		error("403 Illegal calling method",
@@ -256,6 +256,6 @@ main(int argc, char **argv)
 	printf("<H1>No can do</H1>Regrettably, this operation\n");
 	printf("can not (yet) be performed, because the system lacks\n");
 	printf("some necessary programs.</BODY></HTML>\n");
-	exit(1);
+	return 1;
 }
 #endif		/* PATH_PPMTOGIF */

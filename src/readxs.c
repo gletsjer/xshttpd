@@ -64,7 +64,7 @@ main(int argc, char **argv)
 	if ((fd = open(counterfile, wrset ? O_RDWR : O_RDONLY, 0)) < 0)
 		err(1, "Could not open(%s)", counterfile);
 
-	if ((total = lseek(fd, 0, SEEK_END)) == -1)
+	if ((total = lseek(fd, (off_t)0, SEEK_END)) == -1)
 		err(1, "Could not lseek()");
 
 	total /= sizeof(countstr);
@@ -76,7 +76,7 @@ main(int argc, char **argv)
 	while ((x < (z-1)) && (comp))
 	{
 		y = (x + z) / 2;
-		if (lseek(fd, y * sizeof(countstr), SEEK_SET) == -1)
+		if (lseek(fd, (off_t)(y * sizeof(countstr)), SEEK_SET) == -1)
 			err(1, "lseek()");
 
 		if (read(fd, &counter, sizeof(countstr)) != sizeof(countstr))
@@ -111,7 +111,7 @@ main(int argc, char **argv)
 	}
 	if (wrset)
 	{
-		if (lseek(fd, y * sizeof(countstr), SEEK_SET) == -1)
+		if (lseek(fd, (off_t)(y * sizeof(countstr)), SEEK_SET) == -1)
 			err(1, "lseek()");
 		if (write(fd, &counter, sizeof(countstr)) != sizeof(countstr))
 			err(1, "write()");

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.152 2005/10/07 08:18:02 johans Exp $ */
+/* $Id: methods.c,v 1.153 2005/10/10 18:40:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -255,7 +255,7 @@ senduncompressed(int fd)
 		char		*buffer;
 
 		if ((buffer = (char *)mmap((caddr_t)0, size, PROT_READ,
-			MAP_SHARED, fd, 0)) == (char *)-1)
+			MAP_SHARED, fd, (off_t)0)) == (char *)-1)
 		{
 			fprintf(stderr, "[%s] httpd: mmap() failed: %s\n",
 				currenttime, strerror(errno));
@@ -793,7 +793,7 @@ do_get(char *params)
 	if ((!*file) && (wasdir) && current->indexfiles)
 	{
 		filename = current->indexfiles[0];
-		strcat(real_path, filename);
+		strlcat(real_path, filename, XS_PATH_MAX);
 	}
 	else
 		filename = file;
@@ -916,7 +916,7 @@ do_get(char *params)
 		if (wasdir)
 		{
 			wasdir = 0;
-			strcat(real_path, filename = INDEX_HTML);
+			strlcat(real_path, filename = INDEX_HTML, XS_PATH_MAX);
 			goto RETRY;
 		}
 		else
@@ -1075,8 +1075,8 @@ do_get(char *params)
 	/* add original arguments back to real_path */
 	if (question)
 	{
-		strcat(real_path, "?");
-		strcat(real_path, question + 1);
+		strlcat(real_path, "?", XS_PATH_MAX);
+		strlcat(real_path, question + 1, XS_PATH_MAX);
 	}
 	params = real_path;
 	wasdir = 0;
@@ -1290,11 +1290,13 @@ loadperl()
 static int
 getfiletype(int print)
 {
-	const	ftypes	*search, *flist[] = { lftype, ftype };
+	const	ftypes	*search, *flist[2];
 	const	int	flen = sizeof(flist) / sizeof(ftypes *);
 	const	char	*ext;
 	char		extension[20];
 	int		i, count;
+
+	flist[0] = lftype; flist[1] = ftype;
 
 	if (!(ext = strrchr(orig_filename, '.')) || !(*(++ext)))
 	{
@@ -1440,5 +1442,6 @@ check_redirect(const char *params, const char *base, const char *filename)
 		}
 	}
 	fclose(fp);
+	(void)params;
 	return 0;
 }

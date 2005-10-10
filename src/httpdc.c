@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.18 2005/08/20 13:57:34 johans Exp $ */
+/* $Id: httpdc.c,v 1.19 2005/10/10 18:40:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -264,7 +264,7 @@ main(int argc, char **argv)
 		exit(0);
 	}
 
-	while (1)
+	for (;;)
 	{
 		printf("httpdc> "); fflush(stdout);
 		if (!fgets(buffer, BUFSIZ, stdin))
@@ -277,5 +277,5 @@ main(int argc, char **argv)
 		control(buffer);
 	}
 	fprintf(stderr, "End of input received\n");
-	exit(0);
+	return 0;
 }

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.105 2005/09/26 18:03:59 johans Exp $ */
+/* $Id: cgi.c,v 1.106 2005/10/10 18:40:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -406,7 +406,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	{
 		int	ctype = 0, status = 0, lastmod = 0, server = 0;
 
-		while (1)
+		for (;;)
 		{
 			if (readline(p[0], errmsg) != ERR_NONE)
 			{
@@ -531,7 +531,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 	} else
 	{
-		while (1)
+		for (;;)
 		{
 			if (readline(p[0], errmsg) != ERR_NONE)
 			{

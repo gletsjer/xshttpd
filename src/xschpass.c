@@ -122,8 +122,8 @@ changepasswd(const char *param, int  cl)
 			filename, strerror(errno));
 	if (S_ISDIR(statbuf1.st_mode))
 		error("403 '%s' is not a directory", filename);
-	strcat(filename, "/");
-	strcat(filename, AUTHFILE);
+	strlcat(filename, "/", XS_PATH_MAX);
+	strlcat(filename, AUTHFILE, XS_PATH_MAX);
 	if (lstat(filename, &statbuf2))
 		error("403 Could not lstat password file '%s': %s",
 			filename, strerror(errno));
@@ -138,7 +138,7 @@ changepasswd(const char *param, int  cl)
 		error("403 Could not fopen password file '%s': %s",
 			filename, strerror(errno));
 
-	strcat(filename, ".new");
+	strlcat(filename, ".new", XS_PATH_MAX);
 	if (!lstat(filename, &statbuf2))
 		error("403 Somebody is already changing a password, please retry again in a few moments!");
 	if (!(output = fopen(filename, "w")))
@@ -220,5 +220,5 @@ main(int argc, char **argv)
 		generateform();
 	(void)argc;
 	(void)argv;
-	exit(0);
+	return 0;
 }

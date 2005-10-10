@@ -229,7 +229,7 @@ reopen:
 		goto reopen;
 	}
 
-	if ((total = lseek(fd, 0, SEEK_END)) == -1)
+	if ((total = lseek(fd, (off_t)0, SEEK_END)) == -1)
 	{
 		secprintf("[Could not find end of the counter file: %s]\n",
 			strerror(errno));
@@ -249,7 +249,7 @@ reopen:
 	while ((x < (z-1)) && (comp))
 	{
 		y = (x + z) / 2;
-		if (lseek(fd, y * sizeof(countstr), SEEK_SET) == -1)
+		if (lseek(fd, (off_t)(y * sizeof(countstr)), SEEK_SET) == -1)
 		{
 			secprintf("[Could not seek in counter file: %s]\n",
 				strerror(errno));
@@ -282,7 +282,7 @@ reopen:
 	}
 
 	counter.total++; counter.today++; counter.month++;
-	if (lseek(fd, y * sizeof(countstr), SEEK_SET) == -1)
+	if (lseek(fd, (off_t)(y * sizeof(countstr)), SEEK_SET) == -1)
 	{
 		secprintf("[Could not seek in counter file: %s]\n",
 			strerror(errno));
@@ -351,8 +351,8 @@ static	int
 call_counter(int mode, const char *args)
 {
 	int		ret;
-	uid_t		savedeuid = -1;
-	gid_t		savedegid = -1;
+	uid_t		savedeuid;
+	gid_t		savedegid;
 	const	char	*path;
 	char		*search;
 
@@ -360,6 +360,11 @@ call_counter(int mode, const char *args)
 	{
 		savedeuid = geteuid(); seteuid(origeuid);
 		savedegid = getegid(); seteuid(origegid);
+	}
+	else
+	{
+		savedeuid = config.system->userid;
+		savedegid = config.system->groupid;
 	}
 	path = search = NULL;
 	if (args && (*args == ' '))
@@ -786,10 +791,10 @@ dir_switch(char *here, size_t *size)
 	ssiarray[++ssioutput] = 0;
 
 	switchlen = strlen(here);
-	switchstr = realloc(switchstr, strlen(here));
+	switchstr = realloc(switchstr, switchlen);
 	switchstr[0] = ' ';
 	switchstr[1] = '\0';
-	strcat(switchstr, here);
+	strlcat(switchstr, here, switchlen);
 	switchstr[switchlen-3] = '\0';
 	(void)size;
 	return(ERR_NONE);

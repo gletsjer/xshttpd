@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.193 2005/10/05 18:40:56 johans Exp $ */
+/* $Id: httpd.c,v 1.194 2005/10/10 18:40:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -98,10 +98,8 @@ typedef	size_t	socklen_t;
 
 #define		MAXVHOSTALIASES		32
 
-#ifndef		lint
 static char copyright[] =
-"$Id: httpd.c,v 1.193 2005/10/05 18:40:56 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
-#endif
+"$Id: httpd.c,v 1.194 2005/10/10 18:40:16 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -699,11 +697,15 @@ open_logs(int sig)
 	gid_t		savedegid;
 	int		tempfile;
 
-	savedeuid = savedegid = -1;
 	if (!origeuid)
 	{
 		savedeuid = geteuid(); seteuid(origeuid);
 		savedegid = getegid(); setegid(origegid);
+	}
+	else
+	{
+		savedeuid = config.system->userid;
+		savedegid = config.system->groupid;
 	}
 	if (mainhttpd)
 	{
@@ -1431,8 +1433,8 @@ process_request()
 				server_error("400 Invalid Host Header", "BAD_REQUEST");
 				return;
 			}
-			strcat(http_host, ":");
-			strcat(http_host, cursock->port);
+			strlcat(http_host, ":", NI_MAXHOST);
+			strlcat(http_host, cursock->port, NI_MAXHOST);
 		}
 		unsetenv("HTTP_HOST");
 		/* Ignore unqualified names - it could be a subdirectory! */
@@ -1504,8 +1506,7 @@ process_request()
 static	void
 standalone_main()
 {
-	pid_t					pid;
-	char					id = 'A';
+	char			id = 'A';
 
 	detach(); open_logs(0);
 
@@ -1513,7 +1514,7 @@ standalone_main()
 	{
 		if (cursock->next)
 			/* spawn auxiliary master */
-			switch ((pid = fork()))
+			switch (fork())
 			{
 			case -1:
 				warn("fork() failed");
@@ -1759,7 +1760,7 @@ standalone_socket(int id)
 #else		/* HAVE_GETNAMEINFO */
 		/* I don't need libnsl for this... */
 		laddr = ntohl(((struct sockaddr_in *)&saddr)->sin_addr.s_addr);
-		sprintf(remotehost, "%d.%d.%d.%d",
+		snprintf(remotehost, NI_MAXHOST, "%d.%d.%d.%d",
 			(laddr & 0xff000000) >> 24,
 			(laddr & 0x00ff0000) >> 16,
 			(laddr & 0x0000ff00) >> 8,
@@ -1848,9 +1849,9 @@ main(int argc, char **argv)
 	*startparams = 0;
 	for (option = 0; option < argc; option++)
 	{
-		strcat(startparams, argv[option]);
+		strlcat(startparams, argv[option], num);
 		if (option < argc - 1)
-			strcat(startparams, " ");
+			strlcat(startparams, " ", num);
 	}
 
 	message503[0] = 0;
@@ -1940,13 +1941,13 @@ main(int argc, char **argv)
 #endif		/* 0 */
 #ifdef		OPENSSL_VERSION_NUMBER
 			if (OPENSSL_VERSION_NUMBER >> 4 & 0xff)
-				printf(" OpenSSL/%u.%u.%u%c",
+				printf(" OpenSSL/%lu.%lu.%lu%c",
 					OPENSSL_VERSION_NUMBER >> 28 & 0xf,
 					OPENSSL_VERSION_NUMBER >> 20 & 0xff,
 					OPENSSL_VERSION_NUMBER >> 12 & 0xff,
-					'a' - 1 + (OPENSSL_VERSION_NUMBER >> 4 & 0xff));
+					'a' - 1 + (unsigned char)(OPENSSL_VERSION_NUMBER >> 4 & 0xff));
 			else
-				printf(" OpenSSL/%u.%u.%u",
+				printf(" OpenSSL/%lu.%lu.%lu",
 					OPENSSL_VERSION_NUMBER >> 28 & 0xf,
 					OPENSSL_VERSION_NUMBER >> 20 & 0xff,
 					OPENSSL_VERSION_NUMBER >> 12 & 0xff);

@@ -75,5 +75,5 @@ main(int argc, char **argv)
 		err(1, "Cannot rename(`%s', `%s')", newfile, AUTHFILE);
 	(void)argc;
 	(void)argv;
-	exit(0);
+	return 0;
 }

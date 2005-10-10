@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: clearxs.c,v 1.6 2004/12/02 14:14:39 johans Exp $ */
+/* $Id: clearxs.c,v 1.7 2005/10/10 18:40:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -72,7 +72,7 @@ main(int argc, char **argv)
 		case MODE_TODAY:
 			counter.today = 0;
 		}
-		if (lseek(fd, x * sizeof(countstr), SEEK_SET) == -1)
+		if (lseek(fd, (off_t)(x * sizeof(countstr)), SEEK_SET) == -1)
 			err(1, "lseek()");
 		if (write(fd, &counter, sizeof(countstr)) != sizeof(countstr))
 			err(1, "write()");

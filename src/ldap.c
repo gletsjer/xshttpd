@@ -1,5 +1,5 @@
 /* Copyright (C) 2005 by Johan van Selst (johans@stack.nl) */
-/* $Id: ldap.c,v 1.4 2005/07/06 11:27:30 johans Exp $ */
+/* $Id: ldap.c,v 1.5 2005/10/10 18:40:16 johans Exp $ */
 
 #include	"config.h"
 #include	"ldap.h"
@@ -165,7 +165,7 @@ check_auth_ldap(FILE *authfile, const char *user, const char *pass)
 	else
 	{
 		curoffs = ldapgroups;
-		while (1)
+		for (;;)
 		{
 			/* isolate a group on a ',' boundery */
 			ptr = strchr (curoffs, ',');

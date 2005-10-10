@@ -325,5 +325,5 @@ main(int argc, char **argv)
 	fprintf(output, "</PRE></BODY></HTML>\n");
 	fclose(output);
 	printf("`%s' is now ready...\n", INDEX_HTML);
-	exit(0);
+	return 0;
 }

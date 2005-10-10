@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.16 2005/09/23 15:07:37 johans Exp $ */
+/* $Id: error.c,v 1.17 2005/10/10 18:40:16 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -115,12 +115,13 @@ check_user(const struct passwd *userinfo)
 
 	if (transform_user_dir(dirname, userinfo, 0))
 		return(0);
-	strcat(dirname, "/");
+	strlcat(dirname, "/", XS_PATH_MAX);
 	end = dirname + strlen(dirname);
-	strcpy(end, INDEX_HTML);
+	strlcat(dirname, INDEX_HTML, XS_PATH_MAX);
 	if (!access(dirname, F_OK))
 		return(1);
-	strcpy(end, INDEX_HTML_2);
+	*end = '\0';
+	strlcat(dirname, INDEX_HTML_2, XS_PATH_MAX);
 	if (!access(dirname, F_OK))
 		return(1);
 	return(0);
@@ -184,7 +185,7 @@ user_unknown()
 		printf("what you typed...</p>\n");
 	}
 	printf("<p>You may look at the <a href=\"/\">main index page</a>");
-	sprintf(filename, "%s/users.html", HTTPD_DOCUMENT_ROOT);
+	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTTPD_DOCUMENT_ROOT);
 	if (!access(calcpath(filename), F_OK))
 		printf(" or the <a href=\"/users.html\">user list</a>\n");
 	printf(".</p>\n");
@@ -231,24 +232,26 @@ not_found()
 		strcpy(base, error_url_expanded);
 		base[(strlen(error_url_expanded) - strlen(error_url) +
 			(match - error_url))] = 0;
-		strcat(base, "/");
+		strlcat(base, "/", XS_PATH_MAX);
 	} else
 	{
 		prefix[0] = 0;
-		sprintf(base, "%s/%s/", HTTPD_ROOT, HTTPD_DOCUMENT_ROOT);
+		snprintf(base, XS_PATH_MAX, "%s/%s/",
+			HTTPD_ROOT, HTTPD_DOCUMENT_ROOT);
 		begin = error_url;
 	}
 
 	len = strlen(begin);
 	while (len >= 0)
 	{
-		sprintf(buffer, "%s%*.*s", base, -len, len, begin);
+		snprintf(buffer, BUFSIZ, "%s%*.*s",
+			base, -len, len, begin);
 		if (!stat(buffer, &statbuf))
 		{
 			if (S_ISREG(statbuf.st_mode))
 			{
-				sprintf(buffer, "%s%*.*s", prefix,
-					-len, len, begin);
+				snprintf(buffer, BUFSIZ, "%s%*.*s",
+					prefix, -len, len, begin);
 				break;
 			}
 			if (!(S_ISDIR(statbuf.st_mode)))
@@ -256,21 +259,23 @@ not_found()
 				len--;
 				continue;
 			}
-			sprintf(buffer, "%s%*.*s%s%s", base, -len, len, begin,
+			snprintf(buffer, BUFSIZ, "%s%*.*s%s%s",
+				base, -len, len, begin,
 				(begin[len-1] == '/') ? "" : "/", INDEX_HTML);
 			if (!stat(buffer, &statbuf) && S_ISREG(statbuf.st_mode))
 			{
-				sprintf(buffer, "%s%*.*s%s", prefix,
-					-len, len, begin,
+				snprintf(buffer, BUFSIZ, "%s%*.*s%s",
+					prefix, -len, len, begin,
 					(begin[len - 1] == '/') ? "" : "/");
 				break;
 			}
-			sprintf(buffer, "%s%*.*s%s%s", base, -len, len, begin,
+			snprintf(buffer, BUFSIZ, "%s%*.*s%s%s",
+				base, -len, len, begin,
 				(begin[len-1] == '/') ? "" : "/", INDEX_HTML_2);
 			if (!stat(buffer, &statbuf) && S_ISREG(statbuf.st_mode))
 			{
-				sprintf(buffer, "%s%*.*s%s", prefix,
-					-len, len, begin,
+				snprintf(buffer, BUFSIZ, "%s%*.*s%s",
+					prefix, -len, len, begin,
 					(begin[len - 1] == '/') ? "" : "/");
 				break;
 			}
@@ -286,7 +291,7 @@ not_found()
 	} else
 		printf("<p>Y");
 	printf("ou may take a look at <a href=\"/\">the main index</a>");
-	sprintf(filename, "%s/users.html", HTTPD_DOCUMENT_ROOT);
+	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTTPD_DOCUMENT_ROOT);
 	if (!access(calcpath(filename), F_OK))
 		printf(" or the <a href=\"/users.html\">user list</a>\n");
 	printf(".</p>\n");
@@ -395,7 +400,7 @@ local_no_page()
 	printf("</p>\n");
 	printf("<p>Perhaps you meant somebody else; in this case, please\n");
 	printf("have a look at the <a href=\"/\">main index</a>");
-	sprintf(filename, "%s/users.html", HTTPD_DOCUMENT_ROOT);
+	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTTPD_DOCUMENT_ROOT);
 	if (!access(calcpath(filename), F_OK))
 		printf(" or the <a href=\"/users.html\">user list</a>\n");
 	printf(".</p>\n");
@@ -430,7 +435,7 @@ local_no_pay()
 	printf("has decided that he/she wants to remain a member.</p>\n");
 	printf("<p>Return to the <a href=\"/\">main index</a>\n");
 	printf("for more information about our society");
-	sprintf(filename, "%s/users.html", HTTPD_DOCUMENT_ROOT);
+	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTTPD_DOCUMENT_ROOT);
 	if (!access(calcpath(filename), F_OK))
 		printf(" or the <a href=\"/users.html\">user list</a>\n");
 	printf(".</p>\n");
@@ -493,5 +498,5 @@ main(int argc, char **argv)
 	printf("</body></html>\n");
 	(void)argc;
 	(void)argv;
-	exit(0);
+	return 0;
 }
