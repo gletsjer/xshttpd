@@ -2,7 +2,7 @@ This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
 Changes since 3.3 beta 32
-- Simple directory redirect backwards compatible again (i.e. add filename)
+- Directory redirects are backwards compatible again (i.e. add filename)
 
 Changes since 3.3 beta 31
 - Fix compilation on NetBSD, by Ed Schouten

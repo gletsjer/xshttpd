@@ -1,8 +1,8 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT
 AC_CONFIG_SRCDIR([src/httpd.c])
-AM_INIT_AUTOMAKE(xshttpd, 33b32)
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.32", [Server version])
+AM_INIT_AUTOMAKE(xshttpd, 33b33)
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.33", [Server version])
 AC_CONFIG_HEADERS([config.h])
 
 dnl Checks for programs.
@@ -50,7 +50,7 @@ AC_FUNC_WAIT3
 AC_CHECK_FUNCS(gethostname mktime select strcasestr strerror strpbrk strstr)
 
 dnl SEPERATOR
-AC_CHECK_FUNCS(getaddrinfo getnameinfo killpg mkstemp mmap sendfile seteuid setegid setresuid setresgid setrlimit setsid setpriority sigemptyset tempnam vfork setproctitle)
+AC_CHECK_FUNCS(getaddrinfo getnameinfo killpg mkstemp mmap sendfile seteuid setegid setresuid setresgid setrlimit setsid setpriority sigemptyset tempnam vfork setproctitle uname)
 
 dnl Prog specific checks
 if test x$prefix = xNONE

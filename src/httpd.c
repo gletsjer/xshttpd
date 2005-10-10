@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.194 2005/10/10 18:40:16 johans Exp $ */
+/* $Id: httpd.c,v 1.195 2005/10/10 18:55:18 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ typedef	size_t	socklen_t;
 #define		MAXVHOSTALIASES		32
 
 static char copyright[] =
-"$Id: httpd.c,v 1.194 2005/10/10 18:40:16 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.195 2005/10/10 18:55:18 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1836,6 +1836,9 @@ main(int argc, char **argv)
 	char *		longopt[7] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
 	uid_t		uid = 0;
 	gid_t		gid = 0;
+#ifdef		HAVE_UNAME
+	struct utsname		utsname;
+#endif		/* HAVE_UNAME */
 	const struct passwd	*userinfo;
 	const struct group	*groupinfo;
 
@@ -1932,13 +1935,10 @@ main(int argc, char **argv)
 			break;
 		case 'v':
 			printf("%s", SERVER_IDENT);
-#if		0
-			{
-				struct utsname	name;
-				uname(&name);
-				printf(" %s/%s", name.sysname, name.release);
-			}
-#endif		/* 0 */
+#ifdef		HAVE_UNAME
+			uname(&utsname);
+			printf(" %s/%s", utsname.sysname, utsname.release);
+#endif		/* HAVE_UNAME */
 #ifdef		OPENSSL_VERSION_NUMBER
 			if (OPENSSL_VERSION_NUMBER >> 4 & 0xff)
 				printf(" OpenSSL/%lu.%lu.%lu%c",
