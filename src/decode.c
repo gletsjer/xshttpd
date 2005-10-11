@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: decode.c,v 1.4 2005/09/22 18:11:59 johans Exp $ */
+/* $Id: decode.c,v 1.5 2005/10/11 20:25:04 johans Exp $ */
 
 #include	<stdio.h>
 #include	<stdlib.h>
@@ -101,35 +101,39 @@ uudecode(char *buffer)
 char	*
 escape(const char *what)
 {
-	char		*escapebuf, *w;
+	size_t		len;
+	const char	*p;
+	char		*buffer = malloc(BUFSIZ);
 
-	if (!(w = escapebuf = (char *)malloc(BUFSIZ)))
-		return(NULL);
-	while (*what && ((w - escapebuf) < (BUFSIZ - 10)))
+	if (!buffer)
+		return NULL;
+
+	buffer[0] = '\0';
+	for (p = what; (len = strcspn(p, "<>&\"")), p[len]; p += len + 1)
 	{
-		switch(*what)
+		if (strlen(buffer) + len < BUFSIZ)
+			strncat(buffer, p, len);
+		switch (p[len])
 		{
 		case '<':
-			strcpy(w, "&lt;"); w += 4;
+			strlcat(buffer, "&lt;", BUFSIZ);
 			break;
 		case '>':
-			strcpy(w, "&gt;"); w += 4;
+			strlcat(buffer, "&gt;", BUFSIZ);
 			break;
 		case '&':
-			strcpy(w, "&amp;"); w += 5;
+			strlcat(buffer, "&amp;", BUFSIZ);
 			break;
 		case '"':
-			strcpy(w, "&quot;"); w += 6;
+			strlcat(buffer, "&quot;", BUFSIZ);
 			break;
 		default:
-			*(w++) = *what;
-			break;
+			/* do nothing */;
 		}
-		what++;
 	}
-	*w = 0;
-	return(escapebuf);
+	return (buffer);
 }
+
 
 int
 hexdigit(int ch)
@@ -140,7 +144,6 @@ hexdigit(int ch)
 		return (temp - hexdigits);
 	else
 	{
-		error("500 Invalid `percent' parameters");
 		return (-1);
 	}
 }

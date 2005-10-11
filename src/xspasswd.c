@@ -18,7 +18,8 @@
 int
 main(int argc, char **argv)
 {
-	char		*pwd, username[32], passbak[32], total[66],
+	char		*pwd, username[XS_USER_MAX], passbak[XS_USER_MAX],
+			total[XS_USER_MAX * 2 + 3],
 			line[BUFSIZ], newfile[XS_PATH_MAX];
 	const	char	*password;
 	int		found, passwdlock;
@@ -35,7 +36,7 @@ main(int argc, char **argv)
 		errx(1, "Username may not contain a colon");
 	if (!(password = (const char *)getpass("Please enter a password: ")))
 		errx(1, "Password input failed");
-	strlcpy(passbak, password, 32);
+	strlcpy(passbak, password, XS_USER_MAX);
 	if (!(password = (const char *)getpass("Please reenter password: ")))
 		errx(1, "Password input failed");
 	if (strcmp(password, passbak))
@@ -45,9 +46,10 @@ main(int argc, char **argv)
 		errx(1, "Lock input failed");
 	passwdlock = ((line[0] == 'y') || (line[0] == 'Y'));
 	pwd = xs_encrypt(password);
-	sprintf(total, "%c%s:%s", (int)(passwdlock ? 'L' : 'U'), username, pwd);
+	snprintf(total, sizeof(total), "%c%s:%s",
+		(int)(passwdlock ? 'L' : 'U'), username, pwd);
 	authinp = fopen(AUTHFILE, "r");
-	sprintf(newfile, "%s.new", AUTHFILE);
+	snprintf(newfile, XS_PATH_MAX, "%s.new", AUTHFILE);
 	if (!(authout = fopen(newfile, "w")))
 		err(1, "fopen(`%s', `w')", newfile);
 	found = 0;

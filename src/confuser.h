@@ -110,3 +110,6 @@ depend on. The path must be given in the normal /bin/sh format. */
 
 #define		XS_PATH_MAX	1024
 
+/* Assume user/group name maximum length */
+
+#define		XS_USER_MAX	32

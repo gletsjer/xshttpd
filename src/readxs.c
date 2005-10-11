@@ -58,9 +58,9 @@ main(int argc, char **argv)
 	if (argc != (optind + 1))
 		errx(1, "URL missing or too many arguments");
 
-	strcpy(url, argv[optind]);
+	strlcpy(url, argv[optind], BUFSIZ);
 
-	sprintf(counterfile, "%s/%s", HTTPD_ROOT, CNT_DATA);
+	snprintf(counterfile, XS_PATH_MAX, "%s/%s", HTTPD_ROOT, CNT_DATA);
 	if ((fd = open(counterfile, wrset ? O_RDWR : O_RDONLY, 0)) < 0)
 		err(1, "Could not open(%s)", counterfile);
 

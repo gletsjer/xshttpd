@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.153 2005/10/10 18:40:16 johans Exp $ */
+/* $Id: methods.c,v 1.154 2005/10/11 20:25:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -355,13 +355,15 @@ sendcompressed(int fd, const char *method)
 	 * if (!(tmp = tempnam(TEMPORARYPATH, "xs-www")))
 	 */
 	{
-		if (!(tmp = (char *)malloc(32 + strlen(TEMPORARYPREFIX))))
+		unsigned int	len = 32 + strlen(TEMPORARYPREFIX);
+		if (!(tmp = (char *)malloc(len)))
 		{
 			error("500 Out of memory in sendcompressed()");
 			close(fd);
 			return;
 		}
-		sprintf(tmp, "%s.%016ld", TEMPORARYPREFIX, (long)getpid());
+		snprintf(tmp, len, "%s.%016ld",
+			TEMPORARYPREFIX, (long)getpid());
 	}
 	remove(tmp);
 	if ((processed = open(tmp, O_CREAT | O_TRUNC | O_RDWR | O_EXCL,
@@ -577,9 +579,9 @@ void
 do_get(char *params)
 {
 	char			*temp, *file, *cgi, *question,
-			base[XS_PATH_MAX], orgbase[XS_PATH_MAX],
-			orgparams[XS_PATH_MAX],
-			total[XS_PATH_MAX], temppath[XS_PATH_MAX];
+				base[XS_PATH_MAX], orgbase[XS_PATH_MAX],
+				orgparams[XS_PATH_MAX],
+				total[XS_PATH_MAX], temppath[XS_PATH_MAX];
 	const	char		*filename, *http_host;
 	int			fd, wasdir, tmp,
 				delay_redir = 0, script = 0;
@@ -880,11 +882,13 @@ do_get(char *params)
 	{
 		if (config.usecompressed)
 		{
+			int	templen = sizeof(total) - strlen(total);
+
 			csearch = ctype;
 			temp = total + strlen(total);
 			while (csearch)
 			{
-				strcpy(temp, csearch->ext);
+				strlcpy(temp, csearch->ext, templen);
 				if (!stat(total, &statbuf))
 					break;
 				csearch = csearch->next;
@@ -1053,7 +1057,7 @@ do_get(char *params)
 				if (!(idx = current->indexfiles[i + 1]))
 					break;
 
-				strcpy(real_path + strlen(real_path) - strlen(filename), idx);
+				strlcpy(real_path + strlen(real_path) - strlen(filename), idx, XS_PATH_MAX + strlen(filename) - strlen(real_path));
 				filename = idx;
 				break;
 			}

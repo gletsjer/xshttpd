@@ -112,7 +112,7 @@ changepasswd(const char *param, int  cl)
 	if (strcmp(new1, new2))
 		error("403 You did not type the new password correctly two times!");
 	for (search = new1; *search; search++)
-		if (*search < 32)
+		if (*search < ' ')
 			error("403 Your password contains an invallid character!");
 	cryptnew = xs_encrypt(new1);
 	cryptold = xs_encrypt(old);
@@ -149,7 +149,7 @@ changepasswd(const char *param, int  cl)
 			filename, strerror(errno));
 
 	found = 0;
-	sprintf(new2, "%s:%s\n", username, cryptold);
+	snprintf(new2, BUFSIZ, "%s:%s\n", username, cryptold);
 	while (fgets(buffer, BUFSIZ, input))
 	{
 		if (!found && !strcmp(buffer+1, new2))
@@ -172,7 +172,7 @@ changepasswd(const char *param, int  cl)
 		remove(filename);
 		error("403 Old username/password combination not found");
 	}
-	strcpy(buffer, filename);
+	strlcpy(buffer, filename, BUFSIZ);
 	buffer[strlen(buffer) - 4] = 0;
 	if (rename(filename, buffer))
 		error("500 Could not rename '%s' to '%s': %s",

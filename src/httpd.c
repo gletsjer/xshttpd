@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.195 2005/10/10 18:55:18 johans Exp $ */
+/* $Id: httpd.c,v 1.196 2005/10/11 20:25:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ typedef	size_t	socklen_t;
 #define		MAXVHOSTALIASES		32
 
 static char copyright[] =
-"$Id: httpd.c,v 1.195 2005/10/10 18:55:18 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.196 2005/10/11 20:25:04 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1382,7 +1382,10 @@ process_request()
 	alarm(0);
 	params = url;
 	if (decode(params))
+	{
+		error("500 Cannot process request");
 		return;
+	}
 
 	strlcpy(orig, params, MYBUFSIZ);
 	size = strlen(orig);

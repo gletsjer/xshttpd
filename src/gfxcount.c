@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: gfxcount.c,v 1.12 2005/10/10 18:40:16 johans Exp $ */
+/* $Id: gfxcount.c,v 1.13 2005/10/11 20:25:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -52,10 +52,11 @@ loaddigit(int num)
 	char		buffer[BUFSIZ], words[4][BUFSIZ], *search;
 	int		word, size;
 
-	sprintf(filename, "%s%d.ppm", dirname, num + '0');
+	snprintf(filename, XS_PATH_MAX, "%s%d.ppm", dirname, num + '0');
 	if (!(file = fopen(filename, "r")))
 	{
-		sprintf(buffer, "Could not read digit from file `%s': %s",
+		snprintf(buffer, BUFSIZ,
+			"Could not read digit from file `%s': %s",
 			filename, strerror(errno));
 		error("404 Could not read font data", buffer);
 	}
@@ -64,8 +65,8 @@ loaddigit(int num)
 	{
 		if (!fgets(buffer, BUFSIZ, file))
 		{
-			sprintf(buffer, "Font data in file `%s' is corrupt",
-				filename);
+			snprintf(buffer, BUFSIZ,
+				"Font data in file `%s' is corrupt", filename);
 			error("500 Could not read font data", buffer);
 		}
 		if ((search = strchr(buffer, '#')))
@@ -80,7 +81,8 @@ loaddigit(int num)
 			search++;
 		while (*search)
 		{
-			sprintf(words[word], "%s%c", words[word], *search);
+			snprintf(words[word], BUFSIZ, "%s%c",
+				words[word], *search);
 			if ((*search == ' ') || (*search == '\t'))
 			{
 				search++; word++;
@@ -93,25 +95,28 @@ loaddigit(int num)
 	}
 	if (strcmp("P6", words[0]))
 	{
-		sprintf(buffer, "The image in file `%s' is not a PPM file",
-			filename);
+		snprintf(buffer, BUFSIZ,
+			"The image in file `%s' is not a PPM file", filename);
 		error("500 Invalid image type", buffer);
 	}
 	if ((digit[num].size_x = atoi(words[1])) <= 0)
 	{
-		sprintf(buffer, "The image in file `%s' has an invalid X size",
+		snprintf(buffer, BUFSIZ,
+			"The image in file `%s' has an invalid X size",
 			filename);
 		error("500 Corrupt image X header", buffer);
 	}
 	if ((digit[num].size_y = atoi(words[2])) <= 0)
 	{
-		sprintf(buffer, "The image in file `%s' has an invalid Y size",
+		snprintf(buffer, BUFSIZ,
+			"The image in file `%s' has an invalid Y size",
 			filename);
 		error("500 Corrupt image Y header", buffer);
 	}
 	if (strcmp("255", words[3]))
 	{
-		sprintf(buffer, "The image in file `%s' has an invalid depth",
+		snprintf(buffer, BUFSIZ,
+			"The image in file `%s' has an invalid depth",
 			filename);
 		error("500 Corrupt image depth header", buffer);
 	}
@@ -157,7 +162,7 @@ static	void
 buildpicture()
 {
 	const	char	*search;
-	char		*data, header[1024];
+	char		*data, header[BUFSIZ];
 	int		number, pos_x, y, font_width, fd, p[2];
 
 	if (!(data = (char *)malloc(max_x * max_y * 3)))
@@ -208,7 +213,7 @@ buildpicture()
 			"Could not start PPM to GIF converter");
 	default:
 		close(p[0]);
-		sprintf(header, "P6\n%d %d\n255\n", max_x, max_y);
+		snprintf(header, BUFSIZ, "P6\n%d %d\n255\n", max_x, max_y);
 		write(p[1], header, strlen(header));
 		write(p[1], data, max_x * max_y * 3);
 	}
@@ -219,17 +224,19 @@ int
 main(int argc, char **argv)
 {
 	struct	stat	statbuf;
-	char		buffer[XS_PATH_MAX];
+	char		buffer[BUFSIZ];
 
 	alarm(240);
 	pathtranslated = getenv("PATH_TRANSLATED");
-	strcpy(dirname, pathtranslated ? pathtranslated : "");
+	strlcpy(dirname, pathtranslated ? pathtranslated : "", XS_PATH_MAX);
 	if (!dirname[0])
-		sprintf(dirname, "%s/gfxcount/digital", HTTPD_ROOT);
+		snprintf(dirname, XS_PATH_MAX, "%s/gfxcount/digital",
+			HTTPD_ROOT);
 	if (!strncmp(dirname, "/fonts/", 7))
 	{
-		sprintf(buffer, "%s/gfxcount/%s", HTTPD_ROOT, dirname + 7);
-		strcpy(dirname, buffer);
+		snprintf(buffer, BUFSIZ, "%s/gfxcount/%s",
+			HTTPD_ROOT, dirname + 7);
+		strlcpy(dirname, buffer, XS_PATH_MAX);
 	}
 	if (dirname[0] && (dirname[strlen(dirname) - 1] != '/'))
 	{

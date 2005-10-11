@@ -92,32 +92,36 @@ loadmime(const char *name)
 static	const	char	*
 encode(const char *what)
 {
-	static	char	buffer[BUFSIZ], *put;
+	size_t		len;
+	const char	*p;
+	static	char	buffer[BUFSIZ];
 
-	put = buffer;
-	while (*what)
+	buffer[0] = '\0';
+	for (p = what; (len = strcspn(p, "<>&\"")); p += len + 1)
 	{
-		switch(*what)
+		if (strlen(buffer) + len < BUFSIZ)
+			strncat(buffer, p, len);
+		if (!p[len])
+			break;
+		switch (p[len])
 		{
 		case '<':
-			strcpy(put, "&lt;"); put += 4;
+			strlcat(buffer, "&lt;", BUFSIZ);
 			break;
 		case '>':
-			strcpy(put, "&gt;"); put += 4;
+			strlcat(buffer, "&gt;", BUFSIZ);
 			break;
 		case '&':
-			strcpy(put, "&amp;"); put += 5;
+			strlcat(buffer, "&amp;", BUFSIZ);
 			break;
 		case '"':
-			strcpy(put, "&quot;"); put += 6;
+			strlcat(buffer, "&quot;", BUFSIZ);
 			break;
 		default:
-			*(put++) = *what;
+			/* do nothing */;
 		}
-		what++;
 	}
-	*put = 0;
-	return(buffer);
+	return (buffer);
 }
 
 static	const	char	*
@@ -132,17 +136,19 @@ neatsize(long size)
 	{
 		temp = size / 1000;
 		if (temp)
-			sprintf(buffer2, "%03d,%s", (int)(size % 1000), buffer1);
+			snprintf(buffer2, BUFSIZ, "%03d,%s",
+				(int)(size % 1000), buffer1);
 		else
-			sprintf(buffer2, "%d,%s", (int)(size % 1000), buffer1);
-		strcpy(buffer1, buffer2);
+			snprintf(buffer2, BUFSIZ, "%d,%s",
+				(int)(size % 1000), buffer1);
+		strlcpy(buffer1, buffer2, BUFSIZ);
 		size = temp;
 	}
 	if (buffer1[0])
 		buffer1[strlen(buffer1) - 1] = 0;
 	else
-		strcpy(buffer1, "0");
-	return(buffer1);
+		strlcpy(buffer1, "0", BUFSIZ);
+	return (buffer1);
 }
 
 static	const	mime	*
@@ -183,7 +189,7 @@ main(int argc, char **argv)
 	struct	stat		statbuf;
 	const	mime		*search;
 
-	sprintf(mimefile, "%s/mime.index", HTTPD_ROOT);
+	snprintf(mimefile, XS_PATH_MAX, "%s/mime.index", HTTPD_ROOT);
 	while ((option = getopt(argc, argv, "bfm:st:")) != EOF)
 	{
 		switch(option)
@@ -195,7 +201,7 @@ main(int argc, char **argv)
 			force_overwrite = 1;
 			break;
 		case 'm':
-			strcpy(mimefile, optarg);
+			strlcpy(mimefile, optarg, XS_PATH_MAX);
 			break;
 		case 's':
 			show_size = 0;
@@ -239,9 +245,8 @@ main(int argc, char **argv)
 			continue;
 		if (!strcmp(buffer, "..") && !show_back)
 			continue;
-		if (!(listing[amount] = (char *)malloc(strlen(buffer) + 1)))
+		if (!(listing[amount] = (char *)strdup(buffer)))
 			errx(1, "Out of memory");
-		strcpy(listing[amount], buffer);
 		if (max_filename < strlen(listing[amount]))
 			max_filename = strlen(listing[amount]);
 		if (!((amount + 1) & 0xf))

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: clearxs.c,v 1.7 2005/10/10 18:40:16 johans Exp $ */
+/* $Id: clearxs.c,v 1.8 2005/10/11 20:25:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -56,7 +56,7 @@ main(int argc, char **argv)
 	if (argc != optind)
 		errx(1, "Too many arguments");
 
-	sprintf(counterfile, "%s/%s", HTTPD_ROOT, CNT_DATA);
+	snprintf(counterfile, XS_PATH_MAX, "%s/%s", HTTPD_ROOT, CNT_DATA);
 	if ((fd = open(counterfile, O_RDWR, 0)) < 0)
 		err(1, "Could not open(%s)", counterfile);
 

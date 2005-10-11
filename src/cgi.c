@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.106 2005/10/10 18:40:16 johans Exp $ */
+/* $Id: cgi.c,v 1.107 2005/10/11 20:25:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -177,25 +177,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	setenv("SCRIPT_NAME", path, 1);
 	setenv("SCRIPT_FILENAME", fullpath, 1);
 	setenv("REDIRECT_STATUS", "200", 1);
-
-	if (showheader)
-	{
-		snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
-		if ((nextslash = strrchr(fullpath, '/')))
-		{
-			/* TBD */
-			strcpy(nextslash + 1, AUTHFILE);
-			if ((auth = fopen(fullpath, "r")))
-			{
-				if (check_auth(auth))
-				{
-					(void) eat_content_length();
-					goto END;
-				}
-			}
-		}
-		snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
-	}
 
 	nph = (!strncmp(file, "nph-", 4) || strstr(file, "/nph-"));
 	dossi = (!strncmp(file, "ssi-", 4) || strstr(file, "/ssi-"));

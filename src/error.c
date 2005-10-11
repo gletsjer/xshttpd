@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.17 2005/10/10 18:40:16 johans Exp $ */
+/* $Id: error.c,v 1.18 2005/10/11 20:25:04 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -41,7 +41,7 @@ static	void	local_no_pay		(void);
 
 typedef	struct
 {
-	char		username[32];
+	char		username[XS_USER_MAX];
 	int		rank;
 } userrank;
 
@@ -135,12 +135,12 @@ user_unknown()
 	int			count, count2, rank, said;
 	char			filename[XS_PATH_MAX];
 
-	strcpy(buffer, error_url_escaped + 2);
+	strlcpy(buffer, error_url_escaped + 2, BUFSIZ);
 	if ((temp = strchr(buffer, '/')))
 		*temp = 0;
 	printf("<p>The user <b>%s</b> is unknown to this system.</p>\n",
 		buffer);
-	strcpy(buffer, error_url + 2);
+	strlcpy(buffer, error_url + 2, BUFSIZ);
 	if ((temp = strchr(buffer, '/')))
 		*(temp++) = 0;
 	for (count = 0; count < 10; count++)
@@ -161,7 +161,7 @@ user_unknown()
 			for (count2 = 9; count2 > count; count2--)
 				top[count2] = top[count2 - 1];
 			top[count].rank = rank;
-			strcpy(top[count].username, user->pw_name);
+			strlcpy(top[count].username, user->pw_name, XS_USER_MAX);
 		}
 	}
 	said = 0;
@@ -227,9 +227,9 @@ not_found()
 		while (*match && (*match != '/'))
 			match++;
 		begin = match;
-		strcpy(prefix, error_url);
+		strlcpy(prefix, error_url, BUFSIZ);
 		prefix[match - error_url] = 0;
-		strcpy(base, error_url_expanded);
+		strlcpy(base, error_url_expanded, BUFSIZ);
 		base[(strlen(error_url_expanded) - strlen(error_url) +
 			(match - error_url))] = 0;
 		strlcat(base, "/", XS_PATH_MAX);
@@ -384,7 +384,7 @@ local_no_page()
 	const	char	*env;
 	char		filename[XS_PATH_MAX];
 
-	strcpy(buffer, error_url_escaped + 2);
+	strlcpy(buffer, error_url_escaped + 2, BUFSIZ);
 	if ((temp = strchr(buffer, '/')))
 		*temp = 0;
 	printf("<p>The user <b>%s</b>, whom you specified in your URL,\n",
@@ -409,7 +409,7 @@ local_no_page()
 static	void
 local_invalid_link()
 {
-	strcpy(buffer, error_url_escaped + 2);
+	strlcpy(buffer, error_url_escaped + 2, BUFSIZ);
 	if ((temp = strchr(buffer, '/')))
 		*temp = 0;
 	printf("<p>An error has been made in linking <b>/www/%s</b> to\n",
@@ -425,7 +425,7 @@ local_no_pay()
 {
 	char		filename[XS_PATH_MAX];
 
-	strcpy(buffer, error_url_escaped + 2);
+	strlcpy(buffer, error_url_escaped + 2, BUFSIZ);
 	if ((temp = strchr(buffer, '/')))
 		*temp = 0;
 	printf("<p>The user <b>%s</b>, whom you specified in your URL,\n",
@@ -445,9 +445,9 @@ int
 main(int argc, char **argv)
 {
 	if (getenv("HTTPD_ROOT"))
-		strcpy(rootdir, getenv("HTTPD_ROOT"));
+		strlcpy(rootdir, getenv("HTTPD_ROOT"), XS_PATH_MAX);
 	else
-		strcpy(rootdir, HTTPD_ROOT);
+		strlcpy(rootdir, HTTPD_ROOT, XS_PATH_MAX);
 	alarm(240);
 	if (!(error_code = getenv("ERROR_CODE")) ||
 		!(error_readable = getenv("ERROR_READABLE")) ||

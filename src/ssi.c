@@ -579,12 +579,9 @@ dir_run_cgi(char *here, size_t *size)
 	int		oldhead;
 
 	if ((qs = getenv("QUERY_STRING")))
-	{
-		if ((querystring = malloc(strlen(qs))))
-			strcpy(querystring, qs);
-	}
-		else
-			querystring = NULL;
+		querystring = strdup(qs);
+	else
+		querystring = NULL;
 
 	if (*here != ' ')
 	{

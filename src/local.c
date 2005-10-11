@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: local.c,v 1.15 2005/01/08 13:25:35 johans Exp $ */
+/* $Id: local.c,v 1.16 2005/10/11 20:25:04 johans Exp $ */
 
 
 #include	"config.h"
@@ -37,7 +37,8 @@ transform_user_dir(char *base, const struct passwd *userinfo, int errors)
 		snprintf(base, XS_PATH_MAX, "%s/%s/",
 			userinfo->pw_dir, config.users->htmldir);
 #else		/* BUILD_HTTPD */
-	sprintf(base, "%s/%s/", userinfo->pw_dir, HTTPD_USERDOC_ROOT);
+	snprintf(base, XS_PATH_MAX, "%s/%s/",
+		userinfo->pw_dir, HTTPD_USERDOC_ROOT);
 #endif		/* BUILD_HTTPD */
 	(void) errors;
 	return(0);

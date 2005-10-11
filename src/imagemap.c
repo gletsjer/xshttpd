@@ -15,7 +15,7 @@
 
 	This version by Sven Berkvens (sven@stack.nl).
 */
-/* $Id: imagemap.c,v 1.9 2004/12/02 14:14:39 johans Exp $ */
+/* $Id: imagemap.c,v 1.10 2005/10/11 20:25:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ main(int argc, char **argv)
 
 		if (!strcmp(type, "default") && !sawpoint)
 		{
-			strcpy(def, url);
+			strlcpy(def, url, MYBUFSIZ);
 			continue;
 		}
 
@@ -160,7 +160,7 @@ main(int argc, char **argv)
 			if ((!sawpoint) || (dist < mindist))
 			{
 				mindist = dist;
-				strcpy(def,url);
+				strlcpy(def, url, MYBUFSIZ);
 			}
 			sawpoint++;
 		}

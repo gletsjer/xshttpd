@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.19 2005/10/10 18:40:16 johans Exp $ */
+/* $Id: httpdc.c,v 1.20 2005/10/11 20:25:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -157,7 +157,7 @@ control(const char *args)
 	char		buffer[BUFSIZ], *space;
 	command		*search;
 
-	strcpy(buffer, args);
+	strlcpy(buffer, args, BUFSIZ);
 	space = buffer;
 	while (*space && (*space != 9) && (*space != ' '))
 		space++;
@@ -239,7 +239,7 @@ main(int argc, char **argv)
 	char		*pidfilename = NULL;
 	int		option;
 
-	strcpy(rootdir, HTTPD_ROOT);
+	strlcpy(rootdir, HTTPD_ROOT, BUFSIZ);
 	while ((option = getopt(argc, argv, "d:p:")) != EOF)
 	{
 		switch(option)

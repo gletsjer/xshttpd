@@ -1,5 +1,5 @@
 /* Copyright (C) 2005 by Johan van Selst (johans@stack.nl) */
-/* $Id: ldap.c,v 1.5 2005/10/10 18:40:16 johans Exp $ */
+/* $Id: ldap.c,v 1.6 2005/10/11 20:25:04 johans Exp $ */
 
 #include	"config.h"
 #include	"ldap.h"
@@ -89,8 +89,8 @@ check_auth_ldap(FILE *authfile, const char *user, const char *pass)
 	LDAPMessage	*e;
 	int	ok = 1;
 
-	strcpy (ldapuri, ""); strcpy (ldapdn, ""); strcpy (ldapattr, "uid");
-	strcpy (ldapgroups, ""); ldapversion = 3;
+	ldapuri[0] = ldapdn[0] = ldapattr[0] = ldapgroups[0] = '\0';
+	ldapversion = 3;
 
 	/* LDAP may support empty passwords to do an anonymous bind. That's
 	 * not what our idea of security is ... */
@@ -112,17 +112,17 @@ check_auth_ldap(FILE *authfile, const char *user, const char *pass)
 		while ((ptr = strchr (line, '\r')) != NULL)
 			*ptr = 0;
 		if (!strncasecmp ("ldaphost=", line, 9))
-			sprintf (ldapuri, "ldap://%s", (line + 9));
+			snprintf (ldapuri, MYBUFSIZ, "ldap://%s", (line + 9));
 		if (!strncasecmp ("ldapattr=", line, 9))
-			strcpy (ldapattr, (line + 9));
+			strlcpy (ldapattr, (line + 9), MYBUFSIZ);
 		if (!strncasecmp ("ldapuri=", line, 8))
-			strcpy (ldapuri, (line + 8));
+			strlcpy (ldapuri, (line + 8), MYBUFSIZ);
 		if (!strncasecmp ("ldapdn=", line, 7))
-			strcpy (ldapdn, (line + 7));
+			strlcpy (ldapdn, (line + 7));
 		if (!strncasecmp ("ldapversion=", line, 12))
 			ldapversion = atoi (line + 12);
 		if (!strncasecmp ("ldapgroups=", line, 11))
-			strcpy (ldapgroups, (line + 11));
+			strlcpy (ldapgroups, (line + 11), MYBUFSIZ);
 	}
 
 	if ((!strlen (ldapuri)) || (!strlen(ldapdn)) || (!strlen (ldapattr)))
