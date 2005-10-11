@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: gfxcount.c,v 1.13 2005/10/11 20:25:04 johans Exp $ */
+/* $Id: gfxcount.c,v 1.14 2005/10/11 20:45:54 johans Exp $ */
 
 #include	"config.h"
 
@@ -250,7 +250,7 @@ main(int argc, char **argv)
 	buildpicture();
 	(void)argc;
 	(void)argv;
-	exit(0);
+	return 0;
 }
 
 #else		/* Not PATH_PPMTOGIF */
