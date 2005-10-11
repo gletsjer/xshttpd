@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.107 2005/10/11 20:25:04 johans Exp $ */
+/* $Id: cgi.c,v 1.108 2005/10/11 20:35:48 johans Exp $ */
 
 #include	"config.h"
 
@@ -51,7 +51,6 @@
 
 static	const	char	*skipspaces(const char *);
 static	void		time_is_up(int);
-static	int		eat_content_length(void);
 
 #ifdef		HANDLE_PERL
 const	char *	perlargs[] = { "", NULL };
@@ -67,34 +66,6 @@ skipspaces(const char *string)
 	while ((*string == ' ') || (*string == '\t'))
 		string++;
 	return(string);
-}
-
-static	int
-eat_content_length(void)
-{
-	int		to_read, received;
-	char		*colen, buf[MYBUFSIZ];
-
-	if (!(colen = getenv("CONTENT_LENGTH")))
-		return 0;
-
-	to_read = atoi(colen);
-
-	while (to_read > 0)
-	{
-		if ((received = read(1, buf, MYBUFSIZ)) < 0)
-		{
-			if ((errno == EINTR))
-				continue;
-			else
-			{
-				return 1;
-			}
-		}
-		to_read -= received;
-	}
-
-	return 0;
 }
 
 static	void
@@ -137,7 +108,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
 				request[MYBUFSIZ],
-				*temp, *nextslash,
+				*temp,
 				head[HEADSIZE];
 	const	char		*argv1, *header;
 	int			p[2], r[2], nph, count, dossi,
@@ -153,7 +124,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 #ifdef		HAVE_SETRLIMIT
 	struct	rlimit		limits;
 #endif		/* HAVE_SETRLIMIT */
-	FILE			*auth;
 	struct	sigaction	action;
 
 	child = (pid_t)-1;
