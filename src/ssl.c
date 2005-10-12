@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.5 2005/09/26 18:03:59 johans Exp $ */
+/* $Id: ssl.c,v 1.6 2005/10/12 11:36:41 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -88,6 +88,7 @@ loadssl()
 	SSLeay_add_all_algorithms();
 	SSL_load_error_strings();
 	ssl_ctx = SSL_CTX_new(SSLv23_server_method());
+	(void) SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2);
 	if (!SSL_CTX_use_certificate_file(ssl_ctx,
 			calcpath(cursock->sslcertificate),
 			SSL_FILETYPE_PEM) ||
