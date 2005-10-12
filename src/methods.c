@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.154 2005/10/11 20:25:04 johans Exp $ */
+/* $Id: methods.c,v 1.155 2005/10/12 16:57:32 johans Exp $ */
 
 #include	"config.h"
 
@@ -308,9 +308,12 @@ senduncompressed(int fd)
 #ifdef		WANT_SSI
 	else
 	{
-		size = 0;
+		size_t		usize = 0;
+
 		alarm((size / MINBYTESPERSEC) + 60);
-		errval = sendwithdirectives(fd, (size_t *)&size);
+		errval = sendwithdirectives(fd, (size_t *)&usize);
+		if (usize)
+			size = (int)usize;
 		close(fd);
 		switch(errval)
 		{
