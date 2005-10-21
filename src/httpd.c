@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.199 2005/10/21 15:19:00 johans Exp $ */
+/* $Id: httpd.c,v 1.200 2005/10/21 15:38:54 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ typedef	size_t	socklen_t;
 #define		MAXVHOSTALIASES		32
 
 static char copyright[] =
-"$Id: httpd.c,v 1.199 2005/10/21 15:19:00 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.200 2005/10/21 15:38:54 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1807,7 +1807,7 @@ standalone_socket(int id)
 		if (message503[0])
 		{
 			alarm(180);
-			secprintf("HTTP/1.0 503 Busy\r\nContent-type: text/plain\r\n\r\n");
+			secprintf("HTTP/1.1 503 Busy\r\nContent-type: text/plain\r\n\r\n");
 			secprintf("%s\r\n", message503);
 		} else
 			process_request();
