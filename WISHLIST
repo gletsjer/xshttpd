@@ -1,0 +1,3 @@
+- Finish digcalc.c for digest auth. support
+- Reuse SSL symmetric keys
+- Configurable block on .snapshot dirs
