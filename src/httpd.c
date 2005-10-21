@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.198 2005/10/21 15:00:09 johans Exp $ */
+/* $Id: httpd.c,v 1.199 2005/10/21 15:19:00 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ typedef	size_t	socklen_t;
 #define		MAXVHOSTALIASES		32
 
 static char copyright[] =
-"$Id: httpd.c,v 1.198 2005/10/21 15:00:09 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.199 2005/10/21 15:19:00 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1072,7 +1072,7 @@ server_error(const char *readable, const char *cgi)
 
 	if (!current)
 		current = config.system;
-	if (headonly)
+	if (headonly || getenv("ERROR_CODE"))
 	{
 		error(readable);
 		return;
