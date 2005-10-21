@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.156 2005/10/21 15:00:09 johans Exp $ */
+/* $Id: methods.c,v 1.157 2005/10/21 15:09:45 johans Exp $ */
 
 #include	"config.h"
 
@@ -739,7 +739,7 @@ do_get(char *params)
 		wasdir = 0;
 	if (strstr(file, "/.."))
 	{
-		server_error("403 Invalid path specified", "INVALID_PATH");
+		server_error("403 Invalid path specified", "NOT_AVAILABLE");
 		return;
 	}
 	else if (strstr(file, "/.xs") || strstr(file, "/.noxs") || strstr(file, ".redir") || strstr(file, ".Redir") || strstr(file, ".charset") || strstr(file, ".snapshot"))
@@ -833,7 +833,7 @@ do_get(char *params)
 	}
 	if (userinfo && (statbuf.st_mode & S_IWGRP) && (statbuf.st_mode & S_IWOTH))
 	{
-		server_error("403 Directory permissions deny access", "PERMISSION");
+		server_error("403 Directory permissions deny access", "NOT_AVAILABLE");
 		return;
 	}
 	if (userinfo && statbuf.st_uid && (statbuf.st_uid != geteuid()))
@@ -848,7 +848,7 @@ do_get(char *params)
 	if ((authfile = find_file(orgbase, base, ".noxs")) &&
 		!allowxs(authfile))
 	{
-		server_error("403 Directory is not available", "PERMISSION");
+		server_error("403 Directory is not available", "NOT_AVAILABLE");
 		return;
 	}
 	if (check_redirect(orgparams, base, filename))
@@ -883,7 +883,7 @@ do_get(char *params)
 	if (!lstat(total, &statbuf) && S_ISLNK(statbuf.st_mode) &&
 		userinfo && statbuf.st_uid && (statbuf.st_uid != geteuid()))
 	{
-		server_error("403 Invalid owner of symlink", "PERMISSION");
+		server_error("403 Invalid owner of symlink", "NOT_AVAILABLE");
 		return;
 	}
 	if (stat(total, &statbuf))
@@ -916,13 +916,13 @@ do_get(char *params)
 		}
 		else if (!S_ISDIR(statbuf.st_mode))
 		{
-			server_error("403 Not a regular filename", "PERMISSION");
+			server_error("403 Not a regular filename", "NOT_AVAILABLE");
 			return;
 		}
 		else if (!strcmp(filename, INDEX_HTML) ||
 			!strcmp(file, INDEX_HTML_2))
 		{
-			server_error("403 The index may not be a directory", "PERMISSION");
+			server_error("403 The index may not be a directory", "NOT_AVAILABLE");
 			return;
 		}
 		if (wasdir)
@@ -963,14 +963,14 @@ do_get(char *params)
 		(statbuf.st_mode & (S_IWGRP | S_IWOTH)) &&
 		(statbuf.st_mode & S_IXUSR))
 	{
-		server_error("403 File permissions deny access", "PERMISSION");
+		server_error("403 File permissions deny access", "NOT_AVAILABLE");
 		return;
 	}
 
 	modtime = statbuf.st_mtime;
 	if ((fd = open(total, O_RDONLY, 0)) < 0)
 	{
-		server_error("403 File permissions deny access", "PERMISSION");
+		server_error("403 File permissions deny access", "NOT_AVAILABLE");
 		return;
 	}
 	strlcpy(orig_filename, filename, XS_PATH_MAX);
