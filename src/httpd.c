@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.197 2005/10/12 11:36:41 johans Exp $ */
+/* $Id: httpd.c,v 1.198 2005/10/21 15:00:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ typedef	size_t	socklen_t;
 #define		MAXVHOSTALIASES		32
 
 static char copyright[] =
-"$Id: httpd.c,v 1.197 2005/10/12 11:36:41 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.198 2005/10/21 15:00:09 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -949,7 +949,9 @@ error(const char *message)
 	if (headers)
 	{
 		secprintf("%s %s\r\n", version, message);
-		stdheaders(1, 1, 1);
+		stdheaders(1, 1, 0);
+		if ((env = getenv("HTTP_ALLOW")))
+			secprintf("Allow: %s\r\n\r\n", env);
 	}
 	if (!headonly)
 	{
@@ -1221,7 +1223,7 @@ process_request()
 	unsetenv("HTTP_ACCEPT_LANGUAGE"); unsetenv("HTTP_HOST");
 	unsetenv("HTTP_NEGOTIONATE"); unsetenv("HTTP_PRAGMA");
 	unsetenv("HTTP_CLIENT_IP"); unsetenv("HTTP_VIA");
-	unsetenv("HTTP_AUTHORIZATION");
+	unsetenv("HTTP_AUTHORIZATION"); unsetenv("HTTP_ALLOW");
 	unsetenv("IF_MODIFIED_SINCE"); unsetenv("IF_UNMODIFIED_SINCE");
 	unsetenv("IF_RANGE");
 	unsetenv("SSL_CIPHER");
@@ -1404,8 +1406,7 @@ process_request()
 	}
 	else if (params[0] != '/' && strcmp("OPTIONS", line))
 	{
-		server_error("400 Relative URL's are not supported",
-			"NO_RELATIVE_URLS");
+		server_error("400 Relative URL's are not supported", "BAD_REQUEST");
 		return;
 	}
 	/* SERVER_NAME may be overriden soon */
@@ -1504,7 +1505,7 @@ process_request()
 		do_trace(params);
 	*/
 	else
-		server_error("400 Unknown method", "UNKNOWN_METHOD");
+		server_error("400 Unknown method", "BAD_REQUEST");
 }
 
 static	void

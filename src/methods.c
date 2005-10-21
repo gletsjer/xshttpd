@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.155 2005/10/12 16:57:32 johans Exp $ */
+/* $Id: methods.c,v 1.156 2005/10/21 15:00:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -737,9 +737,14 @@ do_get(char *params)
 		wasdir = (file[strlen(file) - 1] == '/');
 	else
 		wasdir = 0;
-	if (strstr(file, "/..") || strstr(file, "/.xs") || strstr(file, "/.noxs") || strstr(file, ".redir") || strstr(file, ".Redir") || strstr(file, ".charset") || strstr(file, ".snapshot"))
+	if (strstr(file, "/.."))
 	{
 		server_error("403 Invalid path specified", "INVALID_PATH");
+		return;
+	}
+	else if (strstr(file, "/.xs") || strstr(file, "/.noxs") || strstr(file, ".redir") || strstr(file, ".Redir") || strstr(file, ".charset") || strstr(file, ".snapshot"))
+	{
+		server_error("404 Requested URL not found", "NOT_FOUND");
 		return;
 	}
 
@@ -823,12 +828,12 @@ do_get(char *params)
 	/* Check for directory permissions */
 	if (stat(base, &statbuf))
 	{
-		error("404 Requested URL not found");
+		server_error("404 Requested URL not found", "NOT_FOUND");
 		return;
 	}
 	if (userinfo && (statbuf.st_mode & S_IWGRP) && (statbuf.st_mode & S_IWOTH))
 	{
-		error("403 User directory is world-writable");
+		server_error("403 Directory permissions deny access", "PERMISSION");
 		return;
 	}
 	if (userinfo && statbuf.st_uid && (statbuf.st_uid != geteuid()))
@@ -843,7 +848,7 @@ do_get(char *params)
 	if ((authfile = find_file(orgbase, base, ".noxs")) &&
 		!allowxs(authfile))
 	{
-		server_error("403 Directory is not available", "DIR_NOT_AVAIL");
+		server_error("403 Directory is not available", "PERMISSION");
 		return;
 	}
 	if (check_redirect(orgparams, base, filename))
@@ -878,7 +883,7 @@ do_get(char *params)
 	if (!lstat(total, &statbuf) && S_ISLNK(statbuf.st_mode) &&
 		userinfo && statbuf.st_uid && (statbuf.st_uid != geteuid()))
 	{
-		error("403 Invalid owner of symlink");
+		server_error("403 Invalid owner of symlink", "PERMISSION");
 		return;
 	}
 	if (stat(total, &statbuf))
@@ -911,13 +916,13 @@ do_get(char *params)
 		}
 		else if (!S_ISDIR(statbuf.st_mode))
 		{
-			server_error("403 Not a regular filename", "NOT_REGULAR");
+			server_error("403 Not a regular filename", "PERMISSION");
 			return;
 		}
 		else if (!strcmp(filename, INDEX_HTML) ||
 			!strcmp(file, INDEX_HTML_2))
 		{
-			error("403 The index may not be a directory");
+			server_error("403 The index may not be a directory", "PERMISSION");
 			return;
 		}
 		if (wasdir)
@@ -958,7 +963,7 @@ do_get(char *params)
 		(statbuf.st_mode & (S_IWGRP | S_IWOTH)) &&
 		(statbuf.st_mode & S_IXUSR))
 	{
-		error("403 User executable can be written by others");
+		server_error("403 File permissions deny access", "PERMISSION");
 		return;
 	}
 
@@ -983,7 +988,7 @@ do_get(char *params)
 			strlen(temp) == strlen(isearch->ext))
 		{
 			if (!strcmp(isearch->prog, "internal:404"))
-				error("404 Requested URL not found");
+				server_error("404 Requested URL not found", "NOT_FOUND");
 			else if (!strcmp(isearch->prog, "internal:text"))
 			{
 				script = -1;
@@ -1018,8 +1023,8 @@ do_get(char *params)
 
 	if (postonly)
 	{
-		server_error("403 Cannot use POST method on non-CGI",
-			"POST_ON_NON_CGI");
+		server_error("405 Method not allowed", "METHOD_NOT_ALLOWED");
+		setenv("HTTP_ALLOW", "GET, HEAD", 1);
 		close(fd);
 		return;
 	}
