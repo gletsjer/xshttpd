@@ -152,15 +152,18 @@ file in which the server will place references to local files.
 This option disables reading of the configuration file and writing of
 logfiles and pidfile. This can be useful for testing, non-superuser
 execution or in combination with the -m option.
+.TP
+.B \-v
+Shows the server version number and certain compile options.
+This does not launch a daemon but exits immediately.
 .LP
 .SH EXAMPLE
 A typical startup sequence could be:
 .LP
-httpd \-n 64 \-u http \-g www \-s
+httpd \-n 64 \-u http \-g www
 .LP
 which will start 64 servers (64 concurrent connections possible),
 and run it under user ID http and group ID www.
-It wil listen to port 443 for https (SSL) connections.
 .SH Other features
 .SH Automatic decompression
 One of the nice features of the WWW server is automatic decompression.
@@ -313,19 +316,19 @@ Sets the character set for a specific file (see *.redir).
 This file lets a user override the contents of the global
 \fImime.types\fP file. The syntax of this file is exactly the
 same as that for the global configuration file, but it applies
-(recurively) to the local directories.
+(recursively) to the local subdirectories.
 .TP
 \fB .xsauth\fP
-If this file exists, all files in that directory (NOT the
-subdirectories) are protected by usercode/password
+If this file exists, all files in that directory and
+subdirectories are protected by usercode/password
 combinations. Read the manual page of xspasswd for more
 details about this.
 .TP
 \fB .xsscripts
 This file lets a user override the contents of the global
 \fIscript.methods\fP file. The syntax of this file is exactly the
-same as that for the global configuration file, but it applies
-(recurively) to the local directories.
+same as that for the global configuration file and it applies
+(recursively) to the local subdirectories.
 .LP
 .SH XS\-HTTPD SSI's
 One of the most advanced features of this WWW server is its
@@ -616,17 +619,7 @@ information, it will set REMOTE_ADDR and leave this unset.
 .TP
 .B REMOTE_ADDR
 The IP address in text of the remote host making the request.
-.TP
-.B HTTP_CLIENT_IP
-The IP address of the user's machine in case a HTTP proxy is being
-used. In this case REMOTE_ADDR shows the address of the proxy
-server. This information is taken from either the Client-IP: or the
-X-Forwarded-For: header. Note that some non-compliant proxy's may
-not set either of these headers.
-.TP
-.B HTTP_VIA
-The full information from the Via: header which may be added by a
-webproxy.
+See also HTTP_CLIENT_IP and HTTP_VIA below.
 .TP
 .B AUTH_TYPE
 If the server supports user authentication, and the script is
@@ -674,8 +667,18 @@ The encoding types the client can decode without user intervention
 The natural document language that the client (user) prefers.
 .TP
 .B HTTP_HOST
-The host that the client wishes to retreive data from (currently ignored
-by the server).
+The hostname that the client wishes to retrieve data from.
+.TP
+.B HTTP_CLIENT_IP
+The IP address of the user's machine in case a HTTP proxy is being
+used. In this case REMOTE_ADDR shows the address of the proxy
+server. This information is taken from either the Client-IP: or the
+X-Forwarded-For: header. Note that some non-compliant proxy's may
+not set either of these headers.
+.TP
+.B HTTP_VIA
+The full information from the Via: header which may be added by a
+webproxy.
 .LP
 By default the output of a CGI script is not parsed for server-side
 includes. Usually there is no point, because CGI allows you to do all
@@ -701,53 +704,35 @@ A few environment variables are set before \fBerror\fP is called:
 This variable is set to one of the following values:
 .TP
 o
-.B USER_UNKNOWN
-\- the specified user is unknown
-.TP
-o
-.B POST_ON_NON_CGI
-\- a POST method was attempted to
-a non\-CGI binary
-.TP
-o
-.B INVALID_PATH
-\- an invalid path was specified,
-for example one with \fB..\fP in it
-.TP
-o
-.B DIR_NOT_AVAIL
-\- the directory is protected by
-a \fB.noxs\fP file
-.TP
-o
-.B NOT_REGULAR
-\- the file to be retrieved is not a
-regular file
-.TP
-o
-.B PERMISSION
-\- the file's permission deny access to
-the file
-.TP
-o
 .B NOT_FOUND
 \- the requested file cannot be found
-.TP
-o
-.B NO_RELATIVE_URLS
-\- URL not starting with a /
-are not supported
-.TP
-o
-.B UNKNOWN_METHOD
-\- the requested method is not
-\fBPOST\fP, \fBGET\fP or \fBHEAD\fP.
 .TP
 o
 .B UNAUTHORIZED
 \- the user has attempted to access a file that is protected by a
 username and password combination. The user has filled in wrong
 username/password combination.
+.TP
+o
+.B NOT_AVAILABLE
+\- the filesystem permission deny access to the file
+.TP
+o
+.B USER_UNKNOWN
+\- the specified user is unknown
+.TP
+o
+.B BAD_REQUEST
+\- the client sent a request that cannot be processed by the server
+.TP
+o
+.B METHOD_NOT_ALLOWED
+\- a POST method was attempted to a non\-CGI binary
+.TP
+o
+.B PRECONDITION_FAILED
+\- the client sent a conditional request (If-...)
+for which the condition is not met.
 .TP
 .B ERROR_READABLE
 This variable contains the text that the server would
