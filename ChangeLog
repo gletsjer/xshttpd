@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.3 beta 34
+- Once again fix handling of virtual uids
+
 Changes since 3.3 beta 33
 - Remove duplicated authorization checks for CGI
 - Remove SSLv2 compatibility: keep SSLv3 and TLSv1

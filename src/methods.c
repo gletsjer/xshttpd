@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.157 2005/10/21 15:09:45 johans Exp $ */
+/* $Id: methods.c,v 1.158 2005/10/26 13:00:17 johans Exp $ */
 
 #include	"config.h"
 
@@ -701,24 +701,16 @@ do_get(char *params)
 		}
 		strlcat(base, "/", XS_PATH_MAX);
 
-		if (config.usevirtualuid && current->userid && current->groupid)
-		{
-			setegid(current->groupid);
-			setgroups(1, (const gid_t *)&current->groupid);
-			seteuid(current->userid);
-		}
-		else if (!origeuid)
-		{
-			setegid(config.system->groupid);
-			setgroups(1, &config.system->groupid);
-			seteuid(config.system->userid);
-		}
+		/* set euid if it wasn't set yet */
+		setegid(current->groupid);
+		setgroups(1, (const gid_t *)&current->groupid);
+		seteuid(current->userid);
 		if (!geteuid())
 		{
 			error("500 Effective UID is not valid");
 			return;
 		}
-		if ((userinfo = getpwuid(current->userid)))
+		if ((userinfo = getpwuid(geteuid())))
 		{
 			setenv("USER", userinfo->pw_name, 1);
 			setenv("HOME", base, 1);
@@ -809,6 +801,7 @@ do_get(char *params)
 		filename = file;
 
 	RETRY:
+	/* Switch userid to system default if .xsuid exists */
 	snprintf(total, XS_PATH_MAX, "%s/.xsuid", base);
 	if (!stat(total, &statbuf))
 	{

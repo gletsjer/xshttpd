@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.108 2005/10/11 20:35:48 johans Exp $ */
+/* $Id: cgi.c,v 1.109 2005/10/26 13:00:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -234,34 +234,17 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		for (count = 3; count < 64; count++)
 			close(count);
 
+		/* euid should be set, now fix uid */
 		if (!origeuid)
 		{
-			/* Set uid first, euid later! */
-			uid_t uid = geteuid();
-			gid_t gid = getegid();
-			if (current != config.users)
-			{
-				uid = current->userid;
-				gid = current->groupid;
-			}
-
-			/* mind you, we need to do this as root */
-			seteuid(origeuid);
-			setegid(origegid);
-			setgid(gid);
-			setegid(gid);
-			setuid(uid);
-			seteuid(uid);
-			if (uid != geteuid() || gid != getegid())
-			{
-				secprintf("Content-type: text/plain\r\n\r\n");
-				secprintf("[Invalid UID setting]\n");
-				secprintf("UID = %ld, EUID = %ld\n",
-					(long)getuid(), (long)geteuid());
-				secprintf("GID = %ld, EGID = %ld\n",
-					(long)getgid(), (long)getegid());
-				exit(1);
-			}
+			setuid(geteuid());
+			setgid(getegid());
+		}
+		if (!geteuid())
+		{
+			secprintf("Content-type: text/plain\r\n\r\n");
+			secprintf("[Invalid euid setting]\n");
+			exit(1);
 		}
 		setenv("PATH", SCRIPT_PATH, 1);
 		if (chdir(base))
