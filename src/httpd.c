@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.200 2005/10/21 15:38:54 johans Exp $ */
+/* $Id: httpd.c,v 1.201 2005/10/26 15:25:38 johans Exp $ */
 
 #include	"config.h"
 
@@ -99,7 +99,7 @@ typedef	size_t	socklen_t;
 #define		MAXVHOSTALIASES		32
 
 static char copyright[] =
-"$Id: httpd.c,v 1.200 2005/10/21 15:38:54 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.201 2005/10/26 15:25:38 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -980,11 +980,16 @@ redirect(const char *redir, int permanent)
 	}
 	if (!headonly)
 	{
-		secprintf("\r\n<HTML><HEAD><TITLE>Document has moved</TITLE></HEAD>");
-		secprintf("<BODY>\n<H1>Document has moved</H1>This document has ");
-		secprintf("%smoved to <A HREF=\"%s%s%s\">%s</A>.</BODY></HTML>\n",
-			permanent ? "permanently " : "", redir,
-			env ? "?" : "", env ? env : "", redir);
+		secprintf("\r\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+		secprintf("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
+			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n");
+		secprintf("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n");
+		secprintf("<head><title>Document has moved</title></head>\n");
+		secprintf("<body><h1>Document has moved</h1>\n");
+		secprintf("<p>This document has %smoved to ",
+			permanent ?  "permanently " : "");
+		secprintf("<a href=\"%s%s%s\">%s</a>.</p></body></html>\n",
+			redir, env ? "?" : "", env ? env : "", redir);
 	}
 	fflush(stdout);
 }
@@ -1004,9 +1009,13 @@ check_auth(FILE *authfile)
 			secprintf("WWW-authenticate: basic realm=\"this page\"\r\n");
 			stdheaders(1, 1, 1);
 		}
-		secprintf("\r\n<HTML><HEAD><TITLE>Unauthorized</TITLE></HEAD>\n");
-		secprintf("<BODY><H1>Unauthorized</H1>\nYour client does not ");
-		secprintf("understand authentication.\n</BODY></HTML>\n");
+		secprintf("\r\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+		secprintf("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
+			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n");
+		secprintf("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n");
+		secprintf("<head><title>Unauthorized</title></head>\n");
+		secprintf("<body><h1>Unauthorized</h1><p>Your client \n");
+		secprintf("does not understand authentication</body></html>\n");
 		fclose(authfile); return(1);
 	}
 	strlcpy(line, env, MYBUFSIZ);
