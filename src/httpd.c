@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.201 2005/10/26 15:25:38 johans Exp $ */
+/* $Id: httpd.c,v 1.202 2005/10/27 19:15:01 johans Exp $ */
 
 #include	"config.h"
 
@@ -72,11 +72,13 @@
 #ifdef		AUTH_LDAP
 #include	"ldap.h"
 #endif		/* AUTH_LDAP */
+#ifndef		HAVE_SETPROCTITLE
+#include	"setproctitle.h"
+#endif		/* HAVE_SETPROCTITLE */
 
 #include	"httpd.h"
 #include	"decode.h"
 #include	"methods.h"
-#include	"procname.h"
 #include	"extra.h"
 #include	"cgi.h"
 #include	"ssl.h"
@@ -86,7 +88,6 @@
 #include	"setenv.h"
 #include	"local.h"
 #include	"mystring.h"
-#include	"mygetopt.h"
 #include	"htconfig.h"
 
 #ifndef		HAVE_SOCKLEN_T
@@ -99,7 +100,7 @@ typedef	size_t	socklen_t;
 #define		MAXVHOSTALIASES		32
 
 static char copyright[] =
-"$Id: httpd.c,v 1.201 2005/10/26 15:25:38 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.202 2005/10/27 19:15:01 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1567,7 +1568,7 @@ standalone_socket(int id)
 	struct	rlimit		limit;
 #endif		/* HAVE_SETRLIMIT */
 
-	setprocname("xs(MAIN): Initializing deamons...");
+	setproctitle("xs(MAIN): Initializing deamons...");
 
 #ifdef		HAVE_GETADDRINFO
 	memset(&hints, 0, sizeof(hints));
@@ -1671,10 +1672,10 @@ standalone_socket(int id)
 	fflush(stdout);
 	while (1)
 	{
-		setprocname("xs(MAIN-%c): Waiting for dead children", id);
+		setproctitle("xs(MAIN-%c): Waiting for dead children", id);
 		while (mysleep(30))
 			/* NOTHING HERE */;
-		setprocname("xs(MAIN-%c): Searching for dead children", id);
+		setproctitle("xs(MAIN-%c): Searching for dead children", id);
 		for (count = 0; count < cursock->instances; count++)
 		{
 			if (kill(childs[count], 0))
@@ -1721,14 +1722,14 @@ standalone_socket(int id)
 			exit(1);
 		}
 
-		setprocname("xs(%c%d): [Reqs: %06d] Setting up myself to accept a connection",
+		setproctitle("xs(%c%d): [Reqs: %06d] Setting up myself to accept a connection",
 			id, count + 1, reqs);
 		if (!origeuid && (seteuid(origeuid) == -1))
 			err(1, "seteuid(%ld) failed", (long)origeuid);
 		if (!origeuid && (setegid(origegid) == -1))
 			err(1, "setegid(%ld) failed", (long)origegid);
 		filedescrs();
-		setprocname("xs(%c%d): [Reqs: %06d] Waiting for a connection...",
+		setproctitle("xs(%c%d): [Reqs: %06d] Waiting for a connection...",
 			id, count + 1, reqs);
 		clen = sizeof(saddr);
 		if ((csd = accept(sd, (struct sockaddr *)&saddr, &clen)) < 0)
@@ -1741,7 +1742,7 @@ standalone_socket(int id)
 				exit(1);
 			continue;
 		}
-		setprocname("xs(%c%d): [Reqs: %06d] accept() gave me a connection...",
+		setproctitle("xs(%c%d): [Reqs: %06d] accept() gave me a connection...",
 			id, count + 1, reqs);
 		if (fcntl(csd, F_SETFL, 0))
 			warn("fcntl() in standalone_main");
@@ -1811,7 +1812,7 @@ standalone_socket(int id)
 #endif		/* HAVE_GETADDRINFO */
 #endif		/* HAVE GETNAMEINFO */
 		initssl(csd);
-		setprocname("xs(%d): Connect from `%s'", count + 1, remotehost);
+		setproctitle("xs(%d): Connect from `%s'", count + 1, remotehost);
 		setcurrenttime();
 		if (message503[0])
 		{
@@ -2053,7 +2054,9 @@ main(int argc, char **argv)
 	if (gid)
 		config.system->groupid = gid;
 
-	initsetprocname(argc, argv);
+#ifndef		HAVE_SETPROCTITLE
+	initproctitle(argc, argv);
+#endif		/* HAVE_SETPROCTITLE */
 	setup_environment();
 	standalone_main();
 	(void)copyright;

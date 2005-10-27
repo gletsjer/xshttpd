@@ -14,7 +14,6 @@
 #endif		/* HAVE_ERR_H */
 
 #include	"mystring.h"
-#include	"mygetopt.h"
 
 typedef	struct	mime
 {

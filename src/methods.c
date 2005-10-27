@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.158 2005/10/26 13:00:17 johans Exp $ */
+/* $Id: methods.c,v 1.159 2005/10/27 19:15:01 johans Exp $ */
 
 #include	"config.h"
 
@@ -67,6 +67,9 @@
 #include	<EXTERN.h>
 #include	<perl.h>
 #endif		/* HANDLE_PERL */
+#ifndef		HAVE_SETPROCTITLE
+#include	"setproctitle.h"
+#endif		/* HAVE_SETPROCTITLE */
 #ifndef		s6_addr32
 #define		s6_addr32	__u6_addr.__u6_addr32
 #endif		/* s6_addr32 */
@@ -81,7 +84,6 @@
 #include	"httpd.h"
 #include	"methods.h"
 #include	"local.h"
-#include	"procname.h"
 #include	"ssi.h"
 #include	"ssl.h"
 #include	"extra.h"
@@ -89,7 +91,6 @@
 #include	"xscrypt.h"
 #include	"path.h"
 #include	"setenv.h"
-#include	"mygetopt.h"
 #include	"mystring.h"
 #include	"htconfig.h"
 #ifdef		HAVE_PCRE
@@ -621,7 +622,7 @@ do_get(char *params)
 			break;
 
 	strlcpy(real_path, params, XS_PATH_MAX);
-	setprocname("xs: Handling `%s' from `%s'", real_path, remotehost);
+	setproctitle("xs: Handling `%s' from `%s'", real_path, remotehost);
 	userinfo = NULL;
 
 	if (params[1] == '~')

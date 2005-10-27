@@ -1,8 +1,8 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT
 AC_CONFIG_SRCDIR([src/httpd.c])
-AM_INIT_AUTOMAKE(xshttpd, 33b35)
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.35", [Server version])
+AM_INIT_AUTOMAKE(xshttpd, 34b01)
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.4 beta/0.01", [Server version])
 AC_CONFIG_HEADERS([config.h])
 
 dnl Checks for programs.
@@ -47,10 +47,10 @@ dnl AC_FUNC_SETVBUF_REVERSED
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_FUNC_WAIT3
-AC_CHECK_FUNCS(gethostname mktime select strcasestr strerror strpbrk strstr)
+AC_CHECK_FUNCS(gethostname mktime select strerror strpbrk strstr)
 
 dnl SEPERATOR
-AC_CHECK_FUNCS(getaddrinfo getnameinfo killpg mkstemp mmap sendfile seteuid setegid setresuid setresgid setrlimit setsid setpriority sigemptyset tempnam vfork setproctitle uname)
+AC_CHECK_FUNCS(getaddrinfo getnameinfo killpg mkstemp mmap sendfile seteuid setegid setresuid setresgid setrlimit setsid setpriority sigemptyset tempnam vfork uname)
 
 dnl Prog specific checks
 if test x$prefix = xNONE
@@ -73,7 +73,7 @@ XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)
 XS_FUNC_IN_LIB(MD5Init, HAVE_MD5, md, httpd)
 AM_CONDITIONAL([MD5], [test x$ac_cv_lib_md_MD5Init = xyes])
-AC_REPLACE_FUNCS(err setenv setgroups strlcat strlcpy strptime strsep snprintf)
+AC_REPLACE_FUNCS(err setenv setgroups setproctitle strlcat strcasestr strlcpy strptime strsep snprintf)
 
 XS_CHECK_WITH(pcre, PCRE support, no)
 if test x${with_pcre} = xyes

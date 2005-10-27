@@ -5,7 +5,7 @@ noinst_LIBRARIES = libxs.a
 httpd_SOURCES = httpd.c cgi.c convert.c local.c methods.c ssi.c ssl.c
 error_SOURCES = error.c local.c
 
-libxs_a_SOURCES = decode.c extra.c path.c procname.c xscrypt.c
+libxs_a_SOURCES = decode.c extra.c path.c xscrypt.c
 if MD5
 httpd_SOURCES += digcalc.c 
 endif
@@ -28,6 +28,6 @@ DEFAULT_INCLUDES =
 EXTRA_DIST = cgi.h config.h confpatch.h confuser.h convert.h decode.h \
 	digcalc.h err.h extra.h htconfig.h httpd.h ldap.h local.h methods.h \
 	mygetopt.h mystring.h \
-	path.h pcre.h procname.h setenv.h ssi.h ssl.h xscounter.h xscrypt.h
+	path.h pcre.h setenv.h setproctitle.h ssi.h ssl.h xscounter.h xscrypt.h
 
 EXTRA_DIST += digcalc.c ldap.c pcre.c

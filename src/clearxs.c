@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: clearxs.c,v 1.8 2005/10/11 20:25:04 johans Exp $ */
+/* $Id: clearxs.c,v 1.9 2005/10/27 19:15:00 johans Exp $ */
 
 #include	"config.h"
 
@@ -18,7 +18,6 @@
 #include	<pwd.h>
 
 #include	"xscounter.h"
-#include	"mygetopt.h"
 
 #define		MODE_TODAY	0
 #define		MODE_MONTH	1

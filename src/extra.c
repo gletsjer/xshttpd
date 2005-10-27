@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: extra.c,v 1.16 2005/09/22 18:11:59 johans Exp $ */
+/* $Id: extra.c,v 1.17 2005/10/27 19:15:01 johans Exp $ */
 
 #include	"config.h"
 
@@ -23,35 +23,6 @@
 #include	"local.h"
 #include	"httpd.h"
 #include	"mystring.h"
-
-#ifndef		HAVE_STRCASESTR
-const	char	*
-strcasestr(const char *big, const char *little)
-{
-	size_t		len;
-	char		*search, *newbig, *newlittle;
-	const char	*result;
-
-	if (!(newbig = strdup(big)))
-		return(NULL);
-	if (!(newlittle = strdup(little)))
-	{
-		free(newbig);
-		return(NULL);
-	}
-
-	for (search = newlittle; *search; search++)
-		if (isupper(*search))
-			*search = tolower(*search);
-	for (search = newbig; *search; search++)
-		if (isupper(*search))
-			*search = tolower(*search);
-	search = strstr(newbig, newlittle);
-	result = search ? big + (search - newbig) : NULL;
-	free(newbig); free(newlittle);
-	return(result);
-}
-#endif		/* HAVE_STRCASESTR */
 
 int
 mysleep(int seconds)
@@ -135,19 +106,3 @@ match_list(char *list, const char *browser)
 	return(0);
 }
 
-#ifndef		HAVE_STRERROR
-
-#if		!HAVE_DECL_SYS_ERRLIST
-extern	char		*sys_errlist[];
-extern	const	int	sys_nerr;
-#endif		/* HAVE_DECL_SYS_ERRLIST */
-
-const	char	*
-strerror(int code)
-{
-	if ((code < 0) || (code > sys_nerr))
-		return("Undefined error");
-	else
-		return(sys_errlist[code]);
-}
-#endif		/* HAVE_STRERROR */

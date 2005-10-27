@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: procname.c,v 1.22 2005/10/27 11:15:56 johans Exp $ */
+/* $Id: setproctitle.c,v 1.1 2005/10/27 19:15:01 johans Exp $ */
 
 #include	"config.h"
 
@@ -31,7 +31,7 @@
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
 
-#include	"procname.h"
+#include	"setproctitle.h"
 
 #if		!HAVE_DECL_ENVIRON
 extern	char	**environ;
@@ -39,9 +39,8 @@ extern	char	**environ;
 
 static	char	*procnamestart, *procnameend;
 
-#ifndef		HAVE_SETPROCTITLE
 void
-setprocname(const char *name, ...)
+setproctitle(const char *name, ...)
 {
 	va_list		ap;
 	static	char	buffer[256];
@@ -90,10 +89,9 @@ setprocname(const char *name, ...)
 #endif		/* PSTAT_SETCMD */
 #endif		/* PS_STRINGS */
 }
-#endif		/* HAVE_SETPROCTITLE */
 
 void
-initsetprocname(int argc, char **argv)
+initproctitle(int argc, char **argv)
 {
 #ifndef		PS_STRINGS
 	/* start with empty environment */
@@ -105,7 +103,7 @@ initsetprocname(int argc, char **argv)
 	procnameend = argv[argc - 1] + strlen(argv[argc - 1]);
 	procnamestart = argv[0];
 	argv[1] = NULL;
-	setprocname("xs: Process name initialized...");
+	setproctitle("xs: Process name initialized...");
 #else		/* Not PS_STRINGS */
 	procnamestart = procnameend = NULL;
 #endif		/* PS_STRINGS */

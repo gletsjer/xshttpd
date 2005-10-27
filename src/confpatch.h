@@ -57,7 +57,8 @@
 #endif		/* HAVE_SETEGID */
 
 #ifdef		__GNUC__
-#define		PRINTF_LIKE(f, p)	__attribute__ ((format (printf, f, p)))
+#define		PRINTF_LIKE(f, p)	__attribute__ ((format (printf, (f), (p))))\
+					__attribute__ ((__nonnull__ (f)))
 #define		CONST_FUNC		__attribute__ ((const))
 #define		NORETURN		__attribute__ ((noreturn))
 #else
