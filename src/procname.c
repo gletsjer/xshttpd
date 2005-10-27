@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: procname.c,v 1.21 2005/10/27 11:03:16 johans Exp $ */
+/* $Id: procname.c,v 1.22 2005/10/27 11:15:56 johans Exp $ */
 
 #include	"config.h"
 
@@ -18,9 +18,6 @@
 #include	<sys/sysnews.h>
 #endif		/* HAVE_SYS_SYSNEWS_H */
 
-#ifdef		HAVE_SYS_LOCK_H
-#include	<sys/lock.h>
-#endif		/* HAVE_SYS_LOCK_H */
 #ifdef		HAVE_SYS_TIME_H
 #include	<sys/time.h>
 #endif		/* HAVE_SYS_TIME_H */

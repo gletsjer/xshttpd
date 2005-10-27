@@ -75,9 +75,6 @@
 /* Define to 1 if you have the `ldap_initialize' function. */
 #undef HAVE_LDAP_INITIALIZE
 
-/* Define to 1 if you have the <machine/vmparam.h> header file. */
-#undef HAVE_MACHINE_VMPARAM_H
-
 /* Define to 1 if you have the `md' functions. */
 #undef HAVE_MD5
 
@@ -210,9 +207,6 @@
 /* Define to 1 if you have the <sys/exec.h> header file. */
 #undef HAVE_SYS_EXEC_H
 
-/* Define to 1 if you have the <sys/lock.h> header file. */
-#undef HAVE_SYS_LOCK_H
-
 /* Define to 1 if you have the <sys/mman.h> header file. */
 #undef HAVE_SYS_MMAN_H
 
@@ -266,12 +260,6 @@
 
 /* Define to 1 if you have the <vfork.h> header file. */
 #undef HAVE_VFORK_H
-
-/* Define to 1 if you have the <vm/pmap.h> header file. */
-#undef HAVE_VM_PMAP_H
-
-/* Define to 1 if you have the <vm/vm.h> header file. */
-#undef HAVE_VM_VM_H
 
 /* Define to 1 if you have the `vprintf' function. */
 #undef HAVE_VPRINTF
