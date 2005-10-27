@@ -1,8 +1,8 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT
 AC_CONFIG_SRCDIR([src/httpd.c])
-AM_INIT_AUTOMAKE(xshttpd, 33b34)
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.34", [Server version])
+AM_INIT_AUTOMAKE(xshttpd, 33b35)
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.3 beta/0.35", [Server version])
 AC_CONFIG_HEADERS([config.h])
 
 dnl Checks for programs.
@@ -27,7 +27,7 @@ dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 
-AC_CHECK_HEADERS(alloca.h crypt.h err.h sys/exec.h getopt.h fcntl.h memory.h pcre.h pcre/pcre.h sys/mman.h sys/param.h sys/pstat.h sys/resource.h sys/select.h sys/syslimits.h sys/sysmips.h sys/sysnews.h sys/lock.h sys/time.h time.h vfork.h vm/vm.h vm/pmap.h machine/vmparam.h)
+AC_CHECK_HEADERS(alloca.h crypt.h err.h sys/exec.h getopt.h fcntl.h memory.h pcre.h pcre/pcre.h sys/mman.h sys/param.h sys/pstat.h sys/resource.h sys/select.h sys/syslimits.h sys/sysmips.h sys/sysnews.h sys/lock.h sys/time.h time.h vfork.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST

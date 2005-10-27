@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: procname.c,v 1.20 2005/10/05 18:40:41 johans Exp $ */
+/* $Id: procname.c,v 1.21 2005/10/27 11:03:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -9,15 +9,6 @@
 #include	<sys/param.h>
 #endif		/* HAVE_SYS_PARAM_H */
 #ifdef		HAVE_SYS_PSTAT_H
-/* This is stupid but keeps the warnings away */
-struct		pst_status;
-struct		pst_dynamic;
-struct		pst_static;
-struct		pst_vminfo;
-struct		pst_diskinfo;
-struct		pst_processor;
-struct		pst_lv;
-struct		pst_swapinfo;
 #include	<sys/pstat.h>
 #endif		/* HAVE_SYS_PSTAT_H */
 #ifdef		HAVE_SYS_SYSMIPS_H
@@ -27,22 +18,12 @@ struct		pst_swapinfo;
 #include	<sys/sysnews.h>
 #endif		/* HAVE_SYS_SYSNEWS_H */
 
-#ifdef		HAVE_VM_VM_H
-#include	<vm/vm.h>
-#endif		/* HAVE_VM_VM_H */
-
 #ifdef		HAVE_SYS_LOCK_H
 #include	<sys/lock.h>
 #endif		/* HAVE_SYS_LOCK_H */
 #ifdef		HAVE_SYS_TIME_H
 #include	<sys/time.h>
 #endif		/* HAVE_SYS_TIME_H */
-#ifdef		HAVE_VM_PMAP_H
-#include	<vm/pmap.h>
-#endif		/* HAVE_VM_PMAP_H */
-#ifdef		HAVE_MACHINE_VMPARAM_H
-#include	<machine/vmparam.h>
-#endif		/* HAVE_MACHINE_VMPARAM_H */
 
 #include	<stdio.h>
 #include	<unistd.h>
