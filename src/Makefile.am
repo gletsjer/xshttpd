@@ -27,7 +27,7 @@ DEFAULT_INCLUDES =
 
 EXTRA_DIST = cgi.h config.h confpatch.h confuser.h convert.h decode.h \
 	digcalc.h err.h extra.h htconfig.h httpd.h ldap.h local.h methods.h \
-	mygetopt.h mystring.h \
-	path.h pcre.h setenv.h setproctitle.h ssi.h ssl.h xscounter.h xscrypt.h
+	mystring.h path.h pcre.h setenv.h setproctitle.h \
+	ssi.h ssl.h xscounter.h xscrypt.h
 
 EXTRA_DIST += digcalc.c ldap.c pcre.c

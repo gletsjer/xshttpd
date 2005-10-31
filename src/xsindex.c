@@ -281,14 +281,12 @@ main(int argc, char **argv)
 	remove(INDEX_HTML);
 	if (!(output = fopen(INDEX_HTML, "w")))
 		err(1, "fopen(%s)", INDEX_HTML);
-	/* maybe add this when it actually validates...
-	fprintf(output, "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 "
-		"Transitional//EN\"\n"
-		"\t\"http://www.w3c.org/TR/html4/loose.dtd\">\n");
-	 */
-	fprintf(output, "<HTML><HEAD><TITLE>%s</TITLE></HEAD><BODY>\n",
+	fprintf(output, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+	fprintf(output, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
+		"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n");
+	fprintf(output, "<html><head><title>%s</title></head><body>\n",
 		argv[optind]);
-	fprintf(output, "<H1>%s</H1><HR><PRE>\n", argv[optind]);
+	fprintf(output, "<h1>%s</h1>\n<hr />\n<pre>", argv[optind]);
 
 	for (count = 0; count < amount; count++)
 	{
@@ -298,14 +296,14 @@ main(int argc, char **argv)
 			search = findmime(".directory.");
 		else
 			search = findmime(listing[count]);
-		fprintf(output, "<A HREF=\"%s\">", encode(listing[count]));
-		fprintf(output, "<IMG SRC=\"%s\" ", encode(search->icon));
-		fprintf(output, "ALT=\"[%s]%*.*s\">", encode(search->alt),
+		fprintf(output, "<a href=\"%s\">", encode(listing[count]));
+		fprintf(output, "<img src=\"%s\" ", encode(search->icon));
+		fprintf(output, "alt=\"[%s]%*.*s\" />", encode(search->alt),
 			(int)(max_mimealt - strlen(search->alt)),
 			(int)(max_mimealt - strlen(search->alt)), "");
-		fprintf(output, "</A>  ");
-		fprintf(output, "<A HREF=\"%s\">", encode(listing[count]));
-		fprintf(output, "%s</A>%*.*s    ", encode(listing[count]),
+		fprintf(output, "</a>  ");
+		fprintf(output, "<a href=\"%s\">", encode(listing[count]));
+		fprintf(output, "%s</a>%*.*s    ", encode(listing[count]),
 			(int)(max_filename - strlen(listing[count])),
 			(int)(max_filename - strlen(listing[count])), "");
 		switch(show_type)
@@ -326,7 +324,7 @@ main(int argc, char **argv)
 				neatsize((long)(statbuf.st_size)));
 		fprintf(output, "\n");
 	}
-	fprintf(output, "</PRE></BODY></HTML>\n");
+	fprintf(output, "</pre></body></html>\n");
 	fclose(output);
 	printf("`%s' is now ready...\n", INDEX_HTML);
 	return 0;
