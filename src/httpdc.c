@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.21 2005/10/27 19:15:01 johans Exp $ */
+/* $Id: httpdc.c,v 1.22 2005/11/03 18:42:54 johans Exp $ */
 
 #include	"config.h"
 
@@ -62,12 +62,8 @@ cmd_help(const char *args)
 {
 	command		*search;
 
-	search = commands;
-	while (search->command)
-	{
+	for (search = commands; search->command; search++)
 		printf("%s\t\t%s\n", search->command, search->help);
-		search++;
-	}
 	(void)args;
 }
 
@@ -122,7 +118,7 @@ cmd_restart(const char *args)
 	}
 	if (!killpg(httpdpid, 0))
 	{
-		fprintf(stderr, "The children would not die within 120 seconds!\n");
+		fprintf(stderr, "The children would not die within 600 seconds!\n");
 		return;
 	}
 	printf("Children are dead!\n");

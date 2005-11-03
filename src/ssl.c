@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.6 2005/10/12 11:36:41 johans Exp $ */
+/* $Id: ssl.c,v 1.7 2005/11/03 18:42:54 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -54,6 +54,8 @@ initssl(int csd)
 	cursock->ssl = SSL_new(ssl_ctx);
 	SSL_set_verify(cursock->ssl, SSL_VERIFY_NONE, NULL);
 	SSL_set_fd(cursock->ssl, csd);
+	/* enable reusable keys */
+	SSL_set_session_id_context(cursock->ssl, "xshttpd", 7);
 	if (!SSL_accept(cursock->ssl)) {
 		fprintf(stderr, "SSL flipped\n");
 		secprintf("%s 500 Failed\r\nContent-type: text/plain\r\n\r\n",
