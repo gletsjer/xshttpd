@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.202 2005/10/27 19:15:01 johans Exp $ */
+/* $Id: httpd.c,v 1.203 2005/11/03 18:42:14 johans Exp $ */
 
 #include	"config.h"
 
@@ -100,7 +100,7 @@ typedef	size_t	socklen_t;
 #define		MAXVHOSTALIASES		32
 
 static char copyright[] =
-"$Id: httpd.c,v 1.202 2005/10/27 19:15:01 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.203 2005/11/03 18:42:14 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1498,20 +1498,20 @@ process_request()
 		current = config.system;
 
 	setenv("REQUEST_METHOD", line, 1);
-	if (!strcmp("GET", line))
+	if (!strcasecmp("GET", line))
 		do_get(params);
-	else if (!strcmp("HEAD", line))
+	else if (!strcasecmp("HEAD", line))
 		do_head(params);
-	else if (!strcmp("POST", line))
+	else if (!strcasecmp("POST", line))
 		do_post(params);
-	else if (!strcmp("OPTIONS", line))
+	else if (!strcasecmp("OPTIONS", line))
 		do_options(params);
 	/*
-	else if (!strcmp("PUT", line))
+	else if (!strcasecmp("PUT", line))
 		do_put(params);
-	else if (!strcmp("DELETE", line))
+	else if (!strcasecmp("DELETE", line))
 		do_delete(params);
-	else if (!strcmp("TRACE", line))
+	else if (!strcasecmp("TRACE", line))
 		do_trace(params);
 	*/
 	else
