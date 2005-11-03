@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.109 2005/10/26 13:00:16 johans Exp $ */
+/* $Id: cgi.c,v 1.110 2005/11/03 18:42:36 johans Exp $ */
 
 #include	"config.h"
 
@@ -167,7 +167,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 #ifdef		HANDLE_SSL
 	q[0] = q[1] = -1;
-	if ((ssl_post = !strcmp("POST", getenv("REQUEST_METHOD"))))
+	if ((ssl_post = !strcasecmp("POST", getenv("REQUEST_METHOD"))))
 	{
 		if (pipe(q))
 		{
@@ -237,8 +237,9 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		/* euid should be set, now fix uid */
 		if (!origeuid)
 		{
-			setuid(geteuid());
-			setgid(getegid());
+			/* euid is not set on very early error cgi: fallback */
+			setuid(geteuid() ? geteuid() : config.system->userid);
+			setgid(getegid() ? getegid() : config.system->groupid);
 		}
 		if (!geteuid())
 		{
