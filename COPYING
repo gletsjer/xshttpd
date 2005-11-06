@@ -61,7 +61,7 @@
           sections are clearly delimited as such.  The author requests
           copies  of  any  changes  made  to  ensure  that the various
           versions  stay  reasonably  in sync with each other.  Please
-          send all revisions to xs-httpd@stack.nl
+          send all revisions to <xs-httpd@stack.nl>
 
           NOTE   that   it  is  not  permitted  to  copy,  sublicense,
           distribute  or  transfer any of the XS-HTTPD software except
@@ -71,7 +71,7 @@
 
           Comments  on  the  daemon and/or this licensing agreement is
           encouraged.   If you have anything you want me to know, send
-          electronic mail to "xs-httpd@stack.nl".
+          electronic mail to <xs-httpd@stack.nl>
 
           This  license was largely copied from the ELM license, which
           was written by Scott McGregor and Dave Taylor.
