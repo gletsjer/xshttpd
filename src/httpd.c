@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.205 2005/11/06 10:15:38 johans Exp $ */
+/* $Id: httpd.c,v 1.206 2005/11/06 10:31:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -103,7 +103,7 @@ extern	char	**environ;
 #define		MAXVHOSTALIASES		32
 
 static char copyright[] =
-"$Id: httpd.c,v 1.205 2005/11/06 10:15:38 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.206 2005/11/06 10:31:16 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -955,13 +955,16 @@ error(const char *message)
 		secprintf("%s %s\r\n", version, message);
 		stdheaders(1, 1, 0);
 		if ((env = getenv("HTTP_ALLOW")))
-			secprintf("Allow: %s\r\n\r\n", env);
+			secprintf("Allow: %s\r\n", env);
 	}
 	if (!headonly)
 	{
-		secprintf("\r\n<HTML><HEAD><TITLE>%s</TITLE></HEAD><BODY>\n",
-			message);
-		secprintf("<H1>%s</H1></BODY></HTML>\n", message);
+		secprintf("\r\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+		secprintf("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
+			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n");
+		secprintf("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n");
+		secprintf("\r\n<head><title>%s</title></head>\n", message);
+		secprintf("<body><h1>%s</h1></body></html>\n", message);
 	}
 	fflush(stdout); fflush(stderr); alarm(0);
 }
@@ -990,8 +993,8 @@ redirect(const char *redir, int permanent)
 		secprintf("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n");
 		secprintf("<head><title>Document has moved</title></head>\n");
 		secprintf("<body><h1>Document has moved</h1>\n");
-		secprintf("<p>This document has %smoved to ",
-			permanent ?  "permanently " : "");
+		secprintf("<p>This document has %s moved to ",
+			permanent ?  "permanently" : "");
 		secprintf("<a href=\"%s%s%s\">%s</a>.</p></body></html>\n",
 			redir, env ? "?" : "", env ? env : "", redir);
 	}
@@ -1004,7 +1007,8 @@ check_auth(FILE *authfile)
 {
 	char		*search, line[MYBUFSIZ], compare[MYBUFSIZ], *find;
 
-	if (!authentication[0])
+	if (!authentication[0] ||
+		strncasecmp(authentication, "Basic", 5))
 	{
 		if (headers)
 		{
@@ -1019,12 +1023,6 @@ check_auth(FILE *authfile)
 		secprintf("<head><title>Unauthorized</title></head>\n");
 		secprintf("<body><h1>Unauthorized</h1><p>Your client \n");
 		secprintf("does not understand authentication</body></html>\n");
-		fclose(authfile); return(1);
-	}
-	if (strncasecmp(authentication, "Basic", 5))
-	{
-		server_error("501 Authentication method not implemented",
-			"BAD_REQUEST");
 		fclose(authfile); return(1);
 	}
 	strlcpy(line, authentication, MYBUFSIZ);
