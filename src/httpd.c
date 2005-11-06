@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.206 2005/11/06 10:31:16 johans Exp $ */
+/* $Id: httpd.c,v 1.207 2005/11/06 10:34:07 johans Exp $ */
 
 #include	"config.h"
 
@@ -103,7 +103,7 @@ extern	char	**environ;
 #define		MAXVHOSTALIASES		32
 
 static char copyright[] =
-"$Id: httpd.c,v 1.206 2005/11/06 10:31:16 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.207 2005/11/06 10:34:07 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1068,10 +1068,14 @@ check_auth(FILE *authfile)
 		secprintf("WWW-authenticate: basic realm=\"this page\"\r\n");
 		stdheaders(1, 1, 1);
 	}
-	secprintf("\r\n<HTML><HEAD><TITLE>Wrong password</TITLE></HEAD>\n");
-	secprintf("<BODY><H1>Wrong user/password combination</H1>\n");
+	secprintf("\r\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+	secprintf("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
+		"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n");
+	secprintf("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n");
+	secprintf("<head><title>Wrong password</title></head>\n");
+	secprintf("<body><h1>Wrong user/password combination</h1>\n");
 	secprintf("You don't have permission to view this page.\n");
-	secprintf("</BODY></HTML>\n");
+	secprintf("</body></html>\n");
 	fclose(authfile);
 	return(1);
 }
