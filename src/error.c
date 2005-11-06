@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.19 2005/11/06 10:15:38 johans Exp $ */
+/* $Id: error.c,v 1.20 2005/11/06 11:03:11 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -464,7 +464,7 @@ main(int argc, char **argv)
 	printf("<body><h1>%s</h1>\n", error_readable);
 	if (!strcmp(error_code, "USER_UNKNOWN"))
 		user_unknown();
-	else if (!strcmp(error_code, "POST_ON_NON_CGI"))
+	else if (!strcmp(error_code, "METHOD_NOT_ALLOWED"))
 		post_on_non_cgi();
 	else if (!strcmp(error_code, "INVALID_PATH"))
 		invalid_path();
