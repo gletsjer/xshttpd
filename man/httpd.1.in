@@ -636,7 +636,8 @@ user used.
 .TP
 .B SSL_CIPHER
 The cipher used for encryption via SSL or TLS. This is only
-available when https is used for the session.
+available when https is used for the session and can be used
+to check if a connection is encrypted.
 .TP
 .B CONTENT_TYPE
 For queries which have attached information, such as HTTP POST and
