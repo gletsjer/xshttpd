@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.18 2005/10/11 20:25:04 johans Exp $ */
+/* $Id: error.c,v 1.19 2005/11/06 10:15:38 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -50,7 +50,6 @@ static	const	char	*error_code, *error_readable, *error_url,
 			*local_mode_str;
 static	char		buffer[BUFSIZ], *temp;
 char			rootdir[XS_PATH_MAX];
-int			localmode;
 
 void
 error(const char *what)
@@ -453,10 +452,8 @@ main(int argc, char **argv)
 		!(error_readable = getenv("ERROR_READABLE")) ||
 		!(error_url = getenv("ERROR_URL")) ||
 		!(error_url_expanded = getenv("ERROR_URL_EXPANDED")) ||
-		!(error_url_escaped = getenv("ERROR_URL_ESCAPED")) ||
-		!(local_mode_str = getenv("LOCALMODE")))
+		!(error_url_escaped = getenv("ERROR_URL_ESCAPED")))
 		error("Not called properly - the server must call me");
-	localmode = atoi(local_mode_str);
 	printf("Content-type: text/html\r\n");
 	printf("Status: %s\r\n\r\n", error_readable);
 	printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");

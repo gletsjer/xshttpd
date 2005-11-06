@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.204 2005/11/06 09:44:16 johans Exp $ */
+/* $Id: httpd.c,v 1.205 2005/11/06 10:15:38 johans Exp $ */
 
 #include	"config.h"
 
@@ -103,7 +103,7 @@ extern	char	**environ;
 #define		MAXVHOSTALIASES		32
 
 static char copyright[] =
-"$Id: httpd.c,v 1.204 2005/11/06 09:44:16 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.205 2005/11/06 10:15:38 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -117,7 +117,7 @@ char		remotehost[NI_MAXHOST],
 		orig_filename[XS_PATH_MAX];
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[SENDBUFSIZE],
 		thisdomain[NI_MAXHOST], message503[MYBUFSIZ], orig[MYBUFSIZ],
-		config_path[XS_PATH_MAX], 
+		config_path[XS_PATH_MAX], authentication[MYBUFSIZ],
 		*startparams;
 time_t		modtime;
 struct virtual			*current;
@@ -1003,9 +1003,8 @@ int
 check_auth(FILE *authfile)
 {
 	char		*search, line[MYBUFSIZ], compare[MYBUFSIZ], *find;
-	const	char	*env;
 
-	if (!(env = getenv("AUTH_TYPE")))
+	if (!authentication[0])
 	{
 		if (headers)
 		{
@@ -1022,18 +1021,23 @@ check_auth(FILE *authfile)
 		secprintf("does not understand authentication</body></html>\n");
 		fclose(authfile); return(1);
 	}
-	strlcpy(line, env, MYBUFSIZ);
+	if (strncasecmp(authentication, "Basic", 5))
+	{
+		server_error("501 Authentication method not implemented",
+			"BAD_REQUEST");
+		fclose(authfile); return(1);
+	}
+	strlcpy(line, authentication, MYBUFSIZ);
 	find = line + strlen(line);
 	while ((find > line) && (*(find - 1) < ' '))
 		*(--find) = 0;
-	for (search = line; *search && (*search != ' ') && (*search != 9); search++)
+	for (search = line + 5; *search && isspace(*search); search++)
 		/* DO NOTHING */ ;
-	while ((*search == 9) || (*search == ' '))
-		search++;
 	uudecode(search);
 	if ((find = strchr(search, ':')))
 	{
 		*find++ = 0;
+		setenv("AUTH_TYPE", "Basic", 1);
 		setenv("REMOTE_USER", search, 1);
 		setenv("REMOTE_PASSWORD", find, 1);
 
@@ -1218,9 +1222,9 @@ process_request()
 	strlcpy(version, "HTTP/0.9", 16);
 	strlcpy(dateformat, "%a %b %e %H:%M:%S %Y", MYBUFSIZ);
 	orig[0] = referer[0] = line[0] =
-		real_path[0] = browser[0] = 0;
+		real_path[0] = browser[0] = authentication[0] = '\0';
 	headonly = postonly = headers = 0;
-	unsetenv("SERVER_NAME");
+	unsetenv("SERVER_NAME"); unsetenv("REQUEST_METHOD");
 	unsetenv("CONTENT_LENGTH"); unsetenv("AUTH_TYPE");
 	unsetenv("CONTENT_TYPE"); unsetenv("QUERY_STRING");
 	unsetenv("PATH_INFO"); unsetenv("PATH_TRANSLATED");
@@ -1346,7 +1350,7 @@ process_request()
 				setenv("HTTP_REFERER", referer, 1);
 			} else if (!strcasecmp("Authorization", extra))
 			{
-				setenv("AUTH_TYPE", param, 1);
+				strlcpy(authentication, param, MYBUFSIZ);
 				setenv("HTTP_AUTHORIZATION", param, 1);
 			} else if (!strcasecmp("Cookie", extra))
 				setenv("HTTP_COOKIE", param, 1);
@@ -1834,8 +1838,6 @@ standalone_socket(int id)
 static	void
 setup_environment()
 {
-	char		buffer[16];
-
 	/* start with empty environment */
 	environ = (char **)malloc(sizeof(char *));
 	if (!environ)
@@ -1846,8 +1848,6 @@ setup_environment()
 	setenv("SERVER_NAME", config.system->hostname, 1);
 	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
 	setenv("SERVER_PORT", "80", 1);
-	snprintf(buffer, 16, "%hu", config.localmode);
-	setenv("LOCALMODE", buffer, 1);
 	setenv("HTTPD_ROOT", config.systemroot, 1);
 }
 
