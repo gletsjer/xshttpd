@@ -113,3 +113,11 @@ depend on. The path must be given in the normal /bin/sh format. */
 /* Assume user/group name maximum length */
 
 #define		XS_USER_MAX	32
+
+/* Maximum number of configured virtual hosts */
+
+#define		MAXVHOSTALIASES		32
+
+/* Maximum size of configured IndexFiles */
+
+#define		MAXINDEXFILES		32

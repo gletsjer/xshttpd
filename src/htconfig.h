@@ -1,6 +1,5 @@
 #include <sys/types.h>
 #include <pwd.h>
-#define	MAXINDEXFILES	32
 
 #ifdef		HANDLE_SSL
 #include <openssl/ssl.h>
