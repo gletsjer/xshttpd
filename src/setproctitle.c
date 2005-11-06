@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: setproctitle.c,v 1.1 2005/10/27 19:15:01 johans Exp $ */
+/* $Id: setproctitle.c,v 1.2 2005/11/06 09:44:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -32,10 +32,6 @@
 #endif		/* HAVE_MEMORY_H */
 
 #include	"setproctitle.h"
-
-#if		!HAVE_DECL_ENVIRON
-extern	char	**environ;
-#endif		/* HAVE_DECL_ENVIRON */
 
 static	char	*procnamestart, *procnameend;
 
@@ -94,12 +90,6 @@ void
 initproctitle(int argc, char **argv)
 {
 #ifndef		PS_STRINGS
-	/* start with empty environment */
-	environ = (char **)malloc(sizeof(char *));
-	if (!environ)
-		err(1, "Fatal init error");
-	*environ = NULL;
-
 	procnameend = argv[argc - 1] + strlen(argv[argc - 1]);
 	procnamestart = argv[0];
 	argv[1] = NULL;

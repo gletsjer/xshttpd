@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.203 2005/11/03 18:42:14 johans Exp $ */
+/* $Id: httpd.c,v 1.204 2005/11/06 09:44:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -93,6 +93,9 @@
 #ifndef		HAVE_SOCKLEN_T
 typedef	size_t	socklen_t;
 #endif		/* HAVE_SOCKLEN_T */
+#ifndef		HAVE_DECL_ENVIRON
+extern	char	**environ;
+#endif		/* HAVE_DECL_ENVIRON */
 #ifndef		PRIO_MAX
 #define		PRIO_MAX	20
 #endif
@@ -100,7 +103,7 @@ typedef	size_t	socklen_t;
 #define		MAXVHOSTALIASES		32
 
 static char copyright[] =
-"$Id: httpd.c,v 1.203 2005/11/03 18:42:14 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.204 2005/11/06 09:44:16 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1832,6 +1835,12 @@ static	void
 setup_environment()
 {
 	char		buffer[16];
+
+	/* start with empty environment */
+	environ = (char **)malloc(sizeof(char *));
+	if (!environ)
+		err(1, "Fatal init error");
+	*environ = NULL;
 
 	setenv("SERVER_SOFTWARE", SERVER_IDENT, 1);
 	setenv("SERVER_NAME", config.system->hostname, 1);
