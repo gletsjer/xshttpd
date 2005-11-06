@@ -278,9 +278,6 @@
 /* File containing private SSL server key */
 #undef KEY_FILE
 
-/* Name of package */
-#undef PACKAGE
-
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
@@ -323,9 +320,6 @@
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
-
-/* Version number of package */
-#undef VERSION
 
 /* enable server-side includes */
 #undef WANT_SSI

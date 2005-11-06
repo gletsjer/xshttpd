@@ -1,7 +1,7 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT
-AC_CONFIG_SRCDIR([src/httpd.c])
-AM_INIT_AUTOMAKE(xshttpd, 34b01)
+AC_INIT(xshttpd, 34b01)
+AC_CONFIG_SRCDIR(src/httpd.c)
+AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 no-dist-gzip])
 AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.4 beta/0.01", [Server version])
 AC_CONFIG_HEADERS([config.h])
 
