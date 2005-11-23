@@ -67,6 +67,11 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Bot: Ask Jeeves Search';
 			}
+			elsif ($agent =~ /^Avant Browser /)
+			{
+				$browser = 'Avant Browser';
+				$os = 'Windows';
+			}
 			elsif ($agent =~ /BigCliqueBOT\//)
 			{
 				$browser = 'Bot: BigClique Search';
@@ -82,14 +87,23 @@ if (open ('httpdlog', shift))
 			elsif ($agent =~ / Camino\//)
 			{
 				$browser = 'Mozilla Camino';
+				$os = 'Mac OS X';
 			}
 			elsif ($agent =~ / Cerberian Drtrs /)
 			{
 				$browser = 'Bot: Blue Coat Content Control';
 			}
+			elsif ($agent =~ /^CoralWebPrx\//)
+			{
+				$browser = 'Coral Cache';
+			}
 			elsif ($agent =~ /^curl\//)
 			{
 				$browser = 'Curl';
+			}
+			elsif ($agent =~ /^DA /)
+			{
+				$browser = 'Download Accelerator';
 			}
 			elsif ($agent =~ /^Dillo\//)
 			{
@@ -107,6 +121,10 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Fetch';
 			}
+			elsif ($agent =~ /findlinks\//)
+			{
+				$browser = 'Bot: FindLinks';
+			}
 			elsif ($agent =~ / Firefox\//)
 			{
 				$browser = 'Mozilla Firefox';
@@ -116,27 +134,51 @@ if (open ('httpdlog', shift))
 				$browser = 'Microsoft FrontPage';
 				$os = 'Windows';
 			}
+			elsif ($agent =~ /^Gigabot\//)
+			{
+				$browser = 'Bot: Gigabot';
+			}
 			elsif ($agent =~ /Google(bot(\-Image)?)?\//)
 			{
 				$browser = 'Bot: Google Search';
+			}
+			elsif ($agent =~ /almaden\.ibm\.com/)
+			{
+				$browser = 'Bot: IBM Almaden WebFoundation';
+			}
+			elsif ($agent =~ /^ichiro\//)
+			{
+				$browser = 'Bot: Ichiro';
 			}
 			elsif ($agent =~ /INGRID\//)
 			{
 				$browser = 'Bot: Ilse Search';
 			}
+			elsif ($agent =~ /^Java\//)
+			{
+				$browser = 'Java';
+			}
 			elsif ($agent =~ /^Jigsaw\//)
 			{
 				$browser = 'Bot: W3C CSS Validator';
+			}
+			elsif ($agent =~ /^Jyxobot\//)
+			{
+				$browser = 'Bot: Jyxobot';
 			}
 			elsif ($agent =~ / Konqueror\//)
 			{
 				$browser = 'Konqueror';
 			}
+			elsif ($agent =~ /Larbin\//)
+			{
+				$browser = 'Bot: Larbin';
+			}
 			elsif ($agent =~ /^lftp\//)
 			{
 				$browser = 'Lftp';
 			}
-			elsif ($agent =~ /^Links\//)
+			elsif ($agent =~ /^Links[ \/]/)
 			{
 				$browser = 'Links';
 			}
@@ -144,13 +186,29 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Lotus Notes';
 			}
+			elsif ($agent =~ /^Lycos_Spider/)
+			{
+				$browser = 'Bot: Lycos Search';
+			}
 			elsif ($agent =~ /^Lynx\//)
 			{
 				$browser = 'Lynx';
 			}
+			elsif ($agent =~ /^HenryTheMiragoRobot /)
+			{
+				$browser = 'Bot: Mirago Search';
+			}
+			elsif ($agent =~ /^MJ12bot\//)
+			{
+				$browser = 'Bot: Majestic-12';
+			}
 			elsif ($agent =~ /^msnbot\//)
 			{
 				$browser = 'Bot: MSN Search';
+			}
+			elsif ($agent =~ /^MSProxy\//)
+			{
+				$browser = 'Microsoft Proxy';
 			}
 			elsif ($agent =~ / Netcraft Web Server Survey/)
 			{
@@ -168,9 +226,21 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Bot: PicSearch';
 			}
+			elsif ($agent =~ /^Prodiance Desktop Search Spider$/)
+			{
+				$browser = 'Bot: Prodiance Desktop Search';
+			}
 			elsif ($agent =~ / Safari\//)
 			{
 				$browser = 'Safari';
+			}
+			elsif ($agent =~ /^SurveyBot\//)
+			{
+				$browser = 'Bot: Whois Source Survey Bot';
+			}
+			elsif ($agent =~ /^SonyEricssonK300i\//)
+			{
+				$browser = 'Wap: Sony Ericsson K300i';
 			}
 			elsif ($agent =~ / Thunderbird\//)
 			{
@@ -180,7 +250,8 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Bot: W3C HTML Validator';
 			}
-			elsif ($agent =~ / Yahoo! Slurp;/)
+			elsif (($agent =~ / Yahoo! Slurp/) ||
+			    ($agent =~ /^Yahoo-MM/))
 			{
 				$browser = 'Bot: Yahoo Search';
 			}
