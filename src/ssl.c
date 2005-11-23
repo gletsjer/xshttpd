@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.7 2005/11/03 18:42:54 johans Exp $ */
+/* $Id: ssl.c,v 1.8 2005/11/23 10:26:53 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -79,6 +79,7 @@ endssl(int csd)
 void
 loadssl()
 {
+	SSL_METHOD *method;
 	if (!cursock->usessl)
 		return;
 
@@ -89,19 +90,26 @@ loadssl()
 		cursock->sslprivatekey = strdup(KEY_FILE);
 	SSLeay_add_all_algorithms();
 	SSL_load_error_strings();
-	ssl_ctx = SSL_CTX_new(SSLv23_server_method());
-	(void) SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2);
+	ERR_print_errors_fp(stderr);
+	if (!(method = SSLv3_server_method()))
+		err(1, "Cannot init SSL method");
+	if (!(ssl_ctx = SSL_CTX_new(method)))
+		err(1, "Cannot init SSL context");
 	if (!SSL_CTX_use_certificate_file(ssl_ctx,
 			calcpath(cursock->sslcertificate),
-			SSL_FILETYPE_PEM) ||
-		!SSL_CTX_use_PrivateKey_file(ssl_ctx,
+			SSL_FILETYPE_PEM))
+		errx(1, "Cannot load SSL cert %s", 
+			calcpath(cursock->sslcertificate));
+	if (!SSL_CTX_use_PrivateKey_file(ssl_ctx,
 			calcpath(cursock->sslprivatekey),
-			SSL_FILETYPE_PEM) ||
-		!SSL_CTX_check_private_key(ssl_ctx))
-		errx(1, "Cannot initialise SSL %s %s",
+			SSL_FILETYPE_PEM))
+		errx(1, "Cannot load SSL key %s", 
+			calcpath(cursock->sslprivatekey));
+	if (!SSL_CTX_check_private_key(ssl_ctx))
+		errx(1, "Cannot check private SSL %s %s",
 			calcpath(cursock->sslcertificate),
 			calcpath(cursock->sslprivatekey));
-	ERR_print_errors_fp(stderr);
+	(void) SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2);
 #endif		/* HANDLE_SSL */
 }
 
