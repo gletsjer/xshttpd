@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.9 2005/11/24 21:13:02 johans Exp $ */
+/* $Id: ssl.c,v 1.10 2005/11/24 22:05:27 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -76,7 +76,8 @@ endssl(int csd)
 	close(csd);
 }
 
-int
+#ifdef		HANDLE_SSL
+static int
 sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 {
 	if (auth_strict == cursock->sslauth)
@@ -85,15 +86,16 @@ sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 	/* sslauth optional */
 	return 1;
 }
+#endif		/* HANDLE_SSL */
 
 void
 loadssl()
 {
+#ifdef		HANDLE_SSL
 	SSL_METHOD *method;
 	if (!cursock->usessl)
 		return;
 
-#ifdef		HANDLE_SSL
 	if (!cursock->sslcertificate)
 		cursock->sslcertificate = strdup(CERT_FILE);
 	if (!cursock->sslprivatekey)
