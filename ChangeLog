@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.4 beta 1
+- Support SSL client certificates (SSLAuthentication, SSLCAfile, SSLCApath)
+
 Changes since 3.3 beta 35
 - Reorder C replacement functions
 - Allow reusable SSL sessions (untested)

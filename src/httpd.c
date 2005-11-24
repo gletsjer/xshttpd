@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.208 2005/11/06 10:40:06 johans Exp $ */
+/* $Id: httpd.c,v 1.209 2005/11/24 21:13:02 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.208 2005/11/06 10:40:06 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.209 2005/11/24 21:13:02 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -348,6 +348,18 @@ load_config()
 						lsock->sslprivatekey =
 							strdup(value);
 				}
+				else if (!strcasecmp("SSLCAfile", key))
+					lsock->sslcafile = strdup(value);
+				else if (!strcasecmp("SSLCApath", key))
+					lsock->sslcapath = strdup(value);
+				else if (!strcasecmp("SSLAuthentication", key))
+				{
+					if (!strcasecmp(value, "optional"))
+						lsock->sslauth = auth_optional;
+					else if (!strcasecmp(value, "strict"))
+						lsock->sslauth = auth_strict;
+					/* default: auth_none */
+				}
 				else if (!strcasecmp("UseCharset", key))
 					config.usecharset = !strcasecmp("true", value);
 				else if (!strcasecmp("DefaultCharset", key))
@@ -441,12 +453,12 @@ load_config()
 				else if (!strcasecmp("LogStyle", key))
 					if (!strcasecmp("common", value) ||
 							!strcasecmp("traditional", value))
-						current->logstyle = traditional;
+						current->logstyle = log_traditional;
 					else if (!strcasecmp("combined", value) ||
 							 !strcasecmp("extended", value))
-						current->logstyle = combined;
+						current->logstyle = log_combined;
 					else if (!strcasecmp("virtual", value))
-						current->logstyle = virtual;
+						current->logstyle = log_virtual;
 					else
 						errx(1, "illegal logstyle: '%s'", value);
 				else if (!strcasecmp("UserId", key))
@@ -636,7 +648,7 @@ load_config()
 	if (!config.system->logreferer)
 		config.system->logreferer = strdup(BITBUCKETNAME);
 	if (!config.system->logstyle)
-		config.system->logstyle = combined;
+		config.system->logstyle = log_combined;
 	if (!username)
 		username = strdup(HTTPD_USERID);
 	if (!config.system->userid && !(config.system->userid = atoi(username)))
@@ -761,7 +773,7 @@ open_logs(int sig)
 		}
 
 		/* XXX: evil code duplication */
-		if (current->logstyle == traditional && current->logreferer)
+		if (current->logstyle == log_traditional && current->logreferer)
 		{
 			/* referer */
 			if ('|' != current->logreferer[0])
@@ -1171,7 +1183,7 @@ logrequest(const char *request, long size)
 		for (p = dynagent; *p; p++)
 			if ('\"' == *p)
 				*p = '\'';
-	if (current->logstyle == traditional)
+	if (current->logstyle == log_traditional)
 	{
 		FILE	*rlog = current->openreferer
 			? current->openreferer
@@ -1185,7 +1197,7 @@ logrequest(const char *request, long size)
 			(!thisdomain[0] || !strcasestr(referer, thisdomain)))
 			fprintf(rlog, "%s -> %s\n", referer, request);
 	}
-	else if (current->logstyle == virtual)
+	else if (current->logstyle == log_virtual)
 		/* this is combined format + virtual hostname */
 		fprintf(alog, "%s %s - - [%s +0000] \"%s %s %s\" 200 %ld "
 				"\"%s\" \"%s\"\n",

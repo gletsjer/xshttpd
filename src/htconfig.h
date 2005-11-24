@@ -1,4 +1,5 @@
 #include <sys/types.h>
+#include <netinet/in.h>
 #include <pwd.h>
 
 #ifdef		HANDLE_SSL
@@ -6,7 +7,8 @@
 #include <openssl/err.h>
 #endif		/* HANDLE_SSL */
 
-typedef	enum { none, traditional, combined, virtual }	logstyle_t;
+typedef	enum { log_none, log_traditional, log_combined, log_virtual }	logstyle_t;
+typedef enum { auth_none, auth_optional, auth_strict }	sslauth_t;
 
 extern struct virtual {
 	char *		hostname;
@@ -32,12 +34,15 @@ extern struct virtual {
 struct socket_config {
 	char *		address;
 	char *		port;
-	int		family;
+	sa_family_t	family;
 	unsigned short	instances;
 	unsigned	usessl: 1;
 	unsigned	padding: 7;
 	char *		sslcertificate;
 	char *		sslprivatekey;
+	char *		sslcafile;
+	char *		sslcapath;
+	sslauth_t	sslauth;
 #ifdef		HANDLE_SSL
 	SSL		*ssl;
 #endif		/* HANDLE_SSL */

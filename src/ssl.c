@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.8 2005/11/23 10:26:53 johans Exp $ */
+/* $Id: ssl.c,v 1.9 2005/11/24 21:13:02 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -37,6 +37,7 @@ setreadmode(int mode, int reset)
 		fprintf(stderr, "SSL Error: %s\n",
 			ERR_reason_error_string(readerror));
 		error("400 SSL Error");
+		return;
 	}
 	if (cursock->ssl)
 		setenv("SSL_CIPHER", SSL_get_cipher(cursock->ssl), 1);
@@ -52,7 +53,6 @@ initssl(int csd)
 
 #ifdef		HANDLE_SSL
 	cursock->ssl = SSL_new(ssl_ctx);
-	SSL_set_verify(cursock->ssl, SSL_VERIFY_NONE, NULL);
 	SSL_set_fd(cursock->ssl, csd);
 	/* enable reusable keys */
 	SSL_set_session_id_context(cursock->ssl, "xshttpd", 7);
@@ -76,6 +76,16 @@ endssl(int csd)
 	close(csd);
 }
 
+int
+sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
+{
+	if (auth_strict == cursock->sslauth)
+		return preverify_ok;
+
+	/* sslauth optional */
+	return 1;
+}
+
 void
 loadssl()
 {
@@ -91,7 +101,7 @@ loadssl()
 	SSLeay_add_all_algorithms();
 	SSL_load_error_strings();
 	ERR_print_errors_fp(stderr);
-	if (!(method = SSLv3_server_method()))
+	if (!(method = SSLv23_server_method()))
 		err(1, "Cannot init SSL method");
 	if (!(ssl_ctx = SSL_CTX_new(method)))
 		err(1, "Cannot init SSL context");
@@ -109,7 +119,31 @@ loadssl()
 		errx(1, "Cannot check private SSL %s %s",
 			calcpath(cursock->sslcertificate),
 			calcpath(cursock->sslprivatekey));
+	if (!cursock->sslcafile && !cursock->sslcapath)
+		/* TODO: throw an error */
+		cursock->sslauth = auth_none;
+	else if (!SSL_CTX_load_verify_locations(ssl_ctx,
+			calcpath(cursock->sslcafile),
+			calcpath(cursock->sslcapath)))
+		errx(1, "Cannot load SSL CAfile %s and CApath %s", 
+			calcpath(cursock->sslcafile),
+			calcpath(cursock->sslcapath));
 	(void) SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2);
+
+	switch (cursock->sslauth)
+	{
+	default:
+	case auth_none:
+		SSL_CTX_set_verify(ssl_ctx, SSL_VERIFY_NONE, NULL);
+		break;
+	case auth_optional:
+		SSL_CTX_set_verify(ssl_ctx, SSL_VERIFY_PEER, &sslverify_callback);
+		break;
+	case auth_strict:
+		SSL_CTX_set_verify(ssl_ctx,
+			SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
+			&sslverify_callback);
+	}
 #endif		/* HANDLE_SSL */
 }
 
