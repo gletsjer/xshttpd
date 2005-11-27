@@ -198,7 +198,37 @@ This defaults to \fISystemRoot\fP/cert.pem
 .TP
 .B SSLPrivateKey <filename>
 The location of the x509 certificate's key to be used for SSL connections.
-This defaults to \fISystemRoot\fP/key.pem
+This defaults to \fISystemRoot\fP/key.pem - but may be contained in the
+same file as the SSLCertificate file.
+Note that this key should not be protected with a secret passphrase.
+.TP
+.B SSLAuthenticaton [none|optional|strict]
+This setting indicates whether clients connecting of https should sent a
+client certificate to authenticate themselves. Note that certificate
+exchange is part of the SSL handshake and thus applies to all connections
+to the socket in which it is specified.
+.br
+The default is \fInone\fP: don't request a client certificate. When set to
+\fIoptional\fP, the client must send an identifying cert, but this
+certificate won't be checked in any way (it may be self-signed).
+The most secure setting is \fIstrict\fP: all client certificates will be
+checked and must validate against the list of root Certificate Authorities.
+This implies SSLCAfile or SSLCApath: if neither is set, checks will
+automatically fall back to optional mode.
+.br
+When SSLAuthentication is enabled, extra environment variables are
+available in the CGI environment to offer details about the client
+certificate subject and issuing organisation.
+.TP
+.B SSLCAfile <filename>
+The location of the list of x509 root certificates to be used for validation
+of client certificates. This is unset by default; although an example
+caroot.pem file is included in the distribution.
+.TP
+.B SSLCApath <directory>
+The location of the list of files containing x509 root certificates to be
+used for validation of client certs. This is unset by default and
+can be used in combination with SSLCAfile.
 
 .LP
 .SH SECTION OPTIONS
