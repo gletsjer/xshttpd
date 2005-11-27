@@ -634,11 +634,6 @@ user has authenticated with.
 If the the script is protected, this is the password the remote
 user used.
 .TP
-.B SSL_CIPHER
-The cipher used for encryption via SSL or TLS. This is only
-available when https is used for the session and can be used
-to check if a connection is encrypted.
-.TP
 .B CONTENT_TYPE
 For queries which have attached information, such as HTTP POST and
 PUT, this is the content type of the data.
@@ -680,6 +675,43 @@ not set either of these headers.
 .B HTTP_VIA
 The full information from the Via: header which may be added by a
 webproxy.
+.LP
+The following \fISSL_* information\fP is only available if the client
+is using a securely encrypted https connection.
+.TP
+.B HTTPS
+Set whenever the connection uses secure SSL or TLS transport.
+This can be used to check if a connection is encrypted.
+.TP
+.B SSL_CIPHER
+The cipher used for encryption via SSL or TLS.
+.TP
+.B SSL_CLIENT_S_DN
+Distinguished Name of the \fBsubject\fP of the client certificate.
+This contains all information available about the user.
+.TP
+.B SSL_CLIENT_S_DN_CN
+Common Name of the subject. This is a part of SSL_CLIENT_S_DN and gives the
+name that can be used to identify the certificate user. This should always
+be present in client certificates.
+.TP
+.B SSL_CLIENT_S_DN_Email
+Email address of the subject. This is an optional part of SSL_CLIENT_S_DN
+and may not always be available.
+.TP
+.B SSL_CLIENT_I_DN
+Distinguished Name of the \fBissuer\fP of the client certificate.
+This contains all information available about the organisation that
+signed the certificate for this user.
+.TP
+.B SSL_CLIENT_I_DN_CN
+Common Name of the issuer. This is a part of SSL_CLIENT_I_DN and gives the
+name that can be used to identify the certificate organisation.
+.TP
+.B SSL_CLIENT_I_DN_Email
+Email address of the issuer. This is an optional part of SSL_CLIENT_I_DN
+and may not always be available.
+
 .LP
 By default the output of a CGI script is not parsed for server-side
 includes. Usually there is no point, because CGI allows you to do all
