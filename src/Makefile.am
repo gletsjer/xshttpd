@@ -32,3 +32,5 @@ EXTRA_DIST = cgi.h config.h confpatch.h confuser.h convert.h decode.h \
 
 EXTRA_DIST += digcalc.c ldap.c pcre.c
 
+cscope:
+	@cscope -bqv
