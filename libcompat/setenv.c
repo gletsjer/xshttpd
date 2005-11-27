@@ -1,8 +1,6 @@
-/* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
+/* Copyright (C) 1994, 1996 by Sven Berkvens (sven@stack.nl) */
 
 #include	"config.h"
-
-#ifndef		HAVE_SETENV
 
 #include	<stddef.h>
 #include	<stdlib.h>
@@ -112,9 +110,3 @@ unsetenv(const char *name)
 			/* NOTHING HERE */;
 	}
 }
-
-#else		/* Not not HAVE_SETENV */
-
-extern	int	dummy;
-
-#endif		/* HAVE_SETENV */
