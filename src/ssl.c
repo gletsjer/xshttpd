@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.10 2005/11/24 22:05:27 johans Exp $ */
+/* $Id: ssl.c,v 1.11 2005/11/27 13:25:25 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -48,10 +48,13 @@ setreadmode(int mode, int reset)
 int
 initssl(int csd)
 {
+#ifdef		HANDLE_SSL
+	long		vr;
+	X509		*xs;
+
 	if (!cursock->usessl)
 		return 0;
 
-#ifdef		HANDLE_SSL
 	cursock->ssl = SSL_new(ssl_ctx);
 	SSL_set_fd(cursock->ssl, csd);
 	/* enable reusable keys */
@@ -62,6 +65,39 @@ initssl(int csd)
 			version);
 		secprintf("SSL Flipped...\n");
 		return -1;
+	}
+	vr = SSL_get_verify_result(cursock->ssl);
+	if ((xs = SSL_get_peer_certificate(cursock->ssl)))
+	{
+		X509_NAME	*xsname = X509_get_subject_name(xs);
+		char		buffer[BUFSIZ];
+
+		setenv("SSL_CLIENT_S_DN",
+			(char *)X509_NAME_oneline(xsname, NULL, 0), 1);
+		if (X509_NAME_get_text_by_NID(xsname, NID_commonName,
+				buffer, BUFSIZ) >= 0)
+			setenv("SSL_CLIENT_S_DN_CN", buffer, 1);
+		if (X509_NAME_get_text_by_NID(xsname, NID_pkcs9_emailAddress,
+				buffer, BUFSIZ) >= 0)
+			setenv("SSL_CLIENT_S_DN_Email", buffer, 1);
+		xsname = X509_get_issuer_name(xs);
+		setenv("SSL_CLIENT_I_DN",
+			(char *)X509_NAME_oneline(xsname, NULL, 0), 1);
+		if (X509_NAME_get_text_by_NID(xsname, NID_commonName,
+				buffer, BUFSIZ) >= 0)
+			setenv("SSL_CLIENT_I_DN_CN", buffer, 1);
+		if (X509_NAME_get_text_by_NID(xsname, NID_pkcs9_emailAddress,
+				buffer, BUFSIZ) >= 0)
+			setenv("SSL_CLIENT_I_DN_Email", buffer, 1);
+	}
+	else
+	{
+		unsetenv("SSL_CLIENT_S_DN");
+		unsetenv("SSL_CLIENT_S_DN_CN");
+		unsetenv("SSL_CLIENT_S_DN_Email");
+		unsetenv("SSL_CLIENT_I_DN");
+		unsetenv("SSL_CLIENT_I_DN_CN");
+		unsetenv("SSL_CLIENT_I_DN_Email");
 	}
 #endif		/* HANDLE_SSL */
 	return 0;
@@ -125,11 +161,11 @@ loadssl()
 		/* TODO: throw an error */
 		cursock->sslauth = auth_none;
 	else if (!SSL_CTX_load_verify_locations(ssl_ctx,
-			calcpath(cursock->sslcafile),
-			calcpath(cursock->sslcapath)))
+			cursock->sslcafile ? calcpath(cursock->sslcafile) : NULL,
+			cursock->sslcapath ? calcpath(cursock->sslcapath) : NULL))
 		errx(1, "Cannot load SSL CAfile %s and CApath %s", 
-			calcpath(cursock->sslcafile),
-			calcpath(cursock->sslcapath));
+			cursock->sslcafile ? calcpath(cursock->sslcafile) : "",
+			cursock->sslcapath ? calcpath(cursock->sslcapath) : "");
 	(void) SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2);
 
 	switch (cursock->sslauth)
@@ -146,6 +182,8 @@ loadssl()
 			SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
 			&sslverify_callback);
 	}
+	/* we are now doing SSL-only */
+	setenv("HTTPS", "on", 1);
 #endif		/* HANDLE_SSL */
 }
 
