@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.110 2005/11/03 18:42:36 johans Exp $ */
+/* $Id: cgi.c,v 1.111 2005/11/27 15:45:55 johans Exp $ */
 
 #include	"config.h"
 
@@ -136,7 +136,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	action.sa_flags = 0;
 	sigaction(SIGALRM, &action, NULL);
 
-	left = alarm(60 * config.script_timeout); fflush(stdout);
+	left = alarm(60 * config.scripttimeout); fflush(stdout);
 	unsetenv("SCRIPT_NAME");
 	unsetenv("REDIRECT_STATUS");
 
@@ -194,8 +194,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	case 0:
 #ifdef		HAVE_SETRLIMIT
 #ifdef		RLIMIT_CPU
-		limits.rlim_cur = 60 * (rlim_t)config.script_cpu_limit;
-		limits.rlim_max = 10 + 60 * (rlim_t)config.script_cpu_limit;
+		limits.rlim_cur = 60 * (rlim_t)config.scriptcpulimit;
+		limits.rlim_max = 10 + 60 * (rlim_t)config.scriptcpulimit;
 		setrlimit(RLIMIT_CPU, &limits);
 #endif		/* RLIMIT_CPU */
 #ifdef		RLIMIT_CORE
@@ -247,7 +247,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			secprintf("[Invalid euid setting]\n");
 			exit(1);
 		}
-		setenv("PATH", SCRIPT_PATH, 1);
+		setenv("PATH", config.scriptpath, 1);
 		if (chdir(base))
 		{
 			secprintf("Content-type: text/plain\r\n\r\n");

@@ -52,13 +52,14 @@ struct socket_config {
 extern struct configuration {
 	char *		systemroot;
 	int		num_sockets;
-	unsigned int	script_cpu_limit;
-	unsigned int	script_timeout;
 	unsigned short	instances;
 	unsigned short	localmode;
 	int		priority;
-	int		scriptpriority;
 	char *		pidfile;
+	int		scriptpriority;
+	unsigned int	scriptcpulimit;
+	unsigned int	scripttimeout;
+	char *		scriptpath;
 	unsigned	execasuser: 1;
 	unsigned	usecharset: 1;
 	unsigned	userestrictaddr: 1;

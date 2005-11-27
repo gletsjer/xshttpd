@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.209 2005/11/24 21:13:02 johans Exp $ */
+/* $Id: httpd.c,v 1.210 2005/11/27 15:45:55 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.209 2005/11/24 21:13:02 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.210 2005/11/27 15:45:55 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -258,8 +258,8 @@ load_config()
 	config.usevirtualhost = 1;
 	config.usecompressed = 1;
 	config.usednslookup = 1;
-	config.script_cpu_limit = 2;
-	config.script_timeout = 6;
+	config.scriptcpulimit = 2;
+	config.scripttimeout = 6;
 	config.sockets = NULL;
 	config.priority = 0;
 	config.scriptpriority = PRIO_MAX;
@@ -381,9 +381,11 @@ load_config()
 				else if (!strcasecmp("UseLdapAuth", key))
 					config.useldapauth = !strcasecmp("true", value);
 				else if (!strcasecmp("ScriptCpuLimit", key))
-					config.script_cpu_limit = atoi(value);
+					config.scriptcpulimit = atoi(value);
 				else if (!strcasecmp("ScriptTimeout", key))
-					config.script_timeout = atoi(value);
+					config.scripttimeout = atoi(value);
+				else if (!strcasecmp("ScriptEnvPath", key))
+					config.scriptpath = strdup(value);
 				else if (!strcasecmp("UseCompressed", key))
 					config.usecompressed = !strcasecmp("true", value);
 				else if (!strcasecmp("LocalMode", key))
@@ -609,6 +611,8 @@ load_config()
 	}
 	if (!config.pidfile)
 		config.pidfile = strdup(PID_PATH);
+	if (!config.scriptpath)
+		config.scriptpath = strdup(SCRIPT_PATH);
 	if (!config.localmode)
 		config.localmode = 1;
 	/* Sanity check */
