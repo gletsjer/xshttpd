@@ -4,6 +4,7 @@
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<unistd.h>
+#include	<string.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
 #else		/* Not HAVE_ERR_H */
@@ -13,7 +14,6 @@
 
 #include	"extra.h"
 #include	"xscrypt.h"
-#include	"mystring.h"
 
 int
 main(int argc, char **argv)

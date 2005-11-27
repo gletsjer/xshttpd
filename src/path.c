@@ -1,17 +1,17 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: path.c,v 1.10 2005/08/19 18:27:15 johans Exp $ */
+/* $Id: path.c,v 1.11 2005/11/27 18:09:19 johans Exp $ */
 
 #include	"config.h"
 
 #include	<pwd.h>
 #include	<stdio.h>
+#include	<string.h>
 #include	<sys/stat.h>
 
 #include	"httpd.h"
 #include	"htconfig.h"
 #include	"local.h"
 #include	"path.h"
-#include	"mystring.h"
 
 const	char	*
 calcpath(const char *filename)

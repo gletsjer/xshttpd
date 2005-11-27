@@ -15,7 +15,7 @@
 
 	This version by Sven Berkvens (sven@stack.nl).
 */
-/* $Id: imagemap.c,v 1.10 2005/10/11 20:25:04 johans Exp $ */
+/* $Id: imagemap.c,v 1.11 2005/11/27 18:09:18 johans Exp $ */
 
 #include	"config.h"
 
@@ -24,8 +24,7 @@
 #include	<stdlib.h>
 #include	<ctype.h>
 #include	<sys/stat.h>
-
-#include	"mystring.h"
+#include	<string.h>
 
 #define		MYBUFSIZ	1024
 #define		MAXVERTS	1000

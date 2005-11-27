@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: extra.c,v 1.17 2005/10/27 19:15:01 johans Exp $ */
+/* $Id: extra.c,v 1.18 2005/11/27 18:09:18 johans Exp $ */
 
 #include	"config.h"
 
@@ -17,12 +17,12 @@
 #include	<stdlib.h>
 #include	<stdio.h>
 #include	<pwd.h>
+#include	<string.h>
 #include	<ctype.h>
 
 #include	"extra.h"
 #include	"local.h"
 #include	"httpd.h"
-#include	"mystring.h"
 
 int
 mysleep(int seconds)

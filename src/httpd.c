@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.210 2005/11/27 15:45:55 johans Exp $ */
+/* $Id: httpd.c,v 1.211 2005/11/27 18:09:18 johans Exp $ */
 
 #include	"config.h"
 
@@ -50,6 +50,7 @@
 #endif		/* HAVE_TIME_H */
 #include	<stdlib.h>
 #include	<stdarg.h>
+#include	<string.h>
 #include	<signal.h>
 #include	<pwd.h>
 #include	<grp.h>
@@ -87,7 +88,6 @@
 #include	"convert.h"
 #include	"setenv.h"
 #include	"local.h"
-#include	"mystring.h"
 #include	"htconfig.h"
 
 #ifndef		HAVE_SOCKLEN_T
@@ -101,7 +101,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.210 2005/11/27 15:45:55 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.211 2005/11/27 18:09:18 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 

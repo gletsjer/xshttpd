@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: gfxcount.c,v 1.14 2005/10/11 20:45:54 johans Exp $ */
+/* $Id: gfxcount.c,v 1.15 2005/11/27 18:09:18 johans Exp $ */
 
 #include	"config.h"
 
@@ -9,13 +9,12 @@
 #include	<stdio.h>
 #include	<unistd.h>
 #include	<stdlib.h>
+#include	<string.h>
 #ifdef		HAVE_MEMORY_H
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
 #include	<errno.h>
 #include	<fcntl.h>
-
-#include	"mystring.h"
 
 #ifdef		PATH_PPMTOGIF
 static	void	error			(const char *, const char *);

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.159 2005/10/27 19:15:01 johans Exp $ */
+/* $Id: methods.c,v 1.160 2005/11/27 18:09:18 johans Exp $ */
 
 #include	"config.h"
 
@@ -41,6 +41,7 @@
 #endif		/* HAVE_TIME_H */
 #include	<stdlib.h>
 #include	<stdarg.h>
+#include	<string.h>
 #include	<signal.h>
 #include	<pwd.h>
 #include	<grp.h>
@@ -91,7 +92,6 @@
 #include	"xscrypt.h"
 #include	"path.h"
 #include	"setenv.h"
-#include	"mystring.h"
 #include	"htconfig.h"
 #ifdef		HAVE_PCRE
 #include	"pcre.h"

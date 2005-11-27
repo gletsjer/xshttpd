@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.21 2005/11/27 15:28:13 johans Exp $ */
+/* $Id: error.c,v 1.22 2005/11/27 18:09:18 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -6,13 +6,13 @@
 #include	<stdio.h>
 #include	<unistd.h>
 #include	<stdlib.h>
+#include	<string.h>
 #include	<pwd.h>
 
 #include	"config.h"
 #include	"local.h"
 #include	"setenv.h"
 #include	"path.h"
-#include	"mystring.h"
 #include	"htconfig.h"
 
 struct virtual			*current;

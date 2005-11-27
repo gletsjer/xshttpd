@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.22 2005/11/03 18:42:54 johans Exp $ */
+/* $Id: httpdc.c,v 1.23 2005/11/27 18:09:18 johans Exp $ */
 
 #include	"config.h"
 
@@ -14,9 +14,9 @@
 #include	"err.h"
 #endif		/* HAVE_ERR_H */
 #include	<errno.h>
+#include	<string.h>
 #include	<ctype.h>
 
-#include	"mystring.h"
 #include	"httpd.h"
 #include	"path.h"
 #include	"htconfig.h"

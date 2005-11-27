@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: local.c,v 1.16 2005/10/11 20:25:04 johans Exp $ */
+/* $Id: local.c,v 1.17 2005/11/27 18:09:18 johans Exp $ */
 
 
 #include	"config.h"
@@ -7,12 +7,12 @@
 #include	<pwd.h>
 #include	<sys/stat.h>
 #include	<stdio.h>
+#include	<string.h>
 #include	<unistd.h>
 #include	<errno.h>
 
 #include	"httpd.h"
 #include	"local.h"
-#include	"mystring.h"
 #ifdef		BUILD_HTTPD
 # include	"htconfig.h"
 #endif		/* BUILD_HTTPD */

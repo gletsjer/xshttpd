@@ -31,6 +31,7 @@
 #include	<pwd.h>
 #include	<fcntl.h>
 #include	<stdlib.h>
+#include	<string.h>
 
 #include	"ssi.h"
 #include	"httpd.h"
@@ -41,7 +42,6 @@
 #include	"convert.h"
 #include	"xscounter.h"
 #include	"methods.h"
-#include	"mystring.h"
 #include	"htconfig.h"
 #include	"setenv.h"
 

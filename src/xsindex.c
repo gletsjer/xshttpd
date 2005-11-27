@@ -6,14 +6,13 @@
 #include	<unistd.h>
 #include	<stdio.h>
 #include	<stdlib.h>
+#include	<string.h>
 #include	<fcntl.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
 #else		/* Not HAVE_ERR_H */
 #include	"err.h"
 #endif		/* HAVE_ERR_H */
-
-#include	"mystring.h"
 
 typedef	struct	mime
 {

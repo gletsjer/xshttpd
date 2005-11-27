@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: convert.c,v 1.10 2005/10/11 20:25:04 johans Exp $ */
+/* $Id: convert.c,v 1.11 2005/11/27 18:09:18 johans Exp $ */
 
 #include	"config.h"
 
@@ -10,7 +10,6 @@
 
 #include	"httpd.h"
 #include	"local.h"
-#include	"mystring.h"
 #include	"convert.h"
 
 const char *

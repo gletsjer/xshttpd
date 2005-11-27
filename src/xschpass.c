@@ -8,11 +8,11 @@
 #include	<stdarg.h>
 #include	<sys/stat.h>
 #include	<errno.h>
+#include	<string.h>
 #include	<ctype.h>
 
 #include	"extra.h"
 #include	"xscrypt.h"
-#include	"mystring.h"
 
 static	void	error			(const char *, ...);
 static	void	urldecode		(char *);
