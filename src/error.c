@@ -1,4 +1,4 @@
-/* $Id: error.c,v 1.20 2005/11/06 11:03:11 johans Exp $ */
+/* $Id: error.c,v 1.21 2005/11/27 15:28:13 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -46,8 +46,7 @@ typedef	struct
 } userrank;
 
 static	const	char	*error_code, *error_readable, *error_url,
-			*error_url_escaped, *error_url_expanded,
-			*local_mode_str;
+			*error_url_escaped, *error_url_expanded;
 static	char		buffer[BUFSIZ], *temp;
 char			rootdir[XS_PATH_MAX];
 

@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.11 2005/11/27 13:25:25 johans Exp $ */
+/* $Id: ssl.c,v 1.12 2005/11/27 15:28:13 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -49,8 +49,8 @@ int
 initssl(int csd)
 {
 #ifdef		HANDLE_SSL
-	long		vr;
 	X509		*xs;
+	static const unsigned char	sid_ctx[] = SERVER_IDENT;
 
 	if (!cursock->usessl)
 		return 0;
@@ -58,7 +58,7 @@ initssl(int csd)
 	cursock->ssl = SSL_new(ssl_ctx);
 	SSL_set_fd(cursock->ssl, csd);
 	/* enable reusable keys */
-	SSL_set_session_id_context(cursock->ssl, "xshttpd", 7);
+	SSL_set_session_id_context(cursock->ssl, sid_ctx, 7);
 	if (!SSL_accept(cursock->ssl)) {
 		fprintf(stderr, "SSL flipped\n");
 		secprintf("%s 500 Failed\r\nContent-type: text/plain\r\n\r\n",
@@ -66,12 +66,12 @@ initssl(int csd)
 		secprintf("SSL Flipped...\n");
 		return -1;
 	}
-	vr = SSL_get_verify_result(cursock->ssl);
 	if ((xs = SSL_get_peer_certificate(cursock->ssl)))
 	{
 		X509_NAME	*xsname = X509_get_subject_name(xs);
 		char		buffer[BUFSIZ];
 
+		/* inform CGI about client cert */
 		setenv("SSL_CLIENT_S_DN",
 			(char *)X509_NAME_oneline(xsname, NULL, 0), 1);
 		if (X509_NAME_get_text_by_NID(xsname, NID_commonName,
@@ -89,6 +89,12 @@ initssl(int csd)
 		if (X509_NAME_get_text_by_NID(xsname, NID_pkcs9_emailAddress,
 				buffer, BUFSIZ) >= 0)
 			setenv("SSL_CLIENT_I_DN_Email", buffer, 1);
+
+		/* we did accept the cert, but is it valid? */
+		if (SSL_get_verify_result(cursock->ssl) == X509_V_OK)
+			setenv("SSL_CLIENT_VERIFY", "SUCCESS", 1);
+		else
+			setenv("SSL_CLIENT_VERIFY", "FAILED", 1);
 	}
 	else
 	{
@@ -98,6 +104,7 @@ initssl(int csd)
 		unsetenv("SSL_CLIENT_I_DN");
 		unsetenv("SSL_CLIENT_I_DN_CN");
 		unsetenv("SSL_CLIENT_I_DN_Email");
+		setenv("SSL_CLIENT_VERIFY", "NONE", 1);
 	}
 #endif		/* HANDLE_SSL */
 	return 0;
@@ -120,6 +127,7 @@ sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 		return preverify_ok;
 
 	/* sslauth optional */
+	(void) x509_ctx;
 	return 1;
 }
 #endif		/* HANDLE_SSL */
