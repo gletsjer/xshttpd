@@ -207,7 +207,7 @@ This defaults to \fISystemRoot\fP/key.pem - but may be contained in the
 same file as the SSLCertificate file.
 Note that this key should not be protected with a secret passphrase.
 .TP
-.B SSLAuthenticaton [none|optional|strict]
+.B SSLAuthentication [none|optional|strict]
 This setting indicates whether clients connecting of https should sent a
 client certificate to authenticate themselves. Note that certificate
 exchange is part of the SSL handshake and thus applies to all connections
@@ -234,6 +234,18 @@ of client certificates. This is unset by default; although an example
 The location of the list of files containing x509 root certificates to be
 used for validation of client certs. This is unset by default and
 can be used in combination with SSLCAfile.
+.TP
+.B SSLMatchSDN <pcre>
+If SSLAuthentication is enabled (optional or strict) and PCRE support
+is compiled in, this expression should match the client certificate subject
+as presented in the environment variable SSL_CLIENT_S_DN.
+Otherwise the client certificate will be rejected.
+.TP
+.B SSLMatchIDN <pcre>
+If SSLAuthentication is enabled (optional or strict) and PCRE support
+is compiled in, this expression should match the client certificate issuer
+as presented in the environment variable SSL_CLIENT_I_DN.
+Otherwise the client certificate will be rejected.
 
 .LP
 .SH SECTION OPTIONS
