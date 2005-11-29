@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.14 2005/11/29 18:22:00 johans Exp $ */
+/* $Id: ssl.c,v 1.15 2005/11/29 19:47:38 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -160,7 +160,7 @@ sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 	X509_NAME	*xsname;
 	char		buffer[BUFSIZ];
 	int		rc, ovector[OVSIZE];
-	X509		*xs = X509_STORE_CTX_get_current_cert(x509_ctx);
+	X509		*xs = x509_ctx->cert;
 
 	/* match subject */
 	if (cursock->sslpcresdn)
@@ -175,7 +175,7 @@ sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 	/* match issuer */
 	if (cursock->sslpcreidn)
 	{
-		xsname = X509_get_subject_name(xs);
+		xsname = X509_get_issuer_name(xs);
 		X509_NAME_oneline(xsname, buffer, BUFSIZ);
 		rc = pcre_exec(cursock->sslpcreidn, NULL,
 			buffer, strlen(buffer),
