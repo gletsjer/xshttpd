@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.12 2005/11/27 15:28:13 johans Exp $ */
+/* $Id: ssl.c,v 1.13 2005/11/29 18:16:28 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -21,6 +21,10 @@
 #ifdef		HANDLE_SSL
 static SSL_CTX		*ssl_ctx;
 #endif		/* HANDLE_SSL */
+#ifdef		HAVE_PCRE
+#include		"pcre.h"
+#include		<pcre.h>
+#endif		/* HAVE_PCRE */
 
 static int	netbufind, netbufsiz, readlinemode;
 static char	netbuf[MYBUFSIZ];
@@ -106,6 +110,33 @@ initssl(int csd)
 		unsetenv("SSL_CLIENT_I_DN_Email");
 		setenv("SSL_CLIENT_VERIFY", "NONE", 1);
 	}
+
+#ifdef		HAVE_PCRE
+	if (cursock->sslmatchsdn || cursock->sslmatchidn)
+	{
+		int		erroffset;
+		const char	*errormsg;
+
+		if (cursock->sslmatchsdn)
+		{
+			cursock->sslpcresdn =
+				pcre_compile(cursock->sslmatchsdn,
+					0, &errormsg, &erroffset, NULL);
+			if (!cursock->sslmatchsdn)
+				/* TODO: error handling */
+				return -1;
+		}
+		if (cursock->sslmatchidn)
+		{
+			cursock->sslpcreidn =
+				pcre_compile(cursock->sslmatchidn,
+					0, &errormsg, &erroffset, NULL);
+			if (!cursock->sslmatchidn)
+				/* TODO: error handling */
+				return -1;
+		}
+	}
+#endif		/* HAVE_PCRE */
 #endif		/* HANDLE_SSL */
 	return 0;
 }
@@ -123,6 +154,40 @@ endssl(int csd)
 static int
 sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 {
+	int		validated = 1;
+
+#ifdef		HAVE_PCRE
+	X509_NAME	*xsname;
+	char		buffer[BUFSIZ];
+	int		rc, ovector[OVSIZE];
+	X509		*xs = SSL_get_peer_certificate(cursock->ssl);
+
+	/* match subject */
+	if (cursock->sslpcresdn)
+	{
+		xsname = X509_get_subject_name(xs);
+		X509_NAME_oneline(xsname, buffer, BUFSIZ);
+		rc = pcre_exec(cursock->sslpcresdn, NULL,
+			buffer, strlen(buffer),
+			0, 0, ovector, OVSIZE);
+
+		if (rc >= 0)
+			validated &= 1;
+	}
+	/* match issuer */
+	if (cursock->sslpcreidn)
+	{
+		xsname = X509_get_subject_name(xs);
+		X509_NAME_oneline(xsname, buffer, BUFSIZ);
+		rc = pcre_exec(cursock->sslpcreidn, NULL,
+			buffer, strlen(buffer),
+			0, 0, ovector, OVSIZE);
+
+		if (rc >= 0)
+			validated &= 1;
+	}
+#endif		/* HAVE_PCRE */
+
 	if (auth_strict == cursock->sslauth)
 		return preverify_ok;
 

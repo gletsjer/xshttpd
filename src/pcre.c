@@ -1,5 +1,5 @@
 /* Copyright (C) 2005 by Johan van Selst (johans@stack.nl) */
-/* $Id: pcre.c,v 1.2 2005/08/05 15:21:47 johans Exp $ */
+/* $Id: pcre.c,v 1.3 2005/11/29 18:16:28 johans Exp $ */
 
 #include	"config.h"
 #include	"pcre.h"
@@ -13,8 +13,6 @@
 #include	<pcre/pcre.h>
 #endif		/* HAVE_PCRE_PCRE_H */
 #endif		/* HAVE_PCRE_H */
-
-#define		OVSIZE	30	/* allows \0 through \9 */
 
 char *
 pcre_subst(const char * const string, const char * const pattern, const char * const replacement)

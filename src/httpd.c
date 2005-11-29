@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.211 2005/11/27 18:09:18 johans Exp $ */
+/* $Id: httpd.c,v 1.212 2005/11/29 18:16:28 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.211 2005/11/27 18:09:18 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.212 2005/11/29 18:16:28 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -352,6 +352,10 @@ load_config()
 					lsock->sslcafile = strdup(value);
 				else if (!strcasecmp("SSLCApath", key))
 					lsock->sslcapath = strdup(value);
+				else if (!strcasecmp("SSLMatchSDN", key))
+					lsock->sslmatchsdn = strdup(value);
+				else if (!strcasecmp("SSLMatchIDN", key))
+					lsock->sslmatchidn = strdup(value);
 				else if (!strcasecmp("SSLAuthentication", key))
 				{
 					if (!strcasecmp(value, "optional"))

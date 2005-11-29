@@ -1,11 +1,14 @@
 #include <sys/types.h>
-#include <netinet/in.h>
+#include <sys/socket.h>
 #include <pwd.h>
 
 #ifdef		HANDLE_SSL
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #endif		/* HANDLE_SSL */
+#ifdef		HAVE_PCRE
+#include <pcre.h>
+#endif		/* HAVE_PCRE */
 
 typedef	enum { log_none, log_traditional, log_combined, log_virtual }	logstyle_t;
 typedef enum { auth_none, auth_optional, auth_strict }	sslauth_t;
@@ -40,9 +43,15 @@ struct socket_config {
 	unsigned	padding: 7;
 	char *		sslcertificate;
 	char *		sslprivatekey;
+	sslauth_t	sslauth;
 	char *		sslcafile;
 	char *		sslcapath;
-	sslauth_t	sslauth;
+#ifdef		HAVE_PCRE
+	char *		sslmatchsdn;
+	char *		sslmatchidn;
+	pcre *		sslpcresdn;
+	pcre *		sslpcreidn;
+#endif		/* HAVE_PCRE */
 #ifdef		HANDLE_SSL
 	SSL		*ssl;
 #endif		/* HANDLE_SSL */
