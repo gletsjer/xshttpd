@@ -2,7 +2,10 @@ This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
 Changes since 3.4 beta 2
-- Add ScriptEnvPath configuration option to set $PATH
+- Add SSLMatch[SI]DN config option to match client certs (PCRE req'd)
+- Add $SSL_CLIENT_VERIFY information for SSLAuthenticate = optional
+- Rename SSLAuthentication to SSLAuthenticate
+- Add ScriptEnvPath configuration option to set $PATH for CGIs
 
 Changes since 3.4 beta 1
 - Support SSL client certificates (see SSLAuthentication)
