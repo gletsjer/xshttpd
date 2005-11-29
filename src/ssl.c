@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.13 2005/11/29 18:16:28 johans Exp $ */
+/* $Id: ssl.c,v 1.14 2005/11/29 18:22:00 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -160,7 +160,7 @@ sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 	X509_NAME	*xsname;
 	char		buffer[BUFSIZ];
 	int		rc, ovector[OVSIZE];
-	X509		*xs = SSL_get_peer_certificate(cursock->ssl);
+	X509		*xs = X509_STORE_CTX_get_current_cert(x509_ctx);
 
 	/* match subject */
 	if (cursock->sslpcresdn)
@@ -170,9 +170,7 @@ sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 		rc = pcre_exec(cursock->sslpcresdn, NULL,
 			buffer, strlen(buffer),
 			0, 0, ovector, OVSIZE);
-
-		if (rc >= 0)
-			validated &= 1;
+		validated &= (rc >= 0);
 	}
 	/* match issuer */
 	if (cursock->sslpcreidn)
@@ -182,18 +180,16 @@ sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 		rc = pcre_exec(cursock->sslpcreidn, NULL,
 			buffer, strlen(buffer),
 			0, 0, ovector, OVSIZE);
-
-		if (rc >= 0)
-			validated &= 1;
+		validated &= (rc >= 0);
 	}
 #endif		/* HAVE_PCRE */
 
 	if (auth_strict == cursock->sslauth)
-		return preverify_ok;
+		return preverify_ok && validated;
 
 	/* sslauth optional */
 	(void) x509_ctx;
-	return 1;
+	return validated;
 }
 #endif		/* HANDLE_SSL */
 
