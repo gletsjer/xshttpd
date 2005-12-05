@@ -50,7 +50,7 @@ AC_FUNC_WAIT3
 AC_CHECK_FUNCS(gethostname mktime select strerror strpbrk strstr)
 
 dnl SEPERATOR
-AC_CHECK_FUNCS(getaddrinfo getnameinfo killpg mkstemp mmap sendfile seteuid setegid setresuid setresgid setrlimit setsid setpriority sigemptyset tempnam vfork uname)
+AC_CHECK_FUNCS(getaddrinfo getnameinfo killpg mkstemp mmap seteuid setegid setresuid setresgid setrlimit setsid setpriority sigemptyset tempnam vfork uname)
 
 dnl Prog specific checks
 if test x$prefix = xNONE
