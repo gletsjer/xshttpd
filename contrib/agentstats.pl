@@ -277,7 +277,8 @@ if (open ('httpdlog', shift))
 				$browser = 'Mozilla Suite';
 			}
 			# MSIE at the bottom - a lot of spoofers
-			elsif ($agent =~ / MSIE /)
+			elsif (($agent =~ / MSIE /) ||
+			    ($agent =~ /^Explorer\//))
 			{
 				$browser = 'Internet Explorer';
 			}
