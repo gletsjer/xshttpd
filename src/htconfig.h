@@ -46,9 +46,9 @@ struct socket_config {
 	sslauth_t	sslauth;
 	char *		sslcafile;
 	char *		sslcapath;
-#ifdef		HAVE_PCRE
 	char *		sslmatchsdn;
 	char *		sslmatchidn;
+#ifdef		HAVE_PCRE
 	pcre *		sslpcresdn;
 	pcre *		sslpcreidn;
 #endif		/* HAVE_PCRE */
