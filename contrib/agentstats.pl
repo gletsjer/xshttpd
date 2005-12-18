@@ -59,7 +59,11 @@ if (open ('httpdlog', shift))
 			}
 
 			# Step two - get the browser
-			if ($agent =~ / Arachmo/)
+			if ($agent =~ /^ia_archiver$/)
+			{
+				$browser = 'Bot: Alexa Web Search';
+			}
+			elsif ($agent =~ / Arachmo/)
 			{
 				$browser = 'Bot: Arachmo Search';
 			}
@@ -214,13 +218,26 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Bot: Netcraft Web Server Survey';
 			}
+			elsif ($agent =~ /NetBSD-ftp\//)
+			{
+				$browser = 'ftp';
+				$os = 'NetBSD';
+			}
 			elsif ($agent =~ / Netscape/)
 			{
 				$browser = 'Netscape Navigator';
 			}
+			elsif ($agent =~ /^Nutch/)
+			{
+				$browser = 'Bot: Apache Nutch';
+			}
 			elsif ($agent =~ /Opera/)
 			{
 				$browser = 'Opera';
+			}
+			elsif ($agent =~ /^PHP version tracker /)
+			{
+				$browser = 'Bot: PHP version tracker';
 			}
 			elsif ($agent =~ /^psbot\//)
 			{
@@ -229,6 +246,10 @@ if (open ('httpdlog', shift))
 			elsif ($agent =~ /^Prodiance Desktop Search Spider$/)
 			{
 				$browser = 'Bot: Prodiance Desktop Search';
+			}
+			elsif ($agent =~ /^RSS-SPIDER /)
+			{
+				$browser = 'Bot: RSS Spider';
 			}
 			elsif ($agent =~ / Safari\//)
 			{
@@ -246,6 +267,10 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Mozilla Thunderbird';
 			}
+			elsif ($agent =~ /TurnitinBot\//)
+			{
+				$browser = 'Bot: Turnitin';
+			}
 			elsif ($agent =~ /^W3C_Validator\//)
 			{
 				$browser = 'Bot: W3C HTML Validator';
@@ -262,6 +287,18 @@ if (open ('httpdlog', shift))
 			elsif ($agent =~ /^w3m\//)
 			{
 				$browser = 'W3m';
+			}
+			elsif ($agent =~ /^appie.*walhello/)
+			{
+				$browser = 'Bot: Walhello Search';
+			}
+			elsif ($agent =~ /^WebCopier /)
+			{
+				$browser = 'WebCopier';
+			}
+			elsif ($agent =~ /^Sqworm\//)
+			{
+				$browser = 'Bot: Websense Search';
 			}
 			elsif ($agent =~ /^Wget\//)
 			{
