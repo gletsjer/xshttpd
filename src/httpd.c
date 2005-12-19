@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.212 2005/11/29 18:16:28 johans Exp $ */
+/* $Id: httpd.c,v 1.213 2005/12/19 12:30:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.212 2005/11/29 18:16:28 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.213 2005/12/19 12:30:09 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1658,6 +1658,10 @@ standalone_socket(int id)
 	if (bind(sd, &saddr, sizeof(struct sockaddr)) == -1)
 		err(1, "bind()");
 #endif		/* HAVE_GETADDRINFO */
+	setenv("SERVER_PORT",
+		!strcmp(cursock->port, "http") ? "80" :
+		!strcmp(cursock->port, "https") ? "443" :
+		cursock->port, 1);
 
 	if (listen(sd, MAXLISTEN))
 		err(1, "listen()");
@@ -1867,7 +1871,6 @@ setup_environment()
 	setenv("SERVER_SOFTWARE", SERVER_IDENT, 1);
 	setenv("SERVER_NAME", config.system->hostname, 1);
 	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
-	setenv("SERVER_PORT", "80", 1);
 	setenv("HTTPD_ROOT", config.systemroot, 1);
 }
 
