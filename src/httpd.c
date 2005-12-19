@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.213 2005/12/19 12:30:09 johans Exp $ */
+/* $Id: httpd.c,v 1.214 2005/12/19 13:00:51 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.213 2005/12/19 12:30:09 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.214 2005/12/19 13:00:51 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1293,9 +1293,6 @@ process_request()
 		error("400 Unable to read request line");
 		return;
 	}
-	temp = orig + strlen(orig);
-	while ((temp > orig) && (*(temp - 1) <= ' '))
-		*(--temp) = 0;
 	url = line;
 	while (*url && (*url > ' '))
 		url++;
@@ -1443,7 +1440,7 @@ process_request()
 	}
 	else if (params[0] != '/' && strcmp("OPTIONS", line))
 	{
-		server_error("400 Relative URL's are not supported", "BAD_REQUEST");
+		error("400 Relative URL's are not supported");
 		return;
 	}
 	/* SERVER_NAME may be overriden soon */
