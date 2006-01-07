@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.214 2005/12/19 13:00:51 johans Exp $ */
+/* $Id: httpd.c,v 1.215 2006/01/07 16:25:31 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.214 2005/12/19 13:00:51 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.215 2006/01/07 16:25:31 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -439,6 +439,8 @@ load_config()
 					current->logerror = strdup(value);
 				else if (!strcasecmp("LogReferer", key))
 					current->logreferer = strdup(value);
+				else if (!strcasecmp("LogRefererIgnoreDomain", key))
+					strlcpy(thisdomain, THISDOMAIN, NI_MAXHOST);
 				else if (!strcasecmp("IndexFiles", key))
 				{
 					int		i;
@@ -1876,8 +1878,8 @@ main(int argc, char **argv)
 {
 	int			option, num;
 	int			nolog = 0;
-	enum { optionp, optiond, optionhd, optionhn, optionaa, optionrr, optionee };
-	char *		longopt[7] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, };
+	enum { optionp, optiond, optionhn, optionaa, optionrr, optionee };
+	char *		longopt[6] = { NULL, NULL, NULL, NULL, NULL, NULL, };
 	uid_t		uid = 0;
 	gid_t		gid = 0;
 #ifdef		HAVE_UNAME
@@ -1948,12 +1950,6 @@ main(int argc, char **argv)
 			if (*optarg != '/')
 				errx(1, "The -d directory must start with a /");
 			longopt[optiond] = optarg;
-			break;
-		case 'D':
-			longopt[optionhd] = optarg;
-			break;
-		case 'r':
-			strlcpy(thisdomain, optarg, NI_MAXHOST);
 			break;
 		case 'l':
 			errx(1, "-l is deprecated: use Users/HtmlDir");
@@ -2073,7 +2069,6 @@ main(int argc, char **argv)
 	if (config.sockets)
 			SET_OPTION(optionp,  config.sockets[0].port);
 	SET_OPTION(optiond,  config.systemroot);
-	SET_OPTION(optionhd, config.system->htmldir);
 	SET_OPTION(optionhn, config.system->hostname);
 	SET_OPTION(optionaa, config.system->logaccess);
 	SET_OPTION(optionrr, config.system->logreferer);

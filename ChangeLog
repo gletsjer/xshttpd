@@ -1,6 +1,15 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.4 beta 4
+- Remove the less useful -D, -r command line options
+- Clean up httpd, httpd.conf manual layout
+
+Changes since 3.4 beta 3
+- Fix SERVER_PORT variable
+- Fix child SEGV on illegal request and other small bugs
+- Browser definition updates from Ed
+
 Changes since 3.4 beta 2
 - Add SSLMatch[SI]DN config option to match client certs (PCRE req'd)
 - Add $SSL_CLIENT_VERIFY information for SSLAuthenticate = optional
