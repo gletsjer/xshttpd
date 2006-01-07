@@ -1,6 +1,6 @@
-.TH HTTPD 5 "12 June 2002"
+.TH HTTPD 5 xs-httpd
 .SH FILENAME
-httpd.conf \- XS httpd configuration file
+httpd.conf \- XS-httpd configuration file
 .LP
 .SH HTTPD.CONF LAYOUT
 .LP
@@ -24,8 +24,8 @@ The httpd.conf configuration file has the following general layout:
  ... options for binding specific sockets ...
  </Socket>
 .LP
-Options and their values must be seperated by whitespaces.
-.br
+Options and their values must be seperated by whitespace.
+.LP
 The file can have only one System and one Users section, but multiple
 Virtual sections (one per virtual hostname). Keep in mind that there
 are fall-back defaults for all options: you are not required to use a
@@ -35,7 +35,6 @@ automatically disabled.
 .LP
 .SH GLOBAL OPTIONS
 The following options can be set in the global section:
-
 .TP
 .B SystemRoot <directory>
 The main httpd directory which contains all the data subdirectories
@@ -50,16 +49,14 @@ for restarting and other maintainance commands.
 .B UserId <username>
 The username or numeric uid that will be used to process all requests.
 This may not be the 'root' superuser, however 'nobody' (default) or
-'http' are good candidates.
+ 'http' are good candidates.
 .TP
 .B GroupId <groupname>
 The groupname or numeric gid that will be used to process all requests.
-
 .TP
 .B ExecAsUser [true|false]
 If enabled then filenames and CGI's in a user directory will be read and
 executed with the permissions of that user. This is the default.
-.I [cannot be disabled yet]
 .TP
 .B UseCharset [true|false]
 If enabled then character sets can be set for all files in a directory
@@ -80,12 +77,11 @@ string prefixes of IP addresses - or IP subnets in CIDR notation. Only
 clients with matching addresses will be able to retreive files from this
 directory. If disabled then access to the directory will denied to
 everyone if a .noxs is present and the contents of the .noxs file is
-ignored. UseRestrictAddr is enabled by default.
+ignored. \fIUseRestrictAddr\fP is enabled by default.
 .TP
 .B UseVirtualHost [true|false]
 If enabled then virtual websites can be used based on the requested
-hostname; as described in
-.BR httpd(1) .
+hostname; as described in .\fIhttpd(1)\fP.
 This is the default. When disabled only the main (default) site can be
 requested and any <Virtual> directives in the configuration file will be
 ignored.
@@ -110,8 +106,7 @@ relative to \fISystemRoot\fP - if the setting is omited then
 If enabled all directories will be checked for the presence of a .xsscripts
 file. This can be used to specify how files with certain
 extensions should be handled by the webserver. These files use the exact
-same syntax as the global script.methods file, see
-.BR httpd(1)
+same syntax as the global script.methods file, see \fIhttpd(1)\fP
 for details.
 .TP
 .B UseDnsLookup [true|false]
@@ -125,16 +120,16 @@ By default *.redir files contain an absolute or relative URL to redirect to,
 but if this option is enabled, it make contain a path substitution as well.
 This substitution must be of the form
 \fBs/\fP\fIpattern\fP\fB/\fP\fIreplacement\fP\fB/\fP
-Where pattern is a \fBpcrepattern(3)\fP-like regular expression that must
+Where pattern is a \fIpcrepattern(3)\fP-like regular expression that must
 match the full path (without hostname). The replacement may contain grouped
-backreferences indicated with \fB\\\fP\fIn\fP.
+backreferences indicated with \fB\\\fP\fIN\fP.
 This will only work if xs-httpd is compiled with PCRE support.
 .TP
 .B UseLdapAuth [true|false]
-By default .xspasswd contain (encrypted) passwords. If this option is
+By default \fB.xspasswd\fP contain (encrypted) passwords. If this option is
 enabled, they may also contain LDAP information, in which case the webserver
 will first check the LDAP database for a matching username and then the
-passwords in this file. See \fBxsauth(5)\fP for more details.
+passwords in this file. See \fIxsauth(5)\fP for more details.
 This will only work if xs-httpd is compiled with LDAP support.
 .TP
 .B Priority
@@ -193,7 +188,7 @@ The number of parallell services to run.
 .B UseSSL [true|false]
 If enabled, use SSL instead of plain text. This can only be used if SSL
 support is enabled at compile time. If this option is set then the
- 'https' (443) port will be used by default, instead of 'http' (80). This
+https (443) port will be used by default, instead of http (80). This
 option is disabled by default. Note that you may include both blocks with
 and without UseSSL.
 .TP
@@ -204,26 +199,29 @@ This defaults to \fISystemRoot\fP/cert.pem
 .B SSLPrivateKey <filename>
 The location of the x509 certificate's key to be used for SSL connections.
 This defaults to \fISystemRoot\fP/key.pem - but may be contained in the
-same file as the SSLCertificate file.
+same file as the \fISSLCertificate\fP file.
 Note that this key should not be protected with a secret passphrase.
 .TP
 .B SSLAuthentication [none|optional|strict]
+.RS
 This setting indicates whether clients connecting of https should sent a
 client certificate to authenticate themselves. Note that certificate
 exchange is part of the SSL handshake and thus applies to all connections
 to the socket in which it is specified.
-.br
+.LP
 The default is \fInone\fP: don't request a client certificate. When set to
 \fIoptional\fP, the client must send an identifying cert, but this
 certificate won't be checked in any way (it may be self-signed).
 The most secure setting is \fIstrict\fP: all client certificates will be
-checked and must validate against the list of root Certificate Authorities.
-This implies SSLCAfile or SSLCApath: if neither is set, checks will
-automatically fall back to optional mode.
-.br
-When SSLAuthentication is enabled, extra environment variables are
+checked and must validate against the list of root Certificate
+Authorities. This implies \fISSLCAfile\fP or \fISSLCApath\fP: if neither
+is set, checks will automatically (without further warning) fall back to
+\fIoptional\fP mode.
+.LP
+When \fISSLAuthentication\fP is enabled, extra environment variables are
 available in the CGI environment to offer details about the client
 certificate subject and issuing organisation.
+.RE
 .TP
 .B SSLCAfile <filename>
 The location of the list of x509 root certificates to be used for validation
@@ -233,18 +231,18 @@ of client certificates. This is unset by default; although an example
 .B SSLCApath <directory>
 The location of the list of files containing x509 root certificates to be
 used for validation of client certs. This is unset by default and
-can be used in combination with SSLCAfile.
+can be used in combination with \fISSLCAfile\fP.
 .TP
 .B SSLMatchSDN <pcre>
-If SSLAuthentication is enabled (optional or strict) and PCRE support
-is compiled in, this expression should match the client certificate subject
-as presented in the environment variable SSL_CLIENT_S_DN.
-Otherwise the client certificate will be rejected.
+If \fISSLAuthentication\fP is enabled (optional or strict) and PCRE
+support is compiled in, this expression should match the client
+certificate subject as presented in the environment variable
+\fBSSL_CLIENT_S_DN\fP. Otherwise the client certificate will be rejected.
 .TP
 .B SSLMatchIDN <pcre>
 If SSLAuthentication is enabled (optional or strict) and PCRE support
 is compiled in, this expression should match the client certificate issuer
-as presented in the environment variable SSL_CLIENT_I_DN.
+as presented in the environment variable \fBSSL_CLIENT_I_DN\fP.
 Otherwise the client certificate will be rejected.
 
 .LP
@@ -261,7 +259,7 @@ One or more aliases for the previously mentioned hostname.
 .TP
 .B HtmlDir <directory>
 The main directory containing all the HTML files. This defaults to
-SystemRoot/htdocs/ for the main server and ~/.html/ for users.
+\fISystemRoot\fP/htdocs/ for the main server and ~/.html/ for users.
 It is a mandatory option in Virtual sections.
 .TP
 .B ExecDir <directory>
@@ -272,58 +270,73 @@ on disk (default: cgi-bin).
 .B PhExecDir <directory>
 Physical CGI directory: this is the subdirectory where scripts are
 stored on disk. However if you do not use the same value as ExecDir, it
-is easy to get confused (default: cgi-bin)
+is easy to get confused (default: \fIcgi-bin\fP)
 .TP
 .B LogAccess <filename>
-Logfile to use for normal HTTP requests (answered with a 2xx response).
-Instead of a filename, it is possible to log to an external process
-using a pipe-symbol and full pathname. If the command is followed by
-options or arguments, make sure to quote it using double quotes. For
-example to enable logging through cronolog:
-.br
+Logfile to use for normal HTTP requests (answered with a \fB2xx\fP
+response). Instead of a filename, it is possible to log to an external
+process using a pipe-symbol and full pathname. If the command is
+followed by options or arguments, make sure to quote it using double
+quotes. For example to enable logging through cronolog:
+.IP
 LogAccess "|/usr/local/sbin/cronolog /wwwsys/logs/access_%Y%m%d"
 .TP
 .B LogError <filename>
 Logfile or program to use for HTTP requests that trigger errors (like
-file not found, 4xx responses).
+file not found, \fB4xx\fP responses).
 .TP
 .B LogReferer <filename>
 Logfile or program to use for HTTP referrer information. Note that this
-is only used when LogStyle traditional is selected - otherwise referrer
-information will be included in the standard LogAccess file.
+is only used when \fILogStyle\fP traditional is selected - otherwise
+referrer information will be included in the standard \fILogAccess\fP
+file.
+.TP
+.B LogRefererIgnoreDomain <domain>
+References coming from this domain will not be logged in the
+\fILogReferer\fP file. This is usually your own domain. Note that
+it is wise to start the domain with a dot (.). You may also
+give a machine name instead of a domain name.
+Note: This only affects traditional logging where a sperate referrer
+logfile is used. It will be ignored when using more modern logstyles.
 .TP
 .B LogStyle [traditional|combined|virtual]
 Defines the logfile format. Traditionally access and referrer logs will
 be split over two different files (common logfile format), but using a
-combined accesslog is more common nowadays (extended logfile format).
-The virtual format is basically an combined log with an extra first field
-indicating the virtual hostname that was accessed on the webserver.
+\fIcombined\fP accesslog is more common nowadays (extended logfile
+format). The \fIvirtual\fP format is basically an combined log with an
+extra first field indicating the virtual hostname that was accessed on
+the webserver.
 .TP
 .B IndexFiles <filename> [filename ...]
-Defines the filename that should be used when the user asks for a
+Defines the filename(s) that should be used when the user asks for a
 directory. The webserver will never autogenerate a directory index: you
-can use \fBxsindex(1)\fP for that. You can specify multiple filenames
-seperated by commas or whitespace. The default value is \fBindex.html,
-index.htm, index.php\fP (meaning that index.htm will only be tried if
+can use \fIxsindex(1)\fP for that. You can specify multiple filenames
+seperated by commas or whitespace. The default value is \fBindex.html
+index.htm index.php\fP (meaning that index.htm will only be tried if
 index.html is not present, etc.).
-.br
+.LP
 If this option is omitted for the <Virtual> or <Users> section, it will
 default to the definition in the <System> block. Or the previously
 mentioned default if this is also unspecified.
 
 .SH EXAMPLE
-Refer to the httpd.conf.sample file that comes with the source distribution.
+Refer to the \fIhttpd.conf.sample\fP file that comes with the source
+distribution.
+
 .SH ACKNOWLEDGEMENTS
 I thank all the members at MCGV Stack who are actively involved in the
 entire WWW happening.
+
 .SH "SEE ALSO"
 http://www.stack.nl/xs\-httpd/
-.br
+.LP
 httpd(1), xspasswd(1), imagemap(1), clearxs(1), readxs(1), gfxcount(1),
 xsindex(1), httpdc(1), xsauth(5), xsscripts(5)
+
 .SH COPYRIGHT
-All the programs in the XS\-HTTPD package are copyright (C) 1995-2005
+All the programs in the XS\-HTTPD package are copyright (C) 1995-2006
 by Sven Berkvens and Johan van Selst, except the imagemapper.
+
 .SH AUTHOR
 The original author of this WWW server and its accompanying programs
 is Sven Berkvens, except the imagemapper which was taken from the NCSA

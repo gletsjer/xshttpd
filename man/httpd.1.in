@@ -1,65 +1,53 @@
-.TH HTTPD 1 "22 June 1998"
+.TH HTTPD 1 xs-httpd
+
 .SH NAME
 httpd \- WWW server conforming to HTTP/1.1
+
 .SH SYNOPSIS
 .ta 8n
 .B httpd
 [
 .I options
 ]
-.LP
+
 .SH DESCRIPTION OF HTTPD
 What is XS\-HTTPD? XS\-HTTPD is a WWW server that has the following features:
-.TP
-o
+.IP \(bu 4
 It is pronounced as "access\-HTTP\-daemon"
-.TP
-o
+.IP \(bu 4
 It is SMALL (very small in fact: a factor two to three smaller than
 normal servers on disk and in memory)
-.TP
-o
+.IP \(bu 4
 It is FAST (because it is so small and does not do
 unnecessary things)
-.TP
-o
+.IP \(bu 4
 Uses very little CPU time
-.TP
-o
+.IP \(bu 4
 Configurable (configuration compiled in to make it small, but
 largely overridable on the command line)
-.TP
-o
+.IP \(bu 4
 Runs user CGI binaries under their \fIown\fP user ID!
-.TP
-o
+.IP \(bu 4
 Gets users' pages under their own user ID, allowing them to
 really have protected pages (using the built\-in authentication
 mechanism)!
-.TP
-o
+.IP \(bu 4
 Does not fork for every connection (has a fixed number of
 servers), only to replace a lost server (in case of timeouts).
-.TP
-o
+.IP \(bu 4
 Comes with some other useful programs
-.TP
-o
+.IP \(bu 4
 Offers Server-Side Includes for many common tasks, including
 built-in page counters (text or graphical)
-.TP
-o
+.IP \(bu 4
 Supports PHP and other interpreted file formats
-.TP
-o
+.IP \(bu 4
 Supports automatic decompression to save diskspace and bandwidth
-.TP
-o
+.IP \(bu 4
 Serves SSL (https) and http connections through the same daemon
-.TP
-o
+.IP \(bu 4
 Full support for IPv6
-.LP
+
 .SH RUNNING THE HTTPD
 Note that if you are going to use a port number below or equal to 1024
 (for example 80, the default port number), you will have to be
@@ -67,17 +55,34 @@ Note that if you are going to use a port number below or equal to 1024
 to start the WWW server. Also, if you want users'
 CGI binaries to be executed under their own user ID, you will have to
 start the WWW server as root.
-
-The server has a number of options. You can specify these options either
-on the command line or in the httpd.conf configuration file. Please use
-the more flexible configuration file for standard settings, see
-\fBhttpd.conf(5)\fP for details. Not all options are available from the
-command line!
-
+.LP
+The server has a number of options. The standard options are listed below.
+These doe not have an equivalent configuration file setting:
 .TP
 .B \-c configfile
 Uses the specified configuration file instead of the default
 \fIrootdir\fP/httpd.conf.
+.TP
+.B \-m service\-message
+If you give this option to the server, it will not function as it normally
+would. Instead of supplying documents, all it will do is display the
+\fBservice\-message\fP. This is very useful to at least give users an idea
+of what you are doing when the server is temporarily out of order.
+Remember that if you are supplying an entire
+sentence, then you have to enclose that sentence in quotes (").
+.TP
+.B \-N
+This option disables reading of the configuration file and writing of
+logfiles and pidfile. This can be useful for testing, non-superuser
+execution or in combination with the -m option.
+.TP
+.B \-v
+Shows the server version number and certain compile options.
+This does not launch a daemon but exits immediately.
+.LP
+Additional options may be specified on the command line or in the httpd.conf
+configuration file. Please use the more flexible configuration file for all
+standard settings, see \fBhttpd.conf(5)\fP for details.
 .TP
 .B \-p portnumber
 Uses port number
@@ -103,22 +108,6 @@ directories like the logs directory, the htdocs
 directory and the cgi\-bin directory. The factory default
 is /usr/local/lib/httpd.
 .TP
-.B \-D documentdir
-Uses \fBdocumentdir\fP as the main directory for HTML files,
-instead of the default \fBrootdir\fP/htdocs.
-.TP
-.B \-r referdomain
-Uses \fBreferdomain\fP as the "refer\-ignore\-domain".
-References coming from this domain will not be logged in the
-refer_log. This is usually your own domain. Note that
-it is wise to start the domain with a dot (.). You may also
-give a machine name instead of a domain name.
-.TP
-.B \-l localmode
-Uses \fBlocalmode\fP as the parameter to transform_user_dir().
-This way, you can build different options into your local
-configuration. Not recommended for non\-experts.
-.TP
 .B \-a address
 Uses \fBaddress\fP as the internet address to listen
 on. This is very handy on "multi\-homing" server with multiple
@@ -127,14 +116,6 @@ functionality on different interfaces. This name is also used for
 redirecting requests back to this host. Therefore, you must use
 a "full" (complete with the host's name and the domain) internet
 address, otherwise remote hosts will not be able to resolve the name.
-.TP
-.B \-m service\-message
-If you give this option to the server, it will not function as it normally
-would. Instead of supplying documents, all it will do is display the
-\fBservice\-message\fP. This is very useful to at least give users an idea
-of what you are doing when the server is temporarily out of order.
-Remember that if you are supplying an entire
-sentence, then you have to enclose that sentence in quotes (").
 .TP
 .B \-A access\-log\-path
 If you give this option to the server, you will override the default
@@ -147,16 +128,7 @@ file in which the server will place all error messages.
 .B \-R referer\-log\-path
 If you give this option to the server, you will override the default
 file in which the server will place references to local files.
-.TP
-.B \-N
-This option disables reading of the configuration file and writing of
-logfiles and pidfile. This can be useful for testing, non-superuser
-execution or in combination with the -m option.
-.TP
-.B \-v
-Shows the server version number and certain compile options.
-This does not launch a daemon but exits immediately.
-.LP
+
 .SH EXAMPLE
 A typical startup sequence could be:
 .LP
@@ -164,11 +136,12 @@ httpd \-n 64 \-u http \-g www
 .LP
 which will start 64 servers (64 concurrent connections possible),
 and run it under user ID http and group ID www.
-.SH Other features
-.SH Automatic decompression
+
+.SH OTHER FEATURES
+.SS Automatic decompression
 One of the nice features of the WWW server is automatic decompression.
 This feature is dealt with in the file called \fBcompress.methods\fP.
-You should disable \fIUseCompressed\fI if you don't want it.
+You should disable \fIUseCompressed\fP if you don't want it.
 .LP
 This file lists the possible compression types that are understood by the
 WWW server. It works very simply: if somebody asks for (for example)
@@ -200,16 +173,19 @@ fly for that user.
 Note that only one compression type per file is possible. Of course, you
 can make frontends for types that require multiple filters. In that case,
 it can be helpful to know that the list is traversed from top to bottom.
-.SH Authentication
+.SS Authentication
 This server supports the \fIbasic\fP authentication protocol. This
 means that users can protect their pages with a username/password
-combination. Other servers can do this too, but they lack one thing:
-the "protected" files have to be world\-readable. Because this server
+combination. Other servers can do this as well, but they lack one thing:
+the "protected" files have to be world\-readable. Because our server
 retrieves pages under users' own UID, this problem is avoided.
 .LP
-More information about authentication can be found in the manual pages
-of \fBxspasswd\fP and \fBxschpass\fP.
-.SH Secure Sockets Layer
+Basic authentication does not provide (password) encryption. If you are
+worried about other parties intercepting your communications, you should
+configure \fBSSL\fP (as documented below).
+More information about setting up authentication paswords can be found
+in the manual pages of \fBxspasswd\fP and \fBxschpass\fP.
+.SS Secure Sockets Layer
 The webserver supports secure https connections as well as normal http.
 However if you want to do both, you will need to run seperate instances,
 one with \fBUseSSL\fP (or the command line option -s) set and one without.
@@ -227,8 +203,12 @@ in the configuration file.
 .LP
 An example SSL-Makefile that can help you generate the certificate,
 can be found in the httpd source distribution.
-.SH Special files
-There are a number of files that this WWW server considers special:
+
+.SH USER CONFIGURATION FILES
+There are several files that this WWW server considers special.
+These files start with a dot (hidden) and contain special instructions
+for the webserver that apply to a sigle file or all files in a directory
+(and underlying subdirectories).
 .TP
 \fB .noxs\fP
 If this file exists in a certain directory, that entire
@@ -329,8 +309,8 @@ This file lets a user override the contents of the global
 \fIscript.methods\fP file. The syntax of this file is exactly the
 same as that for the global configuration file and it applies
 (recursively) to the local subdirectories.
-.LP
-.SH XS\-HTTPD SSI's
+
+.SH SERVER-SIDE INCLUDES (SSI)
 One of the most advanced features of this WWW server is its
 server side includes. Server side includes (SSI's) are "commands"
 to the server to do something. These may be embedded in HTML
@@ -469,6 +449,7 @@ a kind of flow control in your documents. This directive
 displays all text and directives after it until it encounters
 an \fBendif\fP or a \fBelse\fP directive,
 if the query evaluates to true.
+.RS
 .LP
 Possible \fIkeywords\fP are:
 .TP
@@ -503,6 +484,7 @@ how arguments are passed to HTML documents.
 If any of the \fIpatterns\fP match the URL from which the client was
 refered to this page, the query evaluates to true, otherwise it
 evaluates to false.
+.RE
 .LP
 Patterns are simple wildcard patterns (case\-insensitive).
 For example, to match any version of Netscape (which is really
@@ -544,8 +526,8 @@ Ends an \fBswitch\fP block. Note that these constructions may be nested!
 Note that there is no such thing as a \fBbreak\fP directive:
 the next \fBcase\fP or following \fBendswitch\fP directive automatically
 ends the current \fBcase\fP block.
-.LP
-.SH CGI binaries
+
+.SH COMMON GATEWAY INTERFACE (CGI)
 The server, as of version 2.0, supports running system and user CGI
 binaries. This means that anyone can run their own CGI binaries.
 What is different about this server is that it runs users' CGI binaries
@@ -553,20 +535,22 @@ under their own user ID. This means that they have full access to their
 files \- they can read/write/update any file that they own.
 .LP
 CGI binaries must be in the directory named \fBcgi\-bin\fP which
-must be in either the WWW server's virtual / or in the user's
-WWW directory (see the local configuration
-section about a user's WWW directory). Since version 2.2, CGI binaries
-can be in subdirectories of the \fBcgi\-bin\fP directory.
+must be in either the WWW server's virtual root, or in the user's
+WWW directory (see the local configuration section about a user
+directories). CGI binaries may also be in subdirectories of the
+\fBcgi\-bin\fP directory. To run CGI binaries outside this directory,
+see the description of the \fB.xsscripts\fP configuration earlier.
 .LP
 The server is completely CGI/1.1 compliant (except that it cheats with
 local file redirections). You can read about the CGI specification at
 NCSA's WWW site.
 .LP
+.SS Environment Variables
 Supported environment variables are:
 .TP
 .B SERVER_SOFTWARE
 The name and version of the xs-httpd that started the binary.
-Format: xs-httpd/version
+Format: xs-httpd/version branch/subversion ...
 .TP
 .B SERVER_NAME
 The server's hostname, DNS alias, or IP address as it would appear
@@ -581,7 +565,7 @@ The name and revision of the information protcol this request came
 in with. Format: protocol/revision
 .TP
 .B SERVER_PORT
-The port number to which the request was sent.
+The port number to which the request was sent (usually 80).
 .TP
 .B REQUEST_METHOD
 The method with which the request was made. For HTTP, this is
@@ -700,18 +684,13 @@ Email address of the subject. This is an optional part of SSL_CLIENT_S_DN
 and may not always be available.
 .TP
 .B SSL_CLIENT_I_DN
-Distinguished Name of the \fBissuer\fP of the client certificate.
-This contains all information available about the organisation that
-signed the certificate for this user.
 .TP
 .B SSL_CLIENT_I_DN_CN
-Common Name of the issuer. This is a part of SSL_CLIENT_I_DN and gives the
-name that can be used to identify the certificate organisation.
 .TP
 .B SSL_CLIENT_I_DN_Email
-Email address of the issuer. This is an optional part of SSL_CLIENT_I_DN
-and may not always be available.
-
+Distinguished Name, common name and email address of the \fBissuer\fP of
+the client certificate. These contains the information available about
+the organisation that signed the certificate for this user.
 .LP
 By default the output of a CGI script is not parsed for server-side
 includes. Usually there is no point, because CGI allows you to do all
@@ -729,43 +708,34 @@ anything goes wrong, except in the case that the user has a personal
 \fBerror\fP CGI binary.
 .LP
 This can be used to create friendly error message with links to
-appropriate (existing :) pages.
+appropriate (existing) pages.
 .LP
 A few environment variables are set before \fBerror\fP is called:
 .TP
 .B ERROR_CODE
 This variable is set to one of the following values:
-.TP
-o
+.LP
+.RS
+.IP \(bu 4
 .B NOT_FOUND
 \- the requested file cannot be found
-.TP
-o
-.B UNAUTHORIZED
-\- the user has attempted to access a file that is protected by a
-username and password combination. The user has filled in wrong
-username/password combination.
-.TP
-o
+.IP \(bu 4
 .B NOT_AVAILABLE
-\- the filesystem permission deny access to the file
-.TP
-o
+\- the (filesystem) permission deny access to the file
+.IP \(bu 4
 .B USER_UNKNOWN
 \- the specified user is unknown
-.TP
-o
+.IP \(bu 4
 .B BAD_REQUEST
 \- the client sent a request that cannot be processed by the server
-.TP
-o
+.IP \(bu 4
 .B METHOD_NOT_ALLOWED
 \- a POST method was attempted to a non\-CGI binary
-.TP
-o
+.IP \(bu 4
 .B PRECONDITION_FAILED
 \- the client sent a conditional request (If-...)
 for which the condition is not met.
+.RE
 .TP
 .B ERROR_READABLE
 This variable contains the text that the server would
@@ -784,18 +754,21 @@ The request URL as above, but with \fB<\fP, \fB>\fP
 and \fB&\fP substituted to make it printable
 Of course, regular CGI variables are also set, such as
 .B REQUEST_METHOD.
-.LP
+
 .SH ACKNOWLEDGEMENTS
 I thank all the members at MCGV Stack who are actively involved in the
 entire WWW happening.
+
 .SH "SEE ALSO"
 http://www.stack.nl/xs\-httpd/
 .br
 xspasswd(1), imagemap(1), clearxs(1), readxs(1), gfxcount(1), xsindex(1),
 httpdc(1), httpd.conf(5), xsauth(5), xsscripts(5)
+
 .SH COPYRIGHT
-All the programs in the XS\-HTTPD package are copyright (C) 1995-2005
+All the programs in the XS\-HTTPD package are copyright (C) 1995-2006
 by Sven Berkvens and Johan van Selst, except the imagemapper.
+
 .SH AUTHOR
 The original author of this WWW server and its accompanying programs
 is Sven Berkvens, except the imagemapper which was taken from the NCSA
