@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.215 2006/01/07 16:25:31 johans Exp $ */
+/* $Id: httpd.c,v 1.216 2006/01/12 12:03:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.215 2006/01/07 16:25:31 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.216 2006/01/12 12:03:39 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -196,16 +196,10 @@ setcurrenttime()
 static	void
 child_handler(int sig)
 {
-#ifdef		NeXT
-	union	wait	status;
-#else		/* Not NeXT */
 	int		status;
-#endif		/* NeXT */
 
-#ifdef		HAVE_WAIT3
-	while (wait3(&status, WNOHANG, NULL) > 0)
+	while (waitpid(-1, &status, WNOHANG) > 0)
 		/* NOTHING */;
-#endif		/* HAVE_WAIT3 */
 	set_signals();
 	(void)sig;
 	(void)status;
