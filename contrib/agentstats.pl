@@ -53,7 +53,7 @@ if (open ('httpdlog', shift))
 				$os = 'Solaris';
 			}
 			# Windows at the bottom - a lot of spoofers
-			elsif ($agent =~ /Windows/)
+			elsif ($agent =~ /Win(dows|32)/)
 			{
 				$os = 'Windows';
 			}
