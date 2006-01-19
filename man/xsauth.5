@@ -11,7 +11,12 @@ in this file can view the available data.
 An .xsauth file is created with the \fBxspasswd(1)\fP utility. This can
 also be used to add more username and password combinations later.
 However this utility can not be used to remove users or to add special
-options: for this you will need to edit the file manually. 
+options: for this you will need to edit the file manually and remove the
+line that mentions the obsolete user entry.
+
+The .xsauth file can be used in data directories (HtmlDir) as well as
+in cgi-bin script directories (PhExecDir). So you really don't have to
+implement authentication support in your own scripts.
 
 If you want to disallow access through the webinterface completely, or
 you want to restrict access based on IP addresses, use a \fI.noxs\fP file
