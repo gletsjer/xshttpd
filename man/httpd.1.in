@@ -270,11 +270,12 @@ generated - note that this always matches so use it as the last line
 only.
 .TP
 \fB *.redir\fP
-If a file is requested and a file exists with the same name
-but with \fB.redir\fP appended to it, the file will not be
-sent. Instead, the server will send a redirection message to
+If a (regular) file is requested and a file exists with the same
+name but with \fB.redir\fP appended to it, the requested file will
+not be sent. Instead, the server will send a redirection message to
 the remote user's browser. The redirected location is retrieved
-from the \fB*.redir\fP file.
+from the \fB*.redir\fP file. It does not matter if the requested file
+actually exists or not.
 .TP
 \fB *.Redir\fP
 The same as \fB*.redir\fP, however instead of a temporary
