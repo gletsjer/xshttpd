@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.216 2006/01/12 12:03:39 johans Exp $ */
+/* $Id: httpd.c,v 1.217 2006/02/02 20:23:41 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.216 2006/01/12 12:03:39 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.217 2006/02/02 20:23:41 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1679,7 +1679,7 @@ standalone_socket(int id)
 
 	for (count = 0; count < cursock->instances; count++)
 	{
-		switch(pid = fork())
+		switch (pid = fork())
 		{
 		case -1:
 			warn("fork() failed");
