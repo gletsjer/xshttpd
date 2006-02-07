@@ -59,7 +59,12 @@ if (open ('httpdlog', shift))
 			}
 
 			# Step two - get the browser
-			if ($agent =~ /^ia_archiver$/)
+ 			if ($agent =~ /^AppleSyndication\//)
+ 			{
+ 				$browser = 'RSS: Apple Syndication (Safari)';
+ 				$os = 'Mac OS X';
+ 			}
+			elsif ($agent =~ /^ia_archiver$/)
 			{
 				$browser = 'Bot: Alexa Web Search';
 			}
@@ -120,6 +125,10 @@ if (open ('httpdlog', shift))
 			elsif ($agent =~ /^ELinks\//)
 			{
 				$browser = 'ELinks';
+			}
+			elsif ($agent =~ /UniversalFeedParser\//)
+			{
+				$browser = 'RSS: FeedParser';
 			}
 			elsif ($agent =~ /^fetch /)
 			{
@@ -226,6 +235,11 @@ if (open ('httpdlog', shift))
 			elsif ($agent =~ / Netscape/)
 			{
 				$browser = 'Netscape Navigator';
+			}
+			elsif ($agent =~ /^NewsFire\//)
+			{
+				$browser = 'RSS: NewsFire';
+				$os = 'Mac OS X';
 			}
 			elsif ($agent =~ /^Nutch/)
 			{
