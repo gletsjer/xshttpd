@@ -111,6 +111,7 @@ xsc_initdummy()
 	memset(dummy.filename, 1, sizeof(dummy.filename) - 1);
 	dummy.filename[sizeof(dummy.filename) - 1] = 0;
 	dummy.total = dummy.today = dummy.month = 0;
+	dummy.lastseen = (time_t)0;
 	if (write(fd, &dummy, sizeof(dummy)) != sizeof(dummy))
 	{
 		secprintf("[Failed to write dummy file: %s]\n", strerror(errno));
@@ -155,6 +156,7 @@ xsc_initcounter(const char *filename)
 	done = 0;
 	strlcpy(counter2.filename, filename, sizeof(counter2.filename));
 	counter2.total = counter2.today = counter2.month = 0;
+	counter2.lastseen = (time_t)0;
 
 	while (read(fd, &counter, sizeof(counter)) == sizeof(counter))
 	{
@@ -207,6 +209,7 @@ xsc_counter(int mode, const char *args)
 		goto ALREADY;
 	cnt_readbefore = 1; timer = 0;
 	counter.total = counter.today = counter.month = 0;
+	counter.lastseen = (time_t)0;
 	lockfile = calcpath(CNT_LOCK);
 	while (!stat(lockfile, &statbuf))
 	{
@@ -282,6 +285,7 @@ reopen:
 	}
 
 	counter.total++; counter.today++; counter.month++;
+	counter.lastseen = time(NULL);
 	if (lseek(fd, (off_t)(y * sizeof(countstr)), SEEK_SET) == -1)
 	{
 		secprintf("[Could not seek in counter file: %s]\n",
@@ -291,6 +295,7 @@ reopen:
 	if (mode == MODE_RESET)
 	{
 		counter.total = counter.month = counter.today = 0;
+		counter.lastseen = (time_t)0;
 		if (write(fd, &counter, sizeof(countstr)) != sizeof(countstr))
 		{
 			secprintf("[Could not update counter file: %s]\n",
@@ -356,16 +361,6 @@ call_counter(int mode, const char *args)
 	const	char	*path;
 	char		*search;
 
-	if (!origeuid)
-	{
-		savedeuid = geteuid(); seteuid(origeuid);
-		savedegid = getegid(); seteuid(origegid);
-	}
-	else
-	{
-		savedeuid = config.system->userid;
-		savedegid = config.system->groupid;
-	}
 	path = search = NULL;
 	if (args && (*args == ' '))
 	{
@@ -376,6 +371,16 @@ call_counter(int mode, const char *args)
 		}
 		*search = 0;
 		path = args + 1;
+	}
+	if (!origeuid)
+	{
+		savedeuid = geteuid(); seteuid(origeuid);
+		savedegid = getegid(); setegid(origegid);
+	}
+	else
+	{
+		savedeuid = config.system->userid;
+		savedegid = config.system->groupid;
 	}
 	ret = xsc_counter(mode, path) ? ERR_CONT : ERR_NONE;
 	if (search)

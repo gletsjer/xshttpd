@@ -15,6 +15,7 @@
 #else		/* Not HAVE_ERR_H */
 #include	"err.h"
 #endif		/* HAVE_ERR_H */
+#include	<time.h>
 #include	<pwd.h>
 
 #include	"xscounter.h"
@@ -22,6 +23,7 @@
 #define		MODE_TODAY	0
 #define		MODE_MONTH	1
 #define		MODE_TOTAL	2
+#define		MODE_LAST	3
 
 int
 main(int argc, char **argv)
@@ -31,7 +33,7 @@ main(int argc, char **argv)
 	char			counterfile[XS_PATH_MAX], url[BUFSIZ];
 	countstr		counter;
 
-	while ((option = getopt(argc, argv, "dmtw:")) != EOF)
+	while ((option = getopt(argc, argv, "dlmtw:")) != EOF)
 	{
 		switch(option)
 		{
@@ -44,13 +46,16 @@ main(int argc, char **argv)
 		case 't':
 			mode = MODE_TOTAL;
 			break;
+		case 'l':
+			mode = MODE_LAST;
+			break;
 		case 'w':
 			wrset = 1;
 			if ((wrint = atoi(optarg)) < 0)
 				errx(1, "Cannot set a negative number");
 			break;
 		default:
-			errx(1, "Usage: %s -[d|m|t] [-w #] URL", argv[0]);
+			errx(1, "Usage: %s -[d|m|t|l] [-w #] URL", argv[0]);
 		}
 	}
 
@@ -106,6 +111,12 @@ main(int argc, char **argv)
 		if (wrset)
 			counter.month = wrint;
 		printf("%d\n", counter.month);
+		break;
+	case MODE_LAST:
+		/* XXX: wrset not implemented yet */
+		printf("%s", ctime(&counter.lastseen));
+		if (wrset)
+			err(1, "lastseen timestamp can not be set");
 		break;
 	}
 	if (wrset)

@@ -4,4 +4,5 @@ typedef	struct	countstr
 {
 	char	filename[128];
 	int	total, month, today;
+	time_t	lastseen;
 } countstr;
