@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.217 2006/02/02 20:23:41 johans Exp $ */
+/* $Id: httpd.c,v 1.218 2006/02/23 18:56:35 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.217 2006/02/02 20:23:41 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.218 2006/02/23 18:56:35 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -2038,6 +2038,8 @@ main(int argc, char **argv)
 		}
 	}
 	load_config();
+	/* sanity chck */
+	counter_versioncheck();
 
 #ifdef		HAVE_SETPRIORITY
 	if (setpriority(PRIO_PROCESS, (pid_t)0, config.priority))

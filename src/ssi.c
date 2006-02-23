@@ -109,6 +109,7 @@ xsc_initdummy()
 	}
 
 	memset(dummy.filename, 1, sizeof(dummy.filename) - 1);
+	dummy.filename[0] = XSCOUNT_VERSION;
 	dummy.filename[sizeof(dummy.filename) - 1] = 0;
 	dummy.total = dummy.today = dummy.month = 0;
 	dummy.lastseen = (time_t)0;
@@ -194,6 +195,30 @@ xsc_initcounter(const char *filename)
 		remove(lockfile); return(1);
 	}
 	remove(lockfile); return(0);
+}
+
+int
+counter_versioncheck()
+{
+	int		fd;
+	const char	*counterfile;
+	char		xscount_version;
+
+	counterfile = calcpath(CNT_DATA);
+	if ((fd = open(counterfile, O_RDONLY, 0)) < 0)
+		/* no data yet: that's fine */
+		return 0;
+
+	if (read(fd, &xscount_version, sizeof(char)) != sizeof(char))
+		errx(1, "XS count data corrupt (%s)", counterfile);
+	close(fd);
+
+	if (XSCOUNT_VERSION == (int)xscount_version)
+		return 0;
+	else if (XSCOUNT_VERSION > (int)xscount_version)
+		errx(1, "XS count data in old format: run reformatxs first!");
+	else
+		errx(1, "XS count data corrupt (newer version?)");
 }
 
 static	int

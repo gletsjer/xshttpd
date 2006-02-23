@@ -31,9 +31,10 @@ main(int argc, char **argv)
 	int			x, y, z, comp, total, fd, mode = MODE_TOTAL,
 				wrset = 0, wrint = 0, option;
 	char			counterfile[XS_PATH_MAX], url[BUFSIZ];
+	char			xscount_version;
 	countstr		counter;
 
-	while ((option = getopt(argc, argv, "dlmtw:")) != EOF)
+	while ((option = getopt(argc, argv, "dlmtvw:")) != EOF)
 	{
 		switch(option)
 		{
@@ -49,6 +50,17 @@ main(int argc, char **argv)
 		case 'l':
 			mode = MODE_LAST;
 			break;
+		case 'v':
+			snprintf(counterfile, XS_PATH_MAX, "%s/%s",
+				HTTPD_ROOT, CNT_DATA);
+			if ((fd = open(counterfile, O_RDONLY, 0)) < 0)
+				err(1, "Could not open(%s)", counterfile);
+			if (read(fd, &xscount_version, 1) != 1)
+				err(1, "Could not read(%s)", counterfile);
+			printf("%s version id: %u\n", CNT_DATA,
+				(unsigned)xscount_version);
+			close(fd);
+			exit(xscount_version);
 		case 'w':
 			wrset = 1;
 			if ((wrint = atoi(optarg)) < 0)
@@ -116,7 +128,7 @@ main(int argc, char **argv)
 		/* XXX: wrset not implemented yet */
 		printf("%s", ctime(&counter.lastseen));
 		if (wrset)
-			err(1, "lastseen timestamp can not be set");
+			errx(1, "lastseen timestamp can not be set");
 		break;
 	}
 	if (wrset)

@@ -1,5 +1,7 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
+#define	XSCOUNT_VERSION		((char)2)
+
 typedef	struct	countstr
 {
 	char	filename[128];

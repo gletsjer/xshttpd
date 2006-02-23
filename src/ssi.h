@@ -2,4 +2,5 @@
 
 #ifdef		WANT_SSI
 int	sendwithdirectives	(int, size_t *);
+int	counter_versioncheck	();
 #endif		/* WANT_SSI */

@@ -1,5 +1,5 @@
 /* Copyright (C) 2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: reformatxs.c,v 1.1 2006/02/23 16:25:08 johans Exp $ */
+/* $Id: reformatxs.c,v 1.2 2006/02/23 18:56:35 johans Exp $ */
 
 #include	"config.h"
 
@@ -33,6 +33,7 @@ main(int argc, char **argv)
 	countold	ocounter;
 	countstr	counter;
 	char		counterfile[XS_PATH_MAX], lockfile[XS_PATH_MAX];
+	char		xscount_version;
 	struct tm	timeptr;
 	time_t		since = 0;
 
@@ -40,13 +41,25 @@ main(int argc, char **argv)
 	if ((fdin  = open(counterfile, O_RDONLY, 0)) < 0)
 		err(1, "Could not open(%s)", counterfile);
 
+	if (read(fdin, &xscount_version, sizeof(char)) != sizeof(char))
+		err(1, "Could not read(%s)", counterfile);
+
+	if (XSCOUNT_VERSION == xscount_version)
+		errx(2, "Conversion not needed: file has current version");
+
+	if (xscount_version <= 0 || xscount_version > XSCOUNT_VERSION)
+		errx(1, "Cannot convert data: corrupt or unknown version");
+
+	if (lseek(fdin, (off_t)0, SEEK_SET) < 0)
+		err(1, "lseek()");
+
 	snprintf(lockfile, XS_PATH_MAX, "%s/%s", HTTPD_ROOT, CNT_LOCK);
-	if ((fdout = open(lockfile, O_WRONLY | O_CREAT | O_TRUNC, 0)) < 0)
+	if ((fdout = open(lockfile, O_WRONLY | O_CREAT | O_TRUNC, 0644)) < 0)
 		err(1, "Could not open(%s)", lockfile);
 
 	while (read(fdin, &ocounter, sizeof(countold)) == sizeof(countold))
 	{
-		strlcpy(counter.filename, ocounter.filename, 128);
+		memcpy(counter.filename, ocounter.filename, 128);
 		counter.total = ocounter.total;
 		counter.month = ocounter.month;
 		counter.today = ocounter.today;
