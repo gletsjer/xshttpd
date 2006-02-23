@@ -1,5 +1,5 @@
 /* Copyright (C) 2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: reformatxs.c,v 1.2 2006/02/23 18:56:35 johans Exp $ */
+/* $Id: reformatxs.c,v 1.3 2006/02/23 19:06:36 johans Exp $ */
 
 #include	"config.h"
 
@@ -29,7 +29,7 @@ typedef	struct	countold
 int
 main(int argc, char **argv)
 {
-	int		option, fdin, fdout;
+	int		option, num, fdin, fdout;
 	countold	ocounter;
 	countstr	counter;
 	char		counterfile[XS_PATH_MAX], lockfile[XS_PATH_MAX];
@@ -57,6 +57,7 @@ main(int argc, char **argv)
 	if ((fdout = open(lockfile, O_WRONLY | O_CREAT | O_TRUNC, 0644)) < 0)
 		err(1, "Could not open(%s)", lockfile);
 
+	num = 0;
 	while (read(fdin, &ocounter, sizeof(countold)) == sizeof(countold))
 	{
 		memcpy(counter.filename, ocounter.filename, 128);
@@ -64,15 +65,19 @@ main(int argc, char **argv)
 		counter.month = ocounter.month;
 		counter.today = ocounter.today;
 		counter.lastseen = (time_t)0;
+		if (!num++)
+			counter.filename[0] = XSCOUNT_VERSION;
 		if (write(fdout, &counter, sizeof(countstr)) !=sizeof(countstr))
 			err(1, "write()");
 	}
 	close(fdin); close(fdout);
+
 	if (rename(lockfile, counterfile))
 	{
 		remove(lockfile);
 		err(1, "Could not rename counter file");
 	}
 	remove(lockfile);
+	printf("Successfully converted %d records\n", num);
 	return(0);
 }
