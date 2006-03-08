@@ -1,5 +1,5 @@
 /* Copyright (C) 2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: reformatxs.c,v 1.3 2006/02/23 19:06:36 johans Exp $ */
+/* $Id: reformatxs.c,v 1.4 2006/03/08 17:23:40 johans Exp $ */
 
 #include	"config.h"
 
@@ -27,15 +27,13 @@ typedef	struct	countold
 } countold;
 
 int
-main(int argc, char **argv)
+main(void)
 {
-	int		option, num, fdin, fdout;
+	int		num, fdin, fdout;
 	countold	ocounter;
 	countstr	counter;
 	char		counterfile[XS_PATH_MAX], lockfile[XS_PATH_MAX];
 	char		xscount_version;
-	struct tm	timeptr;
-	time_t		since = 0;
 
 	snprintf(counterfile, XS_PATH_MAX, "%s/%s", HTTPD_ROOT, CNT_DATA);
 	if ((fdin  = open(counterfile, O_RDONLY, 0)) < 0)

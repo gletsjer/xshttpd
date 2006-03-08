@@ -29,6 +29,7 @@
 #include	<errno.h>
 #include	<signal.h>
 #include	<pwd.h>
+#include	<err.h>
 #include	<fcntl.h>
 #include	<stdlib.h>
 #include	<string.h>
