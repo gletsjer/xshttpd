@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.160 2005/11/27 18:09:18 johans Exp $ */
+/* $Id: methods.c,v 1.161 2006/03/08 17:26:22 johans Exp $ */
 
 #include	"config.h"
 
@@ -975,8 +975,17 @@ do_get(char *params)
 	/* check litype for local and itype for global settings */
 	if ((tmp = config.uselocalscript))
 		loadscripttypes(orgbase, base);
-	for (isearch = litype ? litype : itype; isearch; isearch = isearch->next)
+	for (isearch = litype ? litype : itype; ; isearch = isearch->next)
 	{
+		if (!isearch)
+		{
+			/* hack to browse global itype after local litype */
+			if (!tmp || !litype)
+				break;
+			tmp = 0;
+			isearch = itype;
+		}
+
 		size = strlen(isearch->ext);
 		if ((temp = strstr(filename, isearch->ext)) &&
 			strlen(temp) == strlen(isearch->ext))
@@ -993,12 +1002,6 @@ do_get(char *params)
 			else
 				do_script(params, base, filename, isearch->prog, headers);
 			return;
-		}
-		/* hack to browse global itype after local litype */
-		if (!isearch->next && tmp && litype)
-		{
-			tmp = 0;
-			isearch = itype;
 		}
 	}
 
