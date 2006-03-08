@@ -4,3 +4,7 @@
 - Get rid of environment vars (at least reading)
 - Get rid of global vars (rw) - use a session struct
 - Mechanism to add extra HTTP header to error script
+
+TODO
+- MaxChildren
+- *.[Rr]edir doesnt work for dirs -> document/fix
