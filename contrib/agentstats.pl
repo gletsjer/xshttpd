@@ -130,6 +130,10 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'RSS: FeedParser';
 			}
+			elsif ($agent =~ /^FeedValidator\//)
+			{
+				$browser = 'Bot: FeedValidator';
+			}
 			elsif ($agent =~ /^fetch /)
 			{
 				$browser = 'Fetch';
@@ -166,6 +170,10 @@ if (open ('httpdlog', shift))
 			elsif ($agent =~ /INGRID\//)
 			{
 				$browser = 'Bot: Ilse Search';
+			}
+			elsif ($agent =~ /^Java\//)
+			{
+				$browser = 'Java';
 			}
 			elsif ($agent =~ /^Java\//)
 			{
@@ -301,6 +309,10 @@ if (open ('httpdlog', shift))
 			elsif ($agent =~ /^w3m\//)
 			{
 				$browser = 'W3m';
+			}
+			elsif ($agent =~ /Webserver Stress Tool/)
+			{
+				$browser = 'Webserver Stress Tool';
 			}
 			elsif ($agent =~ /^appie.*walhello/)
 			{

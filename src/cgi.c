@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.111 2005/11/27 15:45:55 johans Exp $ */
+/* $Id: cgi.c,v 1.112 2006/03/18 17:06:03 johans Exp $ */
 
 #include	"config.h"
 
@@ -212,7 +212,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		dup2(r[1], 2);
 #ifdef		HANDLE_SSL
 		/* Posting via SSL takes a lot of extra work */
-		dup2(q[0], 0);
+		if (ssl_post)
+			dup2(q[0], 0);
 #endif		/* HANDLE_SSL */
 
 #ifdef		HAVE_SETSID

@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.4 beta 6
+- Fix file descriptor leak (upon https call of cgi outside cgi-bin dir)
+
 Changes since 3.4 beta 5
 - SSI counter format changed: run src/reformatxs before starting!
   It now stores timestamp of last view, so clearxs can remove old records

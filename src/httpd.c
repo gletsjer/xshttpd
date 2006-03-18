@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.219 2006/03/08 17:23:40 johans Exp $ */
+/* $Id: httpd.c,v 1.220 2006/03/18 17:06:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -102,7 +102,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.219 2006/03/08 17:23:40 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.220 2006/03/18 17:06:04 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1117,8 +1117,6 @@ server_error(const char *readable, const char *cgi)
 	setenv("ERROR_URL_EXPANDED", convertpath(orig), 1);
 	escaped = escape(orig);
 	setenv("ERROR_URL_ESCAPED", escaped ? escaped : "", 1);
-	if (escaped)
-		free(escaped);
 	env = getenv("QUERY_STRING");
 	/* Look for user-defined error script */
 	if (current == config.users &&
@@ -1848,6 +1846,8 @@ standalone_socket(int id)
 			process_request();
 		alarm(0); reqs++;
 		endssl(csd);
+		if (cursock->usessl)
+			close(csd);
 		fflush(stdout); fflush(stdin); fflush(stderr);
 	}
 	/* NOTREACHED */

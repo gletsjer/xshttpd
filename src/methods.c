@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.161 2006/03/08 17:26:22 johans Exp $ */
+/* $Id: methods.c,v 1.162 2006/03/18 17:06:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -998,9 +998,15 @@ do_get(char *params)
 				break;
 			}
 			else if (!strcmp(isearch->prog, "internal:exec"))
+			{
+				close(fd);
 				do_script(params, base, filename, NULL, headers);
+			}
 			else
+			{
+				close(fd);
 				do_script(params, base, filename, isearch->prog, headers);
+			}
 			return;
 		}
 	}
