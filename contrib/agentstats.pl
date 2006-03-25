@@ -35,6 +35,10 @@ if (open ('httpdlog', shift))
 			{
 				$os = "$1";
 			}
+			elsif ($agent =~ /HP-UX/)
+			{
+				$os = 'HP-UX';
+			}
 			elsif ($agent =~ /Linux/)
 			{
 				$os = 'Linux';
