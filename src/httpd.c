@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.220 2006/03/18 17:06:04 johans Exp $ */
+/* $Id: httpd.c,v 1.221 2006/04/20 15:45:43 johans Exp $ */
 
 #include	"config.h"
 
@@ -102,7 +102,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.220 2006/03/18 17:06:04 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.221 2006/04/20 15:45:43 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1283,22 +1283,29 @@ process_request()
 		return;
 	}
 	setreadmode(strncasecmp("POST", line, 4) ? READBLOCK : READCHAR, 0);
-	if (readline(0, line + 4) == ERR_QUIT)
+	switch (readline(0, line + 4))
 	{
+	case ERR_NONE:
+		break;
+	case ERR_QUIT:
+	default:
 		error("400 Unable to read request line");
+		return;
+	case ERR_LINE:
+		error("400 Request header line exceeded maximum length");
 		return;
 	}
 	url = line;
 	while (*url && (*url > ' '))
 		url++;
 	*(url++) = 0;
-	while (*url <= ' ')
+	while (*url && *url <= ' ')
 		url++;
 	ver = url;
 	while (*ver && (*ver > ' '))
 		ver++;
 	*(ver++) = 0;
-	while (*ver <= ' ')
+	while (*ver && *ver <= ' ')
 		ver++;
 	temp = ver;
 	while (*temp && (*temp > ' '))
@@ -1321,9 +1328,16 @@ process_request()
 		{
 			char		*param, *end;
 
-			if (readline(0, extra) == ERR_QUIT)
+			switch (readline(0, extra))
 			{
-				error("400 Unable to read HTTP headers");
+			case ERR_NONE:
+				break;
+			case ERR_QUIT:
+			default:
+				error("400 Unable to read request line");
+				return;
+			case ERR_LINE:
+				error("400 Request header line exceeded maximum length");
 				return;
 			}
 			if (extra[0] <= ' ')

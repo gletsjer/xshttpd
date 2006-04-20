@@ -10,6 +10,7 @@
 #define		ERR_NONE	0
 #define		ERR_CONT	1
 #define		ERR_QUIT	2
+#define		ERR_LINE	3
 
 #define		READCHAR	0
 #define		READBLOCK	1
