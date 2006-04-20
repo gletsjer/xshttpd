@@ -97,6 +97,7 @@ text/html			php3
 text/html			php4
 text/html			php5
 text/plain			asc
+text/plain			patch
 text/plain			txt
 text/richtext			rtx
 text/tab-separated-values	tsv
