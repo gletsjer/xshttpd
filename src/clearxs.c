@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: clearxs.c,v 1.10 2006/02/23 16:25:08 johans Exp $ */
+/* $Id: clearxs.c,v 1.11 2006/04/20 14:25:56 johans Exp $ */
 
 #include	"config.h"
 
@@ -16,6 +16,7 @@
 #else		/* Not HAVE_ERR_H */
 #include	"err.h"
 #endif		/* HAVE_ERR_H */
+#include	<time.h>
 #include	<pwd.h>
 
 #include	"xscounter.h"

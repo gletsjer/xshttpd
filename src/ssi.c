@@ -133,7 +133,8 @@ xsc_initdummy()
 static	int
 xsc_initcounter(const char *filename)
 {
-	int		fd, fd2, done;
+	int		fd, fd2;
+	unsigned int	done, retry;
 	countstr	counter, counter2;
 	char		datafile[XS_PATH_MAX];
 	const	char	*lockfile;
@@ -146,13 +147,18 @@ xsc_initcounter(const char *filename)
 			strerror(errno));
 		return(1);
 	}
-	if ((fd2 = open(lockfile = calcpath(CNT_LOCK),
-		O_WRONLY | O_CREAT | O_TRUNC,
+	retry = 0;
+	while (retry++ < 10 && (fd2 = open(lockfile = calcpath(CNT_LOCK),
+		O_WRONLY | O_CREAT | O_EXCL,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
+	{
+		usleep(300);
+	}
+	if (fd2 < 0)
 	{
 		secprintf("[Failed to create temporary file: %s]\n",
 			strerror(errno));
-		close(fd2); return(1);
+		return(1);
 	}
 
 	done = 0;
