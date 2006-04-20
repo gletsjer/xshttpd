@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: convert.c,v 1.11 2005/11/27 18:09:18 johans Exp $ */
+/* $Id: convert.c,v 1.12 2006/04/20 15:40:13 johans Exp $ */
 
 #include	"config.h"
 
@@ -33,6 +33,5 @@ convertpath(const char *org)
 		strlcpy(path, org, XS_PATH_MAX);
 	else
 		snprintf(path, XS_PATH_MAX, "%s%s", currentdir, org);
-	path[XS_PATH_MAX - 1] = 0;
 	return (path);
 }

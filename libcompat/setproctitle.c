@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: setproctitle.c,v 1.2 2005/11/06 09:44:16 johans Exp $ */
+/* $Id: setproctitle.c,v 1.3 2006/04/20 15:40:13 johans Exp $ */
 
 #include	"config.h"
 
@@ -47,7 +47,6 @@ setproctitle(const char *name, ...)
 	va_start(ap, name);
 
 	vsnprintf(buffer, 256, name, ap);
-	buffer[255] = '\0';
 	va_end(ap);
 
 #ifdef		PS_STRINGS
