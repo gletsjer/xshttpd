@@ -3,6 +3,9 @@ is not complete. Refer to cvs comments for more information.
 
 Changes since 3.4 beta 7
 - Fix overwriting of counter lockfile
+- Improved readline() boundary checking, by Dennis Payne
+- Improved error handling in case SSL handshake fails.
+- Support reading of SSL DH parameters from cert (required for DSA certs).
 
 Changes since 3.4 beta 6
 - Fix file descriptor leak (upon https call of CGI outside cgi-bin dir)
