@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.221 2006/04/20 15:45:43 johans Exp $ */
+/* $Id: httpd.c,v 1.222 2006/04/24 18:49:05 johans Exp $ */
 
 #include	"config.h"
 
@@ -102,7 +102,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.221 2006/04/20 15:45:43 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.222 2006/04/24 18:49:05 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1848,7 +1848,11 @@ standalone_socket(int id)
 		/* Loooser! You will just have to use the IP-adres... */
 #endif		/* HAVE_GETADDRINFO */
 #endif		/* HAVE GETNAMEINFO */
-		initssl(csd);
+		if (initssl(csd) < 0)
+		{
+			close(csd);
+			return;
+		}
 		setproctitle("xs(%d): Connect from `%s'", count + 1, remotehost);
 		setcurrenttime();
 		if (message503[0])

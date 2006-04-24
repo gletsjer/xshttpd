@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.16 2006/04/20 15:45:45 johans Exp $ */
+/* $Id: ssl.c,v 1.17 2006/04/24 18:49:05 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -63,11 +63,15 @@ initssl(int csd)
 	SSL_set_fd(cursock->ssl, csd);
 	/* enable reusable keys */
 	SSL_set_session_id_context(cursock->ssl, sid_ctx, 7);
-	if (!SSL_accept(cursock->ssl)) {
-		fprintf(stderr, "SSL flipped\n");
-		secprintf("%s 500 Failed\r\nContent-type: text/plain\r\n\r\n",
-			version);
-		secprintf("SSL Flipped...\n");
+	if (SSL_accept(cursock->ssl) < 0)
+	{
+		int	readerror;
+
+		if ((readerror = ERR_get_error()))
+			fprintf(stderr, "SSL Error: %s\n",
+				ERR_reason_error_string(readerror));
+		else
+			fprintf(stderr, "SSL flipped\n");
 		return -1;
 	}
 	if ((xs = SSL_get_peer_certificate(cursock->ssl)))
@@ -197,7 +201,10 @@ void
 loadssl()
 {
 #ifdef		HANDLE_SSL
-	SSL_METHOD *method;
+	SSL_METHOD	*method = NULL;
+	DH		*dh = NULL;
+	BIO		*bio = NULL;
+
 	if (!cursock->usessl)
 		return;
 
@@ -235,6 +242,20 @@ loadssl()
 		errx(1, "Cannot load SSL CAfile %s and CApath %s", 
 			cursock->sslcafile ? calcpath(cursock->sslcafile) : "",
 			cursock->sslcapath ? calcpath(cursock->sslcapath) : "");
+
+	bio = BIO_new_file(calcpath(cursock->sslcertificate), "r");
+	if (bio)
+	{
+		if ((dh = PEM_read_bio_DHparams(bio,NULL,NULL,NULL)))
+		{
+			/* This is required for DSA keys
+			 * XXX: silently fail if no DH info available -> no SSL
+			 */
+			SSL_CTX_set_tmp_dh(ssl_ctx, dh);
+			DH_free(dh);
+		}
+		BIO_free(bio);
+	}
 	(void) SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2);
 
 	switch (cursock->sslauth)
