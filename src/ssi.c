@@ -231,8 +231,7 @@ counter_versioncheck()
 static	int
 xsc_counter(int mode, const char *args)
 {
-	char			counterfile[XS_PATH_MAX], host[XS_PATH_MAX];
-	const	char		*lockfile;
+	char			host[XS_PATH_MAX];
 	struct stat		statbuf;
 	int			fd = -1, timer, total, x, y, z, comp, already = 0;
 	static	countstr	counter;
@@ -242,21 +241,9 @@ xsc_counter(int mode, const char *args)
 	cnt_readbefore = 1; timer = 0;
 	counter.total = counter.today = counter.month = 0;
 	counter.lastseen = (time_t)0;
-	lockfile = calcpath(CNT_LOCK);
-	while (!stat(lockfile, &statbuf))
-	{
-		mysleep(1);
-		if ((timer++) == 180)
-		{
-			secprintf("[Warning! Lock file timed out! Removing it!]\n");
-			remove(lockfile); return(1);
-		}
-	}
-
-	strlcpy(counterfile, calcpath(CNT_DATA), XS_PATH_MAX);
 
 reopen:
-	if ((fd = open(counterfile, O_RDWR,
+	if ((fd = open(calcpath(CNT_DATA), O_RDWR,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
 	{
 		if (xsc_initdummy())
