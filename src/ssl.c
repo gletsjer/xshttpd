@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.18 2006/04/25 07:35:07 johans Exp $ */
+/* $Id: ssl.c,v 1.19 2006/04/25 08:47:54 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -212,7 +212,7 @@ loadssl()
 		cursock->sslcertificate = strdup(CERT_FILE);
 	if (!cursock->sslprivatekey)
 		cursock->sslprivatekey = strdup(KEY_FILE);
-	SSLeay_add_all_algorithms();
+	SSL_library_init();
 	SSL_load_error_strings();
 	ERR_print_errors_fp(stderr);
 	if (!(method = SSLv23_server_method()))
