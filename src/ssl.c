@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.17 2006/04/24 18:49:05 johans Exp $ */
+/* $Id: ssl.c,v 1.18 2006/04/25 07:35:07 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -216,39 +216,48 @@ loadssl()
 	SSL_load_error_strings();
 	ERR_print_errors_fp(stderr);
 	if (!(method = SSLv23_server_method()))
-		err(1, "Cannot init SSL method");
+		err(1, "Cannot init SSL method: %s",
+			ERR_reason_error_string(ERR_get_error()));
 	if (!(ssl_ctx = SSL_CTX_new(method)))
-		err(1, "Cannot init SSL context");
+		err(1, "Cannot init SSL context: %s",
+			ERR_reason_error_string(ERR_get_error()));
 	if (!SSL_CTX_use_certificate_file(ssl_ctx,
 			calcpath(cursock->sslcertificate),
 			SSL_FILETYPE_PEM))
-		errx(1, "Cannot load SSL cert %s", 
-			calcpath(cursock->sslcertificate));
+		errx(1, "Cannot load SSL cert %s: %s", 
+			calcpath(cursock->sslcertificate),
+			ERR_reason_error_string(ERR_get_error()));
 	if (!SSL_CTX_use_PrivateKey_file(ssl_ctx,
 			calcpath(cursock->sslprivatekey),
 			SSL_FILETYPE_PEM))
-		errx(1, "Cannot load SSL key %s", 
-			calcpath(cursock->sslprivatekey));
+		errx(1, "Cannot load SSL key %s: %s", 
+			calcpath(cursock->sslprivatekey),
+			ERR_reason_error_string(ERR_get_error()));
 	if (!SSL_CTX_check_private_key(ssl_ctx))
-		errx(1, "Cannot check private SSL %s %s",
+		errx(1, "Cannot check private SSL %s %s: %s",
 			calcpath(cursock->sslcertificate),
-			calcpath(cursock->sslprivatekey));
+			calcpath(cursock->sslprivatekey),
+			ERR_reason_error_string(ERR_get_error()));
 	if (!cursock->sslcafile && !cursock->sslcapath)
 		/* TODO: throw an error */
 		cursock->sslauth = auth_none;
 	else if (!SSL_CTX_load_verify_locations(ssl_ctx,
 			cursock->sslcafile ? calcpath(cursock->sslcafile) : NULL,
 			cursock->sslcapath ? calcpath(cursock->sslcapath) : NULL))
-		errx(1, "Cannot load SSL CAfile %s and CApath %s", 
+		errx(1, "Cannot load SSL CAfile %s and CApath %s: %s", 
 			cursock->sslcafile ? calcpath(cursock->sslcafile) : "",
-			cursock->sslcapath ? calcpath(cursock->sslcapath) : "");
+			cursock->sslcapath ? calcpath(cursock->sslcapath) : "",
+			ERR_reason_error_string(ERR_get_error()));
 
-	bio = BIO_new_file(calcpath(cursock->sslcertificate), "r");
+	bio = BIO_new_file(calcpath(cursock->sslprivatekey), "r");
 	if (bio)
 	{
-		if ((dh = PEM_read_bio_DHparams(bio,NULL,NULL,NULL)))
+		dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
+		if (!dh && (bio = BIO_new_file(calcpath(cursock->sslcertificate), "r")))
+			dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
+		if (dh)
 		{
-			/* This is required for DSA keys
+			/* This is required for DH and DSA keys
 			 * XXX: silently fail if no DH info available -> no SSL
 			 */
 			SSL_CTX_set_tmp_dh(ssl_ctx, dh);
