@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.4 beta 8
+- Fix operation with OpenSSL 0.9.8
+
 Changes since 3.4 beta 7
 - Fix overwriting of counter lockfile
 - Improved readline() boundary checking, by Dennis Payne
