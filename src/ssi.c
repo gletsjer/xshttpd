@@ -226,6 +226,7 @@ counter_versioncheck()
 		errx(1, "XS count data in old format: run reformatxs first!");
 	else
 		errx(1, "XS count data corrupt (newer version?)");
+	/* NOTREACHED */
 }
 
 static	int
