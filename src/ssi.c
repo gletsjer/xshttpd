@@ -232,7 +232,6 @@ static	int
 xsc_counter(int mode, const char *args)
 {
 	char			host[XS_PATH_MAX];
-	struct stat		statbuf;
 	int			fd = -1, timer, total, x, y, z, comp, already = 0;
 	static	countstr	counter;
 

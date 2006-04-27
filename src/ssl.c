@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.19 2006/04/25 08:47:54 johans Exp $ */
+/* $Id: ssl.c,v 1.20 2006/04/27 10:00:42 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -212,8 +212,8 @@ loadssl()
 		cursock->sslcertificate = strdup(CERT_FILE);
 	if (!cursock->sslprivatekey)
 		cursock->sslprivatekey = strdup(KEY_FILE);
-	SSL_library_init();
 	SSL_load_error_strings();
+	SSL_library_init();
 	ERR_print_errors_fp(stderr);
 	if (!(method = SSLv23_server_method()))
 		err(1, "Cannot init SSL method: %s",
@@ -264,6 +264,15 @@ loadssl()
 			DH_free(dh);
 		}
 		BIO_free(bio);
+#ifdef		OPENSSL_EC_NAMED_CURVE
+		{
+			/* Using default temp ECDH parameters */
+			EC_KEY	*ecdh;
+			ecdh = EC_KEY_new_by_curve_name(NID_sect163r2);
+			SSL_CTX_set_tmp_ecdh(ssl_ctx, ecdh);
+			EC_KEY_free(ecdh);
+		}
+#endif		/* OPENSSL_EC_NAMED_CURVE */
 	}
 	(void) SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2);
 
