@@ -416,18 +416,33 @@ argumens to the CGI binary. All standard CGI environment variables
 will be set up appriopriately. See the CGI section
 for more details on CGI's.
 .TP
+\fBecho\fP var="\fICGIVARIABLE\fP" encoding="\fIENCODING\fP"
+.TP
+\fBecho\fP \fICGIVARIABLE\fP
+Print the value of an CGI environment variable.
+The \fIencoding\fP argument is optional and has no implemented effect yet.
+See the CGI section on for more details about available variables.
+.TP
+\fBprintenv\fP
+Print the values of all CGI environment variables.
+This option is only used for debugging purposes.
+See the CGI section on for more details about available variables.
+.TP
 \fBagent\-short\fP
+An alias for \fBecho USER_AGENT_SHORT\fP.
 This directive inserts the name of the browser that the remote
 user is using in the short version (i.e. without the version number).
 Note that Netscape is displayed as Mozilla, which is Netscape's
 real name.
 .TP
 \fBagent\-long\fP
+An alias for \fBecho USER_AGENT\fP.
 This directive inserts the name of the browser that the remote
 user is using in the long version (i.e. with version numbers and
 other comments that the browser sends).
 .TP
 \fBargument\fP
+An alias for \fBecho QUERY_STRING\fP.
 It is possible (since version 2.1) to pass arguments to
 HTML documents. 
 This directive inserts the (unparsed) arguments that the client
@@ -441,6 +456,7 @@ example:
 \fBhttp://www.foo.bar/~test/blah.html?an_argument\fP
 .TP
 \fBreferer\fP
+An alias for \fBecho REFERER\fP.
 Inserts the URL from which the client was refered to this page.
 Not available if the user didn't follow a link from another page.
 .TP
