@@ -43,6 +43,7 @@
 #include	"convert.h"
 #include	"xscounter.h"
 #include	"methods.h"
+#include	"decode.h"
 #include	"htconfig.h"
 #include	"setenv.h"
 
@@ -67,6 +68,7 @@ static	int	dir_agent_long		(char *, size_t *);
 static	int	dir_agent_short		(char *, size_t *);
 static	int	dir_argument	(char *, size_t *);
 static	int	dir_referer		(char *, size_t *);
+static	int	dir_echo		(char *, size_t *);
 static	int	dir_if			(char *, size_t *);
 static	int	dir_if_not		(char *, size_t *);
 static	int	dir_else		(char *, size_t *);
@@ -703,6 +705,51 @@ dir_printenv(char *here, size_t *size)
 }
 
 static	int
+dir_echo(char *here, size_t *size)
+{
+	char	*end = strstr(here, "-->");
+	char	*cmd = NULL, *var = NULL, *enc = NULL, *p, **value;
+	static char	args[BUFSIZ];
+
+	if (!end)
+	{
+		secprintf("[Incomplete directive in echo]\n");
+		return(ERR_CONT);
+	}
+	strlcpy(args, here, end + 1 - here);
+	value = &var;
+	for (p = args; (cmd = strsep(&p, " \t\n\"=")); )
+	{
+		if (!*cmd)
+			continue;
+		else if (!strcmp(cmd, "var"))
+			value = &var;
+		else if (!strcmp(cmd, "encoding"))
+			value = &enc;
+		else if (value)
+		{
+			*value = cmd;
+			value = NULL;
+		}
+		else if (!var)
+			var = cmd;
+	}
+
+	if (!var)
+		secprintf("[Incomplete directive in echo]\n");
+	else if (enc && !strcmp(enc, "none"))
+		secprintf("%s", getenv(var));
+	else if (enc && !strcmp(enc, "url"))
+		/* TODO: do url-encoding args */
+		secprintf("%s", getenv(var));
+	else
+		/* TODO: do html-entity encoding args */
+		secprintf("%s", getenv(var));
+	(void)size;
+	return(ERR_NONE);
+}
+
+static	int
 dir_referer(char *here, size_t *size)
 {
 	if (getenv("HTTP_REFERER"))
@@ -872,6 +919,7 @@ static	directivestype	directives[] =
 	{ "argument",		dir_argument,		0	},
 	{ "printenv",		dir_printenv,		1	},
 	{ "referer",		dir_referer,		0	},
+	{ "echo",		dir_echo,		1	},
 	{ "if",			dir_if,			1	},
 	{ "if-not",		dir_if_not,		1	},
 	{ "else",		dir_else,		0	},
@@ -943,7 +991,7 @@ parsedirectives(char *parse, size_t *size)
 				(directive->func == dir_endswitch) ||
 				(directive->func == dir_case))
 			{
-				switch(directive->func(here + len, size))
+				switch (directive->func(here + len, size))
 				{
 				case ERR_QUIT:
 					return(ERR_QUIT);
