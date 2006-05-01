@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: decode.c,v 1.5 2005/10/11 20:25:04 johans Exp $ */
+/* $Id: decode.c,v 1.6 2006/05/01 19:45:38 johans Exp $ */
 
 #include	<stdio.h>
 #include	<stdlib.h>
@@ -109,10 +109,12 @@ escape(const char *what)
 		return NULL;
 
 	buffer[0] = '\0';
-	for (p = what; (len = strcspn(p, "<>&\"")), p[len]; p += len + 1)
+	for (p = what; (len = strcspn(p, "<>&\"")); p += len + 1)
 	{
 		if (strlen(buffer) + len < BUFSIZ)
 			strncat(buffer, p, len);
+		if (!p[len])
+			break;
 		switch (p[len])
 		{
 		case '<':

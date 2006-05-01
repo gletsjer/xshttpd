@@ -742,9 +742,12 @@ dir_echo(char *here, size_t *size)
 	else if (enc && !strcmp(enc, "url"))
 		/* TODO: do url-encoding args */
 		secprintf("%s", getenv(var));
-	else
-		/* TODO: do html-entity encoding args */
-		secprintf("%s", getenv(var));
+	else /* enc = "html" */
+	{
+		var = escape(getenv(var));
+		secprintf("%s", var);
+		free(var);
+	}
 	(void)size;
 	return(ERR_NONE);
 }
