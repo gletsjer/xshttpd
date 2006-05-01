@@ -23,7 +23,6 @@ extern struct virtual {
 	char *		logreferer;
 	char **		indexfiles;
 	char **		aliases;
-	char **		socketids;
 	uid_t		userid;
 	gid_t		groupid;
 	FILE *		openaccess;
@@ -37,7 +36,7 @@ extern struct virtual {
 } *current;
 
 struct socket_config {
-	char *		socketid;
+	char *		socketname;
 	char *		address;
 	char *		port;
 	sa_family_t	family;

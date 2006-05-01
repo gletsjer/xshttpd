@@ -122,7 +122,3 @@ depend on. The path must be given in the normal /bin/sh format. */
 
 #define		MAXINDEXFILES		32
 
-/* Maximum number of configured sockets */
-
-#define		MAXSOCKETIDS		12
-

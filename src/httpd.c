@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.223 2006/05/01 17:52:18 johans Exp $ */
+/* $Id: httpd.c,v 1.224 2006/05/01 19:22:13 johans Exp $ */
 
 #include	"config.h"
 
@@ -102,7 +102,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.223 2006/05/01 17:52:18 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.224 2006/05/01 19:22:13 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -226,7 +226,9 @@ term_handler(int sig)
 static	void
 load_config()
 {
-	int	subtype = 0;
+	typedef enum	{ sub_none = 0, sub_socket, sub_system,
+				sub_virtual, sub_users } subtype_t;
+	subtype_t	subtype = sub_none;
 	FILE	*confd;
 	char	line[MYBUFSIZ], thishostname[NI_MAXHOST];
 	char	*key, *value;
@@ -301,8 +303,6 @@ load_config()
 					if (!config.systemroot)
 						config.systemroot = strdup(value);
 				}
-				else if (!strcasecmp("SocketID", key))
-					lsock->socketid = strdup(value);
 				else if (!strcasecmp("ListenAddress", key))
 					lsock->address = strdup(value);
 				else if (!strcasecmp("ListenPort", key))
@@ -314,6 +314,8 @@ load_config()
 						!strcasecmp("IPv6", value) ? PF_INET6 :
 #endif		/* INET6 */
 						PF_UNSPEC;
+				else if (!strcasecmp("SocketName", key))
+					lsock->socketname = strdup(value);
 				else if (!strcasecmp("Instances", key))
 				{
 					if (!lsock->instances)
@@ -426,25 +428,6 @@ load_config()
 						}
 					}
 				}
-				else if (!strcasecmp("SocketIDs", key))
-				{
-					int		i;
-					char	*prev = NULL, *next = value;
-
-					if (current->socketids)
-							free(current->socketids);
-					current->socketids = malloc(MAXSOCKETIDS);
-					for (i = 0; i < MAXSOCKETIDS; )
-					{
-						if ((prev = strsep(&next, ", \t")) && *prev)
-							current->socketids[i++] = strdup(prev);
-						else if (!prev)
-						{
-							current->socketids[i] = NULL;
-							break;
-						}
-					}
-				}
 				else if (!strcasecmp("HtmlDir", key))
 					current->htmldir = strdup(value);
 				else if (!strcasecmp("ExecDir", key))
@@ -514,7 +497,7 @@ load_config()
 				{
 					if (subtype)
 						errx(1, "illegal <System> nesting");
-					subtype = 1;
+					subtype = sub_system;
 					current = malloc(sizeof(struct virtual));
 					if (!current)
 						err(1, "Fatal error");
@@ -524,7 +507,7 @@ load_config()
 				{
 					if (subtype)
 						errx(1, "illegal <Users> nesting");
-					subtype = 2;
+					subtype = sub_users;
 					current = malloc(sizeof(struct virtual));
 					if (!current)
 						err(1, "Fatal error");
@@ -534,7 +517,7 @@ load_config()
 				{
 					if (subtype)
 						errx(1, "illegal <Virtual> nesting");
-					subtype = 3;
+					subtype = sub_virtual;
 					current = malloc(sizeof(struct virtual));
 					if (!current)
 						err(1, "Fatal error");
@@ -544,7 +527,7 @@ load_config()
 				{
 					if (subtype)
 						errx(1, "illegal <Socket> nesting");
-					subtype = 4;
+					subtype = sub_socket;
 					if (!config.sockets)
 					{
 						config.sockets = lsock;
@@ -560,29 +543,29 @@ load_config()
 				}
 				else if (!strcasecmp("</System>", key))
 				{
-					if (subtype != 1)
+					if (subtype != sub_system)
 						errx(1, "</System> end without start");
 					if (config.system)
 						errx(1, "duplicate <System> definition");
-					subtype = 0;
+					subtype = sub_none;
 					config.system = current;
 					current = NULL;
 				}
 				else if (!strcasecmp("</Users>", key))
 				{
-					if (subtype != 2)
+					if (subtype != sub_users)
 						errx(1, "</Users> end without start");
 					if (config.users)
 						errx(1, "duplicate <Users> definition");
-					subtype = 0;
+					subtype = sub_none;
 					config.users = current;
 					current = NULL;
 				}
 				else if (!strcasecmp("</Virtual>", key))
 				{
-					if (subtype != 3)
+					if (subtype != sub_virtual)
 						errx(1, "</Virtual> end without start");
-					subtype = 0;
+					subtype = sub_none;
 					if (last)
 					{
 						last->next = current;
@@ -597,9 +580,9 @@ load_config()
 				}
 				else if (!strcasecmp("</Socket>", key))
 				{
-					if (subtype != 4)
+					if (subtype != sub_socket)
 						errx(1, "</Socket> end without start");
-					subtype = 0;
+					subtype = sub_none;
 				}
 				else
 					errx(1, "illegal directive: '%s'", key);
@@ -1532,7 +1515,11 @@ process_request()
 		snprintf(http_host_long, NI_MAXHOST, "%s:%s",
 			http_host, cursock->port);
 	}
-	for (current = config.virtual; current; current = current->next)
+	if (cursock->socketname)
+		for (current = config.virtual; current; current = current->next)
+			if (!strcasecmp(cursock->socketname, current->hostname))
+				break;
+	else for (current = config.virtual; current; current = current->next)
 		if (!strcasecmp(http_host_long, current->hostname) ||
 			!strcasecmp(http_host, current->hostname))
 		{
@@ -1697,19 +1684,6 @@ standalone_socket(int id)
 
 	if (cursock->usessl)
 		loadssl();
-
-	/* limit the vhosts that belong to this socket */
-	for (current = config.system; current; current = current->next)
-	{
-		char	**p;
-		current->donotuse = 1;
-		if (cursock->socketid)
-			for (p = current->socketids; *p; p++)
-				if (!strcasecmp(cursock->socketid, *p))
-					current->donotuse = 0;
-		else if (!current->socketids)
-			current->donotuse = 0;
-	}
 
 #ifdef		HAVE_SETRLIMIT
 #ifdef		RLIMIT_NPROC
