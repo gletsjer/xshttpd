@@ -416,11 +416,15 @@ argumens to the CGI binary. All standard CGI environment variables
 will be set up appriopriately. See the CGI section
 for more details on CGI's.
 .TP
-\fBecho\fP var="\fICGIVARIABLE\fP" encoding="\fIENCODING\fP"
+\fBecho\fP var="\fICGIVARIABLE\fP" encoding="\fInone|url|html\fP"
 .TP
 \fBecho\fP \fICGIVARIABLE\fP
 Print the value of an CGI environment variable.
-The \fIencoding\fP argument is optional and has no implemented effect yet.
+The \fIencoding\fP argument is optional and defaults to html encoding,
+which replaces special html symbols (such as < and &) to the appropriate
+sgml entities for proper display. Selecting \fInone\fP will do no
+rewriting at all (useful in text/plain files) and encoding=url is not
+implemented yet.
 See the CGI section on for more details about available variables.
 .TP
 \fBprintenv\fP
