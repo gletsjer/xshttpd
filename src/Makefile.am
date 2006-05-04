@@ -3,7 +3,7 @@ cgi_PROGRAMS = xschpass imagemap error gfxcount
 noinst_PROGRAMS = reformatxs
 noinst_LIBRARIES = libxs.a
 
-httpd_SOURCES = httpd.c cgi.c convert.c local.c methods.c ssi.c ssl.c
+httpd_SOURCES = httpd.c cgi.c convert.c local.c methods.c ssi.c ssl.c fcgi.c
 error_SOURCES = error.c local.c
 
 libxs_a_SOURCES = decode.c extra.c path.c xscrypt.c

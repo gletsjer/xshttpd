@@ -698,7 +698,7 @@ dir_printenv(char *here, size_t *size)
 		return(ERR_CONT);
 	}
 	*c = '\0';
-	secprintf("%s=%s", here+1, getenv(here + 1));
+	secprintf("%s=%s", here + 1, getenv(here + 1));
 	*c = '-';
 	(void)size;
 	return ERR_NONE;
