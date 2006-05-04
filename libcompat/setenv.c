@@ -47,15 +47,16 @@ setenv(const char *name, const char *value, int rewrite)
 {
 	static	int	alloced = 0;
 	char		*c;
-	int		offset;
+	int		l_value, offset;
 
 	if (*value == '=')
 		value++;
+	l_value = strlen(value);
 	if ((c = findenv(name, &offset)))
 	{
 		if (!rewrite)
 			return(0);
-		if (strlen(c) >= strlen(value))
+		if (strlen(c) >= l_value)
 		{
 			while ((*(c++) = *(value++)))
 				/* NOTHING HERE */;
@@ -91,7 +92,7 @@ setenv(const char *name, const char *value, int rewrite)
 	for (c = (char *)name; *c && (*c != '='); c++)
 		/* NOTHING HERE */;
 	if (!(environ[offset] =
-		(char *)malloc((size_t)((int)(c - name) + strlen(value) + 2))))
+		(char *)malloc((size_t)((int)(c - name) + l_value + 2))))
 		return(-1);
 	for (c = environ[offset]; ((*c = *(name++))) && (*c != '='); c++)
 		/* NOTHING HERE */;
