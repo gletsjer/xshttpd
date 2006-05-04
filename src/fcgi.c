@@ -12,8 +12,8 @@
 #include "htconfig.h"
 #include "ssl.h"
 #include "setenv.h"
-#include "fcgi.h"
 #include "fcgi_api.h"
+#include "fcgi.h"
 
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
@@ -31,8 +31,7 @@ ssize_t send_stream(fcgi_server* server, ssize_t length, unsigned char stream_id
 ssize_t recv_stream(fcgi_server* server, ssize_t length, int fd); 
 
 void 
-do_fcgi(const char *path, const char *base, const char *file, const char *engine, int showheader) {
-	fcgi_server server;
+do_fcgi(const char *path, const char *base, const char *file, fcgi_server *server, int showheader) {
 	fcgi_env env;
 	int request_ended = 0;
 	int data_file;
@@ -42,17 +41,19 @@ do_fcgi(const char *path, const char *base, const char *file, const char *engine
 	snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
 
 	init_env(&env);
+	/* FIXME need webserver address list*/
+	setenv("FCGI_WEBSERVER_ADDRS", "127.0.0.1", 1);
+	setenv("SCRIPT_NAME", path, 1);
+	setenv("SCRIPT_FILENAME", fullpath, 1);
+	setenv("REDIRECT_STATUS", "200", 1);
+	setenv("PATH", config.scriptpath, 1);
 	build_env(&env);
-	set_env(&env, "SCRIPT_NAME", path);
-	set_env(&env, "SCRIPT_FILENAME", fullpath);
-	set_env(&env, "REDIRECT_STATUS", "200");
-	set_env(&env, "PATH", config.scriptpath);
 	
-	fcgi_connect(&server);
-	begin_request(&server);
-	send_env(&server, &env);
+	fcgi_connect(server);
+	begin_request(server);
+	send_env(server, &env);
 	if (!content_length)
-		send_stream(&server, 0, FCGI_STDIN, STDIN_FILENO);
+		send_stream(server, 0, FCGI_STDIN, STDIN_FILENO);
 	/*
 	if (empty data file)
 		send_stream(&server, 0, FCGI_DATA, data_file);
@@ -62,7 +63,7 @@ do_fcgi(const char *path, const char *base, const char *file, const char *engine
 		fd_set set;
 
 		FD_ZERO(&set);
-		FD_SET(server.socket, &set);
+		FD_SET(server->socket, &set);
 		if (content_length)
 		  FD_SET(STDIN_FILENO, &set);
 		/*
@@ -72,20 +73,20 @@ do_fcgi(const char *path, const char *base, const char *file, const char *engine
 
 		select(3, &set, NULL, NULL, 0);
 		
-		if (FD_ISSET(server.socket, &set)) {	
-			switch (handle_record(&server)) {
+		if (FD_ISSET(server->socket, &set)) {	
+			switch (handle_record(server)) {
 				case FCGI_END_REQUEST:
 					request_ended = 1;
 					break;
 			}
 		}
 		if (FD_ISSET(STDIN_FILENO, &set)) {
-			ssize_t n = send_stream(&server, content_length, FCGI_STDIN, STDIN_FILENO);
+			ssize_t n = send_stream(server, content_length, FCGI_STDIN, STDIN_FILENO);
 			if (n <= 0 || n > content_length) {
 			}
 			content_length -= n;
 			if (!content_length) {
-				send_stream(&server, 0, FCGI_STDIN, STDIN_FILENO);
+				send_stream(server, 0, FCGI_STDIN, STDIN_FILENO);
 			}
 		}
 		/*
@@ -99,8 +100,25 @@ do_fcgi(const char *path, const char *base, const char *file, const char *engine
 		*/
 	}
 
-	fcgi_disconnect(&server);
+	fcgi_disconnect(server);
 	free_env(&env);
+}
+
+int fcgi_init(const char *path, const char *host, const char *port, fcgi_server *server) {
+	if (*path && *host)
+		return -1;
+	if (*path)
+	{
+		server->type = FCGI_UNIX_SOCKET;
+		server->unixsocket = strdup(path);
+	}
+	else
+	{
+		server->type = FCGI_INET_SOCKET;
+		server->host = strdup(host);
+		server->port = strdup(port);
+	}
+	return 0;
 }
 
 int fcgi_connect(fcgi_server* server) {
@@ -253,33 +271,16 @@ int set_env(fcgi_env* env, const char* name, const char* value) {
 }
 
 void build_env(fcgi_env* env) {
+	char	*c, **p;
+
+	for (p = environ; *p; p++)
+		if ((c = strchr(*p, '=')))
+		{
+			*c = '\0';
+			set_env(env, *p, c + 1);
+			*c = '=';
+		}
 	/* FIXME - return values not handled */
-	set_env(env, "FCGI_WEBSERVER_ADDRS", 0); /* FIXME need webserver address list*/
-	set_env(env, "SERVER_SOFTWARE", SERVER_IDENT);
-	set_env(env, "GATEWAY_INTERFACE", "CGI/1.1");
-	set_env(env, "HTTPD_ROOT", getenv("HTTPD_ROOT"));
-	set_env(env, "SERVER_PORT", getenv("SERVER_PORT"));
-	set_env(env, "REMOTE_HOST", getenv("REMOTE_HOST"));
-	set_env(env, "REMOTE_ADDR", getenv("REMOTE_ADDR"));
-	set_env(env, "SERVER_PROTOCOL", getenv("SERVER_PROTOCOL"));
-	set_env(env, "USER_AGENT", getenv("USER_AGENT"));
-	set_env(env, "HTTP_USER_AGENT", getenv("HTTP_USER_AGENT"));
-	set_env(env, "USER_AGENT_SHORT", getenv("USER_AGENT_SHORT"));
-	set_env(env, "HTTP_ACCEPT", getenv("HTTP_ACCEPT"));
-	set_env(env, "HTTP_ACCEPT_LANGUAGE", getenv("HTTP_ACCEPT_LANGUAGE"));
-	set_env(env, "HTTP_ACCEPT_ENCODING", getenv("HTTP_ACCEPT_ENCODING"));
-	set_env(env, "CONTENT_LENGTH", getenv("CONTENT_LENGTH"));
-	set_env(env, "CONTENT_TYPE", getenv("CONTENT_TYPE"));
-	set_env(env, "HTTP_HOST", getenv("HTTP_HOST"));
-	set_env(env, "SERVER_NAME", getenv("SERVER_NAME"));
-	set_env(env, "REQUEST_METHOD", getenv("REQUEST_METHOD"));
-	set_env(env, "USER", getenv("USER"));
-	set_env(env, "HOME", getenv("HOME"));
-	set_env(env, "ORIG_PATH_TRANSLATED", getenv("ORIG_PATH_TRANSLATED"));
-	set_env(env, "QUERY_STRING", getenv("QUERY_STRING"));
-	set_env(env, "AUTH_TYPE", getenv("AUTH_TYPE"));
-	set_env(env, "REMOTE_USER", getenv("REMOTE_USER"));
-	set_env(env, "REMOTE_IDENT", getenv("REMOTE_IDENT"));
 }
 
 int send_env(fcgi_server* server, fcgi_env* env) {

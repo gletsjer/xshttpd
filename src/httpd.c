@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.224 2006/05/01 19:22:13 johans Exp $ */
+/* $Id: httpd.c,v 1.225 2006/05/04 15:38:38 johans Exp $ */
 
 #include	"config.h"
 
@@ -102,7 +102,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.224 2006/05/01 19:22:13 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.225 2006/05/04 15:38:38 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -389,6 +389,8 @@ load_config()
 					config.scripttimeout = atoi(value);
 				else if (!strcasecmp("ScriptEnvPath", key))
 					config.scriptpath = strdup(value);
+				else if (!strcasecmp("UseFastCGI", key))
+					config.usefastcgi = !strcasecmp("true", value);
 				else if (!strcasecmp("UseCompressed", key))
 					config.usecompressed = !strcasecmp("true", value);
 				else if (!strcasecmp("LocalMode", key))
@@ -631,6 +633,8 @@ load_config()
 	if (config.usepcreredir)
 		errx(1, "PCRE support configured but not compiled in");
 #endif		/* HAVE_PCRE */
+	if (config.usefastcgi)
+		/* TODO: use fastcgi */
 
 	/* Set up system section */
 	if (!config.system)
