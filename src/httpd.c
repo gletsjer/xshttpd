@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.225 2006/05/04 15:38:38 johans Exp $ */
+/* $Id: httpd.c,v 1.226 2006/05/04 18:43:12 johans Exp $ */
 
 #include	"config.h"
 
@@ -90,6 +90,7 @@
 #include	"setenv.h"
 #include	"local.h"
 #include	"htconfig.h"
+#include	"fcgi.h"
 
 #ifndef		HAVE_SOCKLEN_T
 typedef	size_t	socklen_t;
@@ -102,7 +103,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.225 2006/05/04 15:38:38 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.226 2006/05/04 18:43:12 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -634,7 +635,7 @@ load_config()
 		errx(1, "PCRE support configured but not compiled in");
 #endif		/* HAVE_PCRE */
 	if (config.usefastcgi)
-		/* TODO: use fastcgi */
+		fcgi_init(NULL, "127.0.0.1", "3434");
 
 	/* Set up system section */
 	if (!config.system)

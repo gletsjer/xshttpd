@@ -17,6 +17,7 @@
 
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
+fcgi_server	fsrv;
 
 int  fcgi_connect(fcgi_server* server);
 void fcgi_disconnect(fcgi_server* server);
@@ -31,23 +32,24 @@ ssize_t send_stream(fcgi_server* server, ssize_t length, unsigned char stream_id
 ssize_t recv_stream(fcgi_server* server, ssize_t length, int fd); 
 
 void 
-do_fcgi(const char *path, const char *base, const char *file, fcgi_server *server, int showheader) {
+do_fcgi(const char *path, const char *base, const char *file, int showheader) {
 	fcgi_env env;
 	int request_ended = 0;
 	int data_file;
 	ssize_t content_length = atoi(getenv("CONTENT_LENGTH"));
 	char fullpath[XS_PATH_MAX];
-
+	fcgi_server *server = &fsrv;
 	snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
 
 	init_env(&env);
 	/* FIXME need webserver address list*/
-	setenv("FCGI_WEBSERVER_ADDRS", "127.0.0.1", 1);
+	setenv("FCGI_WEBSERVER_ADDRS", "131.155.141.70", 1);
+	build_env(&env);
 	setenv("SCRIPT_NAME", path, 1);
 	setenv("SCRIPT_FILENAME", fullpath, 1);
 	setenv("REDIRECT_STATUS", "200", 1);
 	setenv("PATH", config.scriptpath, 1);
-	build_env(&env);
+	secwrite(0, "HTTP/1.0 200 OK\r\n", 17);
 	
 	fcgi_connect(server);
 	begin_request(server);
@@ -61,17 +63,18 @@ do_fcgi(const char *path, const char *base, const char *file, fcgi_server *serve
 	
 	while (!request_ended) {
 		fd_set set;
+		int	ret;
 
 		FD_ZERO(&set);
 		FD_SET(server->socket, &set);
+		/*
 		if (content_length)
 		  FD_SET(STDIN_FILENO, &set);
-		/*
 		if (...)
 			FD_SET(data_file, &set);
 		*/
 
-		select(3, &set, NULL, NULL, 0);
+		ret = select(server->socket + 1, &set, NULL, NULL, 0);
 		
 		if (FD_ISSET(server->socket, &set)) {	
 			switch (handle_record(server)) {
@@ -104,27 +107,29 @@ do_fcgi(const char *path, const char *base, const char *file, fcgi_server *serve
 	free_env(&env);
 }
 
-int fcgi_init(const char *path, const char *host, const char *port, fcgi_server *server) {
-	if (*path && *host)
+int fcgi_init(const char *path, const char *host, const char *port) {
+	if (path && host)
 		return -1;
-	if (*path)
+	if (path)
 	{
-		server->type = FCGI_UNIX_SOCKET;
-		server->unixsocket = strdup(path);
+		fsrv.type = FCGI_UNIX_SOCKET;
+		fsrv.unixsocket = strdup(path);
+	}
+	else if (host)
+	{
+		fsrv.type = FCGI_INET_SOCKET;
+		fsrv.host = strdup(host);
+		fsrv.port = strdup(port);
 	}
 	else
-	{
-		server->type = FCGI_INET_SOCKET;
-		server->host = strdup(host);
-		server->port = strdup(port);
-	}
+		return -1;
 	return 0;
 }
 
 int fcgi_connect(fcgi_server* server) {
 	struct sockaddr* addr;
 	struct sockaddr_un addr_un;
-	struct addrinfo* info;
+	struct addrinfo* info, hints;
 	socklen_t len;
 
 	int port;
@@ -140,7 +145,10 @@ int fcgi_connect(fcgi_server* server) {
 			server->socket = socket(PF_LOCAL, SOCK_STREAM, 0);
 			break;
 		case FCGI_INET_SOCKET:
-			if (0 != getaddrinfo(server->host, server->port, NULL, &info)) {
+			memset(&hints, 0, sizeof(hints));
+			hints.ai_family = PF_INET;
+			hints.ai_socktype = SOCK_STREAM;
+			if (0 != getaddrinfo(server->host, server->port, &hints, &info)) {
 				return -1;
 			}
 			addr = info->ai_addr;
@@ -321,12 +329,13 @@ int handle_record(fcgi_server* server) {
 	FCGI_record record_header;
 	ssize_t content_length = 0;
 	char padding[255];
+	int bytes;
 
-	if (sizeof(record_header) != read(server->socket, &record_header, sizeof(record_header))) {
+	if (sizeof(record_header) != (bytes = read(server->socket, &record_header, sizeof(record_header)))) {
 		return -1;	
 	}
 
-	content_length = record_header.content_length_1 << 8 + record_header.content_length_0;
+	content_length = record_header.content_length_1 << 8 | record_header.content_length_0;
 
 	switch (record_header.type) {
 		case FCGI_END_REQUEST:
@@ -372,7 +381,7 @@ ssize_t send_stream(fcgi_server* server, ssize_t length, unsigned char stream_id
 		return -1;
 	}
 	
-	n = secread(fd, buffer, FCGI_MAX_BUFFER);
+	n = secread(fd, buffer, n);
 
 	if (n <= 0) {
 		free(buffer);
@@ -427,7 +436,7 @@ ssize_t recv_stream(fcgi_server* server, ssize_t length, int fd) {
 		return -1;
 	}
 
-	if (n != secwrite(fd, &buffer, n)) {
+	if (n != secwrite(fd, buffer, n)) {
 		free(buffer);
 		return -1;
 	}

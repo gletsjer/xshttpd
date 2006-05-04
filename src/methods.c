@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.162 2006/03/18 17:06:04 johans Exp $ */
+/* $Id: methods.c,v 1.163 2006/05/04 18:43:12 johans Exp $ */
 
 #include	"config.h"
 
@@ -1001,6 +1001,11 @@ do_get(char *params)
 			{
 				close(fd);
 				do_script(params, base, filename, NULL, headers);
+			}
+			else if (!strcmp(isearch->prog, "internal:fcgi"))
+			{
+				close(fd);
+				do_fcgi(params, base, file, headers);
 			}
 			else
 			{
