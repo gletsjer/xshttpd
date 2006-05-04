@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.163 2006/05/04 18:43:12 johans Exp $ */
+/* $Id: methods.c,v 1.164 2006/05/04 19:20:52 johans Exp $ */
 
 #include	"config.h"
 
@@ -722,7 +722,13 @@ do_get(char *params)
 
 	if (question)
 	{
-		setenv("QUERY_STRING", question + 1, 1);
+		/* PHP likes values starting with =
+		 * libc will strip leading = from values for backward compatibility
+		 * Try to accommodate both
+		 */
+		setenv("QUERY_STRING",
+				'=' == question[1] ? question[0] = '=', question : question + 1,
+				1);
 		*question = 0;
 	}
 
