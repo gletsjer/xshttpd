@@ -113,7 +113,7 @@ typedef struct {
 	char*   port;
 	char*   unixsocket;
 	int     socket;
-} fcgi_connection;
+} fcgi_server;
 
 #define FCGI_PAIR_TYPE_11       0x00
 #define FCGI_PAIR_TYPE_14       0x01
