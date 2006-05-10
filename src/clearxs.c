@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: clearxs.c,v 1.11 2006/04/20 14:25:56 johans Exp $ */
+/* $Id: clearxs.c,v 1.12 2006/05/10 10:26:23 johans Exp $ */
 
 #include	"config.h"
 
@@ -33,6 +33,7 @@ main(int argc, char **argv)
 	int		option, fdin, fdout, mode = MODE_NONE;
 	countstr	counter;
 	char		counterfile[XS_PATH_MAX], lockfile[XS_PATH_MAX];
+			clockfile[XS_PATH_MAX];
 	struct tm	timeptr;
 	time_t		since = 0;
 
@@ -72,7 +73,11 @@ main(int argc, char **argv)
 	if ((fdin  = open(counterfile, O_RDONLY, 0)) < 0)
 		err(1, "Could not open(%s)", counterfile);
 
-	snprintf(lockfile, XS_PATH_MAX, "%s/%s", HTTPD_ROOT, CNT_LOCK);
+	snprintf(clockfile, XS_PATH_MAX, "%s/%s", HTTPD_ROOT, CNT_LOCK);
+	if ((fdout = open(lockfile, O_WRONLY | O_CREAT | O_TRUNC, 0)) < 0)
+		err(1, "Could not open(%s)", clockfile);
+
+	snprintf(lockfile, XS_PATH_MAX, "%s/clearxs.%s", HTTPD_ROOT, CNT_LOCK);
 	if ((fdout = open(lockfile, O_WRONLY | O_CREAT | O_TRUNC, 0)) < 0)
 		err(1, "Could not open(%s)", lockfile);
 
@@ -97,8 +102,10 @@ main(int argc, char **argv)
 	if (rename(lockfile, counterfile))
 	{
 		remove(lockfile);
+		remove(clockfile);
 		err(1, "Could not rename counter file");
 	}
 	remove(lockfile);
+	remove(clockfile);
 	return(0);
 }
