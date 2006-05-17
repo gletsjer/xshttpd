@@ -1,12 +1,13 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.20 2006/04/27 10:00:42 johans Exp $ */
+/* $Id: ssl.c,v 1.21 2006/05/17 14:01:46 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<string.h>
 #include	<unistd.h>
+#include	<sys/stat.h>
 #include	<err.h>
 #include	<errno.h>
 #include	<stdarg.h>
@@ -62,7 +63,7 @@ initssl(int csd)
 	cursock->ssl = SSL_new(ssl_ctx);
 	SSL_set_fd(cursock->ssl, csd);
 	/* enable reusable keys */
-	SSL_set_session_id_context(cursock->ssl, sid_ctx, 7);
+	SSL_set_session_id_context(cursock->ssl, sid_ctx, sizeof(sid_ctx));
 	if (SSL_accept(cursock->ssl) < 0)
 	{
 		int	readerror;
@@ -202,8 +203,9 @@ loadssl()
 {
 #ifdef		HANDLE_SSL
 	SSL_METHOD	*method = NULL;
-	DH		*dh = NULL;
-	BIO		*bio = NULL;
+	DH			*dh = NULL;
+	BIO			*bio = NULL;
+	struct stat	sb;
 
 	if (!cursock->usessl)
 		return;
@@ -249,6 +251,14 @@ loadssl()
 			cursock->sslcapath ? calcpath(cursock->sslcapath) : "",
 			ERR_reason_error_string(ERR_get_error()));
 
+	/* load randomness */
+	if (lstat("/dev/urandom", &sb) == 0 && S_ISCHR(sb.st_mode))
+	{
+		if (!RAND_load_file("/dev/urandom", 16 * 1024))
+			errx(1, "Cannot load randomness (%s): %s\n",
+				"/dev/urandom", ERR_reason_error_string(ERR_get_error()));
+	}
+
 	bio = BIO_new_file(calcpath(cursock->sslprivatekey), "r");
 	if (bio)
 	{
@@ -261,6 +271,7 @@ loadssl()
 			 * XXX: silently fail if no DH info available -> no SSL
 			 */
 			SSL_CTX_set_tmp_dh(ssl_ctx, dh);
+			SSL_CTX_set_options(ssl_ctx, SSL_OP_SINGLE_DH_USE);
 			DH_free(dh);
 		}
 		BIO_free(bio);
