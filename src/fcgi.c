@@ -35,12 +35,12 @@ void
 do_fcgi(const char *path, const char *base, const char *file, int showheader) {
 	fcgi_env env;
 	int request_ended = 0;
-	int data_file;
 	ssize_t content_length = atoi(getenv("CONTENT_LENGTH"));
 	char fullpath[XS_PATH_MAX];
 	fcgi_server *server = &fsrv;
 	snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
 
+	(void)showheader;
 	init_env(&env);
 	/* FIXME need webserver address list*/
 	setenv("FCGI_WEBSERVER_ADDRS", "131.155.141.70", 1);
@@ -132,10 +132,9 @@ int fcgi_connect(fcgi_server* server) {
 	struct addrinfo* info, hints;
 	socklen_t len;
 
-	int port;
-
 	switch (server->type) {
 		case FCGI_UNIX_SOCKET:
+		default:
 			addr_un.sun_len = 0; 
 			addr_un.sun_family = AF_UNIX;
 			strcpy(addr_un.sun_path, server->unixsocket);
@@ -167,6 +166,8 @@ int fcgi_connect(fcgi_server* server) {
 
 	if (server->type == FCGI_INET_SOCKET)
 		freeaddrinfo(info);
+
+	return 0;
 }
 
 void fcgi_disconnect(fcgi_server* server) {
@@ -212,9 +213,10 @@ int set_env(fcgi_env* env, const char* name, const char* value) {
 	size_t name_len  = strlen(name);
 	size_t value_len = strlen(value);
 	int pair_type = 0;
+	char	*p;
 
 	if (!value)
-		return;
+		return -1;
 
 	if (name_len > 127)
 		pair_type |= FCGI_PAIR_LONG_NAME;
@@ -229,7 +231,7 @@ int set_env(fcgi_env* env, const char* name, const char* value) {
 		}
 	}
 	
-	char* p = env->buffer + env->env_size;
+	p = env->buffer + env->env_size;
 	
 	switch (pair_type) {
 		case FCGI_PAIR_TYPE_11:
@@ -276,6 +278,7 @@ int set_env(fcgi_env* env, const char* name, const char* value) {
 	p += value_len;
 
 	env->env_size = p - env->buffer;
+	return 0;
 }
 
 void build_env(fcgi_env* env) {
@@ -294,14 +297,14 @@ void build_env(fcgi_env* env) {
 int send_env(fcgi_server* server, fcgi_env* env) {
 	FCGI_record record_header;
 
+	char *p = env->buffer;
+	char *q = env->buffer + env->env_size;
+
 	memset(&record_header, 0, sizeof(record_header));
 
 	record_header.version      = FCGI_VERSION_1;
 	record_header.type         = FCGI_PARAMS;
 	record_header.request_id_0 = 1;
-	
-	char *p = env->buffer;
-	char *q = env->buffer + env->env_size;
 	
 	while (p != q) {
 		ptrdiff_t n = MIN(FCGI_MAX_BUFFER, q-p);
