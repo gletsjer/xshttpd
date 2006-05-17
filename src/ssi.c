@@ -237,6 +237,11 @@ xsc_counter(int mode, const char *args)
 	char			host[XS_PATH_MAX];
 	int			fd = -1, timer, total, x, y, z, comp, already = 0;
 	static	countstr	counter;
+	char			*p, filename[sizeof(counter.filename)];
+
+	strlcpy(filename, real_path, sizeof(filename));
+	if ((p = strchr(filename, '?')))
+		*p = '\0';
 
 	if (cnt_readbefore)
 		goto ALREADY;
@@ -285,7 +290,7 @@ reopen:
 				strerror(errno));
 			return(1);
 		}
-		if ((comp = strcmp(real_path, counter.filename)) < 0)
+		if ((comp = strncmp(filename, counter.filename, sizeof(counter.filename))) < 0)
 			z = y;
 		else
 			x = y;
@@ -300,7 +305,7 @@ reopen:
 			return(1);
 		}
 		already = 1;
-		if (xsc_initcounter(real_path))
+		if (xsc_initcounter(filename))
 			return(1);
 		goto reopen;
 	}
@@ -323,6 +328,8 @@ reopen:
 				strerror(errno));
 			close(fd); return(1);
 		}
+		close(fd);
+		return(0);
 	}
 	if (write(fd, &counter, sizeof(countstr)) != sizeof(countstr))
 	{
@@ -330,6 +337,7 @@ reopen:
 			strerror(errno));
 		close(fd); return(1);
 	}
+	close(fd);
 ALREADY:
 	if (strcmp(cursock->port, "80"))
 		snprintf(host, sizeof(host), "http://%s:%s/",
@@ -369,7 +377,6 @@ ALREADY:
 		secprintf("[reset stats counter]");
 		break;
 	}
-	close(fd);
 	return(0);
 }
 

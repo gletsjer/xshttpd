@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.164 2006/05/04 19:20:52 johans Exp $ */
+/* $Id: methods.c,v 1.165 2006/05/17 14:03:12 johans Exp $ */
 
 #include	"config.h"
 
@@ -89,6 +89,7 @@
 #include	"ssl.h"
 #include	"extra.h"
 #include	"cgi.h"
+#include	"fcgi.h"
 #include	"xscrypt.h"
 #include	"path.h"
 #include	"setenv.h"
@@ -828,6 +829,7 @@ do_get(char *params)
 	/* Check for directory permissions */
 	if (stat(base, &statbuf))
 	{
+		fprintf(stderr, "stat(%s) failed: %s\n", base, strerror(errno));
 		server_error("404 Requested URL not found", "NOT_FOUND");
 		return;
 	}

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: clearxs.c,v 1.12 2006/05/10 10:26:23 johans Exp $ */
+/* $Id: clearxs.c,v 1.13 2006/05/17 14:03:12 johans Exp $ */
 
 #include	"config.h"
 
@@ -32,7 +32,7 @@ main(int argc, char **argv)
 {
 	int		option, fdin, fdout, mode = MODE_NONE;
 	countstr	counter;
-	char		counterfile[XS_PATH_MAX], lockfile[XS_PATH_MAX];
+	char		counterfile[XS_PATH_MAX], lockfile[XS_PATH_MAX],
 			clockfile[XS_PATH_MAX];
 	struct tm	timeptr;
 	time_t		since = 0;

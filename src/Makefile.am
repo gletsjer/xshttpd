@@ -1,6 +1,6 @@
 bin_PROGRAMS = httpd xspasswd clearxs readxs xsindex httpdc
 cgi_PROGRAMS = xschpass imagemap error gfxcount
-noinst_PROGRAMS = reformatxs
+noinst_PROGRAMS = reformatxs xscat
 noinst_LIBRARIES = libxs.a
 
 httpd_SOURCES = httpd.c cgi.c convert.c local.c methods.c ssi.c ssl.c fcgi.c
