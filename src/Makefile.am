@@ -27,8 +27,8 @@ LDADD = libxs.a				# default for all *_PROGRAMS
 DEFAULT_INCLUDES =
 
 EXTRA_DIST = cgi.h config.h confpatch.h confuser.h convert.h decode.h \
-	digcalc.h err.h extra.h htconfig.h httpd.h ldap.h local.h methods.h \
-	path.h pcre.h setenv.h setproctitle.h \
+	digcalc.h err.h extra.h fcgi.h htconfig.h httpd.h ldap.h local.h \
+	methods.h path.h pcre.h setenv.h setproctitle.h \
 	ssi.h ssl.h xscounter.h xscrypt.h
 
 EXTRA_DIST += digcalc.c ldap.c pcre.c
