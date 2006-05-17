@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.227 2006/05/17 14:00:39 johans Exp $ */
+/* $Id: httpd.c,v 1.228 2006/05/17 19:28:29 johans Exp $ */
 
 #include	"config.h"
 
@@ -103,7 +103,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.227 2006/05/17 14:00:39 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.228 2006/05/17 19:28:29 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1809,7 +1809,7 @@ standalone_socket(int id)
 		if (fcntl(csd, F_SETFL, 0))
 			warn("fcntl() in standalone_main");
 
-		sl.l_onoff = 1; sl.l_linger = 600;
+		sl.l_onoff = 1; sl.l_linger = 10;
 		setsockopt(csd, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl));
 
 		dup2(csd, 0); dup2(csd, 1);
