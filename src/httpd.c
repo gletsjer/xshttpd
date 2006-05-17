@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.226 2006/05/04 18:43:12 johans Exp $ */
+/* $Id: httpd.c,v 1.227 2006/05/17 14:00:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -103,7 +103,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.226 2006/05/04 18:43:12 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.227 2006/05/17 14:00:39 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -971,10 +971,11 @@ error(const char *message)
 	alarm(180); setcurrenttime();
 	env = getenv("QUERY_STRING");
 	fprintf((current && current->openerror) ? current->openerror : stderr,
-		"[%s] httpd(pid %ld): %s [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
+		"[%s] httpd(pid %ld): %s [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']\n",
 		currenttime, (long)getpid(), message,
 		remotehost[0] ? remotehost : "(none)",
 		orig[0] ? orig : "(none)", env ? env : "(none)",
+		getenv("HTTP_HOST"),
 		referer[0] ? referer : "(none)");
 	if (headers)
 	{
@@ -1521,25 +1522,34 @@ process_request()
 			http_host, cursock->port);
 	}
 	if (cursock->socketname)
+	{
 		for (current = config.virtual; current; current = current->next)
 			if (!strcasecmp(cursock->socketname, current->hostname))
 				break;
-	else for (current = config.virtual; current; current = current->next)
-		if (!strcasecmp(http_host_long, current->hostname) ||
-			!strcasecmp(http_host, current->hostname))
+	}
+	else
+	{
+		for (current = config.virtual; current; current = current->next)
 		{
-			break;
-		}
-		else if (current->aliases)
-		{
-			char	**aliasp;
-			for (aliasp = current->aliases; *aliasp; aliasp++)
-				if (!strcasecmp(http_host_long, *aliasp) ||
-					!strcasecmp(http_host, *aliasp))
-					break;
-			if (*aliasp)
+			if (!strcasecmp(http_host_long, current->hostname) ||
+				!strcasecmp(http_host, current->hostname))
+			{
 				break;
+			}
+			else if (current->aliases)
+			{
+				char	**aliasp;
+				for (aliasp = current->aliases; *aliasp; aliasp++)
+				{
+					if (!strcasecmp(http_host_long, *aliasp) ||
+						!strcasecmp(http_host, *aliasp))
+						break;
+				}
+				if (*aliasp)
+					break;
+			}
 		}
+	}
 	if (params[0] && params[1] == '~')
 		current = config.users;
 	else if (!current)
