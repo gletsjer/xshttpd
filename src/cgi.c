@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.112 2006/03/18 17:06:03 johans Exp $ */
+/* $Id: cgi.c,v 1.113 2006/05/17 19:27:56 johans Exp $ */
 
 #include	"config.h"
 
@@ -118,7 +118,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	char			inbuf[MYBUFSIZ];
 	int			q[2];
 	int			ssl_post = 0;
-	int			readerror;
 	ssize_t		tobewritten;
 #endif		/* HANDLE_SSL */
 #ifdef		HAVE_SETRLIMIT
@@ -314,11 +313,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			tobewritten = writetodo > MYBUFSIZ ? MYBUFSIZ : writetodo;
 			while (!(tobewritten = secread(0, inbuf, tobewritten)))
 				mysleep(1);
-			if ((tobewritten < 0) && ((readerror = ERR_get_error()))) {
-				fprintf(stderr, "SSL Error: %s\n",
-					ERR_reason_error_string(readerror));
+			if ((tobewritten < 0))
 				goto END;
-			}
 			offset = 0;
 			while ((written = write(q[1], inbuf + offset, tobewritten - offset)) < tobewritten - offset) {
 				if ((written < 0) && (errno != EINTR))

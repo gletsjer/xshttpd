@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.21 2006/05/17 14:01:46 johans Exp $ */
+/* $Id: ssl.c,v 1.22 2006/05/17 19:27:56 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -11,6 +11,9 @@
 #include	<err.h>
 #include	<errno.h>
 #include	<stdarg.h>
+
+#include	<openssl/rand.h>
+#include	<openssl/err.h>
 
 #include	"config.h"
 #include	"htconfig.h"
@@ -150,7 +153,9 @@ void
 endssl(int csd)
 {
 #ifdef		HANDLE_SSL
+	SSL_shutdown(cursock->ssl);
 	SSL_free(cursock->ssl);
+	cursock->ssl = NULL;
 #endif		/* HANDLE_SSL */
 	close(csd);
 }
@@ -310,16 +315,27 @@ loadssl()
 int
 secread(int fd, void *buf, size_t count)
 {
+	int	readerror;
+
 #ifdef		HANDLE_SSL
 	if (cursock->ssl && fd == 0)
-		return SSL_read(cursock->ssl, buf, count);
+	{
+		readerror = SSL_read(cursock->ssl, buf, count);
+		warnx("SSL read error: %s\n",
+			ERR_reason_error_string(readerror));
+	}
 	else
 #endif		/* HANDLE_SSL */
-		return read(fd, buf, count);
+	{
+		readerror = read(fd, buf, count);
+		warn("Read error");
+	}
+
+	return readerror;
 }
 
 int
-secwrite(int fd, void *buf, size_t count)
+secwrite(int fd, const void *buf, size_t count)
 {
 #ifdef		HANDLE_SSL
 	if (cursock->usessl)

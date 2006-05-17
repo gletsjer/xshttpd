@@ -4,7 +4,6 @@
 
 #ifdef		HANDLE_SSL
 #include <openssl/ssl.h>
-#include <openssl/err.h>
 #endif		/* HANDLE_SSL */
 #ifdef		HAVE_PCRE
 #include <pcre.h>
