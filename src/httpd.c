@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.228 2006/05/17 19:28:29 johans Exp $ */
+/* $Id: httpd.c,v 1.229 2006/05/18 09:01:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -103,7 +103,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.228 2006/05/17 19:28:29 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.229 2006/05/18 09:01:39 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1813,8 +1813,7 @@ standalone_socket(int id)
 		setsockopt(csd, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl));
 
 		dup2(csd, 0); dup2(csd, 1);
-		if (!cursock->usessl)
-			close(csd);
+		close(csd);
 
 #ifndef		SETVBUF_REVERSED
 		setvbuf(stdin, NULL, _IONBF, 0);
@@ -1873,11 +1872,8 @@ standalone_socket(int id)
 		/* Loooser! You will just have to use the IP-adres... */
 #endif		/* HAVE_GETADDRINFO */
 #endif		/* HAVE GETNAMEINFO */
-		if (initssl(csd) < 0)
-		{
-			close(csd);
-			return;
-		}
+		if (initssl() < 0)
+			continue;
 		setproctitle("xs(%d): Connect from `%s'", count + 1, remotehost);
 		setcurrenttime();
 		if (message503[0])
@@ -1888,9 +1884,7 @@ standalone_socket(int id)
 		} else
 			process_request();
 		alarm(0); reqs++;
-		endssl(csd);
-		if (cursock->usessl)
-			close(csd);
+		endssl();
 		fflush(stdout); fflush(stdin); fflush(stderr);
 	}
 	/* NOTREACHED */

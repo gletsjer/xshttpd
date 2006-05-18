@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.22 2006/05/17 19:27:56 johans Exp $ */
+/* $Id: ssl.c,v 1.23 2006/05/18 09:01:39 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -41,9 +41,9 @@ setreadmode(int mode, int reset)
 	if (reset)
 		netbufind = netbufsiz = 0;
 #ifdef		HANDLE_SSL
-	if ((readerror = ERR_get_error())) {
-		fprintf(stderr, "SSL Error: %s\n",
-			ERR_reason_error_string(readerror));
+	if ((readerror = ERR_get_error()))
+	{
+		warnx("SSL Error: %s", ERR_reason_error_string(readerror));
 		error("400 SSL Error");
 		return;
 	}
@@ -54,28 +54,29 @@ setreadmode(int mode, int reset)
 }
 
 int
-initssl(int csd)
+initssl()
 {
 #ifdef		HANDLE_SSL
 	X509		*xs;
-	static const unsigned char	sid_ctx[] = SERVER_IDENT;
 
 	if (!cursock->usessl)
 		return 0;
 
 	cursock->ssl = SSL_new(ssl_ctx);
-	SSL_set_fd(cursock->ssl, csd);
+	SSL_set_rfd(cursock->ssl, 0);
+	SSL_set_wfd(cursock->ssl, 1);
 	/* enable reusable keys */
-	SSL_set_session_id_context(cursock->ssl, sid_ctx, sizeof(sid_ctx));
+	SSL_set_session_id_context(cursock->ssl,
+		(const unsigned char *)SERVER_IDENT, sizeof(SERVER_IDENT));
 	if (SSL_accept(cursock->ssl) < 0)
 	{
 		int	readerror;
 
 		if ((readerror = ERR_get_error()))
-			fprintf(stderr, "SSL Error: %s\n",
+			warnx("SSL accept error: %s",
 				ERR_reason_error_string(readerror));
 		else
-			fprintf(stderr, "SSL flipped\n");
+			warnx("SSL flipped");
 		return -1;
 	}
 	if ((xs = SSL_get_peer_certificate(cursock->ssl)))
@@ -150,14 +151,16 @@ initssl(int csd)
 }
 
 void
-endssl(int csd)
+endssl()
 {
 #ifdef		HANDLE_SSL
-	SSL_shutdown(cursock->ssl);
-	SSL_free(cursock->ssl);
-	cursock->ssl = NULL;
+	if (cursock->usessl && cursock->ssl)
+	{
+		SSL_shutdown(cursock->ssl);
+		SSL_free(cursock->ssl);
+		cursock->ssl = NULL;
+	}
 #endif		/* HANDLE_SSL */
-	close(csd);
 }
 
 #ifdef		HANDLE_SSL
@@ -320,15 +323,15 @@ secread(int fd, void *buf, size_t count)
 #ifdef		HANDLE_SSL
 	if (cursock->ssl && fd == 0)
 	{
-		readerror = SSL_read(cursock->ssl, buf, count);
-		warnx("SSL read error: %s\n",
-			ERR_reason_error_string(readerror));
+		if ((readerror = SSL_read(cursock->ssl, buf, count)) < 0)
+			warnx("SSL read error: %s",
+				ERR_reason_error_string(readerror));
 	}
 	else
 #endif		/* HANDLE_SSL */
 	{
-		readerror = read(fd, buf, count);
-		warn("Read error");
+		if ((readerror = read(fd, buf, count)) < 0)
+			warn("Read error");
 	}
 
 	return readerror;
@@ -405,8 +408,8 @@ readline(int rd, char *buf)
 				{
 					mysleep(1); goto TRYAGAIN;
 				}
-				fprintf(stderr, "[%s] httpd: readline(): %s [%d]\n",
-					currenttime, strerror(errno), rd);
+				warn("[%s] httpd: readline() [%d]",
+					currenttime, rd);
 				if (rd == 0)
 					error("503 Unexpected network error");
 				return(ERR_QUIT);
