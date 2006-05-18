@@ -1,5 +1,7 @@
 /* Copyright (C) 2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: xscat.c,v 1.1 2006/05/17 14:03:13 johans Exp $ */
+/* $Id: xscat.c,v 1.2 2006/05/18 09:29:20 johans Exp $ */
+
+/* show detailed information from the xs counter datafile */
 
 #include	"config.h"
 

@@ -427,7 +427,7 @@ rewriting at all (useful in text/plain files) and encoding=url is not
 implemented yet.
 See the CGI section on for more details about available variables.
 .TP
-\fBprintenv\fP
+\fBprintenv\fP [\fICGIVARIABLE\fP]
 Print the values of all CGI environment variables.
 This option is only used for debugging purposes.
 See the CGI section on for more details about available variables.

@@ -1,14 +1,25 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.4 beta 9
+- Fix an xscounter updating, add xscat, add cleanup routines to reformatxs
+- Fix stupid bug in SocketName handling which broke <Virtual> sections
+- Add basis for FastCGI support (unfinished), by Remko van der Vossen
+- Clean up SSL initialisation and termination
+
 Changes since 3.4 beta 8
 - Fix operation with OpenSSL 0.9.8
+- Implement the <!--#echo variable--> server-side include
+  This obsoletes #agent-short, #agent-long, #argument and #referer
+- Document the <!--#printenv--> server-side include
+- Add SocketName option to link a <Socket> to a specific <Virtual> entry
+- Fix $ERROR_URL_ESCAPED environment variable
 
 Changes since 3.4 beta 7
 - Fix overwriting of counter lockfile
 - Improved readline() boundary checking, by Dennis Payne
-- Improved error handling in case SSL handshake fails.
-- Support reading of SSL DH parameters from cert (required for DSA certs).
+- Improved error handling in case SSL handshake fails
+- Support reading of SSL DH parameters from cert (required for DSA certs)
 
 Changes since 3.4 beta 6
 - Fix file descriptor leak (upon https call of CGI outside cgi-bin dir)

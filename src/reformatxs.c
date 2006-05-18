@@ -1,5 +1,7 @@
 /* Copyright (C) 2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: reformatxs.c,v 1.5 2006/05/10 15:28:24 johans Exp $ */
+/* $Id: reformatxs.c,v 1.6 2006/05/18 09:29:20 johans Exp $ */
+
+/* tidy up xs counter file and convert to latest version */
 
 #include	"config.h"
 
