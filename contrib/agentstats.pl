@@ -59,7 +59,7 @@ if (open ('httpdlog', shift))
 			# Windows at the bottom - a lot of spoofers
 			elsif ($agent =~ /Win(dows|32)/)
 			{
-				$os = 'Windows';
+				$os = 'Microsoft Windows';
 			}
 
 			# Step two - get the browser
@@ -83,7 +83,7 @@ if (open ('httpdlog', shift))
 			elsif ($agent =~ /^Avant Browser /)
 			{
 				$browser = 'Avant Browser';
-				$os = 'Windows';
+				$os = 'Microsoft Windows';
 			}
 			elsif ($agent =~ /BigCliqueBOT\//)
 			{
@@ -126,7 +126,7 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Bot: DomainsDB.net Crawler';
 			}
-			elsif ($agent =~ /^ELinks\//)
+			elsif ($agent =~ /^ELinks /)
 			{
 				$browser = 'ELinks';
 			}
@@ -153,7 +153,7 @@ if (open ('httpdlog', shift))
 			elsif ($agent =~ / FrontPage /)
 			{
 				$browser = 'Microsoft FrontPage';
-				$os = 'Windows';
+				$os = 'Microsoft Windows';
 			}
 			elsif ($agent =~ /^Gigabot\//)
 			{
@@ -162,6 +162,10 @@ if (open ('httpdlog', shift))
 			elsif ($agent =~ /Google(bot(\-Image)?)?\//)
 			{
 				$browser = 'Bot: Google Search';
+			}
+			elsif ($agent =~ / HTTrack /)
+			{
+				$browser = 'HTTrack Website Copier';
 			}
 			elsif ($agent =~ /almaden\.ibm\.com/)
 			{
@@ -207,6 +211,11 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Links';
 			}
+			elsif ($agent =~ /^LinksBoks[\/]/)
+			{
+				$browser = 'LinksBoks';
+				$os = 'Microsoft Xbox';
+			}
 			elsif ($agent =~ / Lotus\-Notes\//)
 			{
 				$browser = 'Lotus Notes';
@@ -248,7 +257,7 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Netscape Navigator';
 			}
-			elsif ($agent =~ /^NewsFire\//)
+			elsif ($agent =~ /NewsFire/)
 			{
 				$browser = 'RSS: NewsFire';
 				$os = 'Mac OS X';
