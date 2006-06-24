@@ -36,7 +36,7 @@ sub sizetofriendly {
 }
 
 # Print a table look at the top
-print "   TRAF \%TRAF  HITS \%HITS     AVG   \%AVG DOMAIN\n";
+print "   TRAF \%TRAF    HITS \%HITS     AVG   \%AVG DOMAIN\n";
 
 # Try to open our logfile
 if (open ('httpdlog', "$logfile"))
@@ -84,7 +84,7 @@ if (open ('httpdlog', "$logfile"))
 		$percent{'avg'} =
 			($domains{$i}{'avg'} * 100) / $total{'avg'};
 
-		printf "%7s %5.1lf %5d %5.1lf %7s %6.1lf %s\n",
+		printf "%7s %5.1lf %7d %5.1lf %7s %6.1lf %s\n",
 			# Size
 			&sizetofriendly ($domains{$i}{'size'}),
 			$percent{'size'},
@@ -100,7 +100,7 @@ if (open ('httpdlog', "$logfile"))
 }
 
 # Print the grand total
-printf "%7s %11d %13s        total\n",
+printf "%7s %13d %13s        total\n",
 	# Size
 	&sizetofriendly ($total{'size'}),
 	# Hits

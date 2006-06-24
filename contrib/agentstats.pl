@@ -106,6 +106,11 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Bot: Blue Coat Content Control';
 			}
+			elsif ($agent =~ /^CFNetwork\//)
+			{
+				$browser = 'CoreFoundation';
+				$os = 'Mac OS X';
+			}
 			elsif ($agent =~ /^CoralWebPrx\//)
 			{
 				$browser = 'Coral Cache';
@@ -129,6 +134,14 @@ if (open ('httpdlog', shift))
 			elsif ($agent =~ /^ELinks /)
 			{
 				$browser = 'ELinks';
+			}
+			elsif ($agent =~ /^EmeraldShield\.com Web Spider /)
+			{
+				$browser = 'Bot: Emerald Web Shield';
+			}
+			elsif ($agent =~ /^Exabot\//)
+			{
+				$browser = 'Bot: Exalead Search';
 			}
 			elsif ($agent =~ /UniversalFeedParser\//)
 			{
@@ -159,7 +172,7 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Bot: Gigabot';
 			}
-			elsif ($agent =~ /Google(bot(\-Image)?)?\//)
+			elsif ($agent =~ /Google(bot(\-(Image|Mobile))?)?\//)
 			{
 				$browser = 'Bot: Google Search';
 			}
@@ -236,7 +249,7 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Bot: Majestic-12';
 			}
-			elsif ($agent =~ /^msnbot\//)
+			elsif ($agent =~ /^msnbot(-media)?\//)
 			{
 				$browser = 'Bot: MSN Search';
 			}
@@ -375,12 +388,12 @@ if (open ('httpdlog', shift))
 }
 
 # Display the operating system statistics
-print " HITS \%HITS BROWSER\n";
+print "   HITS \%HITS BROWSER\n";
 for my $i (sort {$hits{$b} <=> $hits{$a}} keys %hits)
 {
-	printf "%5d %5.1lf %s\n",
+	printf "%7d %5.1lf %s\n",
 		$hits{$i},
 		($hits{$i} * 100) / $total,
 		$i;
 }
-printf "%5d       total\n", $total;
+printf "%7d       total\n", $total;
