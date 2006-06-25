@@ -1,5 +1,5 @@
 /* Copyright (C) 2005 by Johan van Selst (johans@stack.nl) */
-/* $Id: pcre.c,v 1.3 2005/11/29 18:16:28 johans Exp $ */
+/* $Id: pcre.c,v 1.4 2006/06/25 10:24:06 johans Exp $ */
 
 #include	"config.h"
 #include	"pcre.h"
@@ -47,6 +47,27 @@ pcre_subst(const char * const string, const char * const pattern, const char * c
 	strlcat(result, &string[ovector[1]], BUFSIZ);
 
 	return result;
+}
+
+/* checks whether [string] matches [pattern]. returns:
+ * -1 : PCRE error
+ *  0 : no match
+ *  1 : match
+ */
+int
+pcre_match(const char *const string, const char *const pattern)
+{
+	int		erroffset, rc;
+	const char	*error;
+	pcre		*re;
+
+	if ((re = pcre_compile(pattern, 0, &error, &erroffset, NULL)) == NULL)
+		return -1;
+	rc = pcre_exec(re, NULL, string, strlen(string), 0, 0, NULL, 0);
+	free(re);
+	if (PCRE_ERROR_NOMATCH == rc)
+		return 0;
+	return rc;
 }
 
 #if	0
