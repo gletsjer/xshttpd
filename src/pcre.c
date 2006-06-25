@@ -1,5 +1,5 @@
 /* Copyright (C) 2005 by Johan van Selst (johans@stack.nl) */
-/* $Id: pcre.c,v 1.4 2006/06/25 10:24:06 johans Exp $ */
+/* $Id: pcre.c,v 1.5 2006/06/25 11:46:31 johans Exp $ */
 
 #include	"config.h"
 #include	"pcre.h"
@@ -17,6 +17,21 @@
 char *
 pcre_subst(const char * const string, const char * const pattern, const char * const replacement)
 {
+#ifndef		HAVE_PCRE
+	char		*match, *result;
+
+	/* no pcre -> no substitute */
+	if (!(match = strcasestr(string, pattern)))
+		return NULL;
+
+	result = malloc(BUFSIZ);
+	snprintf(result, BUFSIZ, "%.*s%s%s", match - string,
+		string,
+		replacement,
+		match + strlen(pattern));
+
+	return result;
+#else		/* Not Not HAVE_PCRE */
 	int		erroffset, rc, ovector[OVSIZE];
 	char		*result;
 	const char	*error, *prev, *next, **list;
@@ -47,6 +62,7 @@ pcre_subst(const char * const string, const char * const pattern, const char * c
 	strlcat(result, &string[ovector[1]], BUFSIZ);
 
 	return result;
+#endif		/* HAVE_PCRE */
 }
 
 /* checks whether [string] matches [pattern]. returns:
@@ -57,6 +73,10 @@ pcre_subst(const char * const string, const char * const pattern, const char * c
 int
 pcre_match(const char *const string, const char *const pattern)
 {
+#ifndef		HAVE_PCRE
+	/* no pcre -> litteral string match */
+	return strcasestr(string, pattern) ? 1 : 0;
+#else		/* Not Not HAVE_PCRE */
 	int		erroffset, rc;
 	const char	*error;
 	pcre		*re;
@@ -67,7 +87,8 @@ pcre_match(const char *const string, const char *const pattern)
 	free(re);
 	if (PCRE_ERROR_NOMATCH == rc)
 		return 0;
-	return rc;
+	return rc < 0 ? -1 : 1;
+#endif		/* HAVE_PCRE */
 }
 
 #if	0
