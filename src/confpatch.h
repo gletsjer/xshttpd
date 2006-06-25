@@ -2,10 +2,6 @@
 
 /* This file contains the backup definitions for old systems. */
 
-#ifndef		HAVE_VFORK
-#define		vfork		fork
-#endif		/* HAVE_VFORK */
-
 #ifdef		NOCONST
 #define		const
 #endif		/* NOCONST */
