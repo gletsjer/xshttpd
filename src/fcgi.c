@@ -135,7 +135,7 @@ int fcgi_connect(fcgi_server* server) {
 	switch (server->type) {
 		case FCGI_UNIX_SOCKET:
 		default:
-			addr_un.sun_len = 0; 
+			memset(&addr_un, 0, sizeof(addr_un));
 			addr_un.sun_family = AF_UNIX;
 			strcpy(addr_un.sun_path, server->unixsocket);
 			addr = (struct sockaddr*)&addr_un;
