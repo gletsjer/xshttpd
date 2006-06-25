@@ -96,7 +96,7 @@ Note that this directory must be writable for everybody. */
 with. This is so users' binaries can find the programs that they
 depend on. The path must be given in the normal /bin/sh format. */
 
-#define SCRIPT_PATH "/usr/bin:/bin:/usr/local/bin"
+#define SCRIPT_PATH "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
 
 /* The name of the access authority file */
 
