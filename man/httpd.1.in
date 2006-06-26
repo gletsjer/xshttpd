@@ -218,8 +218,7 @@ retrieve a file from that directory, he will get a
 users and system administrators: users can use it when
 they are updating the directory and system administrators
 can use it to easily shut down a group of pages.
-Note that only the directory in which the file is present
-is blocked. Subdirectories are \fInot\fP blocked.
+This applies to subdirectories as well.
 .br
 It is possible to allow access to this directory for a limited
 number of hosts. You can list the IP-addresses to which access
