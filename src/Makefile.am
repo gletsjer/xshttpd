@@ -6,12 +6,9 @@ noinst_LIBRARIES = libxs.a
 httpd_SOURCES = httpd.c cgi.c convert.c local.c methods.c ssi.c ssl.c fcgi.c
 error_SOURCES = error.c local.c
 
-libxs_a_SOURCES = decode.c extra.c path.c xscrypt.c
+libxs_a_SOURCES = decode.c extra.c path.c pcre.c xscrypt.c
 if MD5
 httpd_SOURCES += digcalc.c 
-endif
-if PCRE
-httpd_SOURCES += pcre.c 
 endif
 if LDAP
 httpd_SOURCES += ldap.c 
@@ -31,7 +28,7 @@ EXTRA_DIST = cgi.h config.h confpatch.h confuser.h convert.h decode.h \
 	ldap.h local.h methods.h path.h pcre.h setenv.h setproctitle.h \
 	ssi.h ssl.h xscounter.h xscrypt.h
 
-EXTRA_DIST += digcalc.c ldap.c pcre.c
+EXTRA_DIST += digcalc.c ldap.c
 
 cscope:
 	@cscope -bqv

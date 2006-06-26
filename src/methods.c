@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.165 2006/05/17 14:03:12 johans Exp $ */
+/* $Id: methods.c,v 1.166 2006/06/26 18:48:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -106,7 +106,9 @@ static int	allowxs			(FILE *);
 static void	senduncompressed	(int);
 static void	sendcompressed		(int, const char *);
 static FILE *	find_file		(const char *, const char *, const char *);
-static int	check_redirect		(const char *, const char *, const char *);
+static int	check_file_redirect	(const char *, const char *, const char *);
+static int	check_redirect		(FILE *, const char *);
+static int	check_location		(FILE *, const char *);
 
 /* Global structures */
 
@@ -464,10 +466,11 @@ allowxs(FILE *rfile)
 	char	*remoteaddr, *slash;
 	char	allowhost[256];
 
-	if (!config.userestrictaddr)
-		return 1; /* always allowed */
 	if (!(remoteaddr = getenv("REMOTE_ADDR")))
+	{
+		server_error("403 File is not available", "NOT_AVAILABLE");
 		return 0; /* access denied */
+	}
 
 	while (fgets(allowhost, 256, rfile))
 	{
@@ -554,6 +557,91 @@ allowxs(FILE *rfile)
 	}
 
 	fclose(rfile);
+	server_error("403 File is not available", "NOT_AVAILABLE");
+	return 0;
+}
+
+static int
+check_location(FILE *fp, const char *filename)
+{
+	char	line[MYBUFSIZ];
+	char    *p, *name, *value;
+	int	i, state = 0;
+	FILE    *authfile;
+
+	while (fgets(line, MYBUFSIZ, fp))
+	{
+		p = line;
+		while ((name = strsep(&p, " \t\r\n")) && !*name)
+			/* continue */;
+
+		/* skip comments and blank lines */
+		if (!name || !*name || '#' == *name)
+			continue;
+
+		/* try to isolate a [url] section */
+		if ('[' == name[0])
+		{
+			for (p = ++name; *p && *p != ']'; p++)
+				/* skip */;
+			if (!*p)
+				/* [ without ]; skip it */
+				continue;
+			*p = '\0';
+
+			/* always reset the state */
+			state = 0;
+
+			/* try matching on PCRE or strcmp() basis */
+#ifdef HAVE_PCRE
+			if (pcre_match(filename, name) > 0)
+#else
+			if (!strcmp(filename, name))
+#endif
+				/* match! */
+				state = 1;
+			continue;
+		}
+
+		/* ignore anything else if no match */
+		if (!state)
+			continue;
+
+		while ((value = strsep(&p, " \t\r\n")) && !*value)
+			/* continue */;
+
+		/* AuthFilename => $file does .xsauth-type authentication */
+		if (!strcasecmp(name, "AuthFilename"))
+		{
+			if (value && (authfile = fopen(value, "r")))
+			{
+				/* return if authentication fails
+				 * process other directives on success
+				 */
+				if (check_auth(authfile))
+				{
+					fclose(fp);
+					return 1;
+				}
+				else
+					continue;
+			}
+			server_error("403 Authentication data not available",
+				"NOT_AVAILABLE");
+			fclose(fp);
+			return 1;
+		}
+		else if (!strcasecmp(name, "NoXS"))
+		{
+			server_error("403 File not available", "NOT_AVAILABLE");
+			fclose(fp);
+			return 1;
+		}
+
+		/* ... and much more ... */
+	}
+
+	fclose(fp);
 	return 0;
 }
 
@@ -593,7 +681,7 @@ do_get(char *params)
 	size_t			size;
 	struct	stat		statbuf;
 	const	struct	passwd	*userinfo;
-	FILE			*authfile;
+	FILE			*xsfile;
 	const	ctypes		*csearch = NULL, *isearch = NULL;
 
 	alarm(240);
@@ -846,41 +934,22 @@ do_get(char *params)
 #endif
 	}
 
-	/* Check for *.noxs permissions */
-	if ((authfile = find_file(orgbase, base, ".noxs")) &&
-		!allowxs(authfile))
-	{
-		server_error("403 Directory is not available", "NOT_AVAILABLE");
+	/* Check user directives */
+	/* These should all send there own error messages when appropriate */
+	if ((xsfile = find_file(orgbase, base, ".noxs")) && !allowxs(xsfile))
 		return;
-	}
-	if (check_redirect(orgparams, base, filename))
+	if ((xsfile = find_file(orgbase, base, AUTHFILE)) && check_auth(xsfile))
 		return;
-	charset[0] = '\0';
-	if (config.usecharset)
-	{
-		FILE		*charfile;
-
-		/* Check for *.charset preferences */
-		snprintf(total, XS_PATH_MAX, "%s%s.charset", base, filename);
-		if ((charfile = fopen(total, "r")) ||
-			(charfile = find_file(orgbase, base, ".charset")))
-		{
-			if (!fread(charset, 1, XS_PATH_MAX, charfile))
-				charset[0] = '\0';
-			else
-				charset[XS_PATH_MAX-1] = '\0';
-			if ((temp = strchr(charset, '\n')))
-				temp[0] = '\0';
-			fclose(charfile);
-		}
-	}
-
-	if ((authfile = find_file(orgbase, base, AUTHFILE)) &&
-		check_auth(authfile))
-	{
+	if (check_file_redirect(orgparams, base, filename))
 		return;
-	}
+	if ((xsfile = find_file(orgbase, base, ".redir")) &&
+			check_redirect(xsfile, filename))
+		return;
+	if ((xsfile = find_file(orgbase, base, ".xsmatch")) &&
+			check_location(xsfile, filename))
+		return;
 
+	/* Check file permissions */
 	snprintf(total, XS_PATH_MAX, "%s%s", base, filename);
 	if (!lstat(total, &statbuf) && S_ISLNK(statbuf.st_mode) &&
 		userinfo && statbuf.st_uid && (statbuf.st_uid != geteuid()))
@@ -976,6 +1045,28 @@ do_get(char *params)
 		return;
 	}
 	strlcpy(orig_filename, filename, XS_PATH_MAX);
+
+	/* check for characterset to use */
+	charset[0] = '\0';
+	if (config.usecharset)
+	{
+		FILE		*charfile;
+
+		/* Check for *.charset preferences */
+		snprintf(total, XS_PATH_MAX, "%s%s.charset", base, filename);
+		if ((charfile = fopen(total, "r")) ||
+			(charfile = find_file(orgbase, base, ".charset")))
+		{
+			if (!fread(charset, 1, XS_PATH_MAX, charfile))
+				charset[0] = '\0';
+			else
+				charset[XS_PATH_MAX-1] = '\0';
+			if ((temp = strchr(charset, '\n')))
+				temp[0] = '\0';
+			fclose(charfile);
+		}
+	}
+
 
 	/* check for local file type */
 	loadfiletypes(orgbase, base);
@@ -1368,15 +1459,10 @@ getfiletype(int print)
 }
 
 int
-check_redirect(const char *params, const char *base, const char *filename)
+check_file_redirect(const char *params, const char *base, const char *filename)
 {
 	int	fd, size, permanent = 0;
-	FILE	*fp;
-	char	*p, *command, *subst,
-#ifdef		HAVE_PCRE
-		*orig, *repl,
-#endif		/* HAVE_PCRE */
-		line[XS_PATH_MAX], total[XS_PATH_MAX];
+	char	*p, *subst, total[XS_PATH_MAX];
 
 	/* Check for *.redir instructions */
 	snprintf(total, XS_PATH_MAX, "%s%s.redir", base, filename);
@@ -1401,29 +1487,34 @@ check_redirect(const char *params, const char *base, const char *filename)
 		close(fd);
 		return 1;
 	}
+	return 0;
+}
 
-	/* Check for directory .redir file */
-	snprintf(total, XS_PATH_MAX, "%s/.redir", base);
-	if (!(fp = fopen(total, "r")))
-		return 0;
+int
+check_redirect(FILE *fp, const char *filename)
+{
+	int	fd, size, permanent = 0;
+	char	*p, *command, *subst,
+		*orig, *repl,
+		line[XS_PATH_MAX], total[XS_PATH_MAX];
 
 	while (fgets(line, XS_PATH_MAX, fp))
 	{
-		/* strip comments */
-		if (!line[0] || '#' == line[0])
-			continue;
 		p = line;
-		/* skip empty lines */
-		if (!(command = strsep(&p, " \t\r\n")))
+		while ((command = strsep(&p, " \t\r\n")) && !*command)
+			/* continue */;
+
+		/* skip comments and blank lines */
+		if (!command || !*command || '#' == *command)
 			continue;
-#ifdef		HAVE_PCRE
+
+		/* use pcre matching */
 		if (!strcasecmp(command, "pass"))
 		{
 			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
 				/* continue */;
-			if ((subst = pcre_subst(params, orig, "x")))
+			if (pcre_match(filename, orig) > 0)
 			{
-				free(subst);
 				fclose(fp);
 				return 0;
 			}
@@ -1434,7 +1525,8 @@ check_redirect(const char *params, const char *base, const char *filename)
 				/* continue */;
 			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
 				/* continue */;
-			if ((subst = pcre_subst(params, orig, repl)) && *subst)
+			if ((subst = pcre_subst(filename, orig, repl)) &&
+					*subst)
 			{
 				redirect(subst, 'R' == command[0]);
 				free(subst);
@@ -1448,7 +1540,8 @@ check_redirect(const char *params, const char *base, const char *filename)
 				/* continue */;
 			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
 				/* continue */;
-			if ((subst = pcre_subst(params, orig, repl)) && *subst)
+			if ((subst = pcre_subst(filename, orig, repl)) &&
+					*subst)
 			{
 				do_get(subst);
 				free(subst);
@@ -1457,7 +1550,6 @@ check_redirect(const char *params, const char *base, const char *filename)
 			}
 		}
 		else /* no command: redir to url */
-#endif		/* HAVE_PCRE */
 		{
 			size = strlen(command);
 			if (size && '/' == command[size - 1])
@@ -1470,6 +1562,5 @@ check_redirect(const char *params, const char *base, const char *filename)
 		}
 	}
 	fclose(fp);
-	(void)params;
 	return 0;
 }

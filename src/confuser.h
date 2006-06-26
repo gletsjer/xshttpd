@@ -102,6 +102,10 @@ depend on. The path must be given in the normal /bin/sh format. */
 
 #define AUTHFILE ".xsauth"
 
+/* The name of the location file */
+
+#define LOCFILE ".location"
+
 /* Argument to listen(). Leave it as it is, it should be fine. */
 
 #define MAXLISTEN 50
