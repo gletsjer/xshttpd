@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.166 2006/06/26 18:48:39 johans Exp $ */
+/* $Id: methods.c,v 1.167 2006/06/26 19:00:11 johans Exp $ */
 
 #include	"config.h"
 
@@ -102,11 +102,11 @@ static int	getfiletype		(int);
 #ifdef	INET6
 static int	v6masktonum		(int, struct in6_addr *);
 #endif	/* INET6 */
-static int	allowxs			(FILE *);
 static void	senduncompressed	(int);
 static void	sendcompressed		(int, const char *);
 static FILE *	find_file		(const char *, const char *, const char *);
 static int	check_file_redirect	(const char *, const char *, const char *);
+static int	check_noxs		(FILE *);
 static int	check_redirect		(FILE *, const char *);
 static int	check_location		(FILE *, const char *);
 
@@ -461,7 +461,7 @@ v6masktonum(int mask, struct in6_addr *addr6)
 #endif		/* INET6 */
 
 static int
-allowxs(FILE *rfile)
+check_noxs(FILE *rfile)
 {
 	char	*remoteaddr, *slash;
 	char	allowhost[256];
@@ -469,7 +469,7 @@ allowxs(FILE *rfile)
 	if (!(remoteaddr = getenv("REMOTE_ADDR")))
 	{
 		server_error("403 File is not available", "NOT_AVAILABLE");
-		return 0; /* access denied */
+		return 1; /* access denied */
 	}
 
 	while (fgets(allowhost, 256, rfile))
@@ -486,7 +486,7 @@ allowxs(FILE *rfile)
 			!strncmp(remoteaddr, allowhost, strlen(allowhost)))
 		{
 			fclose(rfile);
-			return 1; /* access granted */
+			return 0; /* access granted */
 		}
 
 		/* allow host if remote_addr matches CIDR subnet in file */
@@ -505,7 +505,7 @@ allowxs(FILE *rfile)
 
 #define	IPMASK(addr, sub) (addr.s_addr & htonl(~((1 << (32 - subnet)) - 1)))
 			if (IPMASK(remote, subnet) == IPMASK(allow, subnet))
-				return 1;
+				return 0;
 		}
 #ifdef		INET6
 		if ((slash = strchr(allowhost, '/')) &&
@@ -522,7 +522,7 @@ allowxs(FILE *rfile)
 			inet_pton(AF_INET6, allowhost, &allow);
 			v6masktonum(subnet, &mask);
 			if (IN6_ARE_MASKED_ADDR_EQUAL(&remote, &allow, &mask))
-				return 1;
+				return 0;
 		}
 #endif		/* INET6 */
 
@@ -550,7 +550,7 @@ allowxs(FILE *rfile)
 			if (lport && cport == lport)
 			{
 				fclose(rfile);
-				return 1; /* access granted */
+				return 0; /* access granted */
 			}
 		}
 #endif		/* HAVE_GETADDRINFO */
@@ -558,7 +558,7 @@ allowxs(FILE *rfile)
 
 	fclose(rfile);
 	server_error("403 File is not available", "NOT_AVAILABLE");
-	return 0;
+	return 1;
 }
 
 static int
@@ -936,7 +936,7 @@ do_get(char *params)
 
 	/* Check user directives */
 	/* These should all send there own error messages when appropriate */
-	if ((xsfile = find_file(orgbase, base, ".noxs")) && !allowxs(xsfile))
+	if ((xsfile = find_file(orgbase, base, ".noxs")) && check_noxs(xsfile))
 		return;
 	if ((xsfile = find_file(orgbase, base, AUTHFILE)) && check_auth(xsfile))
 		return;
