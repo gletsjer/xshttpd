@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.167 2006/06/26 19:00:11 johans Exp $ */
+/* $Id: methods.c,v 1.168 2006/06/26 19:15:19 johans Exp $ */
 
 #include	"config.h"
 
@@ -620,20 +620,42 @@ check_location(FILE *fp, const char *filename)
 				 */
 				if (check_auth(authfile))
 				{
+					fclose(authfile);
 					fclose(fp);
 					return 1;
 				}
 				else
+				{
+					fclose(authfile);
 					continue;
+				}
 			}
 			server_error("403 Authentication data not available",
 				"NOT_AVAILABLE");
 			fclose(fp);
 			return 1;
 		}
-		else if (!strcasecmp(name, "NoXS"))
+		else if (!strcasecmp(name, "AccessFilename"))
 		{
-			server_error("403 File not available", "NOT_AVAILABLE");
+			if (value && (authfile = fopen(value, "r")))
+			{
+				/* return if access check fails
+				 * process other directives on success
+				 */
+				if (check_noxs(authfile))
+				{
+					fclose(authfile);
+					fclose(fp);
+					return 1;
+				}
+				else
+				{
+					fclose(authfile);
+					continue;
+				}
+			}
+			server_error("403 Access data not available",
+				"NOT_AVAILABLE");
 			fclose(fp);
 			return 1;
 		}
