@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.169 2006/07/03 09:34:29 johans Exp $ */
+/* $Id: methods.c,v 1.170 2006/07/03 18:11:58 johans Exp $ */
 
 #include	"config.h"
 
@@ -94,9 +94,7 @@
 #include	"path.h"
 #include	"setenv.h"
 #include	"htconfig.h"
-#ifdef		HAVE_PCRE
 #include	"pcre.h"
-#endif		/* HAVE_PCRE */
 
 static int	getfiletype		(int);
 #ifdef	INET6
@@ -105,7 +103,7 @@ static int	v6masktonum		(int, struct in6_addr *);
 static void	senduncompressed	(int);
 static void	sendcompressed		(int, const char *);
 static FILE *	find_file		(const char *, const char *, const char *);
-static int	check_file_redirect	(const char *, const char *, const char *);
+static int	check_file_redirect	(const char *, const char *);
 static int	check_noxs		(FILE *);
 static int	check_redirect		(FILE *, const char *);
 static int	check_location		(FILE *, const char *);
@@ -566,7 +564,7 @@ check_location(FILE *fp, const char *filename)
 {
 	char	line[MYBUFSIZ];
 	char    *p, *name, *value;
-	int	i, state = 0;
+	int	state = 0;
 	FILE    *authfile;
 
 	while (fgets(line, MYBUFSIZ, fp))
@@ -894,7 +892,6 @@ do_get(char *params)
 				if (temp[1] == '~')
 				{
 					char		*p = NULL;
-					struct passwd	*userinfo;
 					char		userdir[XS_PATH_MAX];
 
 					if ((p = strchr(temp + 2, '/')))
@@ -982,7 +979,7 @@ do_get(char *params)
 		return;
 	if ((xsfile = find_file(orgbase, base, AUTHFILE)) && check_auth(xsfile))
 		return;
-	if (check_file_redirect(orgparams, base, filename))
+	if (check_file_redirect(base, filename))
 		return;
 	if ((xsfile = find_file(orgbase, base, ".redir")) &&
 			check_redirect(xsfile, filename))
@@ -1501,7 +1498,7 @@ getfiletype(int print)
 }
 
 int
-check_file_redirect(const char *params, const char *base, const char *filename)
+check_file_redirect(const char *base, const char *filename)
 {
 	int	fd, size, permanent = 0;
 	char	*p, *subst, total[XS_PATH_MAX];
@@ -1535,7 +1532,7 @@ check_file_redirect(const char *params, const char *base, const char *filename)
 int
 check_redirect(FILE *fp, const char *filename)
 {
-	int	fd, size, permanent = 0;
+	int	size;
 	char	*p, *command, *subst,
 		*orig, *repl,
 		line[XS_PATH_MAX], total[XS_PATH_MAX];
