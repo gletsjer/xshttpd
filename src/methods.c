@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.168 2006/06/26 19:15:19 johans Exp $ */
+/* $Id: methods.c,v 1.169 2006/07/03 09:34:29 johans Exp $ */
 
 #include	"config.h"
 
@@ -887,11 +887,31 @@ do_get(char *params)
 			{
 				*temp = '/';
 				setenv("PATH_INFO", temp, 1);
-				snprintf(temppath, XS_PATH_MAX, "%s%s", fullpath, temp);
-				setenv("PATH_TRANSLATED", temppath, 1);
-				setenv("SCRIPT_FILENAME", temppath, 1);
+				setenv("SCRIPT_FILENAME", fullpath, 1);
+				setenv("PWD", fullpath, 1);
 				*temp = 0;
-				setenv("PWD", temppath, 1);
+				/* XXX: there should be a library function for this */
+				if (temp[1] == '~')
+				{
+					char		*p = NULL;
+					struct passwd	*userinfo;
+					char		userdir[XS_PATH_MAX];
+
+					if ((p = strchr(temp + 2, '/')))
+						*p = 0;
+					if ((userinfo = getpwnam(temp + 2)) &&
+						!transform_user_dir(userdir, userinfo, 1))
+					{
+						if (p)
+						{
+							*p = '/';
+							strlcat(userdir, p, XS_PATH_MAX);
+						}
+						setenv("PATH_TRANSLATED", userdir, 1);
+					}
+				}
+				else
+					setenv("PATH_TRANSLATED", calcpath(temp + 1), 1);
 				break;
 			}
 			*(temp++) = '/';
