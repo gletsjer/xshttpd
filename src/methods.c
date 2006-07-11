@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.170 2006/07/03 18:11:58 johans Exp $ */
+/* $Id: methods.c,v 1.171 2006/07/11 11:36:37 johans Exp $ */
 
 #include	"config.h"
 
@@ -982,10 +982,10 @@ do_get(char *params)
 	if (check_file_redirect(base, filename))
 		return;
 	if ((xsfile = find_file(orgbase, base, ".redir")) &&
-			check_redirect(xsfile, filename))
+			check_redirect(xsfile, params))
 		return;
 	if ((xsfile = find_file(orgbase, base, ".xsmatch")) &&
-			check_location(xsfile, filename))
+			check_location(xsfile, params))
 		return;
 
 	/* Check file permissions */
