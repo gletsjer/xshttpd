@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.113 2006/05/17 19:27:56 johans Exp $ */
+/* $Id: cgi.c,v 1.114 2006/07/13 10:04:19 johans Exp $ */
 
 #include	"config.h"
 
@@ -194,17 +194,13 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 #ifdef		HAVE_SETRLIMIT
 #ifdef		RLIMIT_CPU
 		limits.rlim_cur = 60 * (rlim_t)config.scriptcpulimit;
-		limits.rlim_max = 10 + 60 * (rlim_t)config.scriptcpulimit;
+		limits.rlim_max = 10 + limits.rlim_cur;
 		setrlimit(RLIMIT_CPU, &limits);
 #endif		/* RLIMIT_CPU */
 #ifdef		RLIMIT_CORE
 		limits.rlim_cur = limits.rlim_max = 0;
 		setrlimit(RLIMIT_CORE, &limits);
 #endif		/* RLIMIT_CORE */
-#ifdef		RLIMIT_MEMLOCK
-		limits.rlim_cur = limits.rlim_max = 1;
-		setrlimit(RLIMIT_MEMLOCK, &limits);
-#endif		/* RLIMIT_MEMLOCK */
 #endif		/* HAVE_SETRLIMIT */
 
 		dup2(p[1], 1);
