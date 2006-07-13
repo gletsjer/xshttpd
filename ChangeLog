@@ -1,8 +1,17 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.4 beta 10
+- Implement .xsmatch checking, based on a patch by Rink Springer
+  It currently knows AuthFilename and AccessFilename directives
+- Reshuffle functions that do .noxs .redir .xsauth (no functional changes)
+- Remove mygetopt, mystring, procname
+- Do litteral string matching rather than nothing when PCRE not available
+- Fix PATH_TRANSLATED (again)
+- Remove RLIMIT_MEMLOCK for CGI's: mlock() is now allowed
+
 Changes since 3.4 beta 9
-- Fix an xscounter updating, add xscat, add cleanup routines to reformatxs
+- Fix in xscounter updating, add xscat, add cleanup routines to reformatxs
 - Fix stupid bug in SocketName handling which broke <Virtual> sections
 - Add basis for FastCGI support (unfinished), by Remko van der Vossen
 - Clean up SSL initialisation and termination

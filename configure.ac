@@ -27,12 +27,11 @@ dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 
-AC_CHECK_HEADERS(alloca.h crypt.h err.h sys/exec.h getopt.h fcntl.h memory.h pcre.h pcre/pcre.h sys/mman.h sys/param.h sys/pstat.h sys/resource.h sys/select.h sys/syslimits.h sys/sysmips.h sys/sysnews.h sys/time.h time.h vfork.h)
+AC_CHECK_HEADERS(alloca.h crypt.h err.h sys/exec.h getopt.h memory.h pcre.h pcre/pcre.h sys/mman.h sys/param.h sys/pstat.h sys/resource.h sys/select.h sys/syslimits.h sys/sysmips.h sys/sysnews.h sys/time.h time.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_HEADER_TIME
-AC_STRUCT_TM
 AC_TYPE_UID_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
@@ -41,16 +40,11 @@ AC_CHECK_TYPES(socklen_t,,, [#include <sys/types.h>
 #include <sys/socket.h>])
 
 dnl Checks for library functions.
+AC_FUNC_FORK
 AC_FUNC_MMAP
-AC_FUNC_SETPGRP
-dnl AC_FUNC_SETVBUF_REVERSED
+AC_FUNC_SETVBUF_REVERSED
 AC_FUNC_STRFTIME
-AC_FUNC_VPRINTF
-AC_FUNC_WAIT3
-AC_CHECK_FUNCS(gethostname mktime select strerror strpbrk strstr)
-
-dnl SEPERATOR
-AC_CHECK_FUNCS(getaddrinfo getnameinfo killpg mkstemp mmap seteuid setegid setresuid setresgid setrlimit setsid setpriority sigemptyset tempnam vfork uname)
+AC_CHECK_FUNCS(getaddrinfo getnameinfo killpg mkstemp mmap setegid seteuid setpriority setresgid setresuid setrlimit setsid sigemptyset strerror uname)
 
 dnl Prog specific checks
 if test x$prefix = xNONE
@@ -73,7 +67,7 @@ XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)
 XS_FUNC_IN_LIB(MD5Init, HAVE_MD5, md, httpd)
 AM_CONDITIONAL([MD5], [test x$ac_cv_lib_md_MD5Init = xyes])
-AC_REPLACE_FUNCS(err setgroups setproctitle strlcat strcasestr strlcpy strptime strsep snprintf)
+AC_REPLACE_FUNCS(err setenv setgroups setproctitle strlcat strcasestr strlcpy strptime strsep snprintf)
 
 XS_CHECK_WITH(pcre, PCRE support, no)
 if test x${with_pcre} = xyes

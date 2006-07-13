@@ -5,6 +5,8 @@
 - Get rid of global vars (rw) - use a session struct
 - Mechanism to add extra HTTP header to error script
 
+- vhost logging: set host as virtualhostdir name
+
 TODO
 - MaxChildren
 - *.[Rr]edir doesnt work for dirs -> document/fix
