@@ -220,6 +220,10 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Lftp';
 			}
+			elsif ($agent =~ /^Liferea\//)
+			{
+				$browser = 'Liferea';
+			}
 			elsif ($agent =~ /^Links[ \/]/)
 			{
 				$browser = 'Links';
@@ -290,6 +294,10 @@ if (open ('httpdlog', shift))
 			elsif ($agent =~ /^psbot\//)
 			{
 				$browser = 'Bot: PicSearch';
+			}
+			elsif ($agent eq "psycheclone")
+			{
+				$browser = "Bot: Psycheclone";
 			}
 			elsif ($agent =~ /^Prodiance Desktop Search Spider$/)
 			{
