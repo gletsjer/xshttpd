@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: clearxs.c,v 1.13 2006/05/17 14:03:12 johans Exp $ */
+/* $Id: clearxs.c,v 1.14 2006/08/08 11:37:37 johans Exp $ */
 
 #include	"config.h"
 
@@ -74,10 +74,10 @@ main(int argc, char **argv)
 		err(1, "Could not open(%s)", counterfile);
 
 	snprintf(clockfile, XS_PATH_MAX, "%s/%s", HTTPD_ROOT, CNT_LOCK);
-	if ((fdout = open(lockfile, O_WRONLY | O_CREAT | O_TRUNC, 0)) < 0)
+	if ((fdout = open(clockfile, O_WRONLY | O_CREAT | O_TRUNC, 0)) < 0)
 		err(1, "Could not open(%s)", clockfile);
 
-	snprintf(lockfile, XS_PATH_MAX, "%s/clearxs.%s", HTTPD_ROOT, CNT_LOCK);
+	snprintf(lockfile, XS_PATH_MAX, "%s/clearxs.lock", HTTPD_ROOT, CNT_LOCK);
 	if ((fdout = open(lockfile, O_WRONLY | O_CREAT | O_TRUNC, 0)) < 0)
 		err(1, "Could not open(%s)", lockfile);
 
