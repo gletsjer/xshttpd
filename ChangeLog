@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.4 beta 11
+- Fix lockfile names in clearxs
+
 Changes since 3.4 beta 10
 - Implement .xsmatch checking, based on a patch by Rink Springer
   It currently knows AuthFilename and AccessFilename directives
