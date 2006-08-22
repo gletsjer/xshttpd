@@ -972,7 +972,7 @@ parsedirectives(char *parse, size_t *size)
 		{
 			if (printable)
 			{
-				if (secwrite(result, store - result) != 1)
+				if (secwrite(result, store - result) < 0)
 					return(ERR_QUIT);
 				*size += (store - result);
 			}
@@ -1026,7 +1026,7 @@ parsedirectives(char *parse, size_t *size)
 	{
 		if (print_enabled())
 		{
-			if (secwrite(result, store - result) != 1)
+			if (secwrite(result, store - result) < 0)
 				return(ERR_QUIT);
 			*size += (store - result);
 		}
