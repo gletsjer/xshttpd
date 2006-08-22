@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.23 2006/05/18 09:01:39 johans Exp $ */
+/* $Id: ssl.c,v 1.24 2006/08/22 14:08:39 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -153,6 +153,11 @@ initssl()
 void
 endssl()
 {
+	if (chunked)
+	{
+		chunked = 0;
+		secputs("0\r\n\r\n");
+	}
 #ifdef		HANDLE_SSL
 	if (cursock->usessl && cursock->ssl)
 	{
@@ -338,25 +343,45 @@ secread(int fd, void *buf, size_t count)
 }
 
 int
-secwrite(int fd, const void *buf, size_t count)
+secwrite(const void *buf, size_t count)
 {
+	int	len = 0;
+	char	head[16];
+
+	if (chunked)
+	{
+		snprintf(head, 16, "%x\r\n", count);
+		len = strlen(head);
+#ifdef		HANDLE_SSL
+		if (cursock->usessl)
+		{
+			len = SSL_write(cursock->ssl, head, len);
+			len += SSL_write(cursock->ssl, buf, count);
+			len += SSL_write(cursock->ssl, "\r\n", 2);
+		}
+		else
+#endif		/* HANDLE_SSL */
+		{
+			len = write(1, head, len);
+			len += write(1, buf, count);
+			len += write(1, "\r\n", 2);
+		}
+		return len;
+	}
+
 #ifdef		HANDLE_SSL
 	if (cursock->usessl)
 		return SSL_write(cursock->ssl, buf, count);
 	else
 #endif		/* HANDLE_SSL */
-		return write(fd, buf, count);
+		return write(fileno(stdout), buf, count);
+
 }
 
 int
-secfwrite(void *buf, size_t size, size_t count, FILE *stream)
+secputs(const char *buf)
 {
-#ifdef		HANDLE_SSL
-	if (cursock->usessl)
-		return SSL_write(cursock->ssl, buf, size), count;
-	else
-#endif		/* HANDLE_SSL */
-		return fwrite(buf, size, count, stream);
+	return secwrite(buf, strlen(buf));
 }
 
 int
@@ -368,23 +393,7 @@ secprintf(const char *format, ...)
 	va_start(ap, format);
 	vsnprintf(buf, 4096, format, ap);
 	va_end(ap);
-#ifdef		HANDLE_SSL
-	if (cursock->usessl)
-		return SSL_write(cursock->ssl, buf, strlen(buf));
-	else
-#endif		/* HANDLE_SSL */
-		return printf("%s", buf);
-}
-
-int
-secfputs(char *buf, FILE *stream)
-{
-#ifdef		HANDLE_SSL
-	if (cursock->usessl)
-		return SSL_write(cursock->ssl, buf, strlen(buf));
-	else
-#endif		/* HANDLE_SSL */
-		return fputs(buf, stream);
+	return secwrite(buf, strlen(buf));
 }
 
 int

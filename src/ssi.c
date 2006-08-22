@@ -505,7 +505,7 @@ dir_date(char *here, size_t *size)
 	strftime(buffer, MYBUFSIZ - 1, dateformat, localtime(&theclock));
 	*size += strlen(buffer);
 	(void)here;
-	return(secfputs(buffer, stdout) == EOF ? ERR_QUIT : ERR_NONE);
+	return(secputs(buffer) == EOF ? ERR_QUIT : ERR_NONE);
 }
 
 static	int
@@ -594,7 +594,7 @@ dir_last_mod(char *here, size_t *size)
 
 	strftime(buffer, MYBUFSIZ - 1, dateformat, thetime);
 	*size += strlen(buffer);
-	return(secfputs(buffer, stdout) == EOF ? ERR_QUIT : ERR_NONE);
+	return(secputs(buffer) == EOF ? ERR_QUIT : ERR_NONE);
 }
 
 static	int
@@ -602,7 +602,7 @@ dir_remote_host(char *here, size_t *size)
 {
 	*size += strlen(remotehost);
 	(void)here;
-	return(secfputs(remotehost, stdout) == EOF ? ERR_QUIT : ERR_NONE);
+	return(secputs(remotehost) == EOF ? ERR_QUIT : ERR_NONE);
 }
 
 static	int
@@ -972,7 +972,7 @@ parsedirectives(char *parse, size_t *size)
 		{
 			if (printable)
 			{
-				if (secfwrite(result, store - result, 1, stdout) != 1)
+				if (secwrite(result, store - result) != 1)
 					return(ERR_QUIT);
 				*size += (store - result);
 			}
@@ -1026,7 +1026,7 @@ parsedirectives(char *parse, size_t *size)
 	{
 		if (print_enabled())
 		{
-			if (secfwrite(result, store - result, 1, stdout) != 1)
+			if (secwrite(result, store - result) != 1)
 				return(ERR_QUIT);
 			*size += (store - result);
 		}
@@ -1053,14 +1053,15 @@ sendwithdirectives_internal(int fd, size_t *size)
 		{
 			if (print_enabled())
 			{
-				if (secfputs(input, stdout) == EOF)
+				if (secputs(input) == EOF)
 				{
 					alarm(0); fclose(parse);
 					return(ERR_QUIT);
 				}
 				*size += strlen(input);
 			}
-		} else
+		}
+		else
 		{
 			if (parsedirectives(input, size) == ERR_QUIT)
 			{

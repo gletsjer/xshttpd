@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.114 2006/07/13 10:04:19 johans Exp $ */
+/* $Id: cgi.c,v 1.115 2006/08/22 14:08:38 johans Exp $ */
 
 #include	"config.h"
 
@@ -279,7 +279,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			snprintf(errmsg, MYBUFSIZ, "500 execl(): %s",
 				/* fullpath, */ strerror(errno));
 			error(errmsg);
-		} else
+		}
+		else
 		{
 			secprintf("Content-type: text/plain\r\n\r\n");
 			secprintf("[execl() failed: %s]",
@@ -318,7 +319,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					fprintf(stderr, "[Connection closed: %s (fd = %d, todo = %ld]\n",
 						strerror(errno), q[1], writetodo);
 					goto END;
-				} else if (written < 0)
+				}
+				else if (written < 0)
 					offset += written;
 			}
 			writetodo -= tobewritten;
@@ -454,10 +456,16 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					currenttime);
 			if (!server)
 				append(head, 0, "Server: %s\r\n", SERVER_IDENT);
+			if (headers >= 11)
+				append(head, 0, "Connection: close\r\n"
+					"Transfer-encoding: chunked\r\n");
 			append(head, 0, "Date: %s\r\n", currenttime);
 			secprintf("%s\r\n", head);
+			if (headers >= 11)
+				chunked = 1;
 		}
-	} else
+	}
+	else
 	{
 		for (;;)
 		{
@@ -504,12 +512,13 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			}
 			secprintf("[read() error from CGI: %s]", strerror(errno));
 			break;
-		} else if (received == 0)
+		}
+		else if (received == 0)
 			break;
 		writetodo = received; temp = errmsg;
 		while (writetodo > 0)
 		{
-			written = secwrite(fileno(stdout), temp, writetodo);
+			written = secwrite(temp, writetodo);
 			if (written < 0)
 			{
 				if ((errno == EINTR) || (errno == EWOULDBLOCK))
@@ -521,11 +530,13 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					strerror(errno), fileno(stdout), temp,
 					writetodo);
 				goto END;
-			} else if (!written)
+			}
+			else if (!written)
 			{
 				secprintf("[Connection closed: couldn't write]\n");
 				goto END;
-			} else
+			}
+			else
 			{
 				writetodo -= written;
 				temp += written;

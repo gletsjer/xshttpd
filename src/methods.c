@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.171 2006/07/11 11:36:37 johans Exp $ */
+/* $Id: methods.c,v 1.172 2006/08/22 14:08:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -134,12 +134,12 @@ static void
 senduncompressed(int fd)
 {
 #ifdef		WANT_SSI
-	int		errval, html;
+	int		errval;
 #endif		/* WANT_SSI */
 #ifndef		HAVE_MMAP
 	size_t		secreadtotal, writetotal;
 #endif		/* HAVE_MMAP */
-	int			size, written;
+	int			size, written, dynamic = 0;
 	char		modified[32];
 	struct tm	reqtime;
 
@@ -159,7 +159,6 @@ senduncompressed(int fd)
 	if (headers)
 	{
 		char *env;
-		int	dynamic = 0;
 
 #ifdef		WANT_SSI
 		/* This is extra overhead, overhead, overhead! */
@@ -203,54 +202,39 @@ senduncompressed(int fd)
 		else
 			secprintf("%s 200 OK\r\n", version);
 		stdheaders(0, 0, 0);
+		getfiletype(1);
 		if (dynamic)
 		{
 			if (headers >= 11)
+			{
 				secprintf("Cache-control: no-cache\r\n");
+				secputs("Transfer-encoding: chunked\r\n");
+			}
 			else
 				secprintf("Pragma: no-cache\r\n");
 		}
-
-#ifndef		WANT_SSI
-		getfiletype(1);
-		secprintf("Content-length: %ld\r\n", (long)size);
-#else		/* Not WANT_SSI */
-		html = getfiletype(1);
-		if (!html)
+		else
+		{
 			secprintf("Content-length: %ld\r\n", (long)size);
-#endif		/* WANT_SSI */
+			strftime(modified, sizeof(modified),
+				"%a, %d %b %Y %H:%M:%S GMT", gmtime(&modtime));
+			secprintf("Last-modified: %s\r\n", modified);
+		}
+
 		if (getenv("CONTENT_ENCODING"))
 		{
-#ifdef		WANT_SSI
-			html = 0;
-#endif		/* WANT_SSI */
 			secprintf("Content-encoding: %s\r\n", getenv("CONTENT_ENCODING"));
 			unsetenv("CONTENT_ENCODING");
 		}
-		if (!dynamic)
-		{
-			strftime(modified, sizeof(modified),
-				"%a, %d %b %Y %H:%M:%S GMT", gmtime(&modtime));
-			secprintf("Last-modified: %s\r\n\r\n", modified);
-		}
-		else
-			secprintf("\r\n");
+		secprintf("\r\n");
 	}
-#ifdef		WANT_SSI
-	else
-	{
-		html = getfiletype(0);
-		if (html)
-			secprintf("\r\n");
-	}
-#endif		/* WANT_SSI */
 
 	if (headonly)
 		goto DONE;
 
 	UNPARSED:
 #ifdef		WANT_SSI
-	if (!html)
+	if (!dynamic)
 #endif		/* WANT_SSI */
 #ifdef		HAVE_MMAP
 	{
@@ -265,7 +249,7 @@ senduncompressed(int fd)
 		}
 		alarm((size / MINBYTESPERSEC) + 20);
 		fflush(stdout);
-		if ((written = secwrite(fileno(stdout), buffer, size)) != size)
+		if ((written = secwrite(buffer, size)) != size)
 		{
 			if (written != -1)
 				fprintf(stderr, "[%s] httpd: Aborted for `%s' (%ld of %ld bytes sent)\n",
@@ -308,10 +292,12 @@ senduncompressed(int fd)
 	}
 #endif		/* HAVE_MMAP */
 #ifdef		WANT_SSI
-	else
+	else /* dynamic content only */
 	{
 		size_t		usize = 0;
 
+		if (headers >= 11)
+			chunked = 1;
 		alarm((size / MINBYTESPERSEC) + 60);
 		errval = sendwithdirectives(fd, (size_t *)&usize);
 		if (usize)
@@ -325,7 +311,7 @@ senduncompressed(int fd)
 				remotehost[0] ? remotehost : "(none)");
 			break;
 		case ERR_CONT:
-			html = 0; goto UNPARSED;
+			goto UNPARSED;
 		default:
 			break;
 		}

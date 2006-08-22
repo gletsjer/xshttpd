@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.229 2006/05/18 09:01:39 johans Exp $ */
+/* $Id: httpd.c,v 1.230 2006/08/22 14:08:38 johans Exp $ */
 
 #include	"config.h"
 
@@ -103,11 +103,11 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.229 2006/05/18 09:01:39 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.230 2006/08/22 14:08:38 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
-int		headers, headonly, postonly;
+int		headers, headonly, postonly, chunked;
 static	int	sd, reqs, mainhttpd = 1;
 gid_t		origegid;
 uid_t		origeuid;
@@ -1271,10 +1271,12 @@ process_request()
 	unsetenv("IF_MODIFIED_SINCE"); unsetenv("IF_UNMODIFIED_SINCE");
 	unsetenv("IF_RANGE");
 	unsetenv("SSL_CIPHER");
+	current = NULL;
 
 	http_host[0] = '\0';
 
 	alarm(180); errno = 0;
+	chunked = 0;
 	setreadmode(READCHAR, 1);
 	readerror = secread(0, line, 1);
 	if (readerror == 1)
@@ -2077,7 +2079,9 @@ main(int argc, char **argv)
 	}
 	load_config();
 	/* sanity chck */
+#ifdef		WANT_SSI
 	counter_versioncheck();
+#endif		/* WANT_SSI */
 
 #ifdef		HAVE_SETPRIORITY
 	if (setpriority(PRIO_PROCESS, (pid_t)0, config.priority))

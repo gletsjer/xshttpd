@@ -49,7 +49,7 @@ do_fcgi(const char *path, const char *base, const char *file, int showheader) {
 	setenv("SCRIPT_FILENAME", fullpath, 1);
 	setenv("REDIRECT_STATUS", "200", 1);
 	setenv("PATH", config.scriptpath, 1);
-	secwrite(0, "HTTP/1.0 200 OK\r\n", 17);
+	secwrite("HTTP/1.0 200 OK\r\n", 17);
 	
 	fcgi_connect(server);
 	begin_request(server);
@@ -439,7 +439,7 @@ ssize_t recv_stream(fcgi_server* server, ssize_t length, int fd) {
 		return -1;
 	}
 
-	if (n != secwrite(fd, buffer, n)) {
+	if (n != secwrite(buffer, n)) {
 		free(buffer);
 		return -1;
 	}
