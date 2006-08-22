@@ -4,7 +4,7 @@
 #include	<sys/types.h>
 
 #define		SENDBUFSIZE	8192
-#define		MYBUFSIZ	1024
+#define		MYBUFSIZ	8192
 #define		HEADSIZE	8192
 
 #define		ERR_NONE	0
