@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.231 2006/08/22 14:27:22 johans Exp $ */
+/* $Id: httpd.c,v 1.232 2006/08/22 14:29:56 johans Exp $ */
 
 #include	"config.h"
 
@@ -103,7 +103,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.231 2006/08/22 14:27:22 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.232 2006/08/22 14:29:56 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1479,7 +1479,7 @@ process_request()
 				*temp != ':' &&
 				*temp != '[' && *temp != ']')
 			{
-				error("400 Invalid Host Header", "BAD_REQUEST");
+				error("400 Invalid Host Header");
 				return;
 			}
 		if ((temp = strchr(http_host, ':')))
@@ -1492,7 +1492,7 @@ process_request()
 		{
 			if (strlen(http_host) >= NI_MAXHOST - 6)
 			{
-				error("400 Invalid Host Header", "BAD_REQUEST");
+				error("400 Invalid Host Header");
 				return;
 			}
 			strlcat(http_host, ":", NI_MAXHOST);
@@ -1509,7 +1509,7 @@ process_request()
 	}
 	else if (headers >= 11)
 	{
-		error("400 Missing Host Header", "BAD_REQUEST");
+		error("400 Missing Host Header");
 		return;
 	}
 
@@ -1575,7 +1575,7 @@ process_request()
 		do_trace(params);
 	*/
 	else
-		error("400 Unknown method", "BAD_REQUEST");
+		error("400 Unknown method");
 }
 
 static	void
