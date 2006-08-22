@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.232 2006/08/22 14:29:56 johans Exp $ */
+/* $Id: httpd.c,v 1.233 2006/08/22 17:32:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -103,7 +103,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.232 2006/08/22 14:29:56 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.233 2006/08/22 17:32:39 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -115,7 +115,7 @@ char		remotehost[NI_MAXHOST],
 		currenttime[80], dateformat[MYBUFSIZ], real_path[XS_PATH_MAX],
 		version[16], currentdir[XS_PATH_MAX],
 		orig_filename[XS_PATH_MAX];
-static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[SENDBUFSIZE],
+static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[RWBUFSIZE],
 		thisdomain[NI_MAXHOST], message503[MYBUFSIZ], orig[MYBUFSIZ],
 		config_path[XS_PATH_MAX], authentication[MYBUFSIZ],
 		*startparams;
@@ -231,7 +231,7 @@ load_config()
 				sub_virtual, sub_users } subtype_t;
 	subtype_t	subtype = sub_none;
 	FILE	*confd;
-	char	line[MYBUFSIZ], thishostname[NI_MAXHOST];
+	char	line[LINEBUFSIZE], thishostname[NI_MAXHOST];
 	char	*key, *value;
 	char	*comment, *end, *username = NULL, *groupname = NULL;
 	char	**defaultindexfiles;
@@ -272,7 +272,7 @@ load_config()
 	if (confd)
 	{
 		/* skip this loop if there is no config file and use defaults below */
-		while (fgets(line, MYBUFSIZ, confd))
+		while (fgets(line, LINEBUFSIZE, confd))
 		{
 			if ((comment = strchr(line, '#')))
 				*comment = 0;
@@ -1032,7 +1032,7 @@ redirect(const char *redir, int permanent)
 int
 check_auth(FILE *authfile)
 {
-	char		*search, line[MYBUFSIZ], compare[MYBUFSIZ], *find;
+	char		*search, line[LINEBUFSIZE], compare[LINEBUFSIZE], *find;
 
 	if (!authentication[0] ||
 		strncasecmp(authentication, "Basic", 5))
@@ -1052,7 +1052,7 @@ check_auth(FILE *authfile)
 		secprintf("does not understand authentication</body></html>\n");
 		fclose(authfile); return(1);
 	}
-	strlcpy(line, authentication, MYBUFSIZ);
+	strlcpy(line, authentication, LINEBUFSIZE);
 	find = line + strlen(line);
 	while ((find > line) && (*(find - 1) < ' '))
 		*(--find) = 0;
@@ -1079,9 +1079,9 @@ check_auth(FILE *authfile)
 		rewind (authfile);
 #endif /* AUTH_LDAP */
 
-		snprintf(line, MYBUFSIZ, "%s:%s\n", search, xs_encrypt(find));
+		snprintf(line, LINEBUFSIZE, "%s:%s\n", search, xs_encrypt(find));
 	}
-	while (fgets(compare, MYBUFSIZ, authfile))
+	while (fgets(compare, LINEBUFSIZE, authfile))
 	{
 		if (!strcmp(compare + 1, line))
 		{
@@ -1240,7 +1240,7 @@ logrequest(const char *request, long size)
 static	void
 process_request()
 {
-	char		line[MYBUFSIZ], extra[MYBUFSIZ], *temp, ch,
+	char		line[LINEBUFSIZE], extra[MYBUFSIZ], *temp, ch,
 			*params, *url, *ver, http_host[NI_MAXHOST],
 			http_host_long[NI_MAXHOST];
 	int		readerror;
@@ -1764,9 +1764,9 @@ standalone_socket(int id)
 
 	CHILD:
 #ifndef		SETVBUF_REVERSED
-	setvbuf(stdout, outputbuffer, _IOFBF, SENDBUFSIZE);
+	setvbuf(stdout, outputbuffer, _IOFBF, RWBUFSIZE);
 #else		/* Not not SETVBUF_REVERSED */
-	setvbuf(stdout, _IOFBF, outputbuffer, SENDBUFSIZE);
+	setvbuf(stdout, _IOFBF, outputbuffer, RWBUFSIZE);
 #endif		/* SETVBUF_REVERSED */
 	while (1)
 	{

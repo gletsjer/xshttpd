@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.115 2006/08/22 14:08:38 johans Exp $ */
+/* $Id: cgi.c,v 1.116 2006/08/22 17:32:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -26,6 +26,7 @@
 #include	<pwd.h>
 #include	<grp.h>
 #include	<unistd.h>
+#include	<string.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
 #else		/* Not HAVE_ERR_H */
@@ -107,15 +108,15 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	long			received, writetodo,
 				totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
-				request[MYBUFSIZ],
-				*temp,
+				request[MYBUFSIZ], *temp,
+				input[RWBUFSIZE], line[LINEBUFSIZE],
 				head[HEADSIZE];
 	const	char		*argv1, *header;
 	int			p[2], r[2], nph, count, dossi,
 				written;
 	unsigned	int	left;
 #ifdef		HANDLE_SSL
-	char			inbuf[MYBUFSIZ];
+	char			inbuf[RWBUFSIZE];
 	int			q[2];
 	int			ssl_post = 0;
 	ssize_t		tobewritten;
@@ -307,7 +308,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		{
 			int	offset;
 
-			tobewritten = writetodo > MYBUFSIZ ? MYBUFSIZ : writetodo;
+			tobewritten = writetodo > RWBUFSIZE ? RWBUFSIZE : writetodo;
 			while (!(tobewritten = secread(0, inbuf, tobewritten)))
 				mysleep(1);
 			if ((tobewritten < 0))
@@ -338,7 +339,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 		for (;;)
 		{
-			if (readline(p[0], errmsg) != ERR_NONE)
+			if (readline(p[0], line) != ERR_NONE)
 			{
 				if (showheader)
 					error("503 Script did not end header");
@@ -346,10 +347,10 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					secprintf("[Script did not end header]\n");
 				goto END;
 			}
-			received = strlen(errmsg);
-			while ((received > 0) && (errmsg[received - 1] < 32))
-				errmsg[--received] = 0;
-			header = skipspaces(errmsg);
+			received = strlen(line);
+			while ((received > 0) && (line[received - 1] < 32))
+				line[--received] = 0;
+			header = skipspaces(line);
 			if (!header[0])
 				break;
 			if (!showheader)
@@ -469,7 +470,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	{
 		for (;;)
 		{
-			if (readline(p[0], errmsg) != ERR_NONE)
+			if (readline(p[0], line) != ERR_NONE)
 			{
 				if (showheader)
 					error("503 Script did not end header");
@@ -477,12 +478,12 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					secprintf("[Script did not end header]\n");
 				goto END;
 			}
-			received = strlen(errmsg);
+			received = strlen(line);
 			if (showheader)
-				secprintf("%s", errmsg);
-			while ((received > 0) && (errmsg[received - 1] < 32))
-				errmsg[--received] = 0;
-			if (!errmsg[0])
+				secputs(line);
+			while ((received > 0) && (line[received - 1] < 32))
+				line[--received] = 0;
+			if (!line[0])
 				break;
 		}
 	}
@@ -502,7 +503,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 #endif		/* WANT_SSI */
 	for (;;)
 	{
-		received = read(p[0], errmsg, MYBUFSIZ);
+		received = read(p[0], input, RWBUFSIZE);
 		if (received < 0)
 		{
 			if (errno == EINTR || errno == EWOULDBLOCK)
@@ -515,7 +516,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 		else if (received == 0)
 			break;
-		writetodo = received; temp = errmsg;
+		writetodo = received; temp = input;
 		while (writetodo > 0)
 		{
 			written = secwrite(temp, writetodo);

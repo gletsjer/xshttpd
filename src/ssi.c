@@ -1037,7 +1037,7 @@ parsedirectives(char *parse, size_t *size)
 static	int
 sendwithdirectives_internal(int fd, size_t *size)
 {
-	char		input[MYBUFSIZ];
+	char		line[LINEBUFSIZE];
 	FILE		*parse;
 
 	alarm(360);
@@ -1047,23 +1047,23 @@ sendwithdirectives_internal(int fd, size_t *size)
 			currenttime, fd, strerror(errno));
 		return(ERR_CONT);
 	}
-	while (fgets(input, MYBUFSIZ, parse))
+	while (fgets(line, LINEBUFSIZE, parse))
 	{
-		if (!strstr(input, "<!--#"))
+		if (!strstr(line, "<!--#"))
 		{
 			if (print_enabled())
 			{
-				if (secputs(input) == EOF)
+				if (secputs(line) == EOF)
 				{
 					alarm(0); fclose(parse);
 					return(ERR_QUIT);
 				}
-				*size += strlen(input);
+				*size += strlen(line);
 			}
 		}
 		else
 		{
-			if (parsedirectives(input, size) == ERR_QUIT)
+			if (parsedirectives(line, size) == ERR_QUIT)
 			{
 				alarm(0); fclose(parse);
 				return(ERR_QUIT);

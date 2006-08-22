@@ -3,8 +3,9 @@
 /* Based on xs-httpd/2.3 */
 #include	<sys/types.h>
 
-#define		SENDBUFSIZE	8192
-#define		MYBUFSIZ	8192
+#define		RWBUFSIZE	8192
+#define		MYBUFSIZ	1024
+#define		LINEBUFSIZE	1024
 #define		HEADSIZE	8192
 
 #define		ERR_NONE	0

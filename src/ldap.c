@@ -1,5 +1,5 @@
 /* Copyright (C) 2005 by Johan van Selst (johans@stack.nl) */
-/* $Id: ldap.c,v 1.7 2005/11/06 12:16:59 johans Exp $ */
+/* $Id: ldap.c,v 1.8 2006/08/22 17:32:39 johans Exp $ */
 
 #include	"config.h"
 #include	"ldap.h"
@@ -78,7 +78,7 @@ check_auth_ldap(FILE *authfile, const char *user, const char *pass)
 	char	ldapdn[MYBUFSIZ];
 	char	ldapattr[MYBUFSIZ];
 	char	ldapgroups[MYBUFSIZ];
-	char	line[MYBUFSIZ];
+	char	line[LINEBUFSIZE];
 	int	ldapversion;
 	char	filter[MYBUFSIZ];
 	char	*dn = NULL;
@@ -104,7 +104,7 @@ check_auth_ldap(FILE *authfile, const char *user, const char *pass)
  	 * over them)
  	 */
 	rewind(authfile);
-	while (fgets(line, MYBUFSIZ, authfile))
+	while (fgets(line, LINEBUFSIZE, authfile))
 	{
 		/* kill newlines and such, they confuse ldap */
 		while ((ptr = strchr (line, '\n')) != NULL)

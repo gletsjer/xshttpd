@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.172 2006/08/22 14:08:39 johans Exp $ */
+/* $Id: methods.c,v 1.173 2006/08/22 17:32:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -164,10 +164,10 @@ senduncompressed(int fd)
 		/* This is extra overhead, overhead, overhead! */
 		if (getfiletype(0))
 		{
-			char input[MYBUFSIZ];
+			char input[RWBUFSIZE];
 
 			/* fgets is better: read() may split HTML tags! */
-			while (read(fd, input, MYBUFSIZ))
+			while (read(fd, input, RWBUFSIZE))
 				if (strstr(input, "<!--#"))
 				{
 					dynamic = 1;
@@ -267,12 +267,12 @@ senduncompressed(int fd)
 	}
 #else		/* Not HAVE_MMAP */
 	{
-		char		buffer[SENDBUFSIZE];
+		char		buffer[RWBUFSIZE];
 
 		writetotal = 0;
 		alarm((size / MINBYTESPERSEC) + 20);
 		fflush(stdout);
-		while ((secreadtotal = secread(fd, buffer, SENDBUFSIZE)) > 0)
+		while ((secreadtotal = secread(fd, buffer, RWBUFSIZE)) > 0)
 		{
 			if ((written = secwrite(fileno(stdout), buffer,
 				secreadtotal)) != secreadtotal)
@@ -548,12 +548,12 @@ check_noxs(FILE *rfile)
 static int
 check_location(FILE *fp, const char *filename)
 {
-	char	line[MYBUFSIZ];
+	char	line[LINEBUFSIZE];
 	char    *p, *name, *value;
 	int	state = 0;
 	FILE    *authfile;
 
-	while (fgets(line, MYBUFSIZ, fp))
+	while (fgets(line, LINEBUFSIZE, fp))
 	{
 		p = line;
 		while ((name = strsep(&p, " \t\r\n")) && !*name)
@@ -1254,7 +1254,7 @@ do_options(const char *params)
 void
 loadfiletypes(char *orgbase, char *base)
 {
-	char		line[MYBUFSIZ], *name, *ext, *comment, *p;
+	char		line[LINEBUFSIZE], *name, *ext, *comment, *p;
 	const char	*mimepath;
 	FILE		*mime;
 	ftypes		*prev = NULL, *new = NULL;
@@ -1286,7 +1286,7 @@ loadfiletypes(char *orgbase, char *base)
 			err(1, "fopen(`%s' [read])", mimepath);
 	}
 	prev = NULL;
-	while (fgets(line, MYBUFSIZ, mime))
+	while (fgets(line, LINEBUFSIZE, mime))
 	{
 		if ((comment = strchr(line, '#')))
 			*comment = 0;
@@ -1315,7 +1315,7 @@ loadfiletypes(char *orgbase, char *base)
 void
 loadcompresstypes()
 {
-	char		line[MYBUFSIZ], *end, *comment;
+	char		line[LINEBUFSIZE], *end, *comment;
 	const	char	*path;
 	FILE		*methods;
 	ctypes		*prev, *new;
@@ -1329,7 +1329,7 @@ loadcompresstypes()
 	if (!(methods = fopen(path, "r")))
 		err(1, "fopen(`%s' [read])", path);
 	prev = NULL;
-	while (fgets(line, MYBUFSIZ, methods))
+	while (fgets(line, LINEBUFSIZE, methods))
 	{
 		if ((comment = strchr(line, '#')))
 			*comment = 0;
@@ -1355,7 +1355,7 @@ loadcompresstypes()
 void
 loadscripttypes(char *orgbase, char *base)
 {
-	char		line[MYBUFSIZ], *end, *comment, *path;
+	char		line[LINEBUFSIZE], *end, *comment, *path;
 	FILE		*methods;
 	ctypes		*prev, *new;
 
@@ -1383,7 +1383,7 @@ loadscripttypes(char *orgbase, char *base)
 		}
 	}
 	prev = NULL;
-	while (fgets(line, MYBUFSIZ, methods))
+	while (fgets(line, LINEBUFSIZE, methods))
 	{
 		if ((comment = strchr(line, '#')))
 			*comment = 0;
@@ -1499,7 +1499,7 @@ check_file_redirect(const char *base, const char *filename)
 	}
 	if (fd >= 0)
 	{
-		if ((size = read(fd, total, MYBUFSIZ)) <= 0)
+		if ((size = read(fd, total, XS_PATH_MAX)) <= 0)
 		{
 			error("500 Redirection filename error");
 			close(fd);
