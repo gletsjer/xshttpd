@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.173 2006/08/22 17:32:39 johans Exp $ */
+/* $Id: methods.c,v 1.174 2006/08/23 16:27:31 johans Exp $ */
 
 #include	"config.h"
 
@@ -733,6 +733,7 @@ do_get(char *params)
 			return;
 		if (!origeuid)
 		{
+			seteuid(origeuid);
 			setegid(userinfo->pw_gid);
 			setgroups(1, (const gid_t *)&userinfo->pw_gid);
 			seteuid(userinfo->pw_uid);

@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.234 2006/08/23 09:23:54 johans Exp $ */
+/* $Id: httpd.c,v 1.235 2006/08/23 16:27:31 johans Exp $ */
 
 #include	"config.h"
 
@@ -103,12 +103,12 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.234 2006/08/23 09:23:54 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.235 2006/08/23 16:27:31 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
 int		headers, headonly, postonly, chunked;
-static	int	sd, reqs, mainhttpd = 1;
+static	int	sd, reqs, mainhttpd = 1, persistent;
 gid_t		origegid;
 uid_t		origeuid;
 char		remotehost[NI_MAXHOST],
@@ -145,8 +145,6 @@ stdheaders(int lastmod, int texthtml, int endline)
 {
 	setcurrenttime();
 	secprintf("Date: %s\r\nServer: %s\r\n", currenttime, SERVER_IDENT);
-	if (headers >= 11)
-		secprintf("Connection: close\r\n");
 	if (lastmod)
 		secprintf("Last-modified: %s\r\nExpires: %s\r\n",
 			currenttime, currenttime);
@@ -967,6 +965,7 @@ void
 error(const char *message)
 {
 	const	char	*env;
+	char		errmsg[10240];
 
 	alarm(180); setcurrenttime();
 	env = getenv("QUERY_STRING");
@@ -977,23 +976,30 @@ error(const char *message)
 		orig[0] ? orig : "(none)", env ? env : "(none)",
 		getenv("HTTP_HOST"),
 		referer[0] ? referer : "(none)");
+	if (!headonly)
+	{
+		snprintf(errmsg, sizeof(errmsg),
+			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+			"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
+			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
+			"<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
+			"\r\n<head><title>%s</title></head>\n"
+			"<body><h1>%s</h1></body></html>\n",
+			message,
+			message);
+	}
 	if (headers)
 	{
 		secprintf("%s %s\r\n", version, message);
 		stdheaders(1, 1, 0);
+		secprintf("Content-length: %d\r\n", strlen(errmsg));
 		if ((env = getenv("HTTP_ALLOW")))
 			secprintf("Allow: %s\r\n", env);
+		secputs("\r\n");
 	}
 	if (!headonly)
-	{
-		secprintf("\r\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-		secprintf("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
-			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n");
-		secprintf("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n");
-		secprintf("\r\n<head><title>%s</title></head>\n", message);
-		secprintf("<body><h1>%s</h1></body></html>\n", message);
-	}
-	fflush(stdout); fflush(stderr); alarm(0);
+		secputs(errmsg);
+	fflush(stderr);
 }
 
 void
@@ -1243,7 +1249,7 @@ process_request()
 	char		line[LINEBUFSIZE], extra[MYBUFSIZ], *temp, ch,
 			*params, *url, *ver, http_host[NI_MAXHOST],
 			http_host_long[NI_MAXHOST];
-	int		readerror;
+	int		i, readerror;
 	size_t		size;
 
 	strlcpy(version, "HTTP/0.9", 16);
@@ -1263,6 +1269,7 @@ process_request()
 	unsetenv("ERROR_URL_EXPANDED"); unsetenv("REMOTE_USER");
 	unsetenv("REMOTE_PASSWORD");
 	unsetenv("HTTP_REFERER"); unsetenv("HTTP_COOKIE");
+	unsetenv("HTTP_CONNECTION");
 	unsetenv("HTTP_ACCEPT"); unsetenv("HTTP_ACCEPT_ENCODING");
 	unsetenv("HTTP_ACCEPT_LANGUAGE"); unsetenv("HTTP_HOST");
 	unsetenv("HTTP_NEGOTIONATE"); unsetenv("HTTP_PRAGMA");
@@ -1278,21 +1285,14 @@ process_request()
 	alarm(180); errno = 0;
 	chunked = 0;
 	setreadmode(READCHAR, 1);
-	readerror = secread(0, line, 1);
-	if (readerror == 1)
-		readerror = secread(0, line + 1, 1);
-	if (readerror == 1)
-		readerror = secread(0, line + 2, 1);
-	if (readerror == 1)
-		readerror = secread(0, line + 3, 1);
-	if (readerror != 1)
+	for (i = 0; i < 4; i++)
+		do
+			readerror = secread(0, line + i, 1);
+		while (!readerror);
+	if (readerror < 0)
 	{
-		if (readerror == -1)
-			fprintf(stderr, "[%s] Request line: read() failed: %s\n",
-				currenttime, strerror(errno));
-		else
-			fprintf(stderr, "[%s] Request line: read() got no input\n",
-				currenttime);
+		fprintf(stderr, "[%s] Request line: read() failed: %s\n",
+			currenttime, strerror(errno));
 		error("400 Unable to read begin of request line");
 		return;
 	}
@@ -1325,17 +1325,19 @@ process_request()
 	while (*temp && (*temp > ' '))
 		temp++;
 	*temp = 0;
+	persistent = 0;
 	if (!strncasecmp(ver, "HTTP/", 5))
 	{
 		if (!strncmp(ver + 5, "1.0", 3))
 		{
-			headers = 10;
 			strlcpy(version, "HTTP/1.0", 16);
+			headers = 10;
 		}
 		else
 		{
-			headers = 11;
 			strlcpy(version, "HTTP/1.1", 16);
+			headers = 11;
+			persistent = 1;
 		}
 		setenv("SERVER_PROTOCOL", version, 1);
 		while (1)
@@ -1397,6 +1399,12 @@ process_request()
 			}
 			else if (!strcasecmp("Cookie", extra))
 				setenv("HTTP_COOKIE", param, 1);
+			else if (!strcasecmp("Connection", extra))
+			{
+				if (strcasestr(param, "close"))
+					persistent = 0;
+				setenv("HTTP_CONNECTION", param, 1);
+			}
 			else if (!strcasecmp("Accept", extra))
 				setenv("HTTP_ACCEPT", param, 1);
 			else if (!strcasecmp("Accept-encoding", extra))
@@ -1893,14 +1901,24 @@ standalone_socket(int id)
 		setproctitle("xs(%d): Connect from `%s'", count + 1, remotehost);
 		setcurrenttime();
 		if (message503[0])
-		{
-			alarm(180);
-			secprintf("HTTP/1.1 503 Busy\r\nContent-type: text/plain\r\n\r\n");
-			secprintf("%s\r\n", message503);
-		}
+			secprintf("HTTP/1.1 503 Busy\r\n"
+				"Content-type: text/plain\r\n"
+				"Content-length: %d\r\n\r\n%s",
+				strlen(message503),
+				message503);
 		else
-			process_request();
-		alarm(0); reqs++;
+			do
+			{
+				process_request();
+				if (chunked)
+				{
+					chunked = 0;
+					secputs("0\r\n\r\n");
+				}
+			}
+			while (persistent && fflush(stdout) != EOF);
+		alarm(0);
+		reqs++;
 		endssl();
 		fflush(stdout); fflush(stdin); fflush(stderr);
 	}

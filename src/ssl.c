@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.25 2006/08/22 14:55:06 johans Exp $ */
+/* $Id: ssl.c,v 1.26 2006/08/23 16:27:31 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -153,11 +153,6 @@ initssl()
 void
 endssl()
 {
-	if (chunked)
-	{
-		chunked = 0;
-		secputs("0\r\n\r\n");
-	}
 #ifdef		HANDLE_SSL
 	if (cursock->usessl && cursock->ssl)
 	{
@@ -338,6 +333,9 @@ secread(int fd, void *buf, size_t count)
 		if ((readerror = read(fd, buf, count)) < 0)
 			warn("Read error");
 	}
+
+	if (!readerror)
+		usleep(300);
 
 	return readerror;
 }
