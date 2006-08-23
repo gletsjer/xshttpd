@@ -6,6 +6,7 @@
 - Mechanism to add extra HTTP header to error script
 
 - vhost logging: set host as virtualhostdir name
+- forward proxy
 
 TODO
 - MaxChildren

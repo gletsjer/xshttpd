@@ -259,6 +259,12 @@ Note that unlike the \fIredir\fP commands, it is not allowed to
 generate full URL's in this case: only local URL's are permitted
 (omitting the protocol and hostname).
 .br
+If the webserver has been compiled with forwarding support (curl),
+then one can also use directives like \fIforward hostname oldurl newurl\fP.
+Forwarding behaves transparently (like rewrite), but in this case
+the webserver will retrieve the resulting file from a remote webserver,
+named \fIhostname\fP.
+.br
 A .redir file may contain multiple lines with redir, rewrite or pass
 directives. All directives in the file will be tried in sequence
 (top to bottom). If none of them matches - or if an \fIpass\fP

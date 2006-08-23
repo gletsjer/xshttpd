@@ -27,6 +27,9 @@
 /* Define to 1 if you have the <crypt.h> header file. */
 #undef HAVE_CRYPT_H
 
+/* Define to 1 if you have the curl library. */
+#undef HAVE_CURL
+
 /* Define to 1 if you have the declaration of `environ', and to 0 if you
    don't. */
 #undef HAVE_DECL_ENVIRON

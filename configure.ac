@@ -1,8 +1,8 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(xshttpd, 34b12)
+AC_INIT(xshttpd, 34b13)
 AC_CONFIG_SRCDIR(src/httpd.c)
 AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 no-dist-gzip])
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.4 beta/0.12", [Server version])
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.4 beta/0.13", [Server version])
 AC_CONFIG_HEADERS([config.h])
 
 dnl Checks for programs.
@@ -103,6 +103,19 @@ then
 			[File containing private SSL server key])
 	else
 		AC_MSG_ERROR([Cannot find libraries for --with-ssl])
+	fi
+fi
+
+XS_CHECK_WITH(curl, CURL transfer support, no)
+if test x${with_curl} = xyes
+then
+	AC_PATH_PROG([CURLCONF], curl-config)
+	if test x${ac_cv_path_CURLCONF} != x
+	then
+		AC_DEFINE(HAVE_CURL,,
+			[Define to 1 if you have the curl library.])
+		LDFLAGS="${LDFLAGS} `${ac_cv_path_CURLCONF} --libs`"
+		CFLAGS="${CFLAGS} `${ac_cv_path_CURLCONF} --cflags`"
 	fi
 fi
 

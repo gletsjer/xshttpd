@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.237 2006/08/23 17:39:02 johans Exp $ */
+/* $Id: httpd.c,v 1.238 2006/08/23 20:08:33 johans Exp $ */
 
 #include	"config.h"
 
@@ -73,6 +73,9 @@
 #ifdef		AUTH_LDAP
 #include	"ldap.h"
 #endif		/* AUTH_LDAP */
+#ifdef		HAVE_CURL
+#include	<curl/curl.h>
+#endif		/* HAVE_CURL */
 #ifndef		HAVE_SETPROCTITLE
 #include	"setproctitle.h"
 #endif		/* HAVE_SETPROCTITLE */
@@ -103,7 +106,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.237 2006/08/23 17:39:02 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.238 2006/08/23 20:08:33 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -877,6 +880,9 @@ open_logs(int sig)
 #ifdef		HANDLE_PERL
 	loadperl();
 #endif		/* HANDLE_PERL */
+#ifdef		HAVE_CURL
+	curl_global_init(CURL_GLOBAL_ALL);
+#endif		/* HAVE_CURL */
 	set_signals();
 	if (!origeuid)
 	{
@@ -2114,6 +2120,11 @@ main(int argc, char **argv)
 #else		/* AUTH_LDAP */
 				"-LDAP "
 #endif		/* AUTH_LDAP */
+#ifdef		HAVE_CURL
+				"+CURL "
+#else		/* HAVE_CURL */
+				"-CURL "
+#endif		/* HAVE_CURL */
 				"\nDefault configuration file:\n\t%s\n",
 				config_path);
 			return 0;

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.175 2006/08/23 16:50:14 johans Exp $ */
+/* $Id: methods.c,v 1.176 2006/08/23 20:08:33 johans Exp $ */
 
 #include	"config.h"
 
@@ -68,6 +68,9 @@
 #include	<EXTERN.h>
 #include	<perl.h>
 #endif		/* HANDLE_PERL */
+#ifdef		HAVE_CURL
+#include	<curl/curl.h>
+#endif		/* HAVE_CURL */
 #ifndef		HAVE_SETPROCTITLE
 #include	"setproctitle.h"
 #endif		/* HAVE_SETPROCTITLE */
@@ -1254,6 +1257,28 @@ do_options(const char *params)
 }
 
 void
+do_proxy(const char *proxy, const char *params)
+{
+#ifdef		HAVE_CURL
+	CURL	*handle = curl_easy_init();
+	char	request[MYBUFSIZ];
+
+	snprintf(request, MYBUFSIZ, "http://%s%s", proxy, params);
+	curl_easy_setopt(handle, CURLOPT_URL, request);
+	curl_easy_setopt(handle, CURLOPT_HEADER, 1);
+	curl_easy_setopt(handle, CURLOPT_READDATA, stdout);
+	curl_easy_setopt(handle, CURLOPT_READFUNCTION, fwrite);
+
+	if (curl_easy_perform(handle))
+		error("500 Internal forwarding error");
+	else
+		logrequest(params, 0);
+#endif		/* HAVE_CURL */
+	(void)proxy;
+	(void)params;
+}
+
+void
 loadfiletypes(char *orgbase, char *base)
 {
 	char		line[LINEBUFSIZE], *name, *ext, *comment, *p;
@@ -1522,7 +1547,7 @@ check_redirect(FILE *fp, const char *filename)
 {
 	int	size;
 	char	*p, *command, *subst,
-		*orig, *repl,
+		*host, *orig, *repl,
 		line[XS_PATH_MAX], total[XS_PATH_MAX];
 
 	while (fgets(line, XS_PATH_MAX, fp))
@@ -1571,6 +1596,23 @@ check_redirect(FILE *fp, const char *filename)
 					*subst)
 			{
 				do_get(subst);
+				free(subst);
+				fclose(fp);
+				return 1;
+			}
+		}
+		else if (!strcasecmp(command, "forward"))
+		{
+			while ((host = strsep(&p, " \t\r\n")) && !*host)
+				/* continue */;
+			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
+				/* continue */;
+			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
+				/* continue */;
+			if ((subst = pcre_subst(filename, orig, repl)) &&
+					*subst)
+			{
+				do_proxy(host, subst);
 				free(subst);
 				fclose(fp);
 				return 1;
