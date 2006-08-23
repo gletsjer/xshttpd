@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.174 2006/08/23 16:27:31 johans Exp $ */
+/* $Id: methods.c,v 1.175 2006/08/23 16:50:14 johans Exp $ */
 
 #include	"config.h"
 
@@ -1247,8 +1247,9 @@ do_options(const char *params)
 {
 	secprintf("%s 200 OK\r\n", version);
 	stdheaders(0, 0, 0);
-	secprintf("Content-length: 0\r\n");
-	secprintf("Allow: GET, HEAD, POST, OPTIONS\r\n\r\n");
+	secputs("Content-length: 0\r\n"
+		"Allow: GET, HEAD, POST, OPTIONS\r\n"
+		"\r\n");
 	(void)params;
 }
 

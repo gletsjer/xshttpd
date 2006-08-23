@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.235 2006/08/23 16:27:31 johans Exp $ */
+/* $Id: httpd.c,v 1.236 2006/08/23 16:50:13 johans Exp $ */
 
 #include	"config.h"
 
@@ -103,7 +103,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.235 2006/08/23 16:27:31 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.236 2006/08/23 16:50:13 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -149,9 +149,9 @@ stdheaders(int lastmod, int texthtml, int endline)
 		secprintf("Last-modified: %s\r\nExpires: %s\r\n",
 			currenttime, currenttime);
 	if (texthtml)
-		secprintf("Content-type: text/html\r\n");
+		secputs("Content-type: text/html\r\n");
 	if (endline)
-		secprintf("\r\n");
+		secputs("\r\n");
 }
 
 static	void
@@ -991,11 +991,10 @@ error(const char *message)
 	if (headers)
 	{
 		secprintf("%s %s\r\n", version, message);
-		stdheaders(1, 1, 0);
 		secprintf("Content-length: %d\r\n", strlen(errmsg));
 		if ((env = getenv("HTTP_ALLOW")))
 			secprintf("Allow: %s\r\n", env);
-		secputs("\r\n");
+		stdheaders(1, 1, 1);
 	}
 	if (!headonly)
 		secputs(errmsg);
@@ -1006,8 +1005,23 @@ void
 redirect(const char *redir, int permanent)
 {
 	const	char	*env;
+	char		errmsg[10240];
 
 	env = getenv("QUERY_STRING");
+	if (!headonly)
+	{
+		snprintf(errmsg, sizeof(errmsg),
+			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+			"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
+			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
+			"<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
+			"<head><title>Document has moved</title></head>\n"
+			"<body><h1>Document has moved</h1>\n"
+			"<p>This document has %s moved to "
+			"<a href=\"%s%s%s\">%s</a>.</p></body></html>\n",
+			permanent ?  "permanently" : "",
+			redir, env ? "?" : "", env ? env : "", redir);
+	}
 	if (headers)
 	{
 		if (env)
@@ -1016,21 +1030,10 @@ redirect(const char *redir, int permanent)
 		else
 			secprintf("%s %s moved\r\nLocation: %s\r\n", version,
 				permanent ? "301 Permanently" : "302 Temporarily", redir);
+		secprintf("Content-length: %d\n", strlen(errmsg));
 		stdheaders(1, 1, 1);
 	}
-	if (!headonly)
-	{
-		secprintf("\r\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-		secprintf("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
-			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n");
-		secprintf("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n");
-		secprintf("<head><title>Document has moved</title></head>\n");
-		secprintf("<body><h1>Document has moved</h1>\n");
-		secprintf("<p>This document has %s moved to ",
-			permanent ?  "permanently" : "");
-		secprintf("<a href=\"%s%s%s\">%s</a>.</p></body></html>\n",
-			redir, env ? "?" : "", env ? env : "", redir);
-	}
+	secputs(errmsg);
 	fflush(stdout);
 }
 
@@ -1039,24 +1042,29 @@ int
 check_auth(FILE *authfile)
 {
 	char		*search, line[LINEBUFSIZE], compare[LINEBUFSIZE], *find;
+	char		errmsg[10240];
 
 	if (!authentication[0] ||
 		strncasecmp(authentication, "Basic", 5))
 	{
+		snprintf(errmsg, sizeof(errmsg),
+			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+			"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
+			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
+			"<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
+			"<head><title>Unauthorized</title></head>\n"
+			"<body><h1>Unauthorized</h1><p>Your client \n"
+			"does not understand authentication</body></html>\n");
 		if (headers)
 		{
 			secprintf("%s 401 Unauthorized\r\n", version);
-			secprintf("WWW-authenticate: basic realm=\"this page\"\r\n");
+			secputs("WWW-authenticate: basic realm=\"this page\"\r\n");
+			secprintf("Content-length: %d\r\n", strlen(errmsg));
 			stdheaders(1, 1, 1);
 		}
-		secprintf("\r\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-		secprintf("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
-			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n");
-		secprintf("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n");
-		secprintf("<head><title>Unauthorized</title></head>\n");
-		secprintf("<body><h1>Unauthorized</h1><p>Your client \n");
-		secprintf("does not understand authentication</body></html>\n");
-		fclose(authfile); return(1);
+		secputs(errmsg);
+		fclose(authfile);
+		return(1);
 	}
 	strlcpy(line, authentication, LINEBUFSIZE);
 	find = line + strlen(line);
@@ -1095,20 +1103,23 @@ check_auth(FILE *authfile)
 			return 0;
 		}
 	}
+	snprintf(errmsg, sizeof(errmsg),
+		"\r\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+		"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
+		"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
+		"<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
+		"<head><title>Wrong password</title></head>\n"
+		"<body><h1>Wrong user/password combination</h1>\n"
+		"You don't have permission to view this page.\n"
+		"</body></html>\n");
 	if (headers)
 	{
 		secprintf("%s 401 Wrong user/password combination\r\n", version);
-		secprintf("WWW-authenticate: basic realm=\"this page\"\r\n");
+		secputs("WWW-authenticate: basic realm=\"this page\"\r\n");
+		secprintf("Content-length: %d\r\n", strlen(errmsg));
 		stdheaders(1, 1, 1);
 	}
-	secprintf("\r\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-	secprintf("<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
-		"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n");
-	secprintf("<html xmlns=\"http://www.w3.org/1999/xhtml\">\n");
-	secprintf("<head><title>Wrong password</title></head>\n");
-	secprintf("<body><h1>Wrong user/password combination</h1>\n");
-	secprintf("You don't have permission to view this page.\n");
-	secprintf("</body></html>\n");
+	secputs(errmsg);
 	fclose(authfile);
 	return(1);
 }
