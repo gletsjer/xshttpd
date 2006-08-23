@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.233 2006/08/22 17:32:39 johans Exp $ */
+/* $Id: httpd.c,v 1.234 2006/08/23 09:23:54 johans Exp $ */
 
 #include	"config.h"
 
@@ -103,7 +103,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.233 2006/08/22 17:32:39 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.234 2006/08/23 09:23:54 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1381,18 +1381,21 @@ process_request()
 				if (islower(*browser))
 					*browser = toupper(*browser);
 				setenv("USER_AGENT_SHORT", browser, 1);
-			} else if (!strcasecmp("Referer", extra))
+			}
+			else if (!strcasecmp("Referer", extra))
 			{
 				strlcpy(referer, param, MYBUFSIZ);
 				while (referer[0] &&
 					referer[strlen(referer) - 1] <= ' ')
 					referer[strlen(referer) - 1] = 0;
 				setenv("HTTP_REFERER", referer, 1);
-			} else if (!strcasecmp("Authorization", extra))
+			}
+			else if (!strcasecmp("Authorization", extra))
 			{
 				strlcpy(authentication, param, MYBUFSIZ);
 				setenv("HTTP_AUTHORIZATION", param, 1);
-			} else if (!strcasecmp("Cookie", extra))
+			}
+			else if (!strcasecmp("Cookie", extra))
 				setenv("HTTP_COOKIE", param, 1);
 			else if (!strcasecmp("Accept", extra))
 				setenv("HTTP_ACCEPT", param, 1);
@@ -1400,6 +1403,8 @@ process_request()
 				setenv("HTTP_ACCEPT_ENCODING", param, 1);
 			else if (!strcasecmp("Accept-language", extra))
 				setenv("HTTP_ACCEPT_LANGUAGE", param, 1);
+			else if (!strcasecmp("Expect", extra))
+				setenv("HTTP_EXPECT", param, 1);
 			else if (!strcasecmp("Host", extra))
 				setenv("HTTP_HOST", param, 1);
 			else if (!strcasecmp("Negotiate", extra))
@@ -1421,17 +1426,26 @@ process_request()
 				setenv("IF_RANGE", param, 1);
 
 		}
-	} else if (!strncasecmp(ver, "HTCPCP/", 7))
+	}
+	else if (!strncasecmp(ver, "HTCPCP/", 7))
 	{
 		headers = 1;
 		strlcpy(version, "HTCPCP/1.0", 16);
 		error("418 Duh... I'm a webserver Jim, not a coffeepot!");
 		return;
-	} else
+	}
+	else
 		setenv("SERVER_PROTOCOL", version, 1);
 
 	if (!getenv("CONTENT_LENGTH"))
+	{
+		if (headers >= 11 && !strcasecmp("POST", line))
+		{
+			error("411 Length Required");
+			return;
+		}
 		setenv("CONTENT_LENGTH", "0", 1);
+	}
 	if (!browser[0])
 	{
 		setenv("USER_AGENT", "UNKNOWN", 1);
@@ -1461,7 +1475,7 @@ process_request()
 		params += strlen(http_host) + 7;
 		strlcpy(orig, params, MYBUFSIZ);
 	}
-	else if (params[0] != '/' && strcmp("OPTIONS", line))
+	else if (params[0] != '/' && strcasecmp("OPTIONS", line))
 	{
 		error("400 Relative URL's are not supported");
 		return;
@@ -1883,7 +1897,8 @@ standalone_socket(int id)
 			alarm(180);
 			secprintf("HTTP/1.1 503 Busy\r\nContent-type: text/plain\r\n\r\n");
 			secprintf("%s\r\n", message503);
-		} else
+		}
+		else
 			process_request();
 		alarm(0); reqs++;
 		endssl();
