@@ -4,7 +4,7 @@ is not complete. Refer to cvs comments for more information.
 Changes since 3.4 beta 12
 - Fix Content-Length headers with error messages
 - Default to persistent connections on HTTP/1.1
-- Add 'forward' option to redir to offload request to remote server
+- Add 'forward' option to .redir to offload request to remote server
 
 Changes since 3.4 beta 11
 - Fix lockfile names in clearxs
