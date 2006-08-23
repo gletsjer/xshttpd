@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.116 2006/08/22 17:32:39 johans Exp $ */
+/* $Id: cgi.c,v 1.117 2006/08/23 09:23:43 johans Exp $ */
 
 #include	"config.h"
 
@@ -169,6 +169,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	q[0] = q[1] = -1;
 	if ((ssl_post = !strcasecmp("POST", getenv("REQUEST_METHOD"))))
 	{
+		char	*expect = getenv("HTTP_EXPECT");
+
 		if (pipe(q))
 		{
 			snprintf(errmsg, MYBUFSIZ, "500 pipe() failed: %s",
@@ -179,6 +181,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				secprintf("[%s]\n", errmsg);
 			goto END;
 		}
+		if (expect && strcasestr(expect, "100-continue"))
+			secputs("100 Continue\r\n\r\n");
 	}
 #endif		/* HANDLE_SSL */
 
@@ -566,7 +570,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	if (ssl_post)
 	{
 		close(q[0]); close(q[1]);
-		close(0); close(1);
 	}
 #endif		/* HANDLE_SSL */
 #ifdef		HAVE_SIGEMPTYSET
