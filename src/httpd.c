@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.236 2006/08/23 16:50:13 johans Exp $ */
+/* $Id: httpd.c,v 1.237 2006/08/23 17:39:02 johans Exp $ */
 
 #include	"config.h"
 
@@ -103,7 +103,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.236 2006/08/23 16:50:13 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.237 2006/08/23 17:39:02 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1928,8 +1928,8 @@ standalone_socket(int id)
 				}
 			}
 			while (persistent && fflush(stdout) != EOF);
-		alarm(0);
 		reqs++;
+		alarm(0);
 		endssl();
 		fflush(stdout); fflush(stdin); fflush(stderr);
 	}
