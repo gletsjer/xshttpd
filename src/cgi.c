@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.117 2006/08/23 09:23:43 johans Exp $ */
+/* $Id: cgi.c,v 1.118 2006/08/25 15:51:37 johans Exp $ */
 
 #include	"config.h"
 
@@ -462,8 +462,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			if (!server)
 				append(head, 0, "Server: %s\r\n", SERVER_IDENT);
 			if (headers >= 11)
-				append(head, 0, "Connection: close\r\n"
-					"Transfer-encoding: chunked\r\n");
+				append(head, 0, "Transfer-encoding: chunked\r\n");
 			append(head, 0, "Date: %s\r\n", currenttime);
 			secprintf("%s\r\n", head);
 			if (headers >= 11)

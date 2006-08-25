@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.4 beta 13
+- Remove Connection: close for CGI execution
+
 Changes since 3.4 beta 12
 - Fix Content-Length headers with error messages
 - Default to persistent connections on HTTP/1.1
