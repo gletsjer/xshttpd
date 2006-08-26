@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.239 2006/08/25 15:59:40 johans Exp $ */
+/* $Id: httpd.c,v 1.240 2006/08/26 07:40:25 johans Exp $ */
 
 #include	"config.h"
 
@@ -106,7 +106,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.239 2006/08/25 15:59:40 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.240 2006/08/26 07:40:25 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1299,7 +1299,7 @@ process_request()
 
 	http_host[0] = '\0';
 
-	alarm(5);
+	alarm(10);
 	errno = 0;
 	chunked = 0;
 	setreadmode(READCHAR, 1);

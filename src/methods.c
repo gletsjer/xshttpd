@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.176 2006/08/23 20:08:33 johans Exp $ */
+/* $Id: methods.c,v 1.177 2006/08/26 07:40:25 johans Exp $ */
 
 #include	"config.h"
 
@@ -723,6 +723,9 @@ do_get(char *params)
 	setproctitle("xs: Handling `%s' from `%s'", real_path, remotehost);
 	userinfo = NULL;
 
+	if (!origeuid)
+		seteuid(origeuid);
+
 	if (params[1] == '~')
 	{
 		if ((temp = strchr(params + 2, '/')))
@@ -736,7 +739,6 @@ do_get(char *params)
 			return;
 		if (!origeuid)
 		{
-			seteuid(origeuid);
 			setegid(userinfo->pw_gid);
 			setgroups(1, (const gid_t *)&userinfo->pw_gid);
 			seteuid(userinfo->pw_uid);
@@ -802,9 +804,12 @@ do_get(char *params)
 		strlcat(base, "/", XS_PATH_MAX);
 
 		/* set euid if it wasn't set yet */
-		setegid(current->groupid);
-		setgroups(1, (const gid_t *)&current->groupid);
-		seteuid(current->userid);
+		if (!origeuid)
+		{
+			setegid(current->groupid);
+			setgroups(1, (const gid_t *)&current->groupid);
+			seteuid(current->userid);
+		}
 		if (!geteuid())
 		{
 			error("500 Effective UID is not valid");
@@ -932,7 +937,6 @@ do_get(char *params)
 	{
 		if (!origeuid)
 		{
-			seteuid(origeuid);
 			setegid(config.system->groupid);
 			setgroups(1, &config.system->groupid);
 			seteuid(config.system->userid);
