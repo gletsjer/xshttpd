@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.240 2006/08/26 07:40:25 johans Exp $ */
+/* $Id: httpd.c,v 1.241 2006/08/31 09:19:03 johans Exp $ */
 
 #include	"config.h"
 
@@ -106,7 +106,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.240 2006/08/26 07:40:25 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.241 2006/08/31 09:19:03 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -988,8 +988,8 @@ error(const char *message)
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 			"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
 			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
-			"<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
-			"\r\n<head><title>%s</title></head>\n"
+			"<html xmlns=\"http://www.w3.org/1999/xhtml\">\n\n"
+			"<head><title>%s</title></head>\n"
 			"<body><h1>%s</h1></body></html>\n",
 			message,
 			message);
@@ -1059,8 +1059,8 @@ check_auth(FILE *authfile)
 			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
 			"<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
 			"<head><title>Unauthorized</title></head>\n"
-			"<body><h1>Unauthorized</h1><p>Your client \n"
-			"does not understand authentication</body></html>\n");
+			"<body><h1>Unauthorized</h1><p>Your client does \n"
+			"not understand authentication</p></body></html>\n");
 		if (headers)
 		{
 			secprintf("%s 401 Unauthorized\r\n", version);
@@ -1302,6 +1302,7 @@ process_request()
 	alarm(10);
 	errno = 0;
 	chunked = 0;
+	persistent = 0;
 	setreadmode(READCHAR, 1);
 	for (i = 0; i < 4; i++)
 		do
@@ -1309,6 +1310,9 @@ process_request()
 		while (!readerror);
 	if (readerror < 0)
 	{
+		/* don't bother sending errors when connection was closed */
+		if (EBADF == errno || ECONNRESET == errno)
+			return;
 		fprintf(stderr, "[%s] Request line: read() failed: %s\n",
 			currenttime, strerror(errno));
 		error("400 Unable to read begin of request line");
@@ -1345,7 +1349,6 @@ process_request()
 	*temp = 0;
 
 	alarm(180);
-	persistent = 0;
 	if (!strncasecmp(ver, "HTTP/", 5))
 	{
 		if (!strncmp(ver + 5, "1.0", 3))
@@ -1457,7 +1460,7 @@ process_request()
 	}
 	else if (!strncasecmp(ver, "HTCPCP/", 7))
 	{
-		headers = 1;
+		headers = 10;
 		strlcpy(version, "HTCPCP/1.0", 16);
 		error("418 Duh... I'm a webserver Jim, not a coffeepot!");
 		return;
