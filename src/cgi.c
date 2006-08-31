@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.118 2006/08/25 15:51:37 johans Exp $ */
+/* $Id: cgi.c,v 1.119 2006/08/31 13:48:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -332,7 +332,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 
 		close(q[1]);
-		close(0);
 	}
 #endif		/* HANDLE_SSL */
 	setreadmode(READCHAR, 1);
@@ -564,7 +563,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	}
 	END:
 	close(p[0]); close(p[1]); fflush(stdout);
-	close(r[0]); close(r[1]); fflush(stdout);
+	close(r[0]); close(r[1]); fflush(stderr);
 #ifdef		HANDLE_SSL
 	if (ssl_post)
 	{
