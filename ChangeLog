@@ -1,6 +1,12 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.4 beta 14
+- Don't send error messages to closed sockets
+- Remove the following global configuration options:
+  UseCharset, UseRestrictAddr, UseVirtualHost, UsePcreRedir, UseLdapAuth
+- Use fnmatch() rather than PCRE for .xsmatch rules
+
 Changes since 3.4 beta 13
 - Remove Connection: close for CGI execution
 - Fix uid handling for non-homedirs

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.177 2006/08/26 07:40:25 johans Exp $ */
+/* $Id: methods.c,v 1.178 2006/09/13 13:33:46 johans Exp $ */
 
 #include	"config.h"
 
@@ -46,6 +46,7 @@
 #include	<pwd.h>
 #include	<grp.h>
 #include	<unistd.h>
+#include	<fnmatch.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
 #else		/* Not HAVE_ERR_H */
@@ -579,13 +580,8 @@ check_location(FILE *fp, const char *filename)
 			/* always reset the state */
 			state = 0;
 
-			/* try matching on PCRE or strcmp() basis */
-#ifdef HAVE_PCRE
-			if (pcre_match(filename, name) > 0)
-#else
-			if (!strcmp(filename, name))
-#endif
-				/* match! */
+			/* try simple matching */
+			if (fnmatch(name, filename, 0) != FNM_NOMATCH)
 				state = 1;
 			continue;
 		}
@@ -690,7 +686,7 @@ do_get(char *params)
 	size_t			size;
 	struct	stat		statbuf;
 	const	struct	passwd	*userinfo;
-	FILE			*xsfile;
+	FILE			*xsfile, *charfile;
 	const	ctypes		*csearch = NULL, *isearch = NULL;
 
 	alarm(240);
@@ -761,8 +757,7 @@ do_get(char *params)
 	{
 		file = params;
 		*base = 0;
-		if (config.usevirtualhost &&
-			current == config.system &&
+		if (current == config.system &&
 			(http_host = getenv("HTTP_HOST")))
 		{
 			if (config.virtualhostdir)
@@ -992,23 +987,18 @@ do_get(char *params)
 	}
 	if (stat(total, &statbuf))
 	{
-		if (config.usecompressed)
-		{
-			int	templen = sizeof(total) - strlen(total);
+		int	templen = sizeof(total) - strlen(total);
 
-			csearch = ctype;
-			temp = total + strlen(total);
-			while (csearch)
-			{
-				strlcpy(temp, csearch->ext, templen);
-				if (!stat(total, &statbuf))
-					break;
-				csearch = csearch->next;
-			}
-			if (!csearch)
-				goto NOTFOUND;
+		csearch = ctype;
+		temp = total + strlen(total);
+		while (csearch)
+		{
+			strlcpy(temp, csearch->ext, templen);
+			if (!stat(total, &statbuf))
+				break;
+			csearch = csearch->next;
 		}
-		else
+		if (!csearch)
 			goto NOTFOUND;
 	}
 
@@ -1079,25 +1069,19 @@ do_get(char *params)
 	}
 	strlcpy(orig_filename, filename, XS_PATH_MAX);
 
-	/* check for characterset to use */
+	/* Check for *.charset preferences */
 	charset[0] = '\0';
-	if (config.usecharset)
+	snprintf(total, XS_PATH_MAX, "%s%s.charset", base, filename);
+	if ((charfile = fopen(total, "r")) ||
+		(charfile = find_file(orgbase, base, ".charset")))
 	{
-		FILE		*charfile;
-
-		/* Check for *.charset preferences */
-		snprintf(total, XS_PATH_MAX, "%s%s.charset", base, filename);
-		if ((charfile = fopen(total, "r")) ||
-			(charfile = find_file(orgbase, base, ".charset")))
-		{
-			if (!fread(charset, 1, XS_PATH_MAX, charfile))
-				charset[0] = '\0';
-			else
-				charset[XS_PATH_MAX-1] = '\0';
-			if ((temp = strchr(charset, '\n')))
-				temp[0] = '\0';
-			fclose(charfile);
-		}
+		if (!fread(charset, 1, XS_PATH_MAX, charfile))
+			charset[0] = '\0';
+		else
+			charset[XS_PATH_MAX-1] = '\0';
+		if ((temp = strchr(charset, '\n')))
+			temp[0] = '\0';
+		fclose(charfile);
 	}
 
 
@@ -1169,7 +1153,7 @@ do_get(char *params)
 		return;
 	}
 
-	if (config.usecompressed && csearch)
+	if (csearch)
 	{
 		if (strlen(csearch->name) &&
 			(temp = getenv("HTTP_ACCEPT_ENCODING")) &&

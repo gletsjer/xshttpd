@@ -63,7 +63,6 @@ extern struct configuration {
 	char *		systemroot;
 	int		num_sockets;
 	unsigned short	instances;
-	unsigned short	localmode;
 	int		priority;
 	char *		pidfile;
 	int		scriptpriority;
@@ -71,17 +70,10 @@ extern struct configuration {
 	unsigned int	scripttimeout;
 	char *		scriptpath;
 	unsigned	execasuser: 1;
-	unsigned	usecharset: 1;
-	unsigned	userestrictaddr: 1;
-	unsigned	usevirtualhost: 1;
 	unsigned	usevirtualuid: 1;
 	unsigned	uselocalscript: 1;
-	unsigned	usecompressed: 1;
 	unsigned	usednslookup: 1;
-	unsigned	usepcreredir: 1;
-	unsigned	useldapauth: 1;
-	unsigned	usefastcgi: 1;
-	unsigned	padding: 5;
+	unsigned	padding: 4;
 	char *		sslcertificate;
 	char *		sslprivatekey;
 	char *		virtualhostdir;

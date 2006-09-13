@@ -4,6 +4,7 @@
 - Get rid of environment vars (at least reading)
 - Get rid of global vars (rw) - use a session struct
 - Mechanism to add extra HTTP header to error script
+- Show 400 error on invalid hostname (tricky with vhost subdirs)
 
 - vhost logging: set host as virtualhostdir name
 - forward proxy
@@ -11,3 +12,19 @@
 TODO
 - MaxChildren
 - *.[Rr]edir doesnt work for dirs -> document/fix
+
+REQUESTS
+- Config file layout/parsing
+- .xsmatch syntax (replacing other files)
+
+[*.php]
+Restrict	131.155.140/23
+MimeType	text/html
+Charset		utf-8
+Execute		/usr/local/bin/php
+Execute		internal:404
+AuthFile	/wwwsys/xsauth
+SslAuth		none
+LdapUri		ldap://.../
+LdapAttr	sn
+

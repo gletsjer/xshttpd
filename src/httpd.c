@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.241 2006/08/31 09:19:03 johans Exp $ */
+/* $Id: httpd.c,v 1.242 2006/09/13 13:33:46 johans Exp $ */
 
 #include	"config.h"
 
@@ -106,7 +106,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.241 2006/08/31 09:19:03 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.242 2006/09/13 13:33:46 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -252,10 +252,6 @@ load_config()
 		lsock->instances = config.instances;
 
 	/* Set simple defaults - others follow the parsing */
-	config.usecharset = 1;
-	config.userestrictaddr = 1;
-	config.usevirtualhost = 1;
-	config.usecompressed = 1;
 	config.usednslookup = 1;
 	config.scriptcpulimit = 2;
 	config.scripttimeout = 6;
@@ -365,14 +361,8 @@ load_config()
 						lsock->sslauth = auth_strict;
 					/* default: auth_none */
 				}
-				else if (!strcasecmp("UseCharset", key))
-					config.usecharset = !strcasecmp("true", value);
 				else if (!strcasecmp("DefaultCharset", key))
 					config.defaultcharset = strdup(value);
-				else if (!strcasecmp("UseRestrictAddr", key))
-					config.userestrictaddr = !strcasecmp("true", value);
-				else if (!strcasecmp("UseVirtualHost", key))
-					config.usevirtualhost = !strcasecmp("true", value);
 				else if (!strcasecmp("UseVirtualUid", key))
 					config.usevirtualuid = !strcasecmp("true", value);
 				else if (!strcasecmp("UseDnsLookup", key))
@@ -381,26 +371,12 @@ load_config()
 					config.virtualhostdir = strdup(value);
 				else if (!strcasecmp("UseLocalScript", key))
 					config.uselocalscript = !strcasecmp("true", value);
-				else if (!strcasecmp("UsePcreRedir", key))
-					config.usepcreredir = !strcasecmp("true", value);
-				else if (!strcasecmp("UseLdapAuth", key))
-					config.useldapauth = !strcasecmp("true", value);
 				else if (!strcasecmp("ScriptCpuLimit", key))
 					config.scriptcpulimit = atoi(value);
 				else if (!strcasecmp("ScriptTimeout", key))
 					config.scripttimeout = atoi(value);
 				else if (!strcasecmp("ScriptEnvPath", key))
 					config.scriptpath = strdup(value);
-				else if (!strcasecmp("UseFastCGI", key))
-					config.usefastcgi = !strcasecmp("true", value);
-				else if (!strcasecmp("UseCompressed", key))
-					config.usecompressed = !strcasecmp("true", value);
-				else if (!strcasecmp("LocalMode", key))
-				{
-					if (!config.localmode)
-						config.localmode = atoi(value);
-					warn("LocalMode is deprecated and will be ignored");
-				}
 				else if (!current &&
 						(!strcasecmp("UserId", key) ||
 						 !strcasecmp("GroupId", key)))
@@ -492,6 +468,14 @@ load_config()
 						current->groupid = grp->gr_gid;
 					}
 				}
+				else if (!strcasecmp("LocalMode", key) ||
+						!strcasecmp("UseCharset", key) ||
+						!strcasecmp("UseRestrictAddr", key) ||
+						!strcasecmp("UseVirtualHost", key) ||
+						!strcasecmp("UsePcreRedir", key) ||
+						!strcasecmp("UseLdapAuth", key))
+					warnx("Configuration option '%s' is deprecated",
+						key);
 				else
 					errx(1, "illegal directive: '%s'", key);
 			}
@@ -624,19 +608,6 @@ load_config()
 		config.pidfile = strdup(PID_PATH);
 	if (!config.scriptpath)
 		config.scriptpath = strdup(SCRIPT_PATH);
-	if (!config.localmode)
-		config.localmode = 1;
-	/* Sanity check */
-#ifndef		AUTH_LDAP
-	if (config.useldapauth)
-		errx(1, "LDAP support configured but not compiled in");
-#endif		/* AUTH_LDAP */
-#ifndef		HAVE_PCRE
-	if (config.usepcreredir)
-		errx(1, "PCRE support configured but not compiled in");
-#endif		/* HAVE_PCRE */
-	if (config.usefastcgi)
-		fcgi_init(NULL, "127.0.0.1", "3434");
 
 	/* Set up system section */
 	if (!config.system)
@@ -874,8 +845,7 @@ open_logs(int sig)
 			currenttime);
 	}
 	loadfiletypes(NULL, NULL);
-	if (config.usecompressed)
-		loadcompresstypes();
+	loadcompresstypes();
 	loadscripttypes(NULL, NULL);
 #ifdef		HANDLE_PERL
 	loadperl();
@@ -2135,7 +2105,7 @@ main(int argc, char **argv)
 				config_path);
 			return 0;
 		default:
-			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number]\n[-d rootdir] [-D documentdir] [-r refer-ignore-domain] [-l localmode]\n[-A access_log] [-E error_log] [-R referrer_log] [-m service-message] [-v]");
+			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number]\n[-d rootdir] [-D documentdir] [-r refer-ignore-domain]\n[-A access_log] [-E error_log] [-R referrer_log] [-m service-message] [-v]");
 		}
 	}
 	load_config();
