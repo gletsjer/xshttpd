@@ -32,9 +32,9 @@ On systems that don't have a standard \fBcrypt(3)\fP function available,
 all passwords will be stored unencryped instead.
 .LP
 .SH LDAP AUTHENTICATION
-If LDAP authentication is enabled through the system-wide UseLdapAuth
-configuration setting, then special directives can be used in \fI.xspasswd\fP
-files to enable password checks via a removed authentication server.
+If LDAP authentication is enabled at compile time, then special directives can
+be used in \fI.xspasswd\fP files to enable password checks via a removed
+authentication server.
 
 .TP
 .B ldaphost=...

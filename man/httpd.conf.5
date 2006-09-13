@@ -58,33 +58,15 @@ The groupname or numeric gid that will be used to process all requests.
 If enabled then filenames and CGI's in a user directory will be read and
 executed with the permissions of that user. This is the default.
 .TP
-.B UseCharset [true|false]
-If enabled then character sets can be set for all files in a directory
-using
+.B DefaultCharset <charset>
+The chacterset to be used if no user-defined charset is specified.
+If this is not specified, then US-ASCII will be used.
+This can be overridden locally by
 .B .charset
 files. The .charset file should contain one line which specifies the
 character set that is used for HTML files. If this option is not set or
 no .charset file can be found, the clients should assume that plain 7bit
 text is used. This option is enabled by default.
-.TP
-.B DefaultCharset <charset>
-The chacterset to be used if no user-defined charset is specified.
-If this is not specified, then US-ASCII will be used.
-.TP
-.B UseRestrictAddr [true|false]
-If enabled then .noxs files may contain one or more IP addresses - or
-string prefixes of IP addresses - or IP subnets in CIDR notation. Only
-clients with matching addresses will be able to retreive files from this
-directory. If disabled then access to the directory will denied to
-everyone if a .noxs is present and the contents of the .noxs file is
-ignored. \fIUseRestrictAddr\fP is enabled by default.
-.TP
-.B UseVirtualHost [true|false]
-If enabled then virtual websites can be used based on the requested
-hostname; as described in .\fIhttpd(1)\fP.
-This is the default. When disabled only the main (default) site can be
-requested and any <Virtual> directives in the configuration file will be
-ignored.
 .TP
 .B UseVirtualUid [true|false]
 If enabled files in virtual host directories will be retreived with the
@@ -114,23 +96,6 @@ By default the IP addresses of incoming connections are resolved through
 DNS and logged with hostname information. You can disable this features
 by setting UseDnsLookup to false. Note that this will also make the
 environment variable REMOTE_HOST useless.
-.TP
-.B UsePcreRedir [true|false]
-By default *.redir files contain an absolute or relative URL to redirect to,
-but if this option is enabled, it make contain a path substitution as well.
-This substitution must be of the form
-\fBs/\fP\fIpattern\fP\fB/\fP\fIreplacement\fP\fB/\fP
-Where pattern is a \fIpcrepattern(3)\fP-like regular expression that must
-match the full path (without hostname). The replacement may contain grouped
-backreferences indicated with \fB\\\fP\fIN\fP.
-This will only work if xs-httpd is compiled with PCRE support.
-.TP
-.B UseLdapAuth [true|false]
-By default \fB.xspasswd\fP contain (encrypted) passwords. If this option is
-enabled, they may also contain LDAP information, in which case the webserver
-will first check the LDAP database for a matching username and then the
-passwords in this file. See \fIxsauth(5)\fP for more details.
-This will only work if xs-httpd is compiled with LDAP support.
 .TP
 .B Priority
 The system priority that the daemon will be running at. A lower priority causes

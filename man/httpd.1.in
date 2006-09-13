@@ -245,7 +245,7 @@ This way, an entire directory can be automatically be redirected.
 .br
 A new addition is to allow a substitute command using perl-compatible
 regular expression (pcre). This feature is only available if the
-\fBUsePcreRedir\fP setting is enabled. In this case you can use a
+\fBPCRE\fP support is compiled in. In this case you can use a
 format like \fIredir oldurl newurl\fP to match the local part of the
 URL and generate a redirection to an alternative location. The file
 may contain multiple lines. If the \fIRedir\fP directive is written
