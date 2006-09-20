@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.119 2006/08/31 13:48:09 johans Exp $ */
+/* $Id: cgi.c,v 1.120 2006/09/20 09:02:52 johans Exp $ */
 
 #include	"config.h"
 
@@ -125,6 +125,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	struct	rlimit		limits;
 #endif		/* HAVE_SETRLIMIT */
 	struct	sigaction	action;
+	struct	stat		statbuf;
 
 	child = (pid_t)-1;
 #ifdef		HAVE_SIGEMPTYSET
@@ -143,6 +144,12 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	/* snip++ */
 
 	snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
+
+	if (!engine && !stat(fullpath, &statbuf) && !(statbuf.st_mode & S_IXUSR))
+	{
+		server_error("403 File permissions deny access", "NOT_AVAILABLE");
+		return;
+	}
 
 	setenv("SCRIPT_NAME", path, 1);
 	setenv("SCRIPT_FILENAME", fullpath, 1);
