@@ -143,6 +143,10 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Bot: Exalead Search';
 			}
+			elsif ($agent =~ /^Feedfetcher-Google;/)
+			{
+				$browser = 'RSS: Google Feedfetcher';
+			}
 			elsif ($agent =~ /UniversalFeedParser\//)
 			{
 				$browser = 'RSS: FeedParser';
@@ -188,7 +192,7 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Bot: Ichiro';
 			}
-			elsif ($agent =~ /INGRID\//)
+			elsif ($agent =~ /(INGRID|IlseBot)\//)
 			{
 				$browser = 'Bot: Ilse Search';
 			}
