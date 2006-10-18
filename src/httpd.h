@@ -34,7 +34,7 @@ void	stdheaders		(int, int, int);
 void	alarm_handler		(int);
 void	error			(const char *);
 void	redirect		(const char *, int);
-int	readline		(int, char *);
+int	readline		(int, char *, size_t);
 void	server_error		(const char *, const char *);
 void	logrequest		(const char *, long);
 int	check_auth		(FILE *);

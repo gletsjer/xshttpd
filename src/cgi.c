@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.120 2006/09/20 09:02:52 johans Exp $ */
+/* $Id: cgi.c,v 1.121 2006/10/18 16:27:51 johans Exp $ */
 
 #include	"config.h"
 
@@ -88,7 +88,7 @@ append(char *buffer, int prepend, const char *format, ...)
 	char	line[HEADSIZE];
 
 	va_start(ap, format);
-	vsnprintf(line, HEADSIZE, format, ap);
+	vsnprintf(line, LINEBUFSIZE, format, ap);
 	va_end(ap);
 	if (strlen(buffer) + strlen(line) + 1 > HEADSIZE)
 		return 0;
@@ -349,7 +349,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 		for (;;)
 		{
-			if (readline(p[0], line) != ERR_NONE)
+			if (readline(p[0], line, sizeof(line)) != ERR_NONE)
 			{
 				if (showheader)
 					error("503 Script did not end header");
@@ -479,7 +479,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	{
 		for (;;)
 		{
-			if (readline(p[0], line) != ERR_NONE)
+			if (readline(p[0], line, sizeof(line)) != ERR_NONE)
 			{
 				if (showheader)
 					error("503 Script did not end header");

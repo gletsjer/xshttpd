@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.242 2006/09/13 13:33:46 johans Exp $ */
+/* $Id: httpd.c,v 1.243 2006/10/18 16:27:51 johans Exp $ */
 
 #include	"config.h"
 
@@ -106,7 +106,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.242 2006/09/13 13:33:46 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.243 2006/10/18 16:27:51 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1233,7 +1233,7 @@ logrequest(const char *request, long size)
 static	void
 process_request()
 {
-	char		line[LINEBUFSIZE], extra[MYBUFSIZ], *temp, ch,
+	char		line[LINEBUFSIZE], extra[LINEBUFSIZE], *temp, ch,
 			*params, *url, *ver, http_host[NI_MAXHOST],
 			http_host_long[NI_MAXHOST];
 	int		i, readerror;
@@ -1289,7 +1289,7 @@ process_request()
 		return;
 	}
 	setreadmode(strncasecmp("POST", line, 4) ? READBLOCK : READCHAR, 0);
-	switch (readline(0, line + 4))
+	switch (readline(0, line + 4, sizeof(line) - 4))
 	{
 	case ERR_NONE:
 		break;
@@ -1337,7 +1337,7 @@ process_request()
 		{
 			char		*param, *end;
 
-			switch (readline(0, extra))
+			switch (readline(0, extra, sizeof(extra)))
 			{
 			case ERR_NONE:
 				break;

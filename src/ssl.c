@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.26 2006/08/23 16:27:31 johans Exp $ */
+/* $Id: ssl.c,v 1.27 2006/10/18 16:27:51 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -393,14 +393,14 @@ secprintf(const char *format, ...)
 }
 
 int
-readline(int rd, char *buf)
+readline(int rd, char *buf, size_t len)
 {
 	char		ch, *buf2;
 
 	buf2 = buf; *buf2 = 0;
 	do
 	{
-		if (buf2 >= buf + MYBUFSIZ - 64)
+		if (buf2 >= buf + len)
 			return(ERR_LINE);
 		if (netbufind >= netbufsiz)
 		{

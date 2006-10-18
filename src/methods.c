@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.178 2006/09/13 13:33:46 johans Exp $ */
+/* $Id: methods.c,v 1.179 2006/10/18 16:27:51 johans Exp $ */
 
 #include	"config.h"
 
@@ -594,7 +594,8 @@ check_location(FILE *fp, const char *filename)
 			/* continue */;
 
 		/* AuthFilename => $file does .xsauth-type authentication */
-		if (!strcasecmp(name, "AuthFilename"))
+		if (!strcasecmp(name, "AuthFilename") ||
+			!strcasecmp(name, "AuthFile"))
 		{
 			if (value && (authfile = fopen(value, "r")))
 			{
@@ -618,7 +619,7 @@ check_location(FILE *fp, const char *filename)
 			fclose(fp);
 			return 1;
 		}
-		else if (!strcasecmp(name, "AccessFilename"))
+		else if (!strcasecmp(name, "Restrict"))
 		{
 			if (value && (authfile = fopen(value, "r")))
 			{
