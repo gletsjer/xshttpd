@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.243 2006/10/18 16:27:51 johans Exp $ */
+/* $Id: httpd.c,v 1.244 2006/10/27 14:43:12 johans Exp $ */
 
 #include	"config.h"
 
@@ -106,7 +106,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.243 2006/10/18 16:27:51 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.244 2006/10/27 14:43:12 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -133,6 +133,7 @@ static	void	detach			(void);
 static	void	child_handler		(int);
 static	void	term_handler		(int);
 static	void	load_config		(void);
+static	void	remove_config		(void);
 static	void	open_logs		(int);
 static	void	core_handler		(int);
 static	void	set_signals		(void);
@@ -692,6 +693,13 @@ load_config()
 }
 
 static	void
+remove_config()
+{
+	/* XXX: Rewrite this to avoid memory leaks */
+	memset(&config, '\0', sizeof config);
+}
+
+static	void
 open_logs(int sig)
 {
 	FILE		*pidlog;
@@ -700,6 +708,10 @@ open_logs(int sig)
 	gid_t		savedegid;
 	int		tempfile;
 
+	if (sig)
+	{
+		remove_config(); load_config();
+	}
 	if (!origeuid)
 	{
 		savedeuid = geteuid(); seteuid(origeuid);
@@ -861,15 +873,16 @@ open_logs(int sig)
 		if (setegid(savedegid) == -1)
 			err(1, "setegid()");
 	}
-	(void)sig;
 }
 
 void
 alarm_handler(int sig)
 {
 	alarm(0); setcurrenttime();
+#if		0
 	fprintf(stderr, "[%s] httpd: Send timed out for `%s'\n",
 		currenttime, remotehost[0] ? remotehost : "(none)");
+#endif		/* 0 */
 	(void)sig;
 	exit(1);
 }
@@ -978,12 +991,13 @@ error(const char *message)
 }
 
 void
-redirect(const char *redir, int permanent)
+redirect(const char *redir, int permanent, int pass_env)
 {
-	const	char	*env;
+	const	char	*env = NULL;
 	char		errmsg[10240];
 
-	env = getenv("QUERY_STRING");
+	if (pass_env)
+		env = getenv("QUERY_STRING");
 	if (!headonly)
 	{
 		snprintf(errmsg, sizeof(errmsg),
@@ -1236,7 +1250,7 @@ process_request()
 	char		line[LINEBUFSIZE], extra[LINEBUFSIZE], *temp, ch,
 			*params, *url, *ver, http_host[NI_MAXHOST],
 			http_host_long[NI_MAXHOST];
-	int		i, readerror;
+	int		readerror;
 	size_t		size;
 
 	strlcpy(version, "HTTP/0.9", 16);
@@ -1273,29 +1287,17 @@ process_request()
 	errno = 0;
 	chunked = 0;
 	persistent = 0;
-	setreadmode(READCHAR, 1);
-	for (i = 0; i < 4; i++)
-		do
-			readerror = secread(0, line + i, 1);
-		while (!readerror);
-	if (readerror < 0)
-	{
-		/* don't bother sending errors when connection was closed */
-		if (EBADF == errno || ECONNRESET == errno)
-			return;
-		fprintf(stderr, "[%s] Request line: read() failed: %s\n",
-			currenttime, strerror(errno));
-		error("400 Unable to read begin of request line");
-		return;
-	}
-	setreadmode(strncasecmp("POST", line, 4) ? READBLOCK : READCHAR, 0);
-	switch (readline(0, line + 4, sizeof(line) - 4))
+	setreadmode(READCHAR, 0);
+	readerror = readline(0, line, sizeof(line));
+	switch (readerror)
 	{
 	case ERR_NONE:
 		break;
+	case ERR_CLOSE:
+		return;
 	case ERR_QUIT:
 	default:
-		error("400 Unable to read request line");
+		error("400 Unable to read begin of request line");
 		return;
 	case ERR_LINE:
 		error("400 Request header line exceeded maximum length");
@@ -1479,6 +1481,7 @@ process_request()
 	else if (params[0] != '/' && strcasecmp("OPTIONS", line))
 	{
 		error("400 Relative URL's are not supported");
+		error(line);
 		return;
 	}
 	/* SERVER_NAME may be overriden soon */
@@ -1893,6 +1896,7 @@ standalone_socket(int id)
 			continue;
 		setproctitle("xs(%d): Connect from `%s'", count + 1, remotehost);
 		setcurrenttime();
+		setreadmode(READCHAR, 1);
 		if (message503[0])
 			secprintf("HTTP/1.1 503 Busy\r\n"
 				"Content-type: text/plain\r\n"

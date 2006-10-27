@@ -1,11 +1,20 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.4 beta 15
+- Use larger string buffers
+- Remove superfluous warnings related to closing HTTP/1.1 sockets
+- Fix query string arguments with redirects
+- Rename httpdc kill to stop - kill now forces quick termination
+- Re-read entire configuration file upon httpdc reload
+- Removed READBLOCK readmode for problems with streamed HTTP/1.1 requests
+
 Changes since 3.4 beta 14
 - Don't send error messages to closed sockets
 - Remove the following global configuration options:
   UseCharset, UseRestrictAddr, UseVirtualHost, UsePcreRedir, UseLdapAuth
 - Use fnmatch() rather than PCRE for .xsmatch rules
+- Show a proper error message (403) for non-executable CGIs
 
 Changes since 3.4 beta 13
 - Remove Connection: close for CGI execution

@@ -5,13 +5,14 @@
 
 #define		RWBUFSIZE	8192
 #define		MYBUFSIZ	1024
-#define		LINEBUFSIZE	1024
-#define		HEADSIZE	8192
+#define		LINEBUFSIZE	4096
+#define		HEADSIZE	10240
 
 #define		ERR_NONE	0
 #define		ERR_CONT	1
 #define		ERR_QUIT	2
 #define		ERR_LINE	3
+#define		ERR_CLOSE	4
 
 #define		READCHAR	0
 #define		READBLOCK	1
@@ -33,7 +34,7 @@ extern	uid_t	origeuid;
 void	stdheaders		(int, int, int);
 void	alarm_handler		(int);
 void	error			(const char *);
-void	redirect		(const char *, int);
+void	redirect		(const char *, int, int);
 int	readline		(int, char *, size_t);
 void	server_error		(const char *, const char *);
 void	logrequest		(const char *, long);

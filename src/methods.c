@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.179 2006/10/18 16:27:51 johans Exp $ */
+/* $Id: methods.c,v 1.180 2006/10/27 14:43:12 johans Exp $ */
 
 #include	"config.h"
 
@@ -1050,7 +1050,7 @@ do_get(char *params)
 				question ? "?" : "",
 				question ? question : "");
 
-			redirect(total, 1);
+			redirect(total, 1, 0);
 			return;
 		}
 	}
@@ -1524,7 +1524,7 @@ check_file_redirect(const char *base, const char *filename)
 		total[size] = 0;
 		p = total;
 		subst = strsep(&p, " \t\r\n");
-		redirect(subst, permanent);
+		redirect(subst, permanent, 1);
 		close(fd);
 		return 1;
 	}
@@ -1569,7 +1569,7 @@ check_redirect(FILE *fp, const char *filename)
 			if ((subst = pcre_subst(filename, orig, repl)) &&
 					*subst)
 			{
-				redirect(subst, 'R' == command[0]);
+				redirect(subst, 'R' == command[0], 0);
 				free(subst);
 				fclose(fp);
 				return 1;
@@ -1614,7 +1614,7 @@ check_redirect(FILE *fp, const char *filename)
 				command[size - 1] = '\0';
 			snprintf(total, XS_PATH_MAX, "%s/%s",
 				command, filename);
-			redirect(total, 0);
+			redirect(total, 0, 1);
 			fclose(fp);
 			return 1;
 		}

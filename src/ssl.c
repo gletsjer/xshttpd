@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.27 2006/10/18 16:27:51 johans Exp $ */
+/* $Id: ssl.c,v 1.28 2006/10/27 14:43:12 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -39,7 +39,10 @@ setreadmode(int mode, int reset)
 	unsigned long readerror;
 
 	if (reset)
+	{
 		netbufind = netbufsiz = 0;
+		netbuf[netbufind] = '\0';
+	}
 #ifdef		HANDLE_SSL
 	if ((readerror = ERR_get_error()))
 	{
@@ -330,7 +333,8 @@ secread(int fd, void *buf, size_t count)
 	else
 #endif		/* HANDLE_SSL */
 	{
-		if ((readerror = read(fd, buf, count)) < 0)
+		if (((readerror = read(fd, buf, count)) < 0) &&
+				(errno != ECONNRESET))
 			warn("Read error");
 	}
 
@@ -413,22 +417,16 @@ readline(int rd, char *buf, size_t len)
 				{
 					mysleep(1); goto TRYAGAIN;
 				}
+				if (errno == ECONNRESET)
+					return(ERR_CLOSE);
 				warn("[%s] httpd: readline() [%d]",
 					currenttime, rd);
-				if (rd == 0)
-					error("503 Unexpected network error");
 				return(ERR_QUIT);
 			}
 			if (netbufsiz == 0)
 			{
-				if (*buf)
-				{
-					*buf2 = 0;
-					return(ERR_NONE);
-				}
-				if (rd == 0)
-					error("503 You closed the connection!");
-				return(ERR_QUIT);
+				mysleep(1);
+				goto TRYAGAIN;
 			}
 			netbufind = 0;
 		}
