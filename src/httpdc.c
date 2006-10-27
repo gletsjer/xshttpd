@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.23 2005/11/27 18:09:18 johans Exp $ */
+/* $Id: httpdc.c,v 1.24 2006/10/27 14:09:56 johans Exp $ */
 
 #include	"config.h"
 
@@ -38,6 +38,7 @@ struct configuration	config;
 static	void	cmd_help	(const char *);
 static	void	cmd_status	(const char *);
 static	void	cmd_kill	(const char *);
+static	void	cmd_die		(const char *);
 static	void	cmd_reload	(const char *);
 static	void	cmd_restart	(const char *);
 static	void	cmd_version	(const char *);
@@ -49,6 +50,7 @@ static	command	commands[]=
 	{ "help",	cmd_help,	"Display this help text"	},
 	{ "status",	cmd_status,	"Display httpd status"		},
 	{ "kill",	cmd_kill,	"Terminate the httpd"		},
+	{ "die",	cmd_die,	"Forcefully Terminate the httpd"	},
 	{ "reload",	cmd_reload,	"Reload all httpd databases"	},
 	{ "restart",	cmd_restart,	"Restart httpd with previous command lines arguments"	},
 	{ "version",	cmd_version,	"Show httpdc version string"	},
@@ -102,6 +104,25 @@ cmd_kill(const char *args)
 }
 
 static	void
+cmd_die(const char *args)
+{
+	int timeout;
+
+	timeout = 600;
+	printf("Waiting for children to die... ");
+	while (!killpg(httpdpid, SIGKILL) && (timeout > 0))
+	{
+		printf("%c\b", (char)*("/-\\|" + (timeout & 3)));
+		fflush(stdout); sleep(1); timeout--;
+	}
+	if (!killpg(httpdpid, 0))
+		printf("The children would not die within %d seconds!\n", timeout);
+	else
+		printf("Main HTTPD and all children have been terminated.\n");
+	(void)args;
+}
+
+static	void
 cmd_restart(const char *args)
 {
 	int		timeout;
@@ -118,7 +139,7 @@ cmd_restart(const char *args)
 	}
 	if (!killpg(httpdpid, 0))
 	{
-		fprintf(stderr, "The children would not die within 600 seconds!\n");
+		printf("The children would not die within %d seconds!\n", timeout);
 		return;
 	}
 	printf("Children are dead!\n");
