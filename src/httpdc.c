@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.24 2006/10/27 14:09:56 johans Exp $ */
+/* $Id: httpdc.c,v 1.25 2006/10/27 14:36:24 johans Exp $ */
 
 #include	"config.h"
 
@@ -38,7 +38,7 @@ struct configuration	config;
 static	void	cmd_help	(const char *);
 static	void	cmd_status	(const char *);
 static	void	cmd_kill	(const char *);
-static	void	cmd_die		(const char *);
+static	void	cmd_stop	(const char *);
 static	void	cmd_reload	(const char *);
 static	void	cmd_restart	(const char *);
 static	void	cmd_version	(const char *);
@@ -49,8 +49,8 @@ static	command	commands[]=
 	{ "?",		cmd_help,	"Display this help text",	},
 	{ "help",	cmd_help,	"Display this help text"	},
 	{ "status",	cmd_status,	"Display httpd status"		},
-	{ "kill",	cmd_kill,	"Terminate the httpd"		},
-	{ "die",	cmd_die,	"Forcefully Terminate the httpd"	},
+	{ "stop",	cmd_stop,	"Terminate the httpd"		},
+	{ "kill",	cmd_kill,	"Forcefully terminate the httpd"	},
 	{ "reload",	cmd_reload,	"Reload all httpd databases"	},
 	{ "restart",	cmd_restart,	"Restart httpd with previous command lines arguments"	},
 	{ "version",	cmd_version,	"Show httpdc version string"	},
@@ -94,22 +94,22 @@ cmd_status(const char *args)
 }
 
 static	void
-cmd_kill(const char *args)
+cmd_stop(const char *args)
 {
 	if (kill(httpdpid, SIGTERM))
-		warn("kill");
+		warn("stop");
 	else
-		printf("Main HTTPD killed, children will die too.\n");
+		printf("Main HTTPD terminated, children will die too.\n");
 	(void)args;
 }
 
 static	void
-cmd_die(const char *args)
+cmd_kill(const char *args)
 {
 	int timeout;
 
 	timeout = 600;
-	printf("Waiting for children to die... ");
+	printf("Killing HTTPD processes... ");
 	while (!killpg(httpdpid, SIGKILL) && (timeout > 0))
 	{
 		printf("%c\b", (char)*("/-\\|" + (timeout & 3)));
@@ -118,7 +118,7 @@ cmd_die(const char *args)
 	if (!killpg(httpdpid, 0))
 		printf("The children would not die within %d seconds!\n", timeout);
 	else
-		printf("Main HTTPD and all children have been terminated.\n");
+		printf("All children have been killed.\n");
 	(void)args;
 }
 
