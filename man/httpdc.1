@@ -32,13 +32,20 @@ Display XS\-HTTPD's status. It checks whether the main daemon is running
 the process group is running (main daemon and its children). And it display
 how XS\-HTTPD was started up last time it was started.
 .TP
+.B stop
+Shutdown the XS\-HTTPD. It stop only the main daemon. That daemon will shut
+down its children before exiting.
+.TP
 .B kill
-Kills the XS\-HTTPD. It kills only the main daemon. That daemon will kill
-its children before exiting.
+Forcefully kills the XS\-HTTPD and all child processes.
 .TP
 .B reload
-This makes the XS\-HTTPD reload its database files
-(\fImime.types\fP and \fIcompress.methods\fP).
+This makes the XS\-HTTPD reload its global configuration files
+(\fIhttpd.conf\fP, \fImime.types\fP and \fIcompress.methods\fP).
+Note that this will not set up or terminate any new sockets that have been
+added to or removed from the httpd.conf - nor will it change the owner
+(uid/gid) of running processes: if you want the webserver to redo its socket
+configuration, you must restart it.
 .TP
 .B restart
 Kills the XS\-HTTPD, waits until it is completely dead and then restarts
