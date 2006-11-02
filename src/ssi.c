@@ -1043,8 +1043,7 @@ sendwithdirectives_internal(int fd, size_t *size)
 	alarm(360);
 	if (!(parse = fdopen(fd, "r")))
 	{
-		fprintf(stderr, "[%s] httpd: Could not fdopen (%d): %s\n",
-			currenttime, fd, strerror(errno));
+		warn("[%s] httpd: Could not fdopen (%d)", currenttime, fd);
 		return(ERR_CONT);
 	}
 	while (fgets(line, LINEBUFSIZE, parse))

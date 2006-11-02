@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.122 2006/10/27 14:43:12 johans Exp $ */
+/* $Id: cgi.c,v 1.123 2006/11/02 14:43:56 johans Exp $ */
 
 #include	"config.h"
 
@@ -297,8 +297,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			secprintf("Content-type: text/plain\r\n\r\n");
 			secprintf("[execl() failed: %s]",
 				strerror(errno));
-			fprintf(stderr, "[%s] execl(`%s') failed: %s\n",
-				currenttime, engine ? engine : fullpath, strerror(errno));
+			warn("[%s] execl(`%s') failed",
+				currenttime, engine ? engine : fullpath);
 		}
 		exit(1);
 	default:
@@ -328,8 +328,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			while ((written = write(q[1], inbuf + offset, tobewritten - offset)) < tobewritten - offset) {
 				if ((written < 0) && (errno != EINTR))
 				{
-					fprintf(stderr, "[Connection closed: %s (fd = %d, todo = %ld]\n",
-						strerror(errno), q[1], writetodo);
+					warn("[Connection closed (fd = %d, todo = %ld]",
+						q[1], writetodo);
 					goto END;
 				}
 				else if (written < 0)

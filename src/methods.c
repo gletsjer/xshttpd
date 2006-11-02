@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.180 2006/10/27 14:43:12 johans Exp $ */
+/* $Id: methods.c,v 1.181 2006/11/02 14:43:57 johans Exp $ */
 
 #include	"config.h"
 
@@ -246,22 +246,18 @@ senduncompressed(int fd)
 
 		if ((buffer = (char *)mmap((caddr_t)0, size, PROT_READ,
 			MAP_SHARED, fd, (off_t)0)) == (char *)-1)
-		{
-			fprintf(stderr, "[%s] httpd: mmap() failed: %s\n",
-				currenttime, strerror(errno));
-			exit(1);
-		}
+			err(1, "[%s] httpd: mmap() failed", currenttime);
 		alarm((size / MINBYTESPERSEC) + 20);
 		fflush(stdout);
 		if ((written = secwrite(buffer, size)) != size)
 		{
 			if (written != -1)
-				fprintf(stderr, "[%s] httpd: Aborted for `%s' (%ld of %ld bytes sent)\n",
+				warn("[%s] httpd: Aborted for `%s' (%ld of %ld bytes sent)",
 					currenttime,
 					remotehost[0] ? remotehost : "(none)",
 					(long)written, (long)size);
 			else
-				fprintf(stderr, "[%s] httpd: Aborted for `%s'\n",
+				warn("[%s] httpd: Aborted for `%s'",
 					currenttime,
 					remotehost[0] ? remotehost : "(none)");
 		}
@@ -281,8 +277,7 @@ senduncompressed(int fd)
 			if ((written = secwrite(fileno(stdout), buffer,
 				secreadtotal)) != secreadtotal)
 			{
-				fprintf(stderr,
-					"[%s] httpd: Aborted for `%s' (No mmap) (%ld of %ld bytes sent)\n",
+				warn("[%s] httpd: Aborted for `%s' (No mmap) (%ld of %ld bytes sent)",
 					currenttime,
 					remotehost[0] ? remotehost : "(none)",
 					writetotal + written, size);
@@ -310,7 +305,7 @@ senduncompressed(int fd)
 		switch(errval)
 		{
 		case ERR_QUIT:
-			fprintf(stderr, "[%s] httpd: Aborted for `%s' (ERR_QUIT)\n",
+			warnx("[%s] httpd: Aborted for `%s' (ERR_QUIT)",
 				currenttime,
 				remotehost[0] ? remotehost : "(none)");
 			break;
@@ -337,10 +332,8 @@ sendcompressed(int fd, const char *method)
 #ifdef		HAVE_MKSTEMP
 	if (!(processed = mkstemp(prefix)))
 	{
-		fprintf(stderr, "[%s] httpd: Cannot create temporary file: %s\n",
-			currenttime, strerror(errno));
 		error("500 Unable to open temporary file");
-		exit(1);
+		err(1, "[%s] httpd: Cannot create temporary file", currenttime);
 	}
 	remove(prefix);
 #else		/* HAVE_MKSTEMP */
@@ -364,18 +357,15 @@ sendcompressed(int fd, const char *method)
 	if ((processed = open(tmp, O_CREAT | O_TRUNC | O_RDWR | O_EXCL,
 		S_IWUSR | S_IRUSR )) < 0)
 	{
-		fprintf(stderr, "[%s] httpd: Cannot open(`%s'): %s\n",
-			currenttime, tmp, strerror(errno));
 		error("500 Unable to open temporary file");
-		exit(1);
+		err(1, "[%s] httpd: Cannot open(`%s')", currenttime, tmp);
 	}
 	remove(tmp); free(tmp); fflush(stdout);
 #endif		/* HAVE_MKSTEMP */
 	switch(pid = fork())
 	{
 	case -1:
-		fprintf(stderr, "[%s] httpd: Cannot fork(): %s\n",
-			currenttime, strerror(errno));
+		warn("[%s] httpd: Cannot fork()", currenttime);
 		error("500 Cannot fork() in sendcompressed()");
 		close(fd); close(processed); return;
 	case 0:
@@ -396,10 +386,8 @@ sendcompressed(int fd, const char *method)
 		for (count = 3; count < 64; count++)
 			close(count);
 		(void) execl(method, method, NULL);
-		fprintf(stderr, "[%s] httpd: Cannot execl(`%s'): %s\n",
-			currenttime, method, strerror(errno));
 		error("500 Cannot start conversion program");
-		exit(1);
+		err(1, "[%s] httpd: Cannot execl(`%s')", currenttime, method);
 	default:
 		close(fd);
 		if (!kill(pid, 0) && mysleep(180))
@@ -946,7 +934,7 @@ do_get(char *params)
 	/* Check for directory permissions */
 	if (stat(base, &statbuf))
 	{
-		fprintf(stderr, "stat(%s) failed: %s\n", base, strerror(errno));
+		warn("stat(%s) failed", base);
 		server_error("404 Requested URL not found", "NOT_FOUND");
 		return;
 	}
@@ -1312,7 +1300,7 @@ loadfiletypes(char *orgbase, char *base)
 			if (!*ext)
 				continue;
 			if (!(new = (ftypes *)malloc(sizeof(ftypes))))
-				errx(1, "Out of memory in loadfiletypes()");
+				err(1, "Out of memory in loadfiletypes()");
 			if (prev)
 				prev->next = new;
 			else if (base)
@@ -1343,7 +1331,7 @@ loadcompresstypes()
 	}
 	path = calcpath(COMPRESS_METHODS);
 	if (!(methods = fopen(path, "r")))
-		err(1, "fopen(`%s' [read])", path);
+		warn("fopen(`%s' [read])", path);
 	prev = NULL;
 	while (fgets(line, LINEBUFSIZE, methods))
 	{
@@ -1355,7 +1343,7 @@ loadcompresstypes()
 		if (line == end)
 			continue;
 		if (!(new = (ctypes *)malloc(sizeof(ctypes))))
-			errx(1, "Out of memory in loadcompresstypes()");
+			err(1, "Out of memory in loadcompresstypes()");
 		if (prev)
 			prev->next = new;
 		else
@@ -1413,7 +1401,7 @@ loadscripttypes(char *orgbase, char *base)
 			continue;
 #endif		/* HANDLE_PERL */
 		if (!(new = (ctypes *)malloc(sizeof(ctypes))))
-			errx(1, "Out of memory in loadscripttypes()");
+			err(1, "Out of memory in loadscripttypes()");
 		if (prev)
 			prev->next = new;
 		else if (base)
@@ -1436,14 +1424,14 @@ loadperl()
 	int exitstatus = 0;
 
 	if (!(my_perl = perl_alloc()))
-	   errx(1, "No memory!");
+	   err(1, "No memory!");
 	perl_construct(my_perl);
 
 	exitstatus = perl_parse(my_perl, NULL, 2, embedding, NULL);
 	if (!exitstatus)
 	   exitstatus = perl_run(my_perl);
 	else
-		errx(1, "No perl!");
+		err(1, "No perl!");
 }
 #endif		/* HANDLE_PERL */
 

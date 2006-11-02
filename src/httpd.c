@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.244 2006/10/27 14:43:12 johans Exp $ */
+/* $Id: httpd.c,v 1.245 2006/11/02 14:43:57 johans Exp $ */
 
 #include	"config.h"
 
@@ -106,7 +106,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.244 2006/10/27 14:43:12 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.245 2006/11/02 14:43:57 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -215,7 +215,7 @@ term_handler(int sig)
 	if (mainhttpd)
 	{
 		setcurrenttime();
-		fprintf(stderr, "[%s] Received signal %d, shutting down...\n",
+		warnx("[%s] Received signal %d, shutting down...",
 			currenttime, sig);
 		fflush(stderr);
 		close(sd);
@@ -853,8 +853,7 @@ open_logs(int sig)
 	if (mainhttpd)
 	{
 		setcurrenttime();
-		fprintf(stderr, "[%s] httpd: Successful restart\n",
-			currenttime);
+		warnx("[%s] httpd: Successful restart", currenttime);
 	}
 	loadfiletypes(NULL, NULL);
 	loadcompresstypes();
@@ -880,7 +879,7 @@ alarm_handler(int sig)
 {
 	alarm(0); setcurrenttime();
 #if		0
-	fprintf(stderr, "[%s] httpd: Send timed out for `%s'\n",
+	warnx("[%s] httpd: Send timed out for `%s'",
 		currenttime, remotehost[0] ? remotehost : "(none)");
 #endif		/* 0 */
 	(void)sig;
@@ -894,12 +893,11 @@ core_handler(int sig)
 
 	alarm(0); setcurrenttime();
 	env = getenv("QUERY_STRING");
-	fprintf(stderr, "[%s] httpd(pid %ld): FATAL SIGNAL %d [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
+	errx(1, "[%s] httpd(pid %ld): FATAL SIGNAL %d [from: `%s' req: `%s' params: `%s' referer: `%s']",
 		currenttime, (long)getpid(), sig,
 		remotehost[0] ? remotehost : "(none)",
 		orig[0] ? orig : "(none)", env ? env : "(none)",
 		referer[0] ? referer : "(none)");
-	exit(1);
 }
 
 static	void
@@ -1188,7 +1186,7 @@ logrequest(const char *request, long size)
 	if (!current->openaccess)
 		if (!config.system->openaccess)
 		{
-			fprintf(stderr, "Logfile disappeared???\n");
+			warnx("Logfile disappeared???");
 			return;
 		}
 		else
@@ -1766,9 +1764,8 @@ standalone_socket(int id)
 				switch(pid = fork())
 				{
 				case -1:
-					fprintf(stderr,
-						"[%s] httpd: fork() failed: %s\n",
-						currenttime, strerror(errno));
+					warn("[%s] httpd: fork() failed",
+						currenttime);
 					break;
 				case 0:
 					mainhttpd = 0;
@@ -1796,12 +1793,11 @@ standalone_socket(int id)
 			const	char	*env;
 
 			env = getenv("QUERY_STRING");
-			fprintf(stderr, "[%s] httpd(pid %ld): MEMORY CORRUPTION [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
+			errx(1, "[%s] httpd(pid %ld): MEMORY CORRUPTION [from: `%s' req: `%s' params: `%s' referer: `%s']",
 				currenttime, (long)getpid(),
 				remotehost[0] ? remotehost : "(none)",
 				orig[0] ? orig : "(none)", env ? env : "(none)",
 				referer[0] ? referer : "(none)");
-			exit(1);
 		}
 
 		setproctitle("xs(%c%d): [Reqs: %06d] Setting up myself to accept a connection",

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: err.c,v 1.7 2005/10/27 19:15:01 johans Exp $ */
+/* $Id: err.c,v 1.8 2006/11/02 14:43:57 johans Exp $ */
 
 #include	"config.h"
 
@@ -63,5 +63,16 @@ warn(const char *format, ...)
 	va_end(ap);
 	fprintf(stderr, ": %s\n", strerror(olderrno));
 	errno = olderrno;
+}
+
+void
+warnx(const char *format, ...)
+{
+	va_list		ap;
+
+	va_start(ap, format);
+	vfprintf(stderr, format, ap);
+	va_end(ap);
+	fprintf(stderr, "\n");
 }
 #endif		/* HAVE_ERR_H */
