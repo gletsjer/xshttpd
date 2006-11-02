@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.181 2006/11/02 14:43:57 johans Exp $ */
+/* $Id: methods.c,v 1.182 2006/11/02 21:03:31 johans Exp $ */
 
 #include	"config.h"
 
@@ -1287,7 +1287,10 @@ loadfiletypes(char *orgbase, char *base)
 	{
 		mimepath = calcpath(MIMETYPESFILE);
 		if (!(mime = fopen(mimepath, "r")))
-			err(1, "fopen(`%s' [read])", mimepath);
+		{
+			warn("fopen(`%s' [read])", mimepath);
+			return;
+		}
 	}
 	prev = NULL;
 	while (fgets(line, LINEBUFSIZE, mime))
