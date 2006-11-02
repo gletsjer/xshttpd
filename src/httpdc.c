@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.25 2006/10/27 14:36:24 johans Exp $ */
+/* $Id: httpdc.c,v 1.26 2006/11/02 21:01:02 johans Exp $ */
 
 #include	"config.h"
 
@@ -196,7 +196,7 @@ control(const char *args)
 		}
 		search++;
 	}
-	fprintf(stderr, "Command `%s' not found\n", buffer);
+	warnx("Command `%s' not found\n", buffer);
 }
 
 static	void
