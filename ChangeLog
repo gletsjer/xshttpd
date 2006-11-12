@@ -1,13 +1,18 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.4 beta 16
+- SSL certificate files must be listed in the Socket section (not global)
+- SocketName can now link with multiple Virtual entries (using SocketName)
+- Virtual entries linked with SocketName won't be available on other sockets
+
 Changes since 3.4 beta 15
-- Use larger string buffers
-- Remove superfluous warnings related to closing HTTP/1.1 sockets
+- Increase (header) line buffer size
 - Fix query string arguments with redirects
 - Rename httpdc kill to stop - kill now forces quick termination
 - Re-read entire configuration file upon httpdc reload
-- Removed READBLOCK readmode for problems with streamed HTTP/1.1 requests
+- Remove READBLOCK mode due to problems with requests streaming
+- Remove superfluous warnings related to closing (HTTP/1.1) sockets
 
 Changes since 3.4 beta 14
 - Don't send error messages to closed sockets

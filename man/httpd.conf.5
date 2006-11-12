@@ -147,11 +147,11 @@ even listen to both IPv4 and IPv6 addresses. Note that most operation
 systems don't allow binding to multi-family sockets, in which case you
 will need to start httpds for IPv4 and IPv6 seperately.
 .TP
-.B SocketName <hostname>
+.B SocketName <key>
 A SocketName is optional and should usually not be specified.
 If a socket name is present, then connections to this socket will not use
 the default settings from the System section, but instead use the settings
-from the Virtual section with a matching HostName.
+from the Virtual section(s) with a matching HostName.
 .TP
 .B Instances <number>
 The number of parallell services to run.
@@ -224,9 +224,6 @@ The following options can be set in the System, Virtual and Users sections:
 .B HostName <hostname>
 The hostname of the server. This is required for a Virtual section.
 For the System en Users sections it defaults to the name of the machine.
-If this HostName matches a SocketName entry in the Socket section,
-then this Virtual entry will override the global System section
-for all connections to that socket.
 .TP
 .B HostAlias <hostname> [hostname ...]
 One or more aliases for the previously mentioned hostname.
@@ -292,6 +289,12 @@ index.html is not present, etc.).
 If this option is omitted for the <Virtual> or <Users> section, it will
 default to the definition in the <System> block. Or the previously
 mentioned default if this is also unspecified.
+.TP
+.B SocketName <key>
+A SocketName is optional and should usually not be specified.
+If a socket name is present, then this virtual section will only be applied
+to listening sockets that match the same key. There may be multiple sockets
+or Virtual sections with the same \fISocketName\fP.
 
 .SH EXAMPLE
 Refer to the \fIhttpd.conf.sample\fP file that comes with the source

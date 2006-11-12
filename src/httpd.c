@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.246 2006/11/02 17:28:33 johans Exp $ */
+/* $Id: httpd.c,v 1.247 2006/11/12 22:22:41 johans Exp $ */
 
 #include	"config.h"
 
@@ -106,7 +106,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.246 2006/11/02 17:28:33 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.247 2006/11/12 22:22:41 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -297,96 +297,105 @@ load_config()
 
 			if (value && strlen(value))
 			{
-				if (!strcasecmp("SystemRoot", key))
+				if (!subtype)
 				{
-					if (!config.systemroot)
-						config.systemroot = strdup(value);
+					if (!strcasecmp("SystemRoot", key))
+					{
+						if (!config.systemroot)
+							config.systemroot = strdup(value);
+					}
+					else if (!strcasecmp("PidFile", key))
+						config.pidfile = strdup(value);
+					else if (!strcasecmp("ExecAsUser", key))
+						if (!strcasecmp("true", value))
+							config.execasuser = 1;
+						else
+							config.execasuser = 0;
+					else if (!strcasecmp("DefaultCharset", key))
+						config.defaultcharset = strdup(value);
+					else if (!strcasecmp("UseVirtualUid", key))
+						config.usevirtualuid = !strcasecmp("true", value);
+					else if (!strcasecmp("UseDnsLookup", key))
+						config.usednslookup = !strcasecmp("true", value);
+					else if (!strcasecmp("VirtualHostDir", key))
+						config.virtualhostdir = strdup(value);
+					else if (!strcasecmp("UseLocalScript", key))
+						config.uselocalscript = !strcasecmp("true", value);
+					else if (!strcasecmp("ScriptCpuLimit", key))
+						config.scriptcpulimit = atoi(value);
+					else if (!strcasecmp("ScriptTimeout", key))
+						config.scripttimeout = atoi(value);
+					else if (!strcasecmp("ScriptEnvPath", key))
+						config.scriptpath = strdup(value);
+					else if (!current &&
+							(!strcasecmp("UserId", key) ||
+							 !strcasecmp("GroupId", key)))
+						errx(1, "%s directive should be in <System> section", key);
+					else if (!strcasecmp("Priority", key))
+						config.priority = atoi(value);
+					else if (!strcasecmp("ScriptPriority", key))
+						config.scriptpriority = atoi(value);
 				}
-				else if (!strcasecmp("ListenAddress", key))
-					lsock->address = strdup(value);
-				else if (!strcasecmp("ListenPort", key))
-					lsock->port = strdup(value);
-				else if (!strcasecmp("ListenFamily", key))
-					lsock->family =
-						!strcasecmp("IPv4", value) ? PF_INET :
+				else if (subtype == sub_socket)
+				{
+					if (!strcasecmp("ListenAddress", key))
+						lsock->address = strdup(value);
+					else if (!strcasecmp("ListenPort", key))
+						lsock->port = strdup(value);
+					else if (!strcasecmp("ListenFamily", key))
+						lsock->family =
+							!strcasecmp("IPv4", value) ? PF_INET :
 #ifdef		INET6
-						!strcasecmp("IPv6", value) ? PF_INET6 :
+							!strcasecmp("IPv6", value) ? PF_INET6 :
 #endif		/* INET6 */
-						PF_UNSPEC;
-				else if (!strcasecmp("SocketName", key))
-					lsock->socketname = strdup(value);
-				else if (!strcasecmp("Instances", key))
-				{
-					if (!lsock->instances)
-						lsock->instances = atoi(value);
-				}
-				else if (!strcasecmp("PidFile", key))
-					config.pidfile = strdup(value);
-				else if (!strcasecmp("ExecAsUser", key))
-					if (!strcasecmp("true", value))
-						config.execasuser = 1;
-					else
-						config.execasuser = 0;
-				else if (!strcasecmp("UseSSL", key))
-					if (!strcasecmp("true", value))
+							PF_UNSPEC;
+					else if (!strcasecmp("SocketName", key))
+						lsock->socketname = strdup(value);
+					else if (!strcasecmp("Instances", key))
+					{
+						if (!lsock->instances)
+							lsock->instances = atoi(value);
+					}
+					else if (!strcasecmp("UseSSL", key))
+						if (!strcasecmp("true", value))
+							lsock->usessl = 1;
+						else
+							lsock->usessl = 0;
+					else if (!strcasecmp("SSLCertificate", key))
+					{
 						lsock->usessl = 1;
-					else
-						lsock->usessl = 0;
-				else if (!strcasecmp("SSLCertificate", key))
-				{
-					lsock->usessl = 1;
-					config.sslcertificate =
 						lsock->sslcertificate =
 							strdup(value);
-				}
-				else if (!strcasecmp("SSLPrivateKey", key))
-				{
-					lsock->usessl = 1;
-					config.sslprivatekey =
+					}
+					else if (!strcasecmp("SSLPrivateKey", key))
+					{
+						lsock->usessl = 1;
 						lsock->sslprivatekey =
 							strdup(value);
+					}
+					else if (!strcasecmp("SSLCAfile", key))
+						lsock->sslcafile = strdup(value);
+					else if (!strcasecmp("SSLCApath", key))
+						lsock->sslcapath = strdup(value);
+					else if (!strcasecmp("SSLMatchSDN", key))
+						lsock->sslmatchsdn = strdup(value);
+					else if (!strcasecmp("SSLMatchIDN", key))
+						lsock->sslmatchidn = strdup(value);
+					else if (!strcasecmp("SSLAuthentication", key))
+					{
+						if (!strcasecmp(value, "optional"))
+							lsock->sslauth = auth_optional;
+						else if (!strcasecmp(value, "strict"))
+							lsock->sslauth = auth_strict;
+						/* default: auth_none */
+					}
 				}
-				else if (!strcasecmp("SSLCAfile", key))
-					lsock->sslcafile = strdup(value);
-				else if (!strcasecmp("SSLCApath", key))
-					lsock->sslcapath = strdup(value);
-				else if (!strcasecmp("SSLMatchSDN", key))
-					lsock->sslmatchsdn = strdup(value);
-				else if (!strcasecmp("SSLMatchIDN", key))
-					lsock->sslmatchidn = strdup(value);
-				else if (!strcasecmp("SSLAuthentication", key))
-				{
-					if (!strcasecmp(value, "optional"))
-						lsock->sslauth = auth_optional;
-					else if (!strcasecmp(value, "strict"))
-						lsock->sslauth = auth_strict;
-					/* default: auth_none */
-				}
-				else if (!strcasecmp("DefaultCharset", key))
-					config.defaultcharset = strdup(value);
-				else if (!strcasecmp("UseVirtualUid", key))
-					config.usevirtualuid = !strcasecmp("true", value);
-				else if (!strcasecmp("UseDnsLookup", key))
-					config.usednslookup = !strcasecmp("true", value);
-				else if (!strcasecmp("VirtualHostDir", key))
-					config.virtualhostdir = strdup(value);
-				else if (!strcasecmp("UseLocalScript", key))
-					config.uselocalscript = !strcasecmp("true", value);
-				else if (!strcasecmp("ScriptCpuLimit", key))
-					config.scriptcpulimit = atoi(value);
-				else if (!strcasecmp("ScriptTimeout", key))
-					config.scripttimeout = atoi(value);
-				else if (!strcasecmp("ScriptEnvPath", key))
-					config.scriptpath = strdup(value);
-				else if (!current &&
-						(!strcasecmp("UserId", key) ||
-						 !strcasecmp("GroupId", key)))
-					errx(1, "%s directive should be in <System> section", key);
-				else if (!strcasecmp("Priority", key))
-					config.priority = atoi(value);
-				else if (!strcasecmp("ScriptPriority", key))
-					config.scriptpriority = atoi(value);
+				/* All other settings belong to specific 'current' */
 				else if (!current)
+					errx(1, "illegal global directive: '%s'", key);
+				else if (subtype != sub_system &&
+						subtype != sub_users &&
+						subtype != sub_virtual)
 					errx(1, "illegal directive: '%s'", key);
 				else if (!strcasecmp("Hostname", key))
 					current->hostname = strdup(value);
@@ -469,6 +478,8 @@ load_config()
 						current->groupid = grp->gr_gid;
 					}
 				}
+				else if (!strcasecmp("SocketName", key))
+					current->socketname = strdup(value);
 				else if (!strcasecmp("LocalMode", key) ||
 						!strcasecmp("UseCharset", key) ||
 						!strcasecmp("UseRestrictAddr", key) ||
@@ -594,12 +605,7 @@ load_config()
 			lsock->instances = HTTPD_NUMBER;
 		if (lsock->usessl)
 		{
-#ifdef		HANDLE_SSL
-			if (!lsock->sslcertificate)
-				lsock->sslcertificate = config.sslcertificate;
-			if (!lsock->sslprivatekey)
-				lsock->sslprivatekey = config.sslprivatekey;
-#else		/* HANDLE_SSL */
+#ifndef		HANDLE_SSL
 			/* Sanity check */
 			errx(1, "SSL support configured but not compiled in");
 #endif		/* HANDLE_SSL */
@@ -1541,28 +1547,29 @@ process_request()
 	}
 	if (cursock->socketname)
 	{
+		/* for socket with hostname - only use matching vhost section */
 		for (current = config.virtual; current; current = current->next)
-			if (!strcasecmp(cursock->socketname, current->hostname))
+			if (!strcasecmp(cursock->socketname, current->socketname))
 				break;
+		/* if no match was found: fall-through to system default */
 	}
 	else
 	{
+		/* check all vhosts */
 		for (current = config.virtual; current; current = current->next)
 		{
+			if (current->socketname)
+				continue;
 			if (!strcasecmp(http_host_long, current->hostname) ||
-				!strcasecmp(http_host, current->hostname))
-			{
+					!strcasecmp(http_host, current->hostname))
 				break;
-			}
 			else if (current->aliases)
 			{
 				char	**aliasp;
 				for (aliasp = current->aliases; *aliasp; aliasp++)
-				{
 					if (!strcasecmp(http_host_long, *aliasp) ||
-						!strcasecmp(http_host, *aliasp))
+							!strcasecmp(http_host, *aliasp))
 						break;
-				}
 				if (*aliasp)
 					break;
 			}

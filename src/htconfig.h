@@ -22,6 +22,7 @@ extern struct virtual {
 	char *		logreferer;
 	char **		indexfiles;
 	char **		aliases;
+	char *		socketname;
 	uid_t		userid;
 	gid_t		groupid;
 	FILE *		openaccess;
@@ -74,8 +75,6 @@ extern struct configuration {
 	unsigned	uselocalscript: 1;
 	unsigned	usednslookup: 1;
 	unsigned	padding: 4;
-	char *		sslcertificate;
-	char *		sslprivatekey;
 	char *		virtualhostdir;
 	char *		defaultcharset;
 	struct virtual *	system;
