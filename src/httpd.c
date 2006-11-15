@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.247 2006/11/12 22:22:41 johans Exp $ */
+/* $Id: httpd.c,v 1.248 2006/11/15 17:56:44 johans Exp $ */
 
 #include	"config.h"
 
@@ -106,7 +106,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.247 2006/11/12 22:22:41 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.248 2006/11/15 17:56:44 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1549,7 +1549,8 @@ process_request()
 	{
 		/* for socket with hostname - only use matching vhost section */
 		for (current = config.virtual; current; current = current->next)
-			if (!strcasecmp(cursock->socketname, current->socketname))
+			if (current->socketname &&
+					!strcasecmp(cursock->socketname, current->socketname))
 				break;
 		/* if no match was found: fall-through to system default */
 	}
