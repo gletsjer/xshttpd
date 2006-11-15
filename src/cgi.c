@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.123 2006/11/02 14:43:56 johans Exp $ */
+/* $Id: cgi.c,v 1.124 2006/11/15 17:56:28 johans Exp $ */
 
 #include	"config.h"
 
@@ -13,6 +13,7 @@
 #include	<fcntl.h>
 #include	<sys/signal.h>
 #include	<sys/stat.h>
+#include	<sys/wait.h>
 
 #include	<stdio.h>
 #include	<errno.h>
@@ -113,7 +114,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				head[HEADSIZE];
 	const	char		*argv1, *header;
 	int			p[2], r[2], nph, count, dossi,
-				written;
+				written, chldstat;
 	unsigned	int	left;
 #ifdef		HANDLE_SSL
 	char			inbuf[RWBUFSIZE];
@@ -474,7 +475,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				chunked = 1;
 		}
 	}
-	else
+	else /* nph */
 	{
 		for (;;)
 		{
@@ -584,4 +585,5 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	action.sa_flags = 0;
 	sigaction(SIGALRM, &action, NULL);
 	alarm(left);
+	waitpid(child, &chldstat, 0);
 }
