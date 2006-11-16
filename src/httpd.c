@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.248 2006/11/15 17:56:44 johans Exp $ */
+/* $Id: httpd.c,v 1.249 2006/11/16 18:23:49 johans Exp $ */
 
 #include	"config.h"
 
@@ -106,7 +106,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.248 2006/11/15 17:56:44 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.249 2006/11/16 18:23:49 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -261,7 +261,7 @@ load_config()
 	config.scriptpriority = PRIO_MAX;
 	config.virtualhostdir = NULL;
 
-	defaultindexfiles = malloc(4);
+	defaultindexfiles = malloc(4 * sizeof(char *));
 	defaultindexfiles[0] = strdup("index.html");
 	defaultindexfiles[1] = strdup("index.htm");
 	defaultindexfiles[2] = strdup("index.php");
