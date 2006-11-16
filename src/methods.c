@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.182 2006/11/02 21:03:31 johans Exp $ */
+/* $Id: methods.c,v 1.183 2006/11/16 21:08:10 johans Exp $ */
 
 #include	"config.h"
 
@@ -1527,8 +1527,13 @@ check_redirect(FILE *fp, const char *filename)
 {
 	int	size;
 	char	*p, *command, *subst,
-		*host, *orig, *repl,
-		line[XS_PATH_MAX], total[XS_PATH_MAX];
+		*host, *orig, *repl, *args,
+		line[XS_PATH_MAX], total[XS_PATH_MAX], request[XS_PATH_MAX];
+
+	if ((args = getenv("QUERY_STRING")))
+		snprintf(request, XS_PATH_MAX, "%s?%s", filename, args);
+	else
+		strlcpy(request, filename, XS_PATH_MAX);
 
 	while (fgets(line, XS_PATH_MAX, fp))
 	{
@@ -1545,7 +1550,7 @@ check_redirect(FILE *fp, const char *filename)
 		{
 			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
 				/* continue */;
-			if (pcre_match(filename, orig) > 0)
+			if (pcre_match(request, orig) > 0)
 			{
 				fclose(fp);
 				return 0;
@@ -1557,7 +1562,7 @@ check_redirect(FILE *fp, const char *filename)
 				/* continue */;
 			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
 				/* continue */;
-			if ((subst = pcre_subst(filename, orig, repl)) &&
+			if ((subst = pcre_subst(request, orig, repl)) &&
 					*subst)
 			{
 				redirect(subst, 'R' == command[0], 0);
@@ -1572,7 +1577,7 @@ check_redirect(FILE *fp, const char *filename)
 				/* continue */;
 			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
 				/* continue */;
-			if ((subst = pcre_subst(filename, orig, repl)) &&
+			if ((subst = pcre_subst(request, orig, repl)) &&
 					*subst)
 			{
 				do_get(subst);
@@ -1589,7 +1594,7 @@ check_redirect(FILE *fp, const char *filename)
 				/* continue */;
 			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
 				/* continue */;
-			if ((subst = pcre_subst(filename, orig, repl)) &&
+			if ((subst = pcre_subst(request, orig, repl)) &&
 					*subst)
 			{
 				do_proxy(host, subst);
@@ -1604,7 +1609,7 @@ check_redirect(FILE *fp, const char *filename)
 			if (size && '/' == command[size - 1])
 				command[size - 1] = '\0';
 			snprintf(total, XS_PATH_MAX, "%s/%s",
-				command, filename);
+				command, request);
 			redirect(total, 0, 1);
 			fclose(fp);
 			return 1;
