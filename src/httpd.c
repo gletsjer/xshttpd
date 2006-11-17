@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.249 2006/11/16 18:23:49 johans Exp $ */
+/* $Id: httpd.c,v 1.250 2006/11/17 16:44:36 johans Exp $ */
 
 #include	"config.h"
 
@@ -106,7 +106,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.249 2006/11/16 18:23:49 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.250 2006/11/17 16:44:36 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1547,11 +1547,34 @@ process_request()
 	}
 	if (cursock->socketname)
 	{
-		/* for socket with hostname - only use matching vhost section */
+		/* for socket with sockname - only use matching vhost section */
 		for (current = config.virtual; current; current = current->next)
 			if (current->socketname &&
 					!strcasecmp(cursock->socketname, current->socketname))
-				break;
+			{
+				/* found matching socketname - look for matching hostname */
+				/* this duplicates code below: maybe use a function? */
+				if (current->hostname &&
+					(!strcasecmp(http_host_long, current->hostname) ||
+					 !strcasecmp(http_host, current->hostname)))
+					break;
+				else if (current->aliases)
+				{
+					char	**aliasp;
+					for (aliasp = current->aliases; *aliasp; aliasp++)
+						if (!strcasecmp(http_host_long, *aliasp) ||
+								!strcasecmp(http_host, *aliasp))
+							break;
+					if (*aliasp)
+						break;
+				}
+			}
+		if (!current)
+			/* if no hostname matches - find the first matching socketname */
+			for (current = config.virtual; current; current = current->next)
+				if (current->socketname &&
+						!strcasecmp(cursock->socketname, current->socketname))
+					break;
 		/* if no match was found: fall-through to system default */
 	}
 	else
