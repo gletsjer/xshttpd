@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.183 2006/11/16 21:08:10 johans Exp $ */
+/* $Id: methods.c,v 1.184 2006/11/17 16:34:10 johans Exp $ */
 
 #include	"config.h"
 
@@ -1334,7 +1334,10 @@ loadcompresstypes()
 	}
 	path = calcpath(COMPRESS_METHODS);
 	if (!(methods = fopen(path, "r")))
+	{
 		warn("fopen(`%s' [read])", path);
+		return;
+	}
 	prev = NULL;
 	while (fgets(line, LINEBUFSIZE, methods))
 	{
