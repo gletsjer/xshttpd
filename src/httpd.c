@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-/* $Id: httpd.c,v 1.250 2006/11/17 16:44:36 johans Exp $ */
+/* $Id: httpd.c,v 1.251 2006/11/20 17:04:55 johans Exp $ */
 
 #include	"config.h"
 
@@ -106,7 +106,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.250 2006/11/17 16:44:36 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.251 2006/11/20 17:04:55 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1717,6 +1717,13 @@ standalone_socket(int id)
 	temp = 1;
 	if ((setsockopt(sd, SOL_SOCKET, SO_KEEPALIVE, &temp, sizeof(temp))) == -1)
 		err(1, "setsockopt(KEEPALIVE)");
+
+	temp = RWBUFSIZE;
+	if ((setsockopt(sd, SOL_SOCKET, SO_SNDBUF, &temp, sizeof(temp))) == -1)
+		err(1, "setsockopt(SNDBUF)");
+	temp = RWBUFSIZE;
+	if ((setsockopt(sd, SOL_SOCKET, SO_RCVBUF, &temp, sizeof(temp))) == -1)
+		err(1, "setsockopt(SNDBUF)");
 
 #ifdef		HAVE_GETADDRINFO
 	if (bind(sd, res->ai_addr, res->ai_addrlen) == -1)

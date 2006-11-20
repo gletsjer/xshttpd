@@ -3,7 +3,7 @@
 /* Based on xs-httpd/2.3 */
 #include	<sys/types.h>
 
-#define		RWBUFSIZE	8192
+#define		RWBUFSIZE	4096
 #define		MYBUFSIZ	1024
 #define		LINEBUFSIZE	4096
 #define		HEADSIZE	10240

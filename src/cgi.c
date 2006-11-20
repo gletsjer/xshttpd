@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.124 2006/11/15 17:56:28 johans Exp $ */
+/* $Id: cgi.c,v 1.125 2006/11/20 17:04:55 johans Exp $ */
 
 #include	"config.h"
 
@@ -530,11 +530,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			written = secwrite(temp, writetodo);
 			if (written < 0)
 			{
-				if ((errno == EINTR) || (errno == EWOULDBLOCK))
-				{
-					usleep(300);
-					continue;
-				}
 				secprintf("[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
 					strerror(errno), fileno(stdout), temp,
 					writetodo);

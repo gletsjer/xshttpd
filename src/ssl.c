@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.28 2006/10/27 14:43:12 johans Exp $ */
+/* $Id: ssl.c,v 1.29 2006/11/20 17:04:55 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -345,8 +345,11 @@ secread(int fd, void *buf, size_t count)
 }
 
 int
-secwrite(const void *buf, size_t count)
+secwrite(const char *buf, size_t count)
 {
+	if (!count)
+		return -1;
+
 	if (chunked)
 	{
 		char	head[16];
@@ -356,17 +359,23 @@ secwrite(const void *buf, size_t count)
 		if (cursock->usessl)
 		{
 			SSL_write(cursock->ssl, head, len);
-			len = SSL_write(cursock->ssl, buf, count);
+			SSL_write(cursock->ssl, buf, count);
 			SSL_write(cursock->ssl, "\r\n", 2);
+			return count;
 		}
 		else
 #endif		/* HANDLE_SSL */
 		{
 			write(1, head, len);
-			len = write(1, buf, count);
+			while ((len = write(1, buf, count)) < 0)
+				if (errno == EWOULDBLOCK || errno == EINTR)
+					usleep(300);
+				else
+					break;
 			write(1, "\r\n", 2);
+			return len;
 		}
-		return len;
+		/* NOTREACHED */
 	}
 
 #ifdef		HANDLE_SSL
