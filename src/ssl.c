@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.29 2006/11/20 17:04:55 johans Exp $ */
+/* $Id: ssl.c,v 1.30 2006/11/20 17:34:00 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -352,20 +352,26 @@ secwrite(const char *buf, size_t count)
 
 	if (chunked)
 	{
-		char	head[16];
-		int	len = snprintf(head, 16, "%x\r\n", count);
-
 #ifdef		HANDLE_SSL
 		if (cursock->usessl)
 		{
-			SSL_write(cursock->ssl, head, len);
-			SSL_write(cursock->ssl, buf, count);
-			SSL_write(cursock->ssl, "\r\n", 2);
+			int	len = count + 20;
+			char	*message = malloc(len);
+
+			len = snprintf(message, 18, "%x\r\n", count);
+			memcpy(message + len, buf, count); len += count;
+			memcpy(message + len, "\r\n", 2);  len += 2;
+			SSL_write(cursock->ssl, message, len);
+			free(message);
 			return count;
 		}
 		else
 #endif		/* HANDLE_SSL */
 		{
+			int	len;
+			char	head[16];
+
+			len = snprintf(head, sizeof(head), "%x\r\n", count);
 			write(1, head, len);
 			while ((len = write(1, buf, count)) < 0)
 				if (errno == EWOULDBLOCK || errno == EINTR)
