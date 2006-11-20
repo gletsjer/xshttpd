@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.30 2006/11/20 17:34:00 johans Exp $ */
+/* $Id: ssl.c,v 1.31 2006/11/20 19:15:21 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -44,12 +44,8 @@ setreadmode(int mode, int reset)
 		netbuf[netbufind] = '\0';
 	}
 #ifdef		HANDLE_SSL
-	if ((readerror = ERR_get_error()))
-	{
+	while ((readerror = ERR_get_error()))
 		warnx("SSL Error: %s", ERR_reason_error_string(readerror));
-		error("400 SSL Error");
-		return;
-	}
 	if (cursock->ssl)
 		setenv("SSL_CIPHER", SSL_get_cipher(cursock->ssl), 1);
 #endif		/* HANDLE_SSL */
@@ -347,50 +343,69 @@ secread(int fd, void *buf, size_t count)
 int
 secwrite(const char *buf, size_t count)
 {
+	int	len;
+
 	if (!count)
-		return -1;
-
-	if (chunked)
-	{
-#ifdef		HANDLE_SSL
-		if (cursock->usessl)
-		{
-			int	len = count + 20;
-			char	*message = malloc(len);
-
-			len = snprintf(message, 18, "%x\r\n", count);
-			memcpy(message + len, buf, count); len += count;
-			memcpy(message + len, "\r\n", 2);  len += 2;
-			SSL_write(cursock->ssl, message, len);
-			free(message);
-			return count;
-		}
-		else
-#endif		/* HANDLE_SSL */
-		{
-			int	len;
-			char	head[16];
-
-			len = snprintf(head, sizeof(head), "%x\r\n", count);
-			write(1, head, len);
-			while ((len = write(1, buf, count)) < 0)
-				if (errno == EWOULDBLOCK || errno == EINTR)
-					usleep(300);
-				else
-					break;
-			write(1, "\r\n", 2);
-			return len;
-		}
-		/* NOTREACHED */
-	}
+		return 0;
 
 #ifdef		HANDLE_SSL
 	if (cursock->usessl)
-		return SSL_write(cursock->ssl, buf, count);
+	{
+		int	ret, s_err;
+		char	*message = NULL;
+
+		len = count;
+		if (chunked)
+		{
+			len += 20;
+			message = malloc(len);
+			len = snprintf(message, 18, "%x\r\n", count);
+			memcpy(message + len, buf, count); len += count;
+			memcpy(message + len, "\r\n", 2);  len += 2;
+		}
+		while ((ret = SSL_write(cursock->ssl, message ? message : buf, len)) <= 0)
+		{
+			s_err = SSL_get_error(cursock->ssl, ret);
+			if (SSL_ERROR_WANT_WRITE == s_err)
+			{
+				usleep(200);
+				continue;
+			}
+			else if (SSL_ERROR_SYSCALL == s_err)
+			{
+				warn("SSL_write error");
+				break;
+			}
+			else
+			{
+				warnx("SSL_write error: %s",
+					ERR_error_string(s_err, NULL));
+				break;
+			}
+			/* NOTREACHED */
+		}
+		if (chunked)
+			free(message);
+		return count;
+	}
 	else
 #endif		/* HANDLE_SSL */
-		return write(fileno(stdout), buf, count);
-
+	{
+		if (chunked)
+		{
+			char	head[16];
+			len = snprintf(head, sizeof(head), "%x\r\n", count);
+			write(1, head, len);
+		}
+		while ((len = write(1, buf, count)) < 0)
+			if (errno == EWOULDBLOCK || errno == EINTR)
+				usleep(200);
+			else
+				break;
+		if (chunked)
+			write(1, "\r\n", 2);
+		return len;
+	}
 }
 
 int
