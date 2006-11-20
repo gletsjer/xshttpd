@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.31 2006/11/20 19:15:21 johans Exp $ */
+/* $Id: ssl.c,v 1.32 2006/11/20 22:32:04 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -317,27 +317,55 @@ loadssl()
 int
 secread(int fd, void *buf, size_t count)
 {
-	int	readerror;
+	int	ret;
+
+	if (!count)
+		return 0;
 
 #ifdef		HANDLE_SSL
 	if (cursock->ssl && fd == 0)
 	{
-		if ((readerror = SSL_read(cursock->ssl, buf, count)) < 0)
-			warnx("SSL read error: %s",
-				ERR_reason_error_string(readerror));
+		int	s_err;
+
+		while ((ret = SSL_read(cursock->ssl, buf, count)) <= 0)
+		{
+			s_err = SSL_get_error(cursock->ssl, ret);
+			if (SSL_ERROR_WANT_WRITE == s_err)
+			{
+				usleep(200);
+				continue;
+			}
+			else if (SSL_ERROR_SYSCALL == s_err)
+			{
+				warn("SSL_read error");
+				break;
+			}
+			else
+			{
+				warnx("SSL_read error: %s",
+					ERR_error_string(s_err, NULL));
+				break;
+			}
+		}
 	}
 	else
 #endif		/* HANDLE_SSL */
 	{
-		if (((readerror = read(fd, buf, count)) < 0) &&
-				(errno != ECONNRESET))
-			warn("Read error");
+		while (((ret = read(fd, buf, count)) < 0))
+		{
+			if (errno == EWOULDBLOCK || errno == EINTR)
+				usleep(200);
+			else if (errno == ECONNRESET)
+				break;
+			else
+			{
+				warn("Read error");
+				break;
+			}
+		}
 	}
 
-	if (!readerror)
-		usleep(300);
-
-	return readerror;
+	return ret;
 }
 
 int
