@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.33 2006/11/21 16:10:42 johans Exp $ */
+/* $Id: ssl.c,v 1.34 2006/11/21 16:43:58 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -372,7 +372,8 @@ int
 secwrite(const char *buf, size_t count)
 {
 	int	len, ret;
-	char	*message = NULL;
+	char	*szbuf = NULL;
+	const char	*message;
 
 	if (!count)
 		return 0;
@@ -380,20 +381,24 @@ secwrite(const char *buf, size_t count)
 	if (chunked)
 	{
 		len = count + 20;
-		message = malloc(len);
-		len = snprintf(message, 18, "%x\r\n", count);
-		memcpy(message + len, buf, count); len += count;
-		memcpy(message + len, "\r\n", 2);  len += 2;
+		szbuf = malloc(len);
+		len = snprintf(szbuf, 18, "%x\r\n", count);
+		memcpy(szbuf + len, buf, count); len += count;
+		memcpy(szbuf + len, "\r\n", 2);  len += 2;
+		message = szbuf;
 	}
 	else
+	{
 		len = count;
+		message = buf;
+	}
 
 #ifdef		HANDLE_SSL
 	if (cursock->usessl)
 	{
 		int	s_err;
 
-		while ((ret = SSL_write(cursock->ssl, message ? message : buf, len)) <= 0)
+		while ((ret = SSL_write(cursock->ssl, message, len)) <= 0)
 		{
 			s_err = SSL_get_error(cursock->ssl, ret);
 			if (SSL_ERROR_WANT_WRITE == s_err)
@@ -418,12 +423,12 @@ secwrite(const char *buf, size_t count)
 	else
 #endif		/* HANDLE_SSL */
 	{
-		while ((ret = write(1, message ? message : buf, len)) < len)
+		while ((ret = write(1, message, len)) < len)
 		{
 			if (ret >= 0)
 			{
 				len -= ret;
-				buf += ret;
+				message += ret;
 				usleep(200);
 			}
 			else if (errno == EWOULDBLOCK || errno == EINTR)
@@ -434,7 +439,7 @@ secwrite(const char *buf, size_t count)
 	}
 
 	if (chunked)
-		free(message);
+		free(szbuf);
 	return count;
 }
 
