@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.32 2006/11/20 22:32:04 johans Exp $ */
+/* $Id: ssl.c,v 1.33 2006/11/21 16:10:42 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -371,26 +371,28 @@ secread(int fd, void *buf, size_t count)
 int
 secwrite(const char *buf, size_t count)
 {
-	int	len;
+	int	len, ret;
+	char	*message = NULL;
 
 	if (!count)
 		return 0;
 
+	if (chunked)
+	{
+		len = count + 20;
+		message = malloc(len);
+		len = snprintf(message, 18, "%x\r\n", count);
+		memcpy(message + len, buf, count); len += count;
+		memcpy(message + len, "\r\n", 2);  len += 2;
+	}
+	else
+		len = count;
+
 #ifdef		HANDLE_SSL
 	if (cursock->usessl)
 	{
-		int	ret, s_err;
-		char	*message = NULL;
+		int	s_err;
 
-		len = count;
-		if (chunked)
-		{
-			len += 20;
-			message = malloc(len);
-			len = snprintf(message, 18, "%x\r\n", count);
-			memcpy(message + len, buf, count); len += count;
-			memcpy(message + len, "\r\n", 2);  len += 2;
-		}
 		while ((ret = SSL_write(cursock->ssl, message ? message : buf, len)) <= 0)
 		{
 			s_err = SSL_get_error(cursock->ssl, ret);
@@ -412,28 +414,28 @@ secwrite(const char *buf, size_t count)
 			}
 			/* NOTREACHED */
 		}
-		if (chunked)
-			free(message);
-		return count;
 	}
 	else
 #endif		/* HANDLE_SSL */
 	{
-		if (chunked)
+		while ((ret = write(1, message ? message : buf, len)) < len)
 		{
-			char	head[16];
-			len = snprintf(head, sizeof(head), "%x\r\n", count);
-			write(1, head, len);
-		}
-		while ((len = write(1, buf, count)) < 0)
-			if (errno == EWOULDBLOCK || errno == EINTR)
+			if (ret >= 0)
+			{
+				len -= ret;
+				buf += ret;
+				usleep(200);
+			}
+			else if (errno == EWOULDBLOCK || errno == EINTR)
 				usleep(200);
 			else
 				break;
-		if (chunked)
-			write(1, "\r\n", 2);
-		return len;
+		}
 	}
+
+	if (chunked)
+		free(message);
+	return count;
 }
 
 int
