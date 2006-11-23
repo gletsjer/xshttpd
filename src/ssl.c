@@ -1,6 +1,6 @@
 /* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
 
-/* $Id: ssl.c,v 1.34 2006/11/21 16:43:58 johans Exp $ */
+/* $Id: ssl.c,v 1.35 2006/11/23 17:35:20 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -371,75 +371,78 @@ secread(int fd, void *buf, size_t count)
 int
 secwrite(const char *buf, size_t count)
 {
-	int	len, ret;
-	char	*szbuf = NULL;
-	const char	*message;
+	int	i, len[3], ret;
+	static char	head[20];
+	const char	*message[3];
 
 	if (!count)
 		return 0;
 
 	if (chunked)
 	{
-		len = count + 20;
-		szbuf = malloc(len);
-		len = snprintf(szbuf, 18, "%x\r\n", count);
-		memcpy(szbuf + len, buf, count); len += count;
-		memcpy(szbuf + len, "\r\n", 2);  len += 2;
-		message = szbuf;
+		i = 0;
+		len[0] = snprintf(head, 20, "%x\r\n", count);
+		len[1] = count;
+		len[2] = 2;
+		message[0] = head;
+		message[1] = buf;
+		message[2] = "\r\n";
 	}
 	else
 	{
-		len = count;
-		message = buf;
+		i = 2;
+		len[2] = count;
+		message[2] = buf;
 	}
 
+	for (; i < 3; i++)
+	{
 #ifdef		HANDLE_SSL
-	if (cursock->usessl)
-	{
-		int	s_err;
-
-		while ((ret = SSL_write(cursock->ssl, message, len)) <= 0)
+		if (cursock->usessl)
 		{
-			s_err = SSL_get_error(cursock->ssl, ret);
-			if (SSL_ERROR_WANT_WRITE == s_err)
+			int	s_err;
+
+			while ((ret = SSL_write(cursock->ssl, message[i], len[i])) <= 0)
 			{
-				usleep(200);
-				continue;
+				s_err = SSL_get_error(cursock->ssl, ret);
+				if (SSL_ERROR_WANT_WRITE == s_err)
+				{
+					usleep(200);
+					continue;
+				}
+				else if (SSL_ERROR_SYSCALL == s_err)
+				{
+					warn("SSL_write error");
+					break;
+				}
+				else
+				{
+					warnx("SSL_write error: %s",
+						ERR_error_string(s_err, NULL));
+					break;
+				}
+				/* NOTREACHED */
 			}
-			else if (SSL_ERROR_SYSCALL == s_err)
-			{
-				warn("SSL_write error");
-				break;
-			}
-			else
-			{
-				warnx("SSL_write error: %s",
-					ERR_error_string(s_err, NULL));
-				break;
-			}
-			/* NOTREACHED */
 		}
-	}
-	else
+		else
 #endif		/* HANDLE_SSL */
-	{
-		while ((ret = write(1, message, len)) < len)
 		{
-			if (ret >= 0)
+			while ((ret = write(1, message[i], len[i])) < len[i])
 			{
-				len -= ret;
-				message += ret;
-				usleep(200);
+				if (ret >= 0)
+				{
+					len[i] -= ret;
+					message[i] += ret;
+					usleep(200);
+				}
+				else if (errno == EWOULDBLOCK || errno == EINTR)
+					usleep(200);
+				else
+					break;
 			}
-			else if (errno == EWOULDBLOCK || errno == EINTR)
-				usleep(200);
-			else
-				break;
 		}
 	}
 
-	if (chunked)
-		free(szbuf);
 	return count;
 }
 
