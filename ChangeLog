@@ -1,10 +1,25 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.4 beta 19
+- Fix another error in handling of writes
+- Fix error handling for reading as well
+
+Changes since 3.4 beta 18
+- Fix write counter to avoid problems with HTTP/1.1 and non-blocking sockets
+- Fix error handling for large writes
+
+Changes since 3.4 beta 17
+- Fix bug with default indexfiles on 64-bits arch
+- Handle query_string in redirect parsing
+- Gracefully handle missing compress.methods
+- Allow multiple vhost entries for one SocketName
+
 Changes since 3.4 beta 16
 - SSL certificate files must be listed in the Socket section (not global)
 - SocketName can now link with multiple Virtual entries (using SocketName)
 - Virtual entries linked with SocketName won't be available on other sockets
+- Wait for CGI binaries to terminate properly
 
 Changes since 3.4 beta 15
 - Increase (header) line buffer size
