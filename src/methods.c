@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.184 2006/11/17 16:34:10 johans Exp $ */
+/* $Id: methods.c,v 1.185 2006/12/01 21:14:54 johans Exp $ */
 
 #include	"config.h"
 
@@ -667,7 +667,6 @@ do_get(char *params)
 {
 	char			*temp, *file, *cgi, *question,
 				base[XS_PATH_MAX], orgbase[XS_PATH_MAX],
-				orgparams[XS_PATH_MAX],
 				total[XS_PATH_MAX], temppath[XS_PATH_MAX];
 	const	char		*filename, *http_host;
 	int			fd, wasdir, tmp,
@@ -681,7 +680,6 @@ do_get(char *params)
 	alarm(240);
 
 	/* Sanitize the requested path */
-	strlcpy(orgparams, params, XS_PATH_MAX);
 	question = strchr(params, '?');
 	while ((temp = strstr(params, "//")))
 		if (!question || (temp < question))
@@ -960,10 +958,10 @@ do_get(char *params)
 	if (check_file_redirect(base, filename))
 		return;
 	if ((xsfile = find_file(orgbase, base, ".redir")) &&
-			check_redirect(xsfile, params))
+			check_redirect(xsfile, real_path))
 		return;
 	if ((xsfile = find_file(orgbase, base, ".xsmatch")) &&
-			check_location(xsfile, params))
+			check_location(xsfile, real_path))
 		return;
 
 	/* Check file permissions */
@@ -1535,8 +1533,11 @@ check_redirect(FILE *fp, const char *filename)
 
 	if ((args = getenv("QUERY_STRING")))
 		snprintf(request, XS_PATH_MAX, "%s?%s", filename, args);
+	else if ((args = getenv("PATH_INFO")))
+		snprintf(request, XS_PATH_MAX, "%s/%s", filename, args);
 	else
 		strlcpy(request, filename, XS_PATH_MAX);
+
 
 	while (fgets(line, XS_PATH_MAX, fp))
 	{
