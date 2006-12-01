@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: cgi.c,v 1.125 2006/11/20 17:04:55 johans Exp $ */
+/* $Id: cgi.c,v 1.126 2006/12/01 21:14:30 johans Exp $ */
 
 #include	"config.h"
 
@@ -113,9 +113,10 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				input[RWBUFSIZE], line[LINEBUFSIZE],
 				head[HEADSIZE];
 	const	char		*argv1, *header;
-	int			p[2], r[2], nph, count, dossi,
+	int			p[2], r[2], nph, dossi,
 				written, chldstat;
 	unsigned	int	left;
+	size_t			count;
 #ifdef		HANDLE_SSL
 	char			inbuf[RWBUFSIZE];
 	int			q[2];
@@ -240,7 +241,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 #endif		/* HAVE_SETSID */
 
-		for (count = 3; count < 64; count++)
+		for (count = 3; count < FD_SETSIZE; count++)
 			close(count);
 
 		/* euid should be set, now fix uid */
@@ -333,7 +334,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 						q[1], writetodo);
 					goto END;
 				}
-				else if (written < 0)
+				else if (written > 0)
 					offset += written;
 			}
 			writetodo -= tobewritten;
