@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.185 2006/12/01 21:14:54 johans Exp $ */
+/* $Id: methods.c,v 1.186 2006/12/03 09:30:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -326,8 +326,9 @@ static void
 sendcompressed(int fd, const char *method)
 {
 	pid_t		pid;
-	int		count, processed;
+	int		processed;
 	char	prefix[] = TEMPORARYPREFIX;
+	size_t		count;
 
 #ifdef		HAVE_MKSTEMP
 	if (!(processed = mkstemp(prefix)))
@@ -383,7 +384,7 @@ sendcompressed(int fd, const char *method)
 		}
 #endif		/* HAVE_SETSID */
 		dup2(fd, 0); dup2(processed, 1);
-		for (count = 3; count < 64; count++)
+		for (count = 3; count < FD_SETSIZE; count++)
 			close(count);
 		(void) execl(method, method, NULL);
 		error("500 Cannot start conversion program");
