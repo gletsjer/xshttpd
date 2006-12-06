@@ -1,3 +1,6 @@
+/* Copyright (C) 2006 by Johan van Selst (johans@stack.nl) */
+/* $Id: fcgi.c,v 1.8 2006/12/06 20:56:53 johans Exp $ */
+
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>

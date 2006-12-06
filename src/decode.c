@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-
-/* $Id: decode.c,v 1.6 2006/05/01 19:45:38 johans Exp $ */
+/* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
+/* $Id: decode.c,v 1.7 2006/12/06 20:56:53 johans Exp $ */
 
 #include	<stdio.h>
 #include	<stdlib.h>

@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-
-/* $Id: httpd.c,v 1.251 2006/11/20 17:04:55 johans Exp $ */
+/* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
+/* $Id: httpd.c,v 1.252 2006/12/06 20:56:53 johans Exp $ */
 
 #include	"config.h"
 
@@ -106,7 +106,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.251 2006/11/20 17:04:55 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.252 2006/12/06 20:56:53 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 

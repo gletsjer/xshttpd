@@ -1,5 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: httpdc.c,v 1.26 2006/11/02 21:01:02 johans Exp $ */
+/* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
+/* $Id: httpdc.c,v 1.27 2006/12/06 20:56:53 johans Exp $ */
 
 #include	"config.h"
 

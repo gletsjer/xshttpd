@@ -1,6 +1,5 @@
-/* Copyright (C) 2003-2005 by Johan van Selst (johans@stack.nl) */
-
-/* $Id: ssl.c,v 1.35 2006/11/23 17:35:20 johans Exp $ */
+/* Copyright (C) 2003-2006 by Johan van Selst (johans@stack.nl) */
+/* $Id: ssl.c,v 1.36 2006/12/06 20:56:56 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<stdio.h>

@@ -1,5 +1,5 @@
-/* Copyright (C) 2005 by Johan van Selst (johans@stack.nl) */
-/* $Id: ldap.c,v 1.8 2006/08/22 17:32:39 johans Exp $ */
+/* Copyright (C) 2005-2006 by Johan van Selst (johans@stack.nl) */
+/* $Id: ldap.c,v 1.9 2006/12/06 20:56:53 johans Exp $ */
 
 #include	"config.h"
 #include	"ldap.h"

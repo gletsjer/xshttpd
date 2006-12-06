@@ -1,5 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: methods.c,v 1.186 2006/12/03 09:30:39 johans Exp $ */
+/* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
+/* $Id: methods.c,v 1.187 2006/12/06 20:56:53 johans Exp $ */
 
 #include	"config.h"
 

@@ -1,5 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: clearxs.c,v 1.15 2006/08/10 14:13:34 johans Exp $ */
+/* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
+/* $Id: clearxs.c,v 1.16 2006/12/06 20:56:53 johans Exp $ */
 
 #include	"config.h"
 

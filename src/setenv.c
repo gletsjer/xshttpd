@@ -1,4 +1,6 @@
 /* Copyright (C) 1994, 1996 by Sven Berkvens (sven@stack.nl) */
+/* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
+/* $Id: setenv.c,v 1.14 2006/12/06 20:56:55 johans Exp $ */
 
 #include	"config.h"
 

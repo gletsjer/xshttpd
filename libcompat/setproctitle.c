@@ -1,5 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* $Id: setproctitle.c,v 1.3 2006/04/20 15:40:13 johans Exp $ */
+/* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
+/* $Id: setproctitle.c,v 1.4 2006/12/06 20:56:56 johans Exp $ */
 
 #include	"config.h"
 

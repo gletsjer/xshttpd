@@ -1,5 +1,5 @@
-/* Copyright (C) 2005 by Johan van Selst (johans@stack.nl) */
-/* $Id: pcre.c,v 1.5 2006/06/25 11:46:31 johans Exp $ */
+/* Copyright (C) 2005-2006 by Johan van Selst (johans@stack.nl) */
+/* $Id: pcre.c,v 1.6 2006/12/06 20:56:55 johans Exp $ */
 
 #include	"config.h"
 #include	"pcre.h"

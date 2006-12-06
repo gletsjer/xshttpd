@@ -1,4 +1,7 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
+/* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
+/* $Id: xspasswd.c,v 1.15 2006/12/06 20:56:56 johans Exp $ */
+
 #include	"config.h"
 
 #include	<stdio.h>
