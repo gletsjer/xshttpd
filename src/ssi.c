@@ -1,4 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
+/* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
+/* $Id: ssi.c,v 1.59 2006/12/06 20:56:43 johans Exp $ */
 
 #include	"config.h"
 
@@ -811,6 +813,28 @@ dir_if(char *here, size_t *size)
 	else if (!strncasecmp(here, "referer ", 8))
 		ssiarray[++ssioutput] = match_list(here + 8,
 			getenv("HTTP_REFERER"));
+	else if (!strncasecmp(here, "var=", 4))
+	{
+		char	*sp = strchr(here += 4, ' ');
+
+		if (!sp || !sp[1])
+		{
+			secprintf("[Missing if argument]\n");
+			*search = '-'; return(ERR_CONT);
+		}
+		*sp = '\0';
+		/* handle optional quotes */
+		if ('"' == *here && '"' == *(sp-1))
+		{
+			here++;
+			*--sp = '\0';
+			ssiarray[++ssioutput] = match_list(sp + 2, getenv(here));
+			*sp++ = '"';
+		}
+		else
+			ssiarray[++ssioutput] = match_list(sp + 1, getenv(here));
+		*sp = ' ';
+	}
 	else
 	{
 		secprintf("[Unknown if subtype]\n");
