@@ -1,5 +1,6 @@
+/* Copyright (C) 2006 by Remco van der Vossen (wich@stack.nl) */
 /* Copyright (C) 2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: fcgi.c,v 1.8 2006/12/06 20:56:53 johans Exp $ */
+/* $Id: fcgi.c,v 1.9 2006/12/06 21:02:16 johans Exp $ */
 
 #include <stdio.h>
 #include <stddef.h>
