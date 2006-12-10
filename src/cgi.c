@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: cgi.c,v 1.127 2006/12/06 20:56:53 johans Exp $ */
+/* $Id: cgi.c,v 1.128 2006/12/10 15:23:02 johans Exp $ */
 
 #include	"config.h"
 
@@ -192,7 +192,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			goto END;
 		}
 		if (expect && strcasestr(expect, "100-continue"))
-			secputs("100 Continue\r\n\r\n");
+			secprintf("%s 100 Continue\r\n\r\n", version);
 	}
 #endif		/* HANDLE_SSL */
 
