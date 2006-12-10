@@ -1,6 +1,13 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.4 beta 20
+- Workaround for file descriptor leak
+- Fix ssl post writing error
+- Fix path considered by redir and xsmatch
+- Check for environment variables in SSI, with #if var="VAR" pattern(s)
+- Fix 100 Continue response
+
 Changes since 3.4 beta 19
 - Fix another error in handling of writes
 - Fix error handling for reading as well

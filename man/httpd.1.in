@@ -510,6 +510,10 @@ how arguments are passed to HTML documents.
 If any of the \fIpatterns\fP match the URL from which the client was
 refered to this page, the query evaluates to true, otherwise it
 evaluates to false.
+.TP
+\fBvar\fP="\fICGIVARIABLE\fP"
+The value of the environment variable CGIVARIABLE will be checked
+against the given pattern(s).
 .RE
 .LP
 Patterns are simple wildcard patterns (case\-insensitive).
