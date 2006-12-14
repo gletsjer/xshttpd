@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.187 2006/12/06 20:56:53 johans Exp $ */
+/* $Id: methods.c,v 1.188 2006/12/14 20:03:05 johans Exp $ */
 
 #include	"config.h"
 
@@ -129,7 +129,8 @@ typedef	struct	ctypes
 
 static	ftypes	*ftype = NULL, *lftype = NULL;
 static	ctypes	*ctype = NULL;
-static	ctypes	*itype = NULL, *litype = NULL;
+static	ctypes	*itype = NULL, *litype = NULL, *ditype = NULL;
+static	ctypes	**isearches[] = { &litype, &itype, &ditype };
 static	char	charset[XS_PATH_MAX];
 #ifdef		HANDLE_PERL
 PerlInterpreter *	my_perl = NULL;
@@ -671,8 +672,9 @@ do_get(char *params)
 				base[XS_PATH_MAX], orgbase[XS_PATH_MAX],
 				total[XS_PATH_MAX], temppath[XS_PATH_MAX];
 	const	char		*filename, *http_host;
-	int			fd, wasdir, tmp,
+	int			fd, wasdir,
 				delay_redir = 0, script = 0;
+	unsigned int		i;
 	size_t			size;
 	struct	stat		statbuf;
 	const	struct	passwd	*userinfo;
@@ -1078,22 +1080,15 @@ do_get(char *params)
 	loadfiletypes(orgbase, base);
 
 	/* check litype for local and itype for global settings */
-	if ((tmp = config.uselocalscript))
+	if (config.uselocalscript)
 		loadscripttypes(orgbase, base);
-	for (isearch = litype ? litype : itype; ; isearch = isearch->next)
+	for (i = 0; i < 3 && script >= 0; i++)
 	{
-		if (!isearch)
-		{
-			/* hack to browse global itype after local litype */
-			if (!tmp || !litype)
-				break;
-			tmp = 0;
-			isearch = itype;
-		}
-
-		size = strlen(isearch->ext);
-		if ((temp = strstr(filename, isearch->ext)) &&
-			strlen(temp) == strlen(isearch->ext))
+	for (isearch = *isearches[i]; isearch; isearch = isearch->next)
+	{
+		if (!*isearch->ext ||
+			((temp = strstr(filename, isearch->ext)) &&
+			 strlen(temp) == strlen(isearch->ext)))
 		{
 			if (!strcmp(isearch->prog, "internal:404"))
 				server_error("404 Requested URL not found", "NOT_FOUND");
@@ -1119,6 +1114,7 @@ do_get(char *params)
 			}
 			return;
 		}
+	}
 	}
 
 	/* Do this only after all the security checks */
@@ -1165,7 +1161,6 @@ do_get(char *params)
 	/* find next possible index file */
 	if (current->indexfiles)
 	{
-		int		i;
 		char	*idx = NULL;
 
 		for (i = 0; i < MAXINDEXFILES - 1; i++)
@@ -1373,6 +1368,8 @@ loadscripttypes(char *orgbase, char *base)
 	{
 		while (litype)
 			{ new = litype->next; free(litype); litype = new; }
+		if (ditype)
+			{ free(ditype); ditype = NULL; }
 		path = (char *)malloc(strlen(base) + 12);
 		if (!(methods = find_file(orgbase, base, ".xsscripts")))
 		{
@@ -1408,15 +1405,27 @@ loadscripttypes(char *orgbase, char *base)
 #endif		/* HANDLE_PERL */
 		if (!(new = (ctypes *)malloc(sizeof(ctypes))))
 			err(1, "Out of memory in loadscripttypes()");
-		if (prev)
-			prev->next = new;
-		else if (base)
-			litype = new;
-		else
-			itype = new;
-		prev = new; new->next = NULL;
 		if (sscanf(line, "%s %s", new->prog, new->ext) != 2)
 			errx(1, "Unable to parse `%s' in `%s'", line, path);
+		new->next = NULL;
+		if (!strcmp(new->ext, "*"))
+		{
+			/* there can be only one default */
+			if (ditype)
+				free(ditype);
+			new->ext[0] = '\0';
+			ditype = new;
+		}
+		else
+		{
+			if (prev)
+				prev->next = new;
+			else if (base)
+				litype = new;
+			else
+				itype = new;
+			prev = new;
+		}
 	}
 	free(path);
 	fclose(methods);
