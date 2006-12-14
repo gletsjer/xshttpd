@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.252 2006/12/06 20:56:53 johans Exp $ */
+/* $Id: httpd.c,v 1.253 2006/12/14 17:01:10 johans Exp $ */
 
 #include	"config.h"
 
@@ -106,7 +106,7 @@ extern	char	**environ;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.252 2006/12/06 20:56:53 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.253 2006/12/14 17:01:10 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1079,8 +1079,7 @@ check_auth(FILE *authfile)
 		 * Try to do an LDAP auth first. This is because xs_encrypt()
 		 * may alter the buffer, in which case we compare garbage.
 		 */
-		if (config.useldapauth &&
-			!check_auth_ldap(authfile, search, find))
+		if (!check_auth_ldap(authfile, search, find))
 		{
 			return(0);
 		}
