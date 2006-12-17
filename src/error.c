@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: error.c,v 1.23 2006/12/06 20:56:53 johans Exp $ */
+/* $Id: error.c,v 1.24 2006/12/17 13:29:43 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -13,7 +13,6 @@
 
 #include	"config.h"
 #include	"local.h"
-#include	"setenv.h"
 #include	"path.h"
 #include	"htconfig.h"
 

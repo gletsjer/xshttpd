@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.188 2006/12/14 20:03:05 johans Exp $ */
+/* $Id: methods.c,v 1.189 2006/12/17 13:29:44 johans Exp $ */
 
 #include	"config.h"
 
@@ -50,8 +50,6 @@
 #include	<fnmatch.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
-#else		/* Not HAVE_ERR_H */
-#include	"err.h"
 #endif		/* HAVE_ERR_H */
 #include	<ctype.h>
 #ifdef		HAVE_ALLOCA_H
@@ -73,9 +71,6 @@
 #ifdef		HAVE_CURL
 #include	<curl/curl.h>
 #endif		/* HAVE_CURL */
-#ifndef		HAVE_SETPROCTITLE
-#include	"setproctitle.h"
-#endif		/* HAVE_SETPROCTITLE */
 #ifndef		s6_addr32
 #define		s6_addr32	__u6_addr.__u6_addr32
 #endif		/* s6_addr32 */
@@ -97,7 +92,6 @@
 #include	"fcgi.h"
 #include	"xscrypt.h"
 #include	"path.h"
-#include	"setenv.h"
 #include	"htconfig.h"
 #include	"pcre.h"
 

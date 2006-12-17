@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssi.c,v 1.59 2006/12/06 20:56:43 johans Exp $ */
+/* $Id: ssi.c,v 1.60 2006/12/17 13:29:44 johans Exp $ */
 
 #include	"config.h"
 
@@ -31,7 +31,9 @@
 #include	<errno.h>
 #include	<signal.h>
 #include	<pwd.h>
+#ifdef		HAVE_ERR_H
 #include	<err.h>
+#endif		/* HAVE_ERR_H */
 #include	<fcntl.h>
 #include	<stdlib.h>
 #include	<string.h>
@@ -47,7 +49,6 @@
 #include	"methods.h"
 #include	"decode.h"
 #include	"htconfig.h"
-#include	"setenv.h"
 
 static	int	xsc_initdummy		(void);
 static	int	xsc_initcounter		(const char *);

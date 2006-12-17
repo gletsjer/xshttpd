@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: setproctitle.c,v 1.4 2006/12/06 20:56:56 johans Exp $ */
+/* $Id: setproctitle.c,v 1.5 2006/12/17 13:29:44 johans Exp $ */
 
 #include	"config.h"
 
@@ -27,12 +27,12 @@
 #include	<unistd.h>
 #include	<stdlib.h>
 #include	<stdarg.h>
+#ifdef		HAVE_ERR_H
 #include	<err.h>
+#endif		/* HAVE_ERR_H */
 #ifdef		HAVE_MEMORY_H
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
-
-#include	"setproctitle.h"
 
 static	char	*procnamestart, *procnameend;
 

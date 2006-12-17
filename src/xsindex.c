@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: xsindex.c,v 1.18 2006/12/06 20:56:56 johans Exp $ */
+/* $Id: xsindex.c,v 1.19 2006/12/17 13:29:44 johans Exp $ */
 
 #include	"config.h"
 
@@ -14,8 +14,6 @@
 #include	<fcntl.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
-#else		/* Not HAVE_ERR_H */
-#include	"err.h"
 #endif		/* HAVE_ERR_H */
 
 typedef	struct	mime

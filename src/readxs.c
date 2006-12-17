@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: readxs.c,v 1.13 2006/12/06 20:56:55 johans Exp $ */
+/* $Id: readxs.c,v 1.14 2006/12/17 13:29:44 johans Exp $ */
 
 #include	"config.h"
 
@@ -14,8 +14,6 @@
 #include	<string.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
-#else		/* Not HAVE_ERR_H */
-#include	"err.h"
 #endif		/* HAVE_ERR_H */
 #include	<time.h>
 #include	<pwd.h>

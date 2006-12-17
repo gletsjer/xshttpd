@@ -1,5 +1,5 @@
 /* Copyright (C) 2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: reformatxs.c,v 1.6 2006/05/18 09:29:20 johans Exp $ */
+/* $Id: reformatxs.c,v 1.7 2006/12/17 13:29:44 johans Exp $ */
 
 /* tidy up xs counter file and convert to latest version */
 
@@ -15,8 +15,6 @@
 #include	<signal.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
-#else		/* Not HAVE_ERR_H */
-#include	"err.h"
 #endif		/* HAVE_ERR_H */
 #include	<pwd.h>
 

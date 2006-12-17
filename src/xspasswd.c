@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: xspasswd.c,v 1.15 2006/12/06 20:56:56 johans Exp $ */
+/* $Id: xspasswd.c,v 1.16 2006/12/17 13:29:44 johans Exp $ */
 
 #include	"config.h"
 
@@ -10,8 +10,6 @@
 #include	<string.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
-#else		/* Not HAVE_ERR_H */
-#include	"err.h"
 #endif		/* HAVE_ERR_H */
 #include	<sys/stat.h>
 

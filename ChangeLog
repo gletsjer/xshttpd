@@ -4,6 +4,7 @@ is not complete. Refer to cvs comments for more information.
 Changes since 3.4 beta 21
 - Fix compilation with LDAP support
 - Support default .xsscripts interpreter program (using * as extension)
+- Improve building on systems lacking some libc functionality
 
 Changes since 3.4 beta 20
 - Workaround for file descriptor leak

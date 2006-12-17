@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpdc.c,v 1.27 2006/12/06 20:56:53 johans Exp $ */
+/* $Id: httpdc.c,v 1.28 2006/12/17 13:29:44 johans Exp $ */
 
 #include	"config.h"
 
@@ -11,8 +11,6 @@
 #include	<stdlib.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
-#else		/* Not HAVE_ERR_H */
-#include	"err.h"
 #endif		/* HAVE_ERR_H */
 #include	<errno.h>
 #include	<string.h>

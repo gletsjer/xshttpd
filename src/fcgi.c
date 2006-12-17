@@ -1,6 +1,6 @@
 /* Copyright (C) 2006 by Remco van der Vossen (wich@stack.nl) */
 /* Copyright (C) 2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: fcgi.c,v 1.9 2006/12/06 21:02:16 johans Exp $ */
+/* $Id: fcgi.c,v 1.10 2006/12/17 13:29:43 johans Exp $ */
 
 #include <stdio.h>
 #include <stddef.h>
@@ -13,11 +13,11 @@
 #include <netdb.h>
 #include <unistd.h>
 
-#include "htconfig.h"
+#include "config.h"
 #include "ssl.h"
-#include "setenv.h"
 #include "fcgi_api.h"
 #include "fcgi.h"
+#include "htconfig.h"
 
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))

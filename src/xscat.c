@@ -1,5 +1,5 @@
 /* Copyright (C) 2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: xscat.c,v 1.2 2006/05/18 09:29:20 johans Exp $ */
+/* $Id: xscat.c,v 1.3 2006/12/17 13:29:44 johans Exp $ */
 
 /* show detailed information from the xs counter datafile */
 
@@ -15,8 +15,6 @@
 #include	<signal.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
-#else		/* Not HAVE_ERR_H */
-#include	"err.h"
 #endif		/* HAVE_ERR_H */
 #include	<pwd.h>
 

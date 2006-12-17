@@ -9,5 +9,6 @@
 #include "../config.h"
 #include "confuser.h"
 #include "confpatch.h"
+#include "alternative.h"
 
 #endif		/* CONFIG_H */

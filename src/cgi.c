@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: cgi.c,v 1.128 2006/12/10 15:23:02 johans Exp $ */
+/* $Id: cgi.c,v 1.129 2006/12/17 13:29:43 johans Exp $ */
 
 #include	"config.h"
 
@@ -31,8 +31,6 @@
 #include	<string.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
-#else		/* Not HAVE_ERR_H */
-#include	"err.h"
 #endif		/* HAVE_ERR_H */
 #include	<ctype.h>
 #ifdef		HAVE_MEMORY_H
@@ -49,7 +47,6 @@
 #include	"ssl.h"
 #include	"cgi.h"
 #include	"extra.h"
-#include	"setenv.h"
 #include	"htconfig.h"
 
 static	const	char	*skipspaces(const char *);

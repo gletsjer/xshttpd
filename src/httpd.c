@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.253 2006/12/14 17:01:10 johans Exp $ */
+/* $Id: httpd.c,v 1.254 2006/12/17 13:29:43 johans Exp $ */
 
 #include	"config.h"
 
@@ -57,8 +57,6 @@
 #include	<unistd.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
-#else		/* Not HAVE_ERR_H */
-#include	"err.h"
 #endif		/* HAVE_ERR_H */
 #include	<ctype.h>
 #ifdef		HAVE_ALLOCA_H
@@ -76,9 +74,6 @@
 #ifdef		HAVE_CURL
 #include	<curl/curl.h>
 #endif		/* HAVE_CURL */
-#ifndef		HAVE_SETPROCTITLE
-#include	"setproctitle.h"
-#endif		/* HAVE_SETPROCTITLE */
 
 #include	"httpd.h"
 #include	"decode.h"
@@ -90,7 +85,6 @@
 #include	"xscrypt.h"
 #include	"path.h"
 #include	"convert.h"
-#include	"setenv.h"
 #include	"local.h"
 #include	"htconfig.h"
 #include	"fcgi.h"
@@ -98,15 +92,12 @@
 #ifndef		HAVE_SOCKLEN_T
 typedef	size_t	socklen_t;
 #endif		/* HAVE_SOCKLEN_T */
-#ifndef		HAVE_DECL_ENVIRON
-extern	char	**environ;
-#endif		/* HAVE_DECL_ENVIRON */
 #ifndef		PRIO_MAX
 #define		PRIO_MAX	20
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.253 2006/12/14 17:01:10 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.254 2006/12/17 13:29:43 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 

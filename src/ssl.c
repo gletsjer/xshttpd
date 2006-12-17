@@ -1,5 +1,7 @@
 /* Copyright (C) 2003-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssl.c,v 1.36 2006/12/06 20:56:56 johans Exp $ */
+/* $Id: ssl.c,v 1.37 2006/12/17 13:29:44 johans Exp $ */
+
+#include	"config.h"
 
 #include	<sys/types.h>
 #include	<stdio.h>
@@ -7,14 +9,15 @@
 #include	<string.h>
 #include	<unistd.h>
 #include	<sys/stat.h>
-#include	<err.h>
 #include	<errno.h>
 #include	<stdarg.h>
+#ifdef		HAVE_ERR_H
+#include	<err.h>
+#endif		/* HAVE_ERR_H */
 
 #include	<openssl/rand.h>
 #include	<openssl/err.h>
 
-#include	"config.h"
 #include	"htconfig.h"
 #include	"httpd.h"
 #include	"path.h"

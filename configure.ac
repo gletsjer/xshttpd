@@ -44,7 +44,7 @@ AC_FUNC_FORK
 AC_FUNC_MMAP
 AC_FUNC_SETVBUF_REVERSED
 AC_FUNC_STRFTIME
-AC_CHECK_FUNCS(getaddrinfo getnameinfo killpg mkstemp mmap setegid seteuid setpriority setresgid setresuid setrlimit setsid sigemptyset strerror uname)
+AC_CHECK_FUNCS(getaddrinfo getnameinfo mkstemp mmap setegid seteuid setpriority setresgid setresuid setrlimit setsid sigemptyset uname)
 
 dnl Prog specific checks
 if test x$prefix = xNONE
@@ -67,7 +67,7 @@ XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)
 XS_FUNC_IN_LIB(MD5Init, HAVE_MD5, md, httpd)
 AM_CONDITIONAL([MD5], [test x$ac_cv_lib_md_MD5Init = xyes])
-AC_REPLACE_FUNCS(err setenv setgroups setproctitle strlcat strcasestr strlcpy strptime strsep snprintf)
+AC_REPLACE_FUNCS(err killpg setenv setgroups setproctitle strlcat strcasestr strerror strlcpy strptime strsep snprintf)
 
 XS_CHECK_WITH(pcre, PCRE support, no)
 if test x${with_pcre} = xyes

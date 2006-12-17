@@ -23,9 +23,9 @@ xschpass_LDFLAGS = @libxs_ldflags@
 LDADD = libxs.a				# default for all *_PROGRAMS
 DEFAULT_INCLUDES =
 
-EXTRA_DIST = cgi.h config.h confpatch.h confuser.h convert.h decode.h \
-	digcalc.h err.h extra.h fcgi.h fcgi_api.h htconfig.h httpd.h \
-	ldap.h local.h methods.h path.h pcre.h setenv.h setproctitle.h \
+EXTRA_DIST = alternative.h cgi.h config.h confpatch.h confuser.h convert.h \
+	decode.h digcalc.h extra.h fcgi.h fcgi_api.h htconfig.h httpd.h \
+	ldap.h local.h methods.h path.h pcre.h \
 	ssi.h ssl.h xscounter.h xscrypt.h
 
 EXTRA_DIST += digcalc.c ldap.c
