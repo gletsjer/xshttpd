@@ -238,55 +238,17 @@ daemon could have still read those files).
 \fB .redir\fP
 If this file is present in a certain directory, and a file
 is requested from that directory, then a redirection message
-will be sent to the remote user's browser. It works simply
-by substituting the server name and the directory that the
-remote user to get to this file by the contents of the file.
-This way, an entire directory can be automatically be redirected.
-.br
-A new addition is to allow a substitute command using perl-compatible
-regular expression (pcre). This feature is only available if the
-\fBPCRE\fP support is compiled in. In this case you can use a
-format like \fIredir oldurl newurl\fP to match the local part of the
-URL and generate a redirection to an alternative location. The file
-may contain multiple lines. If the \fIRedir\fP directive is written
-with a capital, a permanent redirect (301) will be generated.
-.br
-The .redir file may also contain directives like \fIrewrite oldurl
-newurl\fP. In this case the same matching sceme as for redirects will
-be used, but rather than generating a redirect, the webserver will try
-to resolve the filename itself and dispay the resolved file directly.
-Note that unlike the \fIredir\fP commands, it is not allowed to
-generate full URL's in this case: only local URL's are permitted
-(omitting the protocol and hostname).
-.br
-If the webserver has been compiled with forwarding support (curl),
-then one can also use directives like \fIforward hostname oldurl newurl\fP.
-Forwarding behaves transparently (like rewrite), but in this case
-the webserver will retrieve the resulting file from a remote webserver,
-named \fIhostname\fP.
-.br
-A .redir file may contain multiple lines with redir, rewrite or pass
-directives. All directives in the file will be tried in sequence
-(top to bottom). If none of them matches - or if an \fIpass\fP
-line matches first, then no redirection will be performed.
-Any line that doesn't start with a redir, rewrite or pass command,
-will be interpreted as an URL and a redirect to this location will be
-generated - note that this always matches so use it as the last line
-only.
+will be sent to the remote user's browser. See \fBxsredir(5)\fP
+for the format of this file.
 .TP
 \fB *.redir\fP
 If a (regular) file is requested and a file exists with the same
-name but with \fB.redir\fP appended to it, the requested file will
-not be sent. Instead, the server will send a redirection message to
-the remote user's browser. The redirected location is retrieved
-from the \fB*.redir\fP file. It does not matter if the requested file
-actually exists or not.
+name but with \fB.redir\fP appended to it, then the client will be
+redirected to the URL that is mentioned in this *.redir file.
 .TP
 \fB *.Redir\fP
 The same as \fB*.redir\fP, however instead of a temporary
 redirection (302) a permanent redirection (301) will be sent.
-Users probably won't notice any difference, but it should keep
-robots from keep on using the old address.
 .TP
 \fB .charset\fP
 If this file is present in a certain directory, then all files
@@ -307,14 +269,14 @@ same as that for the global configuration file, but it applies
 \fB .xsauth\fP
 If this file exists, all files in that directory and
 subdirectories are protected by usercode/password
-combinations. Read the manual page of xspasswd for more
-details about this.
+combinations. See \fBxsauth(5)\fP for more details about this.
 .TP
 \fB .xsscripts
 This file lets a user override the contents of the global
 \fIscript.methods\fP file. The syntax of this file is exactly the
 same as that for the global configuration file and it applies
-(recursively) to the local subdirectories.
+(recursively) to the local subdirectories. See \fBxsscripts(5)\fP
+for more information.
 
 .SH SERVER-SIDE INCLUDES (SSI)
 One of the most advanced features of this WWW server is its
@@ -793,7 +755,7 @@ entire WWW happening.
 http://www.stack.nl/xs\-httpd/
 .br
 xspasswd(1), imagemap(1), clearxs(1), readxs(1), gfxcount(1), xsindex(1),
-httpdc(1), httpd.conf(5), xsauth(5), xsscripts(5)
+httpdc(1), httpd.conf(5), xsauth(5), xsredir(5), xsscripts(5)
 
 .SH COPYRIGHT
 All the programs in the XS\-HTTPD package are copyright (C) 1995-2006
