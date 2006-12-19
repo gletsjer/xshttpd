@@ -5,6 +5,7 @@ Changes since 3.4 beta 21
 - Fix compilation with LDAP support
 - Support default .xsscripts interpreter program (using * as extension)
 - Improve building on systems lacking some libc functionality
+- Fix path used in redir (again)
 - Document redirection support in xsredir(5)
 
 Changes since 3.4 beta 20

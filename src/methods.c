@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.189 2006/12/17 13:29:44 johans Exp $ */
+/* $Id: methods.c,v 1.190 2006/12/19 16:27:00 johans Exp $ */
 
 #include	"config.h"
 
@@ -1533,16 +1533,10 @@ check_redirect(FILE *fp, const char *filename)
 {
 	int	size;
 	char	*p, *command, *subst,
-		*host, *orig, *repl, *args,
+		*host, *orig, *repl,
 		line[XS_PATH_MAX], total[XS_PATH_MAX], request[XS_PATH_MAX];
 
-	if ((args = getenv("QUERY_STRING")))
-		snprintf(request, XS_PATH_MAX, "%s?%s", filename, args);
-	else if ((args = getenv("PATH_INFO")))
-		snprintf(request, XS_PATH_MAX, "%s/%s", filename, args);
-	else
-		strlcpy(request, filename, XS_PATH_MAX);
-
+	strlcpy(request, filename, XS_PATH_MAX);
 
 	while (fgets(line, XS_PATH_MAX, fp))
 	{
