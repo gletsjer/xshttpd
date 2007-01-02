@@ -1,6 +1,11 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.4 beta 22
+- Force HTTP/1.0 on forwarded requests (avoid chunked data issues)
+- Enable forwarded POST requests
+- Enable forwarded HTTPS requests
+
 Changes since 3.4 beta 21
 - Fix compilation with LDAP support
 - Support default .xsscripts interpreter program (using * as extension)

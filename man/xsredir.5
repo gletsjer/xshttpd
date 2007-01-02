@@ -71,10 +71,19 @@ generate full URL's in this case: only local URL's are permitted
 .TP
 .B forward \fIhostname oldurl newurl\fP
 If the webserver has been compiled with forwarding support (curl),
-then one can also use \fBforward\fP directives 
+then one can also use \fBforward\fP directives.
 Forwarding behaves transparently (like rewrite), but in this case
 the webserver will retrieve the resulting file from a remote webserver,
 named \fIhostname\fP.
+.br
+The hostname may optionally contain a \fI:portnum\fP postfix forcing
+the request to be forwarded to the specified port rather than the default
+http port (80). If this postfix is \fI:https\fP or \fI:443\fP then SSL
+encryption will be applied.
+.br
+Note that forwarding unencrypted requests to a https location or
+encrypted requests to a plain-text http location may lead to a false
+sense of security. Use forwards with care.
 
 .SH ACKNOWLEDGEMENTS
 I thank all the members at MCGV Stack who are actively involved in the
