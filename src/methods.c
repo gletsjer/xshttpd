@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.191 2007/01/02 11:32:13 johans Exp $ */
+/* $Id: methods.c,v 1.192 2007/01/02 11:47:40 johans Exp $ */
 
 #include	"config.h"
 
@@ -1229,15 +1229,22 @@ do_proxy(const char *proxy, const char *params)
 {
 #ifdef		HAVE_CURL
 	CURL	*handle = curl_easy_init();
-	char	request[MYBUFSIZ];
+	char	request[MYBUFSIZ], *p;
 
-	snprintf(request, MYBUFSIZ, "http://%s%s", proxy, params);
+	if ((p = strstr(proxy, ":443")) || (p = strstr(proxy, ":https")))
+	{
+		*p = '\0'; /* or libcurl will try host:https:443 */
+		snprintf(request, MYBUFSIZ, "https://%s%s", proxy, params);
+		curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0);
+	}
+	else
+		snprintf(request, MYBUFSIZ, "http://%s%s", proxy, params);
 	curl_easy_setopt(handle, CURLOPT_URL, request);
+	/* curl_easy_setopt(handle, CURLOPT_VERBOSE, 1); */
 	if (postonly)
 	{
 		curl_readlen = atoi(getenv("CONTENT_LENGTH"));
 		curl_easy_setopt(handle, CURLOPT_POST, 1);
-		/* curl_easy_setopt(handle, CURLOPT_VERBOSE, 1); */
 		curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE, curl_readlen);
 		curl_easy_setopt(handle, CURLOPT_READDATA, stdin);
 		curl_easy_setopt(handle, CURLOPT_READFUNCTION, curl_readhack);
@@ -1269,6 +1276,7 @@ curl_readhack(void *buf, size_t size, size_t nmemb, FILE *stream)
 		nmemb = curl_readlen;
 	len = secread(0, buf, size * nmemb);
 	curl_readlen -= len;
+	(void)stream;
 	return len;
 }
 
