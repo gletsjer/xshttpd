@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.254 2006/12/17 13:29:43 johans Exp $ */
+/* $Id: httpd.c,v 1.255 2007/01/02 11:32:13 johans Exp $ */
 
 #include	"config.h"
 
@@ -97,12 +97,12 @@ typedef	size_t	socklen_t;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.254 2006/12/17 13:29:43 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.255 2007/01/02 11:32:13 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
-int		headers, headonly, postonly, chunked;
-static	int	sd, reqs, mainhttpd = 1, persistent;
+int		headers, headonly, postonly, chunked, persistent;
+static	int	sd, reqs, mainhttpd = 1;
 gid_t		origegid;
 uid_t		origeuid;
 char		remotehost[NI_MAXHOST],

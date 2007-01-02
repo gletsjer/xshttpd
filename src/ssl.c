@@ -1,5 +1,5 @@
 /* Copyright (C) 2003-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssl.c,v 1.37 2006/12/17 13:29:44 johans Exp $ */
+/* $Id: ssl.c,v 1.38 2007/01/02 11:32:13 johans Exp $ */
 
 #include	"config.h"
 
@@ -370,6 +370,12 @@ secread(int fd, void *buf, size_t count)
 	return ret;
 }
 
+size_t
+secfread(void *buf, size_t size, size_t nmemb, FILE *stream)
+{
+	return (size_t)secread(fileno(stream), buf, size * nmemb);
+}
+
 int
 secwrite(const char *buf, size_t count)
 {
@@ -446,6 +452,13 @@ secwrite(const char *buf, size_t count)
 	}
 
 	return count;
+}
+
+size_t
+secfwrite(const char *buf, size_t size, size_t nmemb, FILE *stream)
+{
+	(void)stream;
+	return (size_t)secwrite(buf, size * nmemb);
 }
 
 int

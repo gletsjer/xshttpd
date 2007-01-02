@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.190 2006/12/19 16:27:00 johans Exp $ */
+/* $Id: methods.c,v 1.191 2007/01/02 11:32:13 johans Exp $ */
 
 #include	"config.h"
 
@@ -106,6 +106,7 @@ static int	check_file_redirect	(const char *, const char *);
 static int	check_noxs		(FILE *);
 static int	check_redirect		(FILE *, const char *);
 static int	check_location		(FILE *, const char *);
+static size_t	curl_readhack		(void *, size_t, size_t, FILE *);
 
 /* Global structures */
 
@@ -126,6 +127,7 @@ static	ctypes	*ctype = NULL;
 static	ctypes	*itype = NULL, *litype = NULL, *ditype = NULL;
 static	ctypes	**isearches[] = { &litype, &itype, &ditype };
 static	char	charset[XS_PATH_MAX];
+static	size_t	curl_readlen;
 #ifdef		HANDLE_PERL
 PerlInterpreter *	my_perl = NULL;
 #endif		/* HANDLE_PERL */
@@ -1231,9 +1233,20 @@ do_proxy(const char *proxy, const char *params)
 
 	snprintf(request, MYBUFSIZ, "http://%s%s", proxy, params);
 	curl_easy_setopt(handle, CURLOPT_URL, request);
+	if (postonly)
+	{
+		curl_readlen = atoi(getenv("CONTENT_LENGTH"));
+		curl_easy_setopt(handle, CURLOPT_POST, 1);
+		/* curl_easy_setopt(handle, CURLOPT_VERBOSE, 1); */
+		curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE, curl_readlen);
+		curl_easy_setopt(handle, CURLOPT_READDATA, stdin);
+		curl_easy_setopt(handle, CURLOPT_READFUNCTION, curl_readhack);
+	}
 	curl_easy_setopt(handle, CURLOPT_HEADER, 1);
-	curl_easy_setopt(handle, CURLOPT_READDATA, stdout);
-	curl_easy_setopt(handle, CURLOPT_READFUNCTION, fwrite);
+	curl_easy_setopt(handle, CURLOPT_WRITEDATA, stdout);
+	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, secfwrite);
+	curl_easy_setopt(handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
+	persistent = 0; headers = 10; /* force HTTP/1.0 */
 
 	if (curl_easy_perform(handle))
 		error("500 Internal forwarding error");
@@ -1242,6 +1255,21 @@ do_proxy(const char *proxy, const char *params)
 #endif		/* HAVE_CURL */
 	(void)proxy;
 	(void)params;
+}
+
+/* Stupid workaround for buggy libcurl */
+static size_t
+curl_readhack(void *buf, size_t size, size_t nmemb, FILE *stream)
+{
+	size_t	len;
+
+	if (curl_readlen <= 0)
+		return 0;
+	if (nmemb > curl_readlen)
+		nmemb = curl_readlen;
+	len = secread(0, buf, size * nmemb);
+	curl_readlen -= len;
+	return len;
 }
 
 void
