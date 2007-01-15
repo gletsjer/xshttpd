@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.192 2007/01/02 11:47:40 johans Exp $ */
+/* $Id: methods.c,v 1.193 2007/01/15 10:13:08 johans Exp $ */
 
 #include	"config.h"
 
@@ -865,27 +865,6 @@ do_get(char *params)
 				setenv("SCRIPT_FILENAME", fullpath, 1);
 				setenv("PWD", fullpath, 1);
 				*temp = 0;
-				/* XXX: there should be a library function for this */
-				if (temp[1] == '~')
-				{
-					char		*p = NULL;
-					char		userdir[XS_PATH_MAX];
-
-					if ((p = strchr(temp + 2, '/')))
-						*p = 0;
-					if ((userinfo = getpwnam(temp + 2)) &&
-						!transform_user_dir(userdir, userinfo, 1))
-					{
-						if (p)
-						{
-							*p = '/';
-							strlcat(userdir, p, XS_PATH_MAX);
-						}
-						setenv("PATH_TRANSLATED", userdir, 1);
-					}
-				}
-				else
-					setenv("PATH_TRANSLATED", calcpath(temp + 1), 1);
 				break;
 			}
 			*(temp++) = '/';
@@ -1055,6 +1034,7 @@ do_get(char *params)
 		return;
 	}
 	strlcpy(orig_filename, filename, XS_PATH_MAX);
+	setenv("PATH_TRANSLATED", total, 1);
 
 	/* Check for *.charset preferences */
 	charset[0] = '\0';
