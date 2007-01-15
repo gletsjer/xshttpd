@@ -1,8 +1,9 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_INIT(xshttpd, 34b23)
+SERVER_IDENT="xs-httpd/3.4 beta/0.23"
 AC_CONFIG_SRCDIR(src/httpd.c)
 AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 no-dist-gzip])
-AC_DEFINE_UNQUOTED(SERVER_IDENT, "xs-httpd/3.4 beta/0.23", [Server version])
+AC_DEFINE_UNQUOTED(SERVER_IDENT, "${SERVER_IDENT}", [Server version])
 AC_CONFIG_HEADERS([config.h])
 
 dnl Checks for programs.
@@ -191,5 +192,6 @@ AC_SUBST(libxs_ldflags)
 AC_SUBST(libxs_cflags)
 AC_SUBST(httpd_ldflags)
 AC_SUBST(httpd_cflags)
-AC_CONFIG_FILES([Makefile config/Makefile contrib/Makefile fonts/Makefile icons/Makefile man/Makefile src/Makefile])
+AC_SUBST(SERVER_IDENT)
+AC_CONFIG_FILES([Makefile config/Makefile contrib/Makefile fonts/Makefile icons/Makefile man/Makefile src/Makefile man/httpd.1])
 AC_OUTPUT
