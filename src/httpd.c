@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.255 2007/01/02 11:32:13 johans Exp $ */
+/* $Id: httpd.c,v 1.256 2007/01/24 16:56:57 johans Exp $ */
 
 #include	"config.h"
 
@@ -97,7 +97,7 @@ typedef	size_t	socklen_t;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.255 2007/01/02 11:32:13 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.256 2007/01/24 16:56:57 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -2069,13 +2069,13 @@ main(int argc, char **argv)
 #endif		/* HAVE_UNAME */
 #ifdef		OPENSSL_VERSION_NUMBER
 			if (OPENSSL_VERSION_NUMBER >> 4 & 0xff)
-				printf(" OpenSSL/%lu.%lu.%lu%c",
+				printf(" OpenSSL/%u.%u.%u%c",
 					OPENSSL_VERSION_NUMBER >> 28 & 0xf,
 					OPENSSL_VERSION_NUMBER >> 20 & 0xff,
 					OPENSSL_VERSION_NUMBER >> 12 & 0xff,
 					'a' - 1 + (unsigned char)(OPENSSL_VERSION_NUMBER >> 4 & 0xff));
 			else
-				printf(" OpenSSL/%lu.%lu.%lu",
+				printf(" OpenSSL/%u.%u.%u",
 					OPENSSL_VERSION_NUMBER >> 28 & 0xf,
 					OPENSSL_VERSION_NUMBER >> 20 & 0xff,
 					OPENSSL_VERSION_NUMBER >> 12 & 0xff);

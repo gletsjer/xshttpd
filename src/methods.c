@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.193 2007/01/15 10:13:08 johans Exp $ */
+/* $Id: methods.c,v 1.194 2007/01/24 16:56:57 johans Exp $ */
 
 #include	"config.h"
 
@@ -382,7 +382,8 @@ sendcompressed(int fd, const char *method)
 		}
 #endif		/* HAVE_SETSID */
 		dup2(fd, 0); dup2(processed, 1);
-		for (count = 3; count < FD_SETSIZE; count++)
+		/* So what is a good guess about # open FDs? */
+		for (count = 3; count < 1024; count++)
 			close(count);
 		(void) execl(method, method, NULL);
 		error("500 Cannot start conversion program");
