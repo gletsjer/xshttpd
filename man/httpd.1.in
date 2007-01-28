@@ -221,7 +221,7 @@ users and system administrators: users can use it when
 they are updating the directory and system administrators
 can use it to easily shut down a group of pages.
 This applies to subdirectories as well.
-.br
+.IP
 It is possible to allow access to this directory for a limited
 number of hosts. You can list the IP-addresses to which access
 should be granted in this file (one address per line). This works
@@ -373,10 +373,6 @@ request file (the current document) or the optionally specified
 \fIfile\fP. The date will be in the format specified by the
 \fBdate\-format\fP directive.
 .TP
-\fBremote\-host\fP
-Inserts the name (or the IP number if the name cannot be resolved)
-of the remote computer that is asking for this document.
-.TP
 \fBrun\-cgi\fP \fIcgi\fP
 Runs the CGI binary \fIcgi\fP and inserts its output at this
 point. Standard \fBPATH_INFO\fP and
@@ -385,10 +381,27 @@ argumens to the CGI binary. All standard CGI environment variables
 will be set up appriopriately. See the CGI section
 for more details on CGI's.
 .TP
-\fBecho\fP var="\fICGIVARIABLE\fP" encoding="\fInone|url|html\fP"
+\fBset\fP \fINAME\fP=\fIVALUE\fP [\fINAME\fP=\fIVALUE\fP ...]
+Set one or more internal variables with given names and values.
+These variables can later be printed using the \fBecho\fP directive
+(explained below). The variables can also be accessed from other files
+that are processed during the same request. This means that variables
+can be set or printed in any of the files that are included using the
+\fBinclude\fP directive.
+.IP
+Variable names or values may contain spaces if this value is enclosed in
+double quotes, e.g. <!--#set title="Hello\~World"-->
 .TP
-\fBecho\fP \fICGIVARIABLE\fP
-Print the value of an CGI environment variable.
+\fBecho\fP var="\fIVARIABLE\fP" encoding="\fInone|url|html\fP"
+.TP
+\fBecho\fP envvar="\fIVARIABLE\fP" encoding="\fInone|url|html\fP"
+.TP
+\fBecho\fP \fIVARIABLE\fP
+Print the value of a variable. This can be a local variable that was
+set using the \fBset\fP directive, or an environment variable that was
+set by the webserver itself. If the \fIenvvar\fP option is used,
+only environment variables are used.
+.IP
 The \fIencoding\fP argument is optional and defaults to html encoding,
 which replaces special html symbols (such as < and &) to the appropriate
 sgml entities for proper display. Selecting \fInone\fP will do no
@@ -396,42 +409,10 @@ rewriting at all (useful in text/plain files) and encoding=url is not
 implemented yet.
 See the CGI section on for more details about available variables.
 .TP
-\fBprintenv\fP [\fICGIVARIABLE\fP]
+\fBprintenv\fP [\fIVARIABLE\fP]
 Print the values of all CGI environment variables.
 This option is only used for debugging purposes.
 See the CGI section on for more details about available variables.
-.TP
-\fBagent\-short\fP
-An alias for \fBecho USER_AGENT_SHORT\fP.
-This directive inserts the name of the browser that the remote
-user is using in the short version (i.e. without the version number).
-Note that Netscape is displayed as Mozilla, which is Netscape's
-real name.
-.TP
-\fBagent\-long\fP
-An alias for \fBecho USER_AGENT\fP.
-This directive inserts the name of the browser that the remote
-user is using in the long version (i.e. with version numbers and
-other comments that the browser sends).
-.TP
-\fBargument\fP
-An alias for \fBecho QUERY_STRING\fP.
-It is possible (since version 2.1) to pass arguments to
-HTML documents. 
-This directive inserts the (unparsed) arguments that the client
-added when requesting this page. This directive is mostly usefull
-for debugging purposes.
-.br
-Arguments are passed by appending a question mark to the
-page's URL and giving the arguments after that. For
-example:
-.br
-\fBhttp://www.foo.bar/~test/blah.html?an_argument\fP
-.TP
-\fBreferer\fP
-An alias for \fBecho REFERER\fP.
-Inserts the URL from which the client was refered to this page.
-Not available if the user didn't follow a link from another page.
 .TP
 \fBif\fP \fIkeyword\fP \fIpattern(s)\fP
 The following four directive are the most powerful: they allow
@@ -475,9 +456,10 @@ If any of the \fIpatterns\fP match the URL from which the client was
 refered to this page, the query evaluates to true, otherwise it
 evaluates to false.
 .TP
-\fBvar\fP="\fICGIVARIABLE\fP"
-The value of the environment variable CGIVARIABLE will be checked
-against the given pattern(s).
+\fBvar\fP="\fIENVVARIABLE\fP"
+The value of the named environment variable will be checked
+against the given pattern(s). This can be also used as an alternative
+to any of the keywords mentioned above.
 .RE
 .LP
 Patterns are simple wildcard patterns (case\-insensitive).
@@ -520,6 +502,16 @@ Ends an \fBswitch\fP block. Note that these constructions may be nested!
 Note that there is no such thing as a \fBbreak\fP directive:
 the next \fBcase\fP or following \fBendswitch\fP directive automatically
 ends the current \fBcase\fP block.
+
+.SS Obsoleted directives
+This section describes directives that are still supported, but their use
+is discouraged since better alternatives are available now.
+.TP
+.BR agent\-short ,\  agent\-long ,\  argument ,\  referer ,\  remote\-host
+These directives have been obsoleted by the \fIecho\fP directive.
+They can be used to print certain information about the browser request
+that is also available through environment variables.
+See the CGI section for a full overview of the available variables.
 
 .SH COMMON GATEWAY INTERFACE (CGI)
 The server, as of version 2.0, supports running system and user CGI
