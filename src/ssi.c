@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssi.c,v 1.60 2006/12/17 13:29:44 johans Exp $ */
+/* $Id: ssi.c,v 1.61 2007/01/28 11:39:56 johans Exp $ */
 
 #include	"config.h"
 
@@ -53,40 +53,42 @@
 static	int	xsc_initdummy		(void);
 static	int	xsc_initcounter		(const char *);
 static	int	xsc_counter		(int, const char *);
-static	int	call_counter		(int, const char *);
-static	int	dir_count_total		(char *, size_t *);
-static	int	dir_count_total_gfx	(char *, size_t *);
-static	int	dir_count_today		(char *, size_t *);
-static	int	dir_count_today_gfx	(char *, size_t *);
-static	int	dir_count_month		(char *, size_t *);
-static	int	dir_count_month_gfx	(char *, size_t *);
-static	int	dir_count_reset		(char *, size_t *);
-static	int	dir_date		(char *, size_t *);
-static	int	dir_date_format		(char *, size_t *);
-static	int	dir_include_file	(char *, size_t *);
-static	int	dir_last_mod		(char *, size_t *);
-static	int	dir_remote_host		(char *, size_t *);
-static	int	dir_run_cgi		(char *, size_t *);
-static	int	dir_agent_long		(char *, size_t *);
-static	int	dir_agent_short		(char *, size_t *);
-static	int	dir_argument	(char *, size_t *);
-static	int	dir_referer		(char *, size_t *);
-static	int	dir_echo		(char *, size_t *);
-static	int	dir_if			(char *, size_t *);
-static	int	dir_if_not		(char *, size_t *);
-static	int	dir_else		(char *, size_t *);
-static	int	dir_endif		(char *, size_t *);
-static	int	dir_switch		(char *, size_t *);
-static	int	dir_endswitch	(char *, size_t *);
-static	int	dir_case		(char *, size_t *);
+static	int	call_counter		(int, int, char **);
+static	int	parse_values		(char *, char **, size_t);
+static	int	dir_count_total		(int, char **, size_t *);
+static	int	dir_count_total_gfx	(int, char **, size_t *);
+static	int	dir_count_today		(int, char **, size_t *);
+static	int	dir_count_today_gfx	(int, char **, size_t *);
+static	int	dir_count_month		(int, char **, size_t *);
+static	int	dir_count_month_gfx	(int, char **, size_t *);
+static	int	dir_count_reset		(int, char **, size_t *);
+static	int	dir_date		(int, char **, size_t *);
+static	int	dir_date_format		(int, char **, size_t *);
+static	int	dir_include_file	(int, char **, size_t *);
+static	int	dir_last_mod		(int, char **, size_t *);
+static	int	dir_remote_host		(int, char **, size_t *);
+static	int	dir_run_cgi		(int, char **, size_t *);
+static	int	dir_agent_long		(int, char **, size_t *);
+static	int	dir_agent_short		(int, char **, size_t *);
+static	int	dir_argument	(int, char **, size_t *);
+static	int	dir_referer		(int, char **, size_t *);
+static	int	dir_echo		(int, char **, size_t *);
+static	int	dir_if			(int, char **, size_t *);
+static	int	dir_if_not		(int, char **, size_t *);
+static	int	dir_else		(int, char **, size_t *);
+static	int	dir_endif		(int, char **, size_t *);
+static	int	dir_switch		(int, char **, size_t *);
+static	int	dir_endswitch	(int, char **, size_t *);
+static	int	dir_case		(int, char **, size_t *);
 static	int	print_enabled		(void);
 static	int	parsedirectives		(char *, size_t *);
 static	int	sendwithdirectives_internal (int, size_t *);
 
 static	int	ssioutput, cnt_readbefore, numincludes;
 static	char	ssiarray[16];
-static	int	switchlen;
-static	char	*switchstr;
+static	char	*switchstr = NULL;
+static	int	setvarlen;
+static	char	*setvars[BUFSIZ];
 
 #define		MODE_ALL	0
 #define		MODE_GFX_ALL	1
@@ -384,25 +386,14 @@ ALREADY:
 }
 
 static	int
-call_counter(int mode, const char *args)
+call_counter(int mode, int argc, char **argv)
 {
 	int		ret;
 	uid_t		savedeuid;
 	gid_t		savedegid;
 	const	char	*path;
-	char		*search;
 
-	path = search = NULL;
-	if (args && (*args == ' '))
-	{
-		if (!(search = strstr(args, "-->")))
-		{
-			secprintf("[Incomplete counter directive]\n");
-			return(ERR_CONT);
-		}
-		*search = 0;
-		path = args + 1;
-	}
+	path = argc ? argv[0] : NULL;
 	if (!origeuid)
 	{
 		savedeuid = geteuid(); seteuid(origeuid);
@@ -414,8 +405,6 @@ call_counter(int mode, const char *args)
 		savedegid = config.system->groupid;
 	}
 	ret = xsc_counter(mode, path) ? ERR_CONT : ERR_NONE;
-	if (search)
-		*search = '-';
 	if (!origeuid)
 	{
 		setegid(savedegid); seteuid(savedeuid);
@@ -424,82 +413,160 @@ call_counter(int mode, const char *args)
 }
 
 static	int
-dir_count_total(char *here, size_t *size)
+parse_values(char *here, char **mapping, size_t maxsize)
 {
-	(void)here;
-	(void)size;
-	return(call_counter(MODE_ALL, NULL));
+	char		*p, *e, *word, *args, *end = strstr(here, "-->");
+	enum		{ T_INDEX, T_EQUAL, T_VALUE }	expect;
+	size_t		mapsize;
+	unsigned int	guard;
+
+	if (!end)
+		return 0;
+	*end = '\0';
+
+	args = malloc(end + 1 - here);
+	strlcpy(args, here, end + 1 - here);
+	mapsize = 0;
+	expect = T_INDEX;
+	guard = 1;
+	for (p = word = args; guard && mapsize < maxsize; p++)
+	{
+		switch (*p)
+		{
+		case '=':
+			*p = '\0';
+			if (*word)
+				/* add index */
+				mapping[mapsize++] = strdup(word);
+			else if (expect == T_INDEX)
+				/* equal without index */
+				mapping[mapsize++] = NULL;
+			word = p + 1;
+			expect = T_VALUE;
+			break;
+		case '"':
+			*p = '\0';
+			word = p + 1;
+			if ((e = strchr(word, '"')))
+			{
+				*e = '\0';
+				p = e;
+				if (expect == T_EQUAL)
+				/* word without equal: new index */
+					mapping[mapsize++] = NULL;
+				/* add index or value */
+				mapping[mapsize++] = strdup(word);
+				word = p + 1;
+			}
+			if (expect == T_VALUE)
+				expect = T_INDEX;
+			else /* expect == T_INDEX */
+				expect = T_EQUAL;
+			break;
+		case '\0':
+			guard = 0;
+		case ' ':  case '\t':
+		case '\r': case '\n':
+			*p = '\0';
+			if (!*word)
+			{
+				word++;
+				break;
+			}
+			/* add index or value */
+			mapping[mapsize++] = strdup(word);
+			word = p + 1;
+			if (expect == T_VALUE)
+				expect = T_INDEX;
+			else /* expect == T_INDEX */
+				expect = T_EQUAL;
+			break;
+		default:
+			if (word == p && expect == T_EQUAL)
+			{
+				/* word without equal: new index */
+				mapping[mapsize++] = NULL;
+				expect = T_INDEX;
+			}
+		}
+	}
+
+	*end = '-';
+	free(args);
+	return (int)mapsize;
 }
 
 static	int
-dir_count_total_gfx(char *here, size_t *size)
+dir_count_total(int argc, char **argv, size_t *size)
 {
 	(void)size;
-	return(call_counter(MODE_GFX_ALL, here));
+	(void)argc;
+	(void)argv;
+	return(call_counter(MODE_ALL, 0, NULL));
 }
 
 static	int
-dir_count_today(char *here, size_t *size)
+dir_count_total_gfx(int argc, char **argv, size_t *size)
 {
-	(void)here;
 	(void)size;
-	return(call_counter(MODE_TODAY, NULL));
+	return(call_counter(MODE_GFX_ALL, argc, argv));
 }
 
 static	int
-dir_count_today_gfx(char *here, size_t *size)
+dir_count_today(int argc, char **argv, size_t *size)
 {
 	(void)size;
-	return(call_counter(MODE_GFX_TODAY, here));
+	(void)argc;
+	(void)argv;
+	return(call_counter(MODE_TODAY, 0, NULL));
 }
 
 static	int
-dir_count_month(char *here, size_t *size)
+dir_count_today_gfx(int argc, char **argv, size_t *size)
 {
-	(void)here;
 	(void)size;
-	return(call_counter(MODE_MONTH, NULL));
+	return(call_counter(MODE_GFX_TODAY, argc, argv));
 }
 
 static	int
-dir_count_month_gfx(char *here, size_t *size)
+dir_count_month(int argc, char **argv, size_t *size)
 {
 	(void)size;
-	return(call_counter(MODE_GFX_MONTH, here));
+	(void)argc;
+	(void)argv;
+	return(call_counter(MODE_MONTH, 0, NULL));
 }
 
 static	int
-dir_count_reset(char *here, size_t *size)
+dir_count_month_gfx(int argc, char **argv, size_t *size)
 {
 	(void)size;
-	return(call_counter(MODE_RESET, here));
+	return(call_counter(MODE_GFX_MONTH, argc, argv));
 }
 
 static	int
-dir_date_format(char *here, size_t *size)
+dir_count_reset(int argc, char **argv, size_t *size)
 {
-	char		*search;
+	(void)size;
+	return(call_counter(MODE_RESET, argc, argv));
+}
 
-	if (*(here++) != ' ')
+static	int
+dir_date_format(int argc, char **argv, size_t *size)
+{
+	if (!argc)
 	{
 		secprintf("[No parameter to date-format]\n");
 		return(ERR_CONT);
 	}
 
-	if (!(search = strstr(here, "-->")))
-	{
-		secprintf("[Incomplete directive in date-format]\n");
-		return(ERR_CONT);
-	}
-	*search = 0;
-	strlcpy(dateformat, here, MYBUFSIZ);
-	*search = '-';
+	strlcpy(dateformat, argv[0], MYBUFSIZ);
 	(void)size;
 	return(ERR_NONE);
 }
 
 static	int
-dir_date(char *here, size_t *size)
+dir_date(int argc, char **argv, size_t *size)
 {
 	char		buffer[MYBUFSIZ];
 	time_t		theclock;
@@ -507,49 +574,42 @@ dir_date(char *here, size_t *size)
 	time(&theclock);
 	strftime(buffer, MYBUFSIZ - 1, dateformat, localtime(&theclock));
 	*size += strlen(buffer);
-	(void)here;
+	(void)argc;
+	(void)argv;
 	return(secputs(buffer) == EOF ? ERR_QUIT : ERR_NONE);
 }
 
 static	int
-dir_include_file(char *here, size_t *size)
+dir_include_file(int argc, char **argv, size_t *size)
 {
-	int		fd, ret;
-	const	char	*path;
-	char		*search;
+	int		i, fd, ret;
+	const	char	*path = NULL;
 
 	if ((numincludes++) > 16)
 	{
-		secprintf("[Too many include files]\n");
+		*size += secprintf("[Too many include files]\n");
 		return(ERR_CONT);
 	}
-	if (*(here++) != ' ')
+	if (!argc)
 	{
-		secprintf("[No parameter for include-file]\n");
+		*size += secprintf("[No parameter for include-file]\n");
 		return(ERR_CONT);
 	}
 
-	if (!(search = strstr(here, "-->")))
-	{
-		secprintf("[Incomplete directive in include-file]\n");
-		return(ERR_CONT);
-	}
-	if (!strncmp(here, "virtual=\"", 9))
-	{
-		here += 9;
-		search -= 1;
-	}
-	*search = 0;
-	path = convertpath(here);
+	for (i = 0; i < argc; i += 2)
+		if (argv[i] && !strcmp(argv[i], "virtual"))
+			path = argv[i + 1];
+	if (!path)
+		path = argv[0];
+
+	path = convertpath(path);
 	fd = open(path, O_RDONLY, 0);
-	*search = '-';
 	if (fd < 0)
 	{
-		secprintf("[Error opening file `%s': %s]\n",
+		*size += secprintf("[Error opening file `%s': %s]\n",
 			path, strerror(errno));
 		return(ERR_CONT);
 	}
-	*search = '-';
 	ret = sendwithdirectives_internal(fd, size);
 	numincludes--;
 	close(fd);
@@ -561,24 +621,16 @@ dir_include_file(char *here, size_t *size)
 }
 
 static	int
-dir_last_mod(char *here, size_t *size)
+dir_last_mod(int argc, char **argv, size_t *size)
 {
 	const	char	*path;
-	char		*search, buffer[MYBUFSIZ];
+	char		buffer[MYBUFSIZ];
 	struct	stat	statbuf;
 	struct	tm	*thetime;
 
-	if (*here == ' ')
+	if (argc)
 	{
-		here++;
-		if (!(search = strstr(here, "-->")))
-		{
-			secprintf("[Incomplete directive in last-mod]\n");
-			return(ERR_CONT);
-		}
-		*search = 0;
-		path = convertpath(here);
-		*search = '-';
+		path = convertpath(argv[0]);
 		if (stat(path, &statbuf))
 		{
 			secprintf("[Cannot stat file '%s': %s]\n",
@@ -601,40 +653,33 @@ dir_last_mod(char *here, size_t *size)
 }
 
 static	int
-dir_remote_host(char *here, size_t *size)
+dir_remote_host(int argc, char **argv, size_t *size)
 {
 	*size += strlen(remotehost);
-	(void)here;
+	(void)argc;
+	(void)argv;
 	return(secputs(remotehost) == EOF ? ERR_QUIT : ERR_NONE);
 }
 
 static	int
-dir_run_cgi(char *here, size_t *size)
+dir_run_cgi(int argc, char **argv, size_t *size)
 {
-	char	*search, *querystring, *qs, *cgi;
-	int		oldhead;
+	char	*querystring, *qs;
+	int	oldhead;
 
 	if ((qs = getenv("QUERY_STRING")))
 		querystring = strdup(qs);
 	else
 		querystring = NULL;
 
-	if (*here != ' ')
+	if (!argc)
 	{
-		secprintf("[No parameter for run-cgi]\n");
-		return(ERR_CONT);
-	}
-	if (!(search = strstr(here, "-->")))
-	{
-		secprintf("[Incomplete directive in run-cgi]\n");
+		*size += secprintf("[No parameter for run-cgi]\n");
 		return(ERR_CONT);
 	}
 	oldhead = headers;
 	headers = 0;
-	*search = 0;
-	cgi = strdup(here + 1);
-	*search = '-';
-	do_get(cgi);
+	do_get(argv[0]);
 	headers = oldhead;
 	/* used to do something like this - which is way more efficient
 	 *
@@ -654,139 +699,140 @@ dir_run_cgi(char *here, size_t *size)
 }
 
 static	int
-dir_agent_long(char *here, size_t *size)
+dir_agent_long(int argc, char **argv, size_t *size)
 {
 	if (getenv("USER_AGENT"))
-		secprintf("%s", getenv("USER_AGENT"));
+		*size += secprintf("%s", getenv("USER_AGENT"));
 	else
-		secprintf("Unknown browser");
-	(void)here;
-	(void)size;
+		*size += secprintf("Unknown browser");
+	(void)argc;
+	(void)argv;
 	return(ERR_NONE);
 }
 
 static	int
-dir_agent_short(char *here, size_t *size)
+dir_agent_short(int argc, char **argv, size_t *size)
 {
 	if (getenv("USER_AGENT_SHORT"))
-		secprintf("%s", getenv("USER_AGENT_SHORT"));
+		*size += secprintf("%s", getenv("USER_AGENT_SHORT"));
 	else
-		secprintf("Unknown browser");
-	(void)here;
-	(void)size;
+		*size += secprintf("Unknown browser");
+	(void)argc;
+	(void)argv;
 	return(ERR_NONE);
 }
 
 static	int
-dir_argument(char *here, size_t *size)
+dir_argument(int argc, char **argv, size_t *size)
 {
 	if (getenv("QUERY_STRING")) {
-		secprintf("%s", getenv("QUERY_STRING"));
+		*size += secprintf("%s", getenv("QUERY_STRING"));
 	} else {
-		secprintf("[Document missing arguments]\n");
+		*size += secprintf("[Document missing arguments]\n");
 		return(ERR_CONT);
 	}
-	(void)here;
-	(void)size;
+	(void)argc;
+	(void)argv;
 	return(ERR_NONE);
 }
 
 static	int
-dir_printenv(char *here, size_t *size)
+dir_printenv(int argc, char **argv, size_t *size)
 {
 	char **p, *c;
 
-	if (*here != ' ')
+	if (!argc)
 	{
 		for (p = environ; ((c = *p)); ++p)
-			secprintf("<br>%s\n", c);
+			*size += secprintf("%s<br>\n", c);
 		return(ERR_NONE);
 	}
-	if (!(c = strstr(here, "-->")))
+	*size += secprintf("%s=%s", argv[0], getenv(argv[0]));
+	return ERR_NONE;
+}
+
+static	int
+dir_set(int argc, char **argv, size_t *size)
+{
+	int	i;
+
+	if (setvarlen + argc > BUFSIZ)
 	{
-		secprintf("[Incomplete directive in printenv]\n");
+		secprintf("[Too many set arguments]\n");
 		return(ERR_CONT);
 	}
-	*c = '\0';
-	secprintf("%s=%s", here + 1, getenv(here + 1));
-	*c = '-';
+
+	for (i = 0; i < argc; i++, setvarlen++)
+		setvars[setvarlen] = strdup(argv[i]);
 	(void)size;
 	return ERR_NONE;
 }
 
 static	int
-dir_echo(char *here, size_t *size)
+dir_echo(int argc, char **argv, size_t *size)
 {
-	char	*end = strstr(here, "-->");
-	char	*cmd = NULL, *var = NULL, *enc = NULL, *p, **value;
-	static char	args[BUFSIZ];
+	int	i;
+	char	*var = NULL, *envvar = NULL, *enc = NULL;
+	const	char	*value;
 
-	if (!end)
+	for (i = 0; i < argc; i += 2)
 	{
-		secprintf("[Incomplete directive in echo]\n");
-		return(ERR_CONT);
-	}
-	strlcpy(args, here, end + 1 - here);
-	value = &var;
-	for (p = args; (cmd = strsep(&p, " \t\n\"=")); )
-	{
-		if (!*cmd)
-			continue;
-		else if (!strcmp(cmd, "var"))
-			value = &var;
-		else if (!strcmp(cmd, "encoding"))
-			value = &enc;
-		else if (value)
-		{
-			*value = cmd;
-			value = NULL;
-		}
-		else if (!var)
-			var = cmd;
+		if (!strcmp(argv[i], "var"))
+			var = argv[i+1];
+		else if (!strcmp(argv[i], "envvar"))
+			envvar = argv[i+1];
+		else if (!strcmp(argv[i], "encoding"))
+			enc = argv[i+1];
+		else if (argv[i+1])
+			/* ignore unknown index=value argument */
+			;
+		else
+			/* assume old-style var */
+			var = argv[i];
 	}
 
-	if (!var)
-		secprintf("[Incomplete directive in echo]\n");
-	else if (enc && !strcmp(enc, "none"))
-		secprintf("%s", getenv(var));
+	value = getenv(envvar ? envvar : var);
+	if (var)
+		for (i = 0; i < setvarlen; i += 2)
+			if (setvars[i] && !strcmp(setvars[i], var))
+				value = setvars[i + 1];
+
+	if (!value)
+		value = "";
+	if (enc && !strcmp(enc, "none"))
+		*size += secputs(value);
 	else if (enc && !strcmp(enc, "url"))
 		/* TODO: do url-encoding args */
-		secprintf("%s", getenv(var));
+		*size += secputs(value);
 	else /* enc = "html" */
 	{
-		var = escape(getenv(var));
-		secprintf("%s", var);
+		var = escape(value);
+		*size += secputs(var);
 		free(var);
 	}
-	(void)size;
 	return(ERR_NONE);
 }
 
 static	int
-dir_referer(char *here, size_t *size)
+dir_referer(int argc, char **argv, size_t *size)
 {
 	if (getenv("HTTP_REFERER"))
-		secprintf("%s", getenv("HTTP_REFERER"));
+		*size += secprintf("%s", getenv("HTTP_REFERER"));
 	else
-		secprintf("No refering URL");
-	(void)here;
-	(void)size;
+		*size += secprintf("No refering URL");
+	(void)argc;
+	(void)argv;
 	return(ERR_NONE);
 }
 
 static	int
-dir_if(char *here, size_t *size)
+dir_if(int argc, char **argv, size_t *size)
 {
-	char		*search;
+	char	*keyword, *value;
 
-	if (*(here++) != ' ')
+	if (argc < 3 || !(keyword = argv[0]) || !(value = argv[2]))
 	{
-		secprintf("[No parameter for if]\n");
-		return(ERR_CONT);
-	}
-	if (!(search = strstr(here, "-->")))
-	{
-		secprintf("[Incomplete directive in if]\n");
+		*size += secprintf("[No parameters for if]\n");
 		return(ERR_CONT);
 	}
 	if (ssioutput == 15)
@@ -794,141 +840,117 @@ dir_if(char *here, size_t *size)
 		secprintf("[Too many nested if statements]\n");
 		return(ERR_CONT);
 	}
-	*search = 0;
-	if (!strncasecmp(here, "browser ", 8))
-		ssiarray[++ssioutput] = match_list(here + 8,
-			getenv("USER_AGENT"));
-	else if (!strncasecmp(here, "remote-host ", 11))
+	if (!strcasecmp(keyword, "browser"))
+		ssiarray[++ssioutput] = match_list(value, getenv("USER_AGENT"));
+	else if (!strcasecmp(keyword, "remote-host"))
 		ssiarray[++ssioutput] =
-			(match_list(here + 11, getenv("REMOTE_HOST")) ||
-			match_list(here + 11, getenv("REMOTE_ADDR")));
-	else if (!strncasecmp(here, "remote-name ", 11))
-		ssiarray[++ssioutput] = match_list(here + 11,
-			getenv("REMOTE_HOST"));
-	else if (!strncasecmp(here, "remote-addr ", 11))
-		ssiarray[++ssioutput] = match_list(here + 11,
-			getenv("REMOTE_ADDR"));
-	else if (!strncasecmp(here, "argument ", 9))
-		ssiarray[++ssioutput] = match_list(here + 9,
-			getenv("QUERY_STRING"));
-	else if (!strncasecmp(here, "referer ", 8))
-		ssiarray[++ssioutput] = match_list(here + 8,
-			getenv("HTTP_REFERER"));
-	else if (!strncasecmp(here, "var=", 4))
+			(match_list(value, getenv("REMOTE_HOST")) ||
+			match_list(value, getenv("REMOTE_ADDR")));
+	else if (!strcasecmp(keyword, "remote-name"))
+		ssiarray[++ssioutput] = match_list(value,getenv("REMOTE_HOST"));
+	else if (!strcasecmp(keyword, "remote-addr"))
+		ssiarray[++ssioutput] = match_list(value,getenv("REMOTE_ADDR"));
+	else if (!strcasecmp(keyword, "argument"))
+		ssiarray[++ssioutput] =
+			match_list(value, getenv("QUERY_STRING"));
+	else if (!strcasecmp(keyword, "referer"))
+		ssiarray[++ssioutput] =
+			match_list(value, getenv("HTTP_REFERER"));
+	else if (!strcasecmp(keyword, "var"))
 	{
-		char	*sp = strchr(here += 4, ' ');
-
-		if (!sp || !sp[1])
+		if (argc < 3)
 		{
-			secprintf("[Missing if argument]\n");
-			*search = '-'; return(ERR_CONT);
+			*size += secprintf("[Missing if var argument]\n");
+			return(ERR_CONT);
 		}
-		*sp = '\0';
-		/* handle optional quotes */
-		if ('"' == *here && '"' == *(sp-1))
-		{
-			here++;
-			*--sp = '\0';
-			ssiarray[++ssioutput] = match_list(sp + 2, getenv(here));
-			*sp++ = '"';
-		}
-		else
-			ssiarray[++ssioutput] = match_list(sp + 1, getenv(here));
-		*sp = ' ';
+		ssiarray[++ssioutput] = match_list(argv[2], getenv(value));
 	}
 	else
 	{
-		secprintf("[Unknown if subtype]\n");
-		*search = '-'; return(ERR_CONT);
+		*size += secprintf("[Unknown if subtype]\n");
+		return(ERR_CONT);
 	}
-	*search = '-';
-	(void)size;
 	return(ERR_NONE);
 }
 
 static	int
-dir_if_not(char *here, size_t *size)
+dir_if_not(int argc, char **argv, size_t *size)
 {
-	if (dir_if(here, size) != ERR_NONE)
+	if (dir_if(argc, argv, size) != ERR_NONE)
 		return(ERR_CONT);
 	ssiarray[ssioutput] = !ssiarray[ssioutput];
 	return(ERR_NONE);
 }
 
 static	int
-dir_else(char *here, size_t *size)
+dir_else(int argc, char **argv, size_t *size)
 {
 	ssiarray[ssioutput] = !ssiarray[ssioutput];
-	(void)here;
 	(void)size;
+	(void)argc;
+	(void)argv;
 	return(ERR_NONE);
 }
 
 static	int
-dir_endif(char *here, size_t *size)
+dir_endif(int argc, char **argv, size_t *size)
 {
 	if (!ssioutput)
 	{
-		secprintf("[No if's to endif]\n");
+		*size += secprintf("[No if's to endif]\n");
 		return(ERR_CONT);
 	}
 	ssioutput--;
-	(void)here;
-	(void)size;
+	(void)argc;
+	(void)argv;
 	return(ERR_NONE);
 }
 
 static	int
-dir_switch(char *here, size_t *size)
+dir_switch(int argc, char **argv, size_t *size)
 {
-	if (*(here++) != ' ')
+	if (!argc)
 	{
-		secprintf("[No parameter for switch]\n");
-		return(ERR_CONT);
-	}
-	if (!strstr(here, "-->"))
-	{
-		secprintf("[Incomplete directive in switch]\n");
+		*size += secprintf("[No parameter for switch]\n");
 		return(ERR_CONT);
 	}
 	ssiarray[++ssioutput] = 0;
-
-	switchlen = strlen(here);
-	switchstr = realloc(switchstr, switchlen);
-	switchstr[0] = ' ';
-	switchstr[1] = '\0';
-	strlcat(switchstr, here, switchlen);
-	switchstr[switchlen-3] = '\0';
-	(void)size;
+	switchstr = strdup(argv[0]);
 	return(ERR_NONE);
 }
 
 static	int
-dir_endswitch(char *here, size_t *size)
+dir_endswitch(int argc, char **argv, size_t *size)
 {
-	dir_endif(here, size);
+	dir_endif(argc, argv, size);
+	if (switchstr)
+		free(switchstr);
 	return(ERR_NONE);
 }
 
 static	int
-dir_case(char *here, size_t *size)
+dir_case(int argc, char **argv, size_t *size)
 {
-	char *casestr = malloc(256);
+	int	ret;
 
-	strlcpy(casestr, switchstr, switchlen);
-	strlcat(casestr, here, 256);
-
-	dir_endif(here, size);
-	if (dir_if(casestr, size) != ERR_NONE)
+	if (!argc)
 		return(ERR_CONT);
 
-	return(ERR_NONE);
+	dir_endif(argc, argv, size);
+	argc = 3;
+	argv[2] = argv[0];
+	argv[1] = NULL;
+	argv[0] = switchstr;
+	ret = dir_if(argc, argv, size);
+	argv[0] = NULL;
+
+	return ret;
 }
 
 typedef	struct
 {
 	const	char	*name;
-	int		(*func) (char *, size_t *);
+	int		(*func) (int, char **, size_t *);
 	char		params;
 } directivestype;
 
@@ -954,6 +976,7 @@ static	directivestype	directives[] =
 	{ "argument",		dir_argument,		0	},
 	{ "printenv",		dir_printenv,		1	},
 	{ "referer",		dir_referer,		0	},
+	{ "set",		dir_set,		1	},
 	{ "echo",		dir_echo,		1	},
 	{ "if",			dir_if,			1	},
 	{ "if-not",		dir_if_not,		1	},
@@ -981,7 +1004,8 @@ static	int
 parsedirectives(char *parse, size_t *size)
 {
 	char		*here, *search, result[MYBUFSIZ], *store;
-	int		len, printable;
+	int		len, printable, argc;
+	char		*argv[BUFSIZ];
 	directivestype	*directive;
 
 	store = result; here = parse;
@@ -1004,20 +1028,17 @@ parsedirectives(char *parse, size_t *size)
 			store = result;
 		}
 		here += 5;
+		len = argc = parse_values(here, argv, BUFSIZ);
 		for (directive = directives; directive->name; directive++)
 		{
-			len = strlen(directive->name);
-			if (strncasecmp(directive->name, here, len) ||
-					(strncmp(here+len, "-->", 3) && here[len] != ' '))
+			if (len < 1 || strcasecmp(directive->name, argv[0]))
 				continue;
 
-			if (!directive->params &&
-				strncmp(here+len, "-->", 3))
-			{
-				secprintf("[Garbage after `%s']",
-					directive->name);
-			}
-			else if (printable ||
+			/* remove argv[0..1] */
+			free(argv[0]);
+			for (argc = 0; argc < len - 2; argc++)
+				argv[argc] = argv[argc + 2];
+			if (printable ||
 				(directive->func == dir_if) ||
 				(directive->func == dir_if_not) ||
 				(directive->func == dir_else) ||
@@ -1026,7 +1047,7 @@ parsedirectives(char *parse, size_t *size)
 				(directive->func == dir_endswitch) ||
 				(directive->func == dir_case))
 			{
-				switch (directive->func(here + len, size))
+				switch (directive->func(argc, argv, size))
 				{
 				case ERR_QUIT:
 					return(ERR_QUIT);
@@ -1039,6 +1060,9 @@ parsedirectives(char *parse, size_t *size)
 				here = search + 3;
 			break;
 		}
+		while (argc--)
+			if (argv[argc])
+				free(argv[argc]);
 		if (!directive->name)
 		{
 			secprintf("[Unknown directive]\n");
@@ -1102,8 +1126,15 @@ sendwithdirectives_internal(int fd, size_t *size)
 int
 sendwithdirectives(int fd, size_t *size)
 {
+	int	ret;
+
 	ssioutput = 0; ssiarray[0] = 1; cnt_readbefore = numincludes = 0;
-	return(sendwithdirectives_internal(fd, size));
+	ret = sendwithdirectives_internal(fd, size);
+
+	while (setvarlen--)
+		if (setvars[setvarlen])
+			free(setvars[setvarlen]);
+	return ret;
 }
 
 #endif		/* WANT_SSI */
