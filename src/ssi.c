@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2007 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssi.c,v 1.62 2007/01/28 12:15:11 johans Exp $ */
+/* $Id: ssi.c,v 1.63 2007/01/28 13:11:12 johans Exp $ */
 
 #include	"config.h"
 
@@ -50,10 +50,18 @@
 #include	"decode.h"
 #include	"htconfig.h"
 
+typedef	enum
+{
+	MODE_ALL, MODE_GFX_ALL,
+	MODE_TODAY, MODE_GFX_TODAY,
+	MODE_MONTH, MODE_GFX_MONTH,
+	MODE_RESET
+} countermode;
+
 static	int	xsc_initdummy		(void);
 static	int	xsc_initcounter		(const char *);
-static	int	xsc_counter		(int, const char *);
-static	int	call_counter		(int, int, char **);
+static	int	xsc_counter		(countermode, const char *);
+static	int	call_counter		(countermode, int, char **);
 static	int	parse_values		(char *, char **, size_t);
 static	int	dir_count_total		(int, char **, size_t *);
 static	int	dir_count_total_gfx	(int, char **, size_t *);
@@ -66,13 +74,9 @@ static	int	dir_date		(int, char **, size_t *);
 static	int	dir_date_format		(int, char **, size_t *);
 static	int	dir_include_file	(int, char **, size_t *);
 static	int	dir_last_mod		(int, char **, size_t *);
-static	int	dir_remote_host		(int, char **, size_t *);
 static	int	dir_run_cgi		(int, char **, size_t *);
-static	int	dir_agent_long		(int, char **, size_t *);
-static	int	dir_agent_short		(int, char **, size_t *);
-static	int	dir_argument	(int, char **, size_t *);
-static	int	dir_referer		(int, char **, size_t *);
 static	int	dir_echo		(int, char **, size_t *);
+static	int	dir_echo_obsolete	(int, char **, size_t *);
 static	int	dir_if			(int, char **, size_t *);
 static	int	dir_if_not		(int, char **, size_t *);
 static	int	dir_else		(int, char **, size_t *);
@@ -84,19 +88,15 @@ static	int	print_enabled		(void);
 static	int	parsedirectives		(char *, size_t *);
 static	int	sendwithdirectives_internal (int, size_t *);
 
+#define		MAXINCLUDES	16
+#define		CONDKEYWORDS	16
+#define		SETVARIABLES	200
+#define		SSIARGUMENTS	100
 static	int	ssioutput, cnt_readbefore, numincludes;
-static	char	ssiarray[16];
+static	char	ssiarray[CONDKEYWORDS];
 static	char	*switchstr = NULL;
 static	int	setvarlen;
-static	char	*setvars[BUFSIZ];
-
-#define		MODE_ALL	0
-#define		MODE_GFX_ALL	1
-#define		MODE_TODAY	2
-#define		MODE_GFX_TODAY	3
-#define		MODE_MONTH	4
-#define		MODE_GFX_MONTH	5
-#define		MODE_RESET	6
+static	char	*setvars[SETVARIABLES];
 
 static	int
 xsc_initdummy()
@@ -237,7 +237,7 @@ counter_versioncheck()
 }
 
 static	int
-xsc_counter(int mode, const char *args)
+xsc_counter(countermode mode, const char *args)
 {
 	char			host[XS_PATH_MAX];
 	int			fd = -1, timer, total, x, y, z, comp, already = 0;
@@ -386,7 +386,7 @@ ALREADY:
 }
 
 static	int
-call_counter(int mode, int argc, char **argv)
+call_counter(countermode mode, int argc, char **argv)
 {
 	int		ret;
 	uid_t		savedeuid;
@@ -585,7 +585,7 @@ dir_include_file(int argc, char **argv, size_t *size)
 	int		i, fd, ret;
 	const	char	*path = NULL;
 
-	if ((numincludes++) > 16)
+	if ((numincludes++) > MAXINCLUDES)
 	{
 		*size += secputs("[Too many include files]\n");
 		return(ERR_CONT);
@@ -653,15 +653,6 @@ dir_last_mod(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_remote_host(int argc, char **argv, size_t *size)
-{
-	*size += strlen(remotehost);
-	(void)argc;
-	(void)argv;
-	return(secputs(remotehost) == EOF ? ERR_QUIT : ERR_NONE);
-}
-
-static	int
 dir_run_cgi(int argc, char **argv, size_t *size)
 {
 	char	*querystring, *qs;
@@ -699,44 +690,6 @@ dir_run_cgi(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_agent_long(int argc, char **argv, size_t *size)
-{
-	if (getenv("USER_AGENT"))
-		*size += secputs(getenv("USER_AGENT"));
-	else
-		*size += secputs("Unknown browser");
-	(void)argc;
-	(void)argv;
-	return(ERR_NONE);
-}
-
-static	int
-dir_agent_short(int argc, char **argv, size_t *size)
-{
-	if (getenv("USER_AGENT_SHORT"))
-		*size += secputs(getenv("USER_AGENT_SHORT"));
-	else
-		*size += secputs("Unknown browser");
-	(void)argc;
-	(void)argv;
-	return(ERR_NONE);
-}
-
-static	int
-dir_argument(int argc, char **argv, size_t *size)
-{
-	if (getenv("QUERY_STRING")) {
-		*size += secputs(getenv("QUERY_STRING"));
-	} else {
-		*size += secputs("[Document missing arguments]\n");
-		return(ERR_CONT);
-	}
-	(void)argc;
-	(void)argv;
-	return(ERR_NONE);
-}
-
-static	int
 dir_printenv(int argc, char **argv, size_t *size)
 {
 	char **p, *c;
@@ -756,7 +709,7 @@ dir_set(int argc, char **argv, size_t *size)
 {
 	int	i;
 
-	if (setvarlen + argc > BUFSIZ)
+	if (setvarlen + argc > SETVARIABLES)
 	{
 		*size += secputs("[Too many set arguments]\n");
 		return(ERR_CONT);
@@ -814,14 +767,24 @@ dir_echo(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_referer(int argc, char **argv, size_t *size)
+dir_echo_obsolete(int argc, char **argv, size_t *size)
 {
-	if (getenv("HTTP_REFERER"))
-		*size += secputs(getenv("HTTP_REFERER"));
-	else
-		*size += secputs("No refering URL");
+	char	*value = NULL;
+
+	/* argv[0] = ssi name for ssi w/o arguments */
+	if (!strcmp(argv[0], "remote-host"))
+		value = remotehost;
+	else if (!strcmp(argv[0], "agent-long"))
+		value = getenv("USER_AGENT");
+	else if (!strcmp(argv[0], "agent-short"))
+		value = getenv("USER_AGENT_SHORT");
+	else if (!strcmp(argv[0], "argument"))
+		value = getenv("QUERY_STRING");
+	else if (!strcmp(argv[0], "referer"))
+		value = getenv("HTTP_REFERER");
+
+	*size += secputs(value ? value : "[none]");
 	(void)argc;
-	(void)argv;
 	return(ERR_NONE);
 }
 
@@ -835,7 +798,7 @@ dir_if(int argc, char **argv, size_t *size)
 		*size += secputs("[No parameters for if]\n");
 		return(ERR_CONT);
 	}
-	if (ssioutput == 15)
+	if (ssioutput >= SSIARGUMENTS-1)
 	{
 		*size += secputs("[Too many nested if statements]\n");
 		return(ERR_CONT);
@@ -969,13 +932,13 @@ static	directivestype	directives[] =
 	{ "include-file",	dir_include_file,	1	},
 	{ "last-modified",	dir_last_mod,		1	},
 	{ "last-mod",		dir_last_mod,		1	},
-	{ "remote-host",	dir_remote_host,	0	},
+	{ "remote-host",	dir_echo_obsolete,	0	},
 	{ "run-cgi",		dir_run_cgi,		1	},
-	{ "agent-short",	dir_agent_short,	0	},
-	{ "agent-long",		dir_agent_long,		0	},
-	{ "argument",		dir_argument,		0	},
+	{ "agent-short",	dir_echo_obsolete,	0	},
+	{ "agent-long",		dir_echo_obsolete,	0	},
+	{ "argument",		dir_echo_obsolete,	0	},
 	{ "printenv",		dir_printenv,		1	},
-	{ "referer",		dir_referer,		0	},
+	{ "referer",		dir_echo_obsolete,	0	},
 	{ "set",		dir_set,		1	},
 	{ "echo",		dir_echo,		1	},
 	{ "if",			dir_if,			1	},
@@ -1005,7 +968,7 @@ parsedirectives(char *parse, size_t *size)
 {
 	char		*here, *search, result[MYBUFSIZ], *store;
 	int		len, printable, argc;
-	char		*argv[BUFSIZ];
+	char		*argv[SSIARGUMENTS];
 	directivestype	*directive;
 
 	store = result; here = parse;
@@ -1028,16 +991,21 @@ parsedirectives(char *parse, size_t *size)
 			store = result;
 		}
 		here += 5;
-		len = argc = parse_values(here, argv, BUFSIZ);
+		len = argc = parse_values(here, argv, SSIARGUMENTS);
 		for (directive = directives; directive->name; directive++)
 		{
 			if (len < 1 || strcasecmp(directive->name, argv[0]))
 				continue;
 
-			/* remove argv[0..1] */
-			free(argv[0]);
-			for (argc = 0; argc < len - 2; argc++)
-				argv[argc] = argv[argc + 2];
+			if (directive->params)
+			{
+				/* remove argv[0..1] */
+				free(argv[0]);
+				for (argc = 0; argc < len - 2; argc++)
+					argv[argc] = argv[argc + 2];
+			}
+			else
+				argc = 0;
 			if (printable ||
 				(directive->func == dir_if) ||
 				(directive->func == dir_if_not) ||
@@ -1069,6 +1037,8 @@ parsedirectives(char *parse, size_t *size)
 			if ((search = strstr(here, "-->")))
 				here = search + 3;
 		}
+		else if (!directive->params)
+			free(argv[0]);
 	}
 
 	if (store != result)
