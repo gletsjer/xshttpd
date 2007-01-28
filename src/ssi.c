@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssi.c,v 1.61 2007/01/28 11:39:56 johans Exp $ */
+/* Copyright (C) 1998-2007 by Johan van Selst (johans@stack.nl) */
+/* $Id: ssi.c,v 1.62 2007/01/28 12:15:11 johans Exp $ */
 
 #include	"config.h"
 
@@ -556,7 +556,7 @@ dir_date_format(int argc, char **argv, size_t *size)
 {
 	if (!argc)
 	{
-		secprintf("[No parameter to date-format]\n");
+		*size += secputs("[No parameter to date-format]\n");
 		return(ERR_CONT);
 	}
 
@@ -587,12 +587,12 @@ dir_include_file(int argc, char **argv, size_t *size)
 
 	if ((numincludes++) > 16)
 	{
-		*size += secprintf("[Too many include files]\n");
+		*size += secputs("[Too many include files]\n");
 		return(ERR_CONT);
 	}
 	if (!argc)
 	{
-		*size += secprintf("[No parameter for include-file]\n");
+		*size += secputs("[No parameter for include-file]\n");
 		return(ERR_CONT);
 	}
 
@@ -633,7 +633,7 @@ dir_last_mod(int argc, char **argv, size_t *size)
 		path = convertpath(argv[0]);
 		if (stat(path, &statbuf))
 		{
-			secprintf("[Cannot stat file '%s': %s]\n",
+			*size += secprintf("[Cannot stat file '%s': %s]\n",
 				path, strerror(errno));
 			return(ERR_CONT);
 		}
@@ -674,7 +674,7 @@ dir_run_cgi(int argc, char **argv, size_t *size)
 
 	if (!argc)
 	{
-		*size += secprintf("[No parameter for run-cgi]\n");
+		*size += secputs("[No parameter for run-cgi]\n");
 		return(ERR_CONT);
 	}
 	oldhead = headers;
@@ -702,9 +702,9 @@ static	int
 dir_agent_long(int argc, char **argv, size_t *size)
 {
 	if (getenv("USER_AGENT"))
-		*size += secprintf("%s", getenv("USER_AGENT"));
+		*size += secputs(getenv("USER_AGENT"));
 	else
-		*size += secprintf("Unknown browser");
+		*size += secputs("Unknown browser");
 	(void)argc;
 	(void)argv;
 	return(ERR_NONE);
@@ -714,9 +714,9 @@ static	int
 dir_agent_short(int argc, char **argv, size_t *size)
 {
 	if (getenv("USER_AGENT_SHORT"))
-		*size += secprintf("%s", getenv("USER_AGENT_SHORT"));
+		*size += secputs(getenv("USER_AGENT_SHORT"));
 	else
-		*size += secprintf("Unknown browser");
+		*size += secputs("Unknown browser");
 	(void)argc;
 	(void)argv;
 	return(ERR_NONE);
@@ -726,9 +726,9 @@ static	int
 dir_argument(int argc, char **argv, size_t *size)
 {
 	if (getenv("QUERY_STRING")) {
-		*size += secprintf("%s", getenv("QUERY_STRING"));
+		*size += secputs(getenv("QUERY_STRING"));
 	} else {
-		*size += secprintf("[Document missing arguments]\n");
+		*size += secputs("[Document missing arguments]\n");
 		return(ERR_CONT);
 	}
 	(void)argc;
@@ -758,7 +758,7 @@ dir_set(int argc, char **argv, size_t *size)
 
 	if (setvarlen + argc > BUFSIZ)
 	{
-		secprintf("[Too many set arguments]\n");
+		*size += secputs("[Too many set arguments]\n");
 		return(ERR_CONT);
 	}
 
@@ -817,9 +817,9 @@ static	int
 dir_referer(int argc, char **argv, size_t *size)
 {
 	if (getenv("HTTP_REFERER"))
-		*size += secprintf("%s", getenv("HTTP_REFERER"));
+		*size += secputs(getenv("HTTP_REFERER"));
 	else
-		*size += secprintf("No refering URL");
+		*size += secputs("No refering URL");
 	(void)argc;
 	(void)argv;
 	return(ERR_NONE);
@@ -832,12 +832,12 @@ dir_if(int argc, char **argv, size_t *size)
 
 	if (argc < 3 || !(keyword = argv[0]) || !(value = argv[2]))
 	{
-		*size += secprintf("[No parameters for if]\n");
+		*size += secputs("[No parameters for if]\n");
 		return(ERR_CONT);
 	}
 	if (ssioutput == 15)
 	{
-		secprintf("[Too many nested if statements]\n");
+		*size += secputs("[Too many nested if statements]\n");
 		return(ERR_CONT);
 	}
 	if (!strcasecmp(keyword, "browser"))
@@ -860,14 +860,14 @@ dir_if(int argc, char **argv, size_t *size)
 	{
 		if (argc < 3)
 		{
-			*size += secprintf("[Missing if var argument]\n");
+			*size += secputs("[Missing if var argument]\n");
 			return(ERR_CONT);
 		}
 		ssiarray[++ssioutput] = match_list(argv[2], getenv(value));
 	}
 	else
 	{
-		*size += secprintf("[Unknown if subtype]\n");
+		*size += secputs("[Unknown if subtype]\n");
 		return(ERR_CONT);
 	}
 	return(ERR_NONE);
@@ -897,7 +897,7 @@ dir_endif(int argc, char **argv, size_t *size)
 {
 	if (!ssioutput)
 	{
-		*size += secprintf("[No if's to endif]\n");
+		*size += secputs("[No if's to endif]\n");
 		return(ERR_CONT);
 	}
 	ssioutput--;
@@ -911,7 +911,7 @@ dir_switch(int argc, char **argv, size_t *size)
 {
 	if (!argc)
 	{
-		*size += secprintf("[No parameter for switch]\n");
+		*size += secputs("[No parameter for switch]\n");
 		return(ERR_CONT);
 	}
 	ssiarray[++ssioutput] = 0;
@@ -1052,7 +1052,7 @@ parsedirectives(char *parse, size_t *size)
 				case ERR_QUIT:
 					return(ERR_QUIT);
 				case ERR_CONT:
-					secprintf("[Error parsing directive]\n");
+					*size += secputs("[Error parsing directive]\n");
 					break;
 				}
 			}
@@ -1065,7 +1065,7 @@ parsedirectives(char *parse, size_t *size)
 				free(argv[argc]);
 		if (!directive->name)
 		{
-			secprintf("[Unknown directive]\n");
+			*size += secputs("[Unknown directive]\n");
 			if ((search = strstr(here, "-->")))
 				here = search + 3;
 		}
@@ -1128,7 +1128,9 @@ sendwithdirectives(int fd, size_t *size)
 {
 	int	ret;
 
-	ssioutput = 0; ssiarray[0] = 1; cnt_readbefore = numincludes = 0;
+	ssioutput = 0; ssiarray[0] = 1;
+	cnt_readbefore = numincludes = 0;
+	setvarlen = 0;
 	ret = sendwithdirectives_internal(fd, size);
 
 	while (setvarlen--)
