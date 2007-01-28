@@ -2,6 +2,7 @@ This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
 Changes since 3.4 beta 24
+- Allow quoted whitespace in #if argument list
 - Check for #set variables in #if var=...
 
 Changes since 3.4 beta 23
