@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2007 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssi.c,v 1.64 2007/01/28 15:32:40 johans Exp $ */
+/* $Id: ssi.c,v 1.65 2007/01/28 16:30:01 johans Exp $ */
 
 #include	"config.h"
 
@@ -830,10 +830,10 @@ dir_if(int argc, char **argv, size_t *size)
 			return(ERR_CONT);
 		}
 		for (i = 0; i < setvarlen; i += 2)
-			if (setvars[i] && !strcmp(setvars[i], value))
+			if (setvars[i] && !strcmp(setvars[i], argv[1]))
 				var = setvars[i + 1];
 		ssiarray[++ssioutput] =
-			match_list(argv[2], var ? var : getenv(value));
+			match_list(value, var ? var : getenv(argv[1]));
 	}
 	else if (!strcasecmp(keyword, "envvar"))
 	{
@@ -842,7 +842,7 @@ dir_if(int argc, char **argv, size_t *size)
 			*size += secputs("[Missing if envvar argument]\n");
 			return(ERR_CONT);
 		}
-		ssiarray[++ssioutput] = match_list(argv[2], getenv(value));
+		ssiarray[++ssioutput] = match_list(value, getenv(argv[1]));
 	}
 	else
 	{
