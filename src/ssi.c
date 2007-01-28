@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2007 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssi.c,v 1.63 2007/01/28 13:11:12 johans Exp $ */
+/* $Id: ssi.c,v 1.64 2007/01/28 15:32:40 johans Exp $ */
 
 #include	"config.h"
 
@@ -94,7 +94,7 @@ static	int	sendwithdirectives_internal (int, size_t *);
 #define		SSIARGUMENTS	100
 static	int	ssioutput, cnt_readbefore, numincludes;
 static	char	ssiarray[CONDKEYWORDS];
-static	char	*switchstr = NULL;
+static	char	*switchstr;
 static	int	setvarlen;
 static	char	*setvars[SETVARIABLES];
 
@@ -821,9 +821,25 @@ dir_if(int argc, char **argv, size_t *size)
 			match_list(value, getenv("HTTP_REFERER"));
 	else if (!strcasecmp(keyword, "var"))
 	{
+		int	i;
+		char	*var = NULL;
+
 		if (argc < 3)
 		{
 			*size += secputs("[Missing if var argument]\n");
+			return(ERR_CONT);
+		}
+		for (i = 0; i < setvarlen; i += 2)
+			if (setvars[i] && !strcmp(setvars[i], value))
+				var = setvars[i + 1];
+		ssiarray[++ssioutput] =
+			match_list(argv[2], var ? var : getenv(value));
+	}
+	else if (!strcasecmp(keyword, "envvar"))
+	{
+		if (argc < 3)
+		{
+			*size += secputs("[Missing if envvar argument]\n");
 			return(ERR_CONT);
 		}
 		ssiarray[++ssioutput] = match_list(argv[2], getenv(value));
@@ -1101,6 +1117,7 @@ sendwithdirectives(int fd, size_t *size)
 	ssioutput = 0; ssiarray[0] = 1;
 	cnt_readbefore = numincludes = 0;
 	setvarlen = 0;
+	switchstr = NULL;
 	ret = sendwithdirectives_internal(fd, size);
 
 	while (setvarlen--)

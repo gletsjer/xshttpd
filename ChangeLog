@@ -1,8 +1,14 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.4 beta 24
+- Check for #set variables in #if var=...
+
 Changes since 3.4 beta 23
-- Set PATH_TRANSLATED later, making it work for index pages as well
+- Delay setting PATH_TRANSLATED, making it work for index pages as well
+- Add #set SSI option (set variables are available accross #include's)
+- Make a distinction between  #echo var  and  #echo envvar
+- Completely rewrite internal SSI argument parsing
 
 Changes since 3.4 beta 22
 - Force HTTP/1.0 on forwarded requests (avoid chunked data issues)

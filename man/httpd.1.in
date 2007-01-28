@@ -456,8 +456,10 @@ If any of the \fIpatterns\fP match the URL from which the client was
 refered to this page, the query evaluates to true, otherwise it
 evaluates to false.
 .TP
-\fBvar\fP="\fIENVVARIABLE\fP"
-The value of the named environment variable will be checked
+\fBvar\fP="\fIVARIABLE\fP"
+.TP
+\fBenvvar\fP="\fIENVVARIABLE\fP"
+The value of the named (environment) variable will be checked
 against the given pattern(s). This can be also used as an alternative
 to any of the keywords mentioned above.
 .RE
