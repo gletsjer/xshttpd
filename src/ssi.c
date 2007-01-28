@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2007 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssi.c,v 1.65 2007/01/28 16:30:01 johans Exp $ */
+/* $Id: ssi.c,v 1.66 2007/01/28 16:51:41 johans Exp $ */
 
 #include	"config.h"
 
@@ -791,6 +791,7 @@ dir_echo_obsolete(int argc, char **argv, size_t *size)
 static	int
 dir_if(int argc, char **argv, size_t *size)
 {
+	int	i, b;
 	char	*keyword, *value;
 
 	if (argc < 3 || !(keyword = argv[0]) || !(value = argv[2]))
@@ -804,51 +805,38 @@ dir_if(int argc, char **argv, size_t *size)
 		return(ERR_CONT);
 	}
 	if (!strcasecmp(keyword, "browser"))
-		ssiarray[++ssioutput] = match_list(value, getenv("USER_AGENT"));
+		value = getenv("USER_AGENT");
 	else if (!strcasecmp(keyword, "remote-host"))
-		ssiarray[++ssioutput] =
-			(match_list(value, getenv("REMOTE_HOST")) ||
-			match_list(value, getenv("REMOTE_ADDR")));
+		value = remotehost;
 	else if (!strcasecmp(keyword, "remote-name"))
-		ssiarray[++ssioutput] = match_list(value,getenv("REMOTE_HOST"));
+		value = getenv("REMOTE_HOST");
 	else if (!strcasecmp(keyword, "remote-addr"))
-		ssiarray[++ssioutput] = match_list(value,getenv("REMOTE_ADDR"));
+		value = getenv("REMOTE_ADDR");
 	else if (!strcasecmp(keyword, "argument"))
-		ssiarray[++ssioutput] =
-			match_list(value, getenv("QUERY_STRING"));
+		value = getenv("QUERY_STRING");
 	else if (!strcasecmp(keyword, "referer"))
-		ssiarray[++ssioutput] =
-			match_list(value, getenv("HTTP_REFERER"));
+		value = getenv("HTTP_REFERER");
 	else if (!strcasecmp(keyword, "var"))
 	{
-		int	i;
 		char	*var = NULL;
 
-		if (argc < 3)
-		{
-			*size += secputs("[Missing if var argument]\n");
-			return(ERR_CONT);
-		}
 		for (i = 0; i < setvarlen; i += 2)
 			if (setvars[i] && !strcmp(setvars[i], argv[1]))
 				var = setvars[i + 1];
-		ssiarray[++ssioutput] =
-			match_list(value, var ? var : getenv(argv[1]));
+		value = var ? var : getenv(argv[1]);
 	}
 	else if (!strcasecmp(keyword, "envvar"))
-	{
-		if (argc < 3)
-		{
-			*size += secputs("[Missing if envvar argument]\n");
-			return(ERR_CONT);
-		}
-		ssiarray[++ssioutput] = match_list(value, getenv(argv[1]));
-	}
+		value = getenv(argv[1]);
 	else
 	{
 		*size += secputs("[Unknown if subtype]\n");
 		return(ERR_CONT);
 	}
+	/* check all arguments, true if any matches */
+	for (b = 0, i = 2; i < argc; i += 2)
+		if (b |= match(value, argv[i]))
+			break;
+	ssiarray[++ssioutput] = b;
 	return(ERR_NONE);
 }
 
