@@ -469,6 +469,7 @@ For example, to match any version of Netscape (which is really
 called Mozilla), you would use \fBmozilla/*\fP.
 If you want to match any Mosaic version 2, you would use
 \fB*Mosaic*/2*\fP.
+Patterns can include whitespace if they are enclosed in double quotes.
 .LP
 A browser's name is always constructed in the following way:
 .br
