@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.256 2007/01/24 16:56:57 johans Exp $ */
+/* $Id: httpd.c,v 1.257 2007/01/30 14:56:29 johans Exp $ */
 
 #include	"config.h"
 
@@ -97,7 +97,7 @@ typedef	size_t	socklen_t;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.256 2007/01/24 16:56:57 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.257 2007/01/30 14:56:29 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -875,6 +875,7 @@ void
 alarm_handler(int sig)
 {
 	alarm(0); setcurrenttime();
+	/* don't show errors for request (responses) in progress */
 #if		0
 	warnx("[%s] httpd: Send timed out for `%s'",
 		currenttime, remotehost[0] ? remotehost : "(none)");
@@ -1247,11 +1248,13 @@ process_request()
 	int		readerror;
 	size_t		size;
 
-	strlcpy(version, "HTTP/0.9", 16);
+	headers = 11;
+	strlcpy(version, "HTTP/1.1", 16);
 	strlcpy(dateformat, "%a %b %e %H:%M:%S %Y", MYBUFSIZ);
+
 	orig[0] = referer[0] = line[0] =
 		real_path[0] = browser[0] = authentication[0] = '\0';
-	headonly = postonly = headers = 0;
+	headonly = postonly = 0;
 	unsetenv("SERVER_NAME"); unsetenv("REQUEST_METHOD");
 	unsetenv("CONTENT_LENGTH"); unsetenv("AUTH_TYPE");
 	unsetenv("CONTENT_TYPE"); unsetenv("QUERY_STRING");
@@ -1277,7 +1280,6 @@ process_request()
 
 	http_host[0] = '\0';
 
-	alarm(10);
 	errno = 0;
 	chunked = 0;
 	persistent = 0;
@@ -1432,7 +1434,11 @@ process_request()
 		return;
 	}
 	else
+	{
+		headers = 0;
+		strlcpy(version, "HTTP/0.9", 16);
 		setenv("SERVER_PROTOCOL", version, 1);
+	}
 
 	if (!getenv("CONTENT_LENGTH"))
 	{
@@ -1921,6 +1927,7 @@ standalone_socket(int id)
 		setproctitle("xs(%d): Connect from `%s'", count + 1, remotehost);
 		setcurrenttime();
 		setreadmode(READCHAR, 1);
+		alarm(30);
 		if (message503[0])
 			secprintf("HTTP/1.1 503 Busy\r\n"
 				"Content-type: text/plain\r\n"
@@ -1931,6 +1938,7 @@ standalone_socket(int id)
 			do
 			{
 				process_request();
+				alarm(10);
 				if (chunked)
 				{
 					chunked = 0;
