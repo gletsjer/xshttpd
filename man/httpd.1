@@ -65,6 +65,11 @@ These doe not have an equivalent configuration file setting:
 Uses the specified configuration file instead of the default
 \fIrootdir\fP/httpd.conf.
 .TP
+.B \-P preprocessor
+Run the preprocessor command to parse the global configuration file,
+for example \fIm4\fP or \fIcpp\fP.
+A fixed preprocessor program can also be set at compile-time.
+.TP
 .B \-m service\-message
 If you give this option to the server, it will not function as it normally
 would. Instead of supplying documents, all it will do is display the

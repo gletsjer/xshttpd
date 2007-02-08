@@ -111,12 +111,27 @@ XS_CHECK_WITH(curl, CURL transfer support, no)
 if test x${with_curl} = xyes
 then
 	AC_PATH_PROG([CURLCONF], curl-config)
-	if test x${ac_cv_path_CURLCONF} != x
+	if test x${CURLCONF} != x
 	then
 		AC_DEFINE(HAVE_CURL,,
 			[Define to 1 if you have the curl library.])
-		LDFLAGS="${LDFLAGS} `${ac_cv_path_CURLCONF} --libs`"
-		CFLAGS="${CFLAGS} `${ac_cv_path_CURLCONF} --cflags`"
+		LDFLAGS="${LDFLAGS} `${CURLCONF} --libs`"
+		CFLAGS="${CFLAGS} `${CURLCONF} --cflags`"
+	fi
+fi
+
+XS_CHECK_WITH(preprocessor, optional configuration preprocessor, no)
+if test x${with_preprocessor} = xyes
+then
+	with_preprocessor=m4
+fi
+if test x${with_preprocessor} != xno
+then
+	AC_PATH_PROG(preprocessor, ${with_preprocessor})
+	if test x${preprocessor} != x
+	then
+		AC_DEFINE_UNQUOTED(PATH_PREPROCESSOR, "${preprocessor}",
+			[preprocessor used to parse configuration files])
 	fi
 fi
 

@@ -274,6 +274,9 @@
 /* ppmtogif-like program used to create graphic counters */
 #undef PATH_PPMTOGIF
 
+/* preprocessor used to parse configuration files */
+#undef PATH_PREPROCESSOR
+
 /* Define to 1 if the C compiler supports function prototypes. */
 #undef PROTOTYPES
 

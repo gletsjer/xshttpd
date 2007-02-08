@@ -4,6 +4,7 @@ is not complete. Refer to cvs comments for more information.
 Changes since 3.4 beta 24
 - Allow quoted whitespace in #if argument list
 - Check for #set variables in #if var=...
+- Allow preprocessor to handle global configuration file
 
 Changes since 3.4 beta 23
 - Delay setting PATH_TRANSLATED, making it work for index pages as well

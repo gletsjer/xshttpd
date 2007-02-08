@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.257 2007/01/30 14:56:29 johans Exp $ */
+/* $Id: httpd.c,v 1.258 2007/02/08 14:20:11 johans Exp $ */
 
 #include	"config.h"
 
@@ -97,7 +97,7 @@ typedef	size_t	socklen_t;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.257 2007/01/30 14:56:29 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.258 2007/02/08 14:20:11 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -111,7 +111,8 @@ char		remotehost[NI_MAXHOST],
 		orig_filename[XS_PATH_MAX];
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[RWBUFSIZE],
 		thisdomain[NI_MAXHOST], message503[MYBUFSIZ], orig[MYBUFSIZ],
-		config_path[XS_PATH_MAX], authentication[MYBUFSIZ],
+		config_path[XS_PATH_MAX], config_preprocessor[XS_PATH_MAX],
+		authentication[MYBUFSIZ],
 		*startparams;
 time_t		modtime;
 struct virtual			*current;
@@ -233,8 +234,6 @@ load_config()
 	struct virtual	*last = NULL;
 	struct socket_config	*lsock;
 
-	confd = fopen(config_path, "r");
-
 	/* default socket for backwards compatibility */
 	lsock = malloc(sizeof(struct socket_config));
 	if (!lsock)
@@ -257,6 +256,14 @@ load_config()
 	defaultindexfiles[1] = strdup("index.htm");
 	defaultindexfiles[2] = strdup("index.php");
 	defaultindexfiles[3] = NULL;
+
+	if (*config_preprocessor)
+	{
+		snprintf(line, LINEBUFSIZE, "%s %s", config_preprocessor, config_path);
+		confd = popen(line, "r");
+	}
+	else
+		confd = fopen(config_path, "r");
 
 	if (confd)
 	{
@@ -581,8 +588,14 @@ load_config()
 			else
 				errx(1, "illegal directive: '%s'", line);
 		}
-		fclose(confd);
+		if (*config_preprocessor)
+			pclose(confd);
+		else
+			fclose(confd);
 	}
+	else
+		warn("Not reading configuration file");
+
 	/* Fill in missing defaults */
 	if (!config.systemroot)
 		config.systemroot = strdup(HTTPD_ROOT);
@@ -1975,7 +1988,7 @@ main(int argc, char **argv)
 	int			option, num;
 	int			nolog = 0;
 	enum { optionp, optiond, optionhn, optionaa, optionrr, optionee };
-	char *		longopt[6] = { NULL, NULL, NULL, NULL, NULL, NULL, };
+	char *		longopt[6] = { NULL, NULL, NULL, NULL, NULL, NULL };
 	uid_t		uid = 0;
 	gid_t		gid = 0;
 #ifdef		HAVE_UNAME
@@ -1999,14 +2012,19 @@ main(int argc, char **argv)
 			strlcat(startparams, " ", num);
 	}
 
-	message503[0] = 0;
+	message503[0] = '\0';
 #ifdef		THISDOMAIN
 	strlcpy(thisdomain, THISDOMAIN, NI_MAXHOST);
 #else		/* Not THISDOMAIN */
-	thisdomain[0] = 0;
+	thisdomain[0] = '\0';
 #endif		/* THISDOMAIN */
+#ifdef		PATH_PREPROCESSOR
+	strlcpy(config_preprocessor, PATH_PREPROCESSOR, XS_PATH_MAX);
+#else		/* Not PATH_PREPROCESSOR */
+	config_preprocessor[0] = '\0';
+#endif		/* PATH_PREPROCESSOR */
 	snprintf(config_path, XS_PATH_MAX, "%s/httpd.conf", calcpath(HTTPD_ROOT));
-	while ((option = getopt(argc, argv, "a:c:d:g:l:m:n:p:r:su:vA:D:E:R:N")) != EOF)
+	while ((option = getopt(argc, argv, "a:c:d:g:l:m:n:p:r:su:vA:D:E:R:NP:")) != EOF)
 	{
 		switch(option)
 		{
@@ -2068,6 +2086,9 @@ main(int argc, char **argv)
 		case 'N':
 			nolog = 1;
 			strlcpy(config_path, "/dev/null", XS_PATH_MAX);
+			break;
+	 	case 'P':
+			strlcpy(config_preprocessor, optarg, XS_PATH_MAX);
 			break;
 		case 'v':
 			printf("%s", SERVER_IDENT);
@@ -2137,8 +2158,13 @@ main(int argc, char **argv)
 #else		/* HAVE_CURL */
 				"-CURL "
 #endif		/* HAVE_CURL */
-				"\nDefault configuration file:\n\t%s\n",
-				config_path);
+				"\nDefault configuration file:\n"
+#ifdef		PATH_PREPROCESSOR
+				"\t%s %s\n", config_preprocessor, config_path
+#else		/* PATH_PREPROCESSOR */
+				"\t%s\n", config_path
+#endif		/* PATH_PREPROCESSOR */
+				);
 			return 0;
 		default:
 			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number]\n[-d rootdir] [-D documentdir] [-r refer-ignore-domain]\n[-A access_log] [-E error_log] [-R referrer_log] [-m service-message] [-v]");

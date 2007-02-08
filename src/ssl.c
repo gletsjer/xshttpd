@@ -1,5 +1,5 @@
 /* Copyright (C) 2003-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssl.c,v 1.38 2007/01/02 11:32:13 johans Exp $ */
+/* $Id: ssl.c,v 1.39 2007/02/08 14:20:11 johans Exp $ */
 
 #include	"config.h"
 
@@ -17,6 +17,7 @@
 
 #include	<openssl/rand.h>
 #include	<openssl/err.h>
+#include	<openssl/conf.h>
 
 #include	"htconfig.h"
 #include	"httpd.h"
@@ -224,6 +225,7 @@ loadssl()
 	if (!cursock->sslprivatekey)
 		cursock->sslprivatekey = strdup(KEY_FILE);
 	SSL_load_error_strings();
+	OPENSSL_config(NULL);
 	SSL_library_init();
 	ERR_print_errors_fp(stderr);
 	if (!(method = SSLv23_server_method()))
