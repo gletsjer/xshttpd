@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(xshttpd, 34b25)
-SERVER_IDENT="xs-httpd/3.4 beta/0.25"
+AC_INIT(xshttpd, 34b26)
+SERVER_IDENT="xs-httpd/3.4 beta/0.26"
 AC_CONFIG_SRCDIR(src/httpd.c)
 AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 no-dist-gzip])
 AC_DEFINE_UNQUOTED(SERVER_IDENT, "${SERVER_IDENT}", [Server version])
