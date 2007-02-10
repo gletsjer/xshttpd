@@ -1,0 +1,75 @@
+.TH HTTPD 5 "10 February 2007"
+.SH FILENAME
+.B \.xsconf
+\- XS httpd local configuation file
+.LP
+.SH CONCEPT
+An \fI.xsconf\fP file allows the user to set special directives for handling
+certain files in a directory. Using simple file matching commands,
+the user can set the mime-type, interpreter, character set or other
+options that are specific to a certain file or file pattern.
+
+The file consists of block which apply to a specific filename pattern.
+The pattern should be listed in square brackets and the options listed
+below will apply to all files that match the given pattern. See the
+EXAMPLE section below for an illustration.
+These patterns are standard \fBfnmatch(3)\fP patterns.
+The special case \fB[*]\fP will match every file in a directory.
+
+.LP
+.SH CONFIGURATION DIRECTIVES
+All directives can only be used once in a block, unless explicitly
+mentioned otherwise (e.g. Restrict).
+
+.TP
+.B MimeType
+Set the Content-Type for this file. This overrides the global
+\fBmimetypes(5)\fP file.
+A type must be of the form \fImajor/minor\fP, e.g. text/html.
+
+.TP
+.B Charset
+Specify the character of the document. Common character sets include
+US-ASCII, UTF-8, ISO-8859-1, KOI8-R and EUC-JP.
+
+.TP
+.B Execute
+An execute command sets the program (full path name) that should be used
+as an interpreter (preprocessor) for the file. This overrides any settings
+in the global \fBscripttypes\fP configuration file.
+You can use this, for example to have all *.pl files interpreted by
+/usr/bin/perl.
+The special internal commands (such as \fIinternal:404\fP) may also be used
+here. See \fBxsscripts(5)\fP for a more details.
+
+.TP
+.B Restrict
+The argument to a restrict block should be an IP address, IP prefix or
+IP subnet (in CIDR) notation. A block may contain multiple \fIRestrict\fP
+commands, but every line can only include one IP address specification.
+Access to the matching file will only be granted if the IP of the visitor
+matches one of the restrict address blocks. All other visitors will be
+presented with a 403 Permission Denied error.
+
+.TP
+.B AuthFile
+Specify a password file that should be used to decide who is granted
+access to the matching file. Users that cannot produces the required
+credentials will be presented with a 401 Permission Denied error.
+See \fBxsauth(5)\fP for the layout of such a file.
+
+.SH EXAMPLE
+.TS
+ll.
+[*.shtml]
+Restrict	131.155.140.0/23
+MimeType	text/html
+Charset	utf-8
+Execute	/usr/local/bin/php-cgi
+AuthFile	/wwwsys/xsauth
+.TE
+
+.SH "SEE ALSO"
+http://www.stack.nl/xs\-httpd/
+.br
+httpd(1), httpd.conf(5), xsauth(5), xsredir(5), xsscripts(5)

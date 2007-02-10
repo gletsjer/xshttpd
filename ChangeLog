@@ -1,6 +1,11 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.4 beta 25
+- Fix #if argument check when argument does not exist
+- Rename .xsmatch to .xsconf
+- Implement Restrict, MimeType, Execute, Charset in .xsconf
+
 Changes since 3.4 beta 24
 - Allow quoted whitespace in #if argument list
 - Check for #set variables in #if var=...

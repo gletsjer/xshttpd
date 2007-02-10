@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.194 2007/01/24 16:56:57 johans Exp $ */
+/* $Id: methods.c,v 1.195 2007/02/10 18:18:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -103,6 +103,7 @@ static void	senduncompressed	(int);
 static void	sendcompressed		(int, const char *);
 static FILE *	find_file		(const char *, const char *, const char *);
 static int	check_file_redirect	(const char *, const char *);
+static int	check_allow_host	(const char *, char *);
 static int	check_noxs		(FILE *);
 static int	check_redirect		(FILE *, const char *);
 static int	check_location		(FILE *, const char *);
@@ -126,7 +127,8 @@ static	ftypes	*ftype = NULL, *lftype = NULL;
 static	ctypes	*ctype = NULL;
 static	ctypes	*itype = NULL, *litype = NULL, *ditype = NULL;
 static	ctypes	**isearches[] = { &litype, &itype, &ditype };
-static	char	charset[XS_PATH_MAX];
+static	char	charset[XS_PATH_MAX], mimetype[XS_PATH_MAX],
+				scripttype[XS_PATH_MAX];
 static	size_t	curl_readlen;
 #ifdef		HANDLE_PERL
 PerlInterpreter *	my_perl = NULL;
@@ -437,6 +439,82 @@ v6masktonum(int mask, struct in6_addr *addr6)
 #endif		/* INET6 */
 
 static int
+check_allow_host(const char *hostname, char *pattern)
+{
+	char	*slash;
+
+	/* return 1 if pattern matches - i.e. access granted */
+	if (!hostname || !pattern || !*hostname || !*pattern)
+		return 0;
+	
+	/* substring match */
+	if (!strncmp(hostname, pattern, strlen(pattern)))
+		return 1;
+
+	/* allow host if remote_addr matches CIDR subnet in file */
+	if ((slash = strchr(pattern, '/')) &&
+		strchr(hostname, '.') &&
+		strchr(pattern, '.'))
+	{
+		struct	in_addr		allow, remote;
+		unsigned int		subnet;
+
+		*slash = '\0';
+		if ((subnet = atoi(slash + 1)) > 32)
+			subnet = 32;
+		inet_aton(hostname, &remote);
+		inet_aton(pattern, &allow);
+
+#define	IPMASK(addr, sub) (addr.s_addr & htonl(~((1 << (32 - subnet)) - 1)))
+		if (IPMASK(remote, subnet) == IPMASK(allow, subnet))
+			return 1;
+	}
+#ifdef		INET6
+	if ((slash = strchr(pattern, '/')) &&
+		strchr(pattern, ':') &&
+		strchr(hostname, ':'))
+	{
+		struct	in6_addr	allow, remote, mask;
+		unsigned int		subnet;
+
+		*slash = '\0';
+		if ((subnet = atoi(slash + 1)) > 128)
+			subnet = 128;
+		inet_pton(AF_INET6, hostname, &remote);
+		inet_pton(AF_INET6, pattern, &allow);
+		v6masktonum(subnet, &mask);
+		if (IN6_ARE_MASKED_ADDR_EQUAL(&remote, &allow, &mask))
+			return 1;
+	}
+#endif		/* INET6 */
+
+	/* allow any host if the local port matches :port in .noxs */
+#ifdef		HAVE_GETADDRINFO
+	if (':' == pattern[0])
+	{
+		int cport = atoi(hostname + 1);
+		int lport = atoi(getenv("SERVER_PORT"));
+		struct	addrinfo	hints, *res;
+
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = PF_UNSPEC;
+		hints.ai_socktype = SOCK_STREAM;
+
+		if (!cport && !getaddrinfo(NULL, pattern + 1, &hints, &res))
+		{
+			cport = htons(res->ai_family == AF_INET6
+				? ((struct sockaddr_in6 *)res->ai_addr)->sin6_port
+				: ((struct sockaddr_in *)res->ai_addr)->sin_port);
+			freeaddrinfo(res);
+		}
+		if (lport && cport == lport)
+			return 1; /* access granted */
+	}
+#endif		/* HAVE_GETADDRINFO */
+	return 0;
+}
+
+static int
 check_noxs(FILE *rfile)
 {
 	char	*remoteaddr, *slash;
@@ -457,79 +535,11 @@ check_noxs(FILE *rfile)
 		if (!allowhost[0] || '#' == allowhost[0])
 			continue;
 
-		/* allow host if prefix(remote_host) matches host/IP in file */
-		if (strlen(allowhost) &&
-			!strncmp(remoteaddr, allowhost, strlen(allowhost)))
+		if (check_allow_host(remoteaddr, allowhost))
 		{
 			fclose(rfile);
 			return 0; /* access granted */
 		}
-
-		/* allow host if remote_addr matches CIDR subnet in file */
-		if ((slash = strchr(allowhost, '/')) &&
-			strchr(allowhost, '.') &&
-			strchr(remoteaddr, '.'))
-		{
-			struct	in_addr		allow, remote;
-			unsigned int		subnet;
-
-			*slash = '\0';
-			if ((subnet = atoi(slash + 1)) > 32)
-				subnet = 32;
-			inet_aton(remoteaddr, &remote);
-			inet_aton(allowhost, &allow);
-
-#define	IPMASK(addr, sub) (addr.s_addr & htonl(~((1 << (32 - subnet)) - 1)))
-			if (IPMASK(remote, subnet) == IPMASK(allow, subnet))
-				return 0;
-		}
-#ifdef		INET6
-		if ((slash = strchr(allowhost, '/')) &&
-			strchr(allowhost, ':') &&
-			strchr(remoteaddr, ':'))
-		{
-			struct	in6_addr	allow, remote, mask;
-			unsigned int		subnet;
-
-			*slash = '\0';
-			if ((subnet = atoi(slash + 1)) > 128)
-				subnet = 128;
-			inet_pton(AF_INET6, remoteaddr, &remote);
-			inet_pton(AF_INET6, allowhost, &allow);
-			v6masktonum(subnet, &mask);
-			if (IN6_ARE_MASKED_ADDR_EQUAL(&remote, &allow, &mask))
-				return 0;
-		}
-#endif		/* INET6 */
-
-		/* allow any host if the local port matches :port in .noxs */
-#ifdef		HAVE_GETADDRINFO
-		if (strlen(allowhost) > 1 && ':' == allowhost[0])
-		{
-			int cport = atoi(allowhost + 1);
-			int lport = atoi(getenv("SERVER_PORT"));
-			struct	addrinfo	hints, *res;
-
-			memset(&hints, 0, sizeof(hints));
-			hints.ai_family = PF_UNSPEC;
-			hints.ai_socktype = SOCK_STREAM;
-
-			if (!cport)
-			{
-				if ((getaddrinfo(NULL, allowhost + 1, &hints, &res)))
-					continue;
-				cport = htons(res->ai_family == AF_INET6
-					? ((struct sockaddr_in6 *)res->ai_addr)->sin6_port
-					: ((struct sockaddr_in *)res->ai_addr)->sin_port);
-				freeaddrinfo(res);
-			}
-			if (lport && cport == lport)
-			{
-				fclose(rfile);
-				return 0; /* access granted */
-			}
-		}
-#endif		/* HAVE_GETADDRINFO */
 	}
 
 	fclose(rfile);
@@ -542,7 +552,8 @@ check_location(FILE *fp, const char *filename)
 {
 	char	line[LINEBUFSIZE];
 	char    *p, *name, *value;
-	int	state = 0;
+	int		state = 0;
+	int		restrictcheck = 0, restrictallow = 0;
 	FILE    *authfile;
 
 	while (fgets(line, LINEBUFSIZE, fp))
@@ -592,6 +603,7 @@ check_location(FILE *fp, const char *filename)
 				 */
 				if (check_auth(authfile))
 				{
+					/* a 401 response has been sent */
 					fclose(authfile);
 					fclose(fp);
 					return 1;
@@ -599,43 +611,47 @@ check_location(FILE *fp, const char *filename)
 				else
 				{
 					fclose(authfile);
-					continue;
 				}
 			}
-			server_error("403 Authentication data not available",
-				"NOT_AVAILABLE");
-			fclose(fp);
-			return 1;
+			else
+			{
+				server_error("403 Authentication data not available",
+					"NOT_AVAILABLE");
+				fclose(fp);
+				return 1;
+			}
 		}
 		else if (!strcasecmp(name, "Restrict"))
 		{
-			if (value && (authfile = fopen(value, "r")))
-			{
-				/* return if access check fails
-				 * process other directives on success
-				 */
-				if (check_noxs(authfile))
-				{
-					fclose(authfile);
-					fclose(fp);
-					return 1;
-				}
-				else
-				{
-					fclose(authfile);
-					continue;
-				}
-			}
-			server_error("403 Access data not available",
-				"NOT_AVAILABLE");
-			fclose(fp);
-			return 1;
+			const char	*remoteaddr = getenv("REMOTE_ADDR");
+
+			restrictcheck = 1;
+			if (remoteaddr && *value)
+				restrictallow |= check_allow_host(remoteaddr, value);
+		}
+		else if (!strcasecmp(name, "MimeType"))
+		{
+			strlcpy(mimetype, value, XS_PATH_MAX);
+		}
+		else if (!strcasecmp(name, "Execute"))
+		{
+			strlcpy(scripttype, value, XS_PATH_MAX);
+		}
+		else if (!strcasecmp(name, "Charset"))
+		{
+			strlcpy(charset, value, XS_PATH_MAX);
 		}
 
 		/* ... and much more ... */
 	}
 
 	fclose(fp);
+	if (restrictcheck && !restrictallow)
+	{
+		server_error("403 File is not available", "NOT_AVAILABLE");
+		return 1;
+	}
+
 	return 0;
 }
 
@@ -929,6 +945,10 @@ do_get(char *params)
 #endif
 	}
 
+	mimetype[0] = '\0';
+	scripttype[0] = '\0';
+	charset[0] = '\0';
+
 	/* Check user directives */
 	/* These should all send there own error messages when appropriate */
 	if ((xsfile = find_file(orgbase, base, ".noxs")) && check_noxs(xsfile))
@@ -940,8 +960,8 @@ do_get(char *params)
 	if ((xsfile = find_file(orgbase, base, ".redir")) &&
 			check_redirect(xsfile, real_path))
 		return;
-	if ((xsfile = find_file(orgbase, base, ".xsmatch")) &&
-			check_location(xsfile, real_path))
+	if ((xsfile = find_file(orgbase, base, ".xsconf")) &&
+			check_location(xsfile, filename))
 		return;
 
 	/* Check file permissions */
@@ -1038,7 +1058,6 @@ do_get(char *params)
 	setenv("PATH_TRANSLATED", total, 1);
 
 	/* Check for *.charset preferences */
-	charset[0] = '\0';
 	snprintf(total, XS_PATH_MAX, "%s%s.charset", base, filename);
 	if ((charfile = fopen(total, "r")) ||
 		(charfile = find_file(orgbase, base, ".charset")))
@@ -1057,29 +1076,32 @@ do_get(char *params)
 	loadfiletypes(orgbase, base);
 
 	/* check litype for local and itype for global settings */
-	if (config.uselocalscript)
+	if (config.uselocalscript && !*scripttype)
 		loadscripttypes(orgbase, base);
 	for (i = 0; i < 3 && script >= 0; i++)
 	{
 	for (isearch = *isearches[i]; isearch; isearch = isearch->next)
 	{
 		if (!*isearch->ext ||
+			*scripttype ||
 			((temp = strstr(filename, isearch->ext)) &&
 			 strlen(temp) == strlen(isearch->ext)))
 		{
-			if (!strcmp(isearch->prog, "internal:404"))
+			const char	*prog = *scripttype ? scripttype : isearch->prog;
+
+			if (!strcmp(prog, "internal:404"))
 				server_error("404 Requested URL not found", "NOT_FOUND");
-			else if (!strcmp(isearch->prog, "internal:text"))
+			else if (!strcmp(prog, "internal:text"))
 			{
 				script = -1;
 				break;
 			}
-			else if (!strcmp(isearch->prog, "internal:exec"))
+			else if (!strcmp(prog, "internal:exec"))
 			{
 				close(fd);
 				do_script(params, base, filename, NULL, headers);
 			}
-			else if (!strcmp(isearch->prog, "internal:fcgi"))
+			else if (!strcmp(prog, "internal:fcgi"))
 			{
 				close(fd);
 				do_fcgi(params, base, file, headers);
@@ -1087,7 +1109,7 @@ do_get(char *params)
 			else
 			{
 				close(fd);
-				do_script(params, base, filename, isearch->prog, headers);
+				do_script(params, base, filename, prog, headers);
 			}
 			return;
 		}
@@ -1472,11 +1494,19 @@ getfiletype(int print)
 
 	flist[0] = lftype; flist[1] = ftype;
 
-	if (!(ext = strrchr(orig_filename, '.')) || !(*(++ext)))
+	if (*mimetype || !(ext = strrchr(orig_filename, '.')) || !(*(++ext)))
 	{
 		if (print)
-			secprintf("Content-type: text/plain\r\n");
-		return(0);
+		{
+			if (*charset)
+				secprintf("Content-type: %s; charset=%s\r\n",
+						*mimetype ? mimetype : "text/plain",
+						charset);
+			else
+				secprintf("Content-type: %s\r\n",
+						*mimetype ? mimetype : "text/plain");
+		}
+		return !strcasecmp(mimetype, "text/html");
 	}
 	for (count = 0; ext[count] && (count < 16); count++)
 		extension[count] =
@@ -1505,7 +1535,7 @@ getfiletype(int print)
 					secprintf("Content-type: %s\r\n",
 						search->name);
 			}
-			return !strcmp(search->name, "text/html");
+			return !strcasecmp(search->name, "text/html");
 		}
 	}
 	if (print)

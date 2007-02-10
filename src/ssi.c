@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2007 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssi.c,v 1.66 2007/01/28 16:51:41 johans Exp $ */
+/* $Id: ssi.c,v 1.67 2007/02/10 18:18:16 johans Exp $ */
 
 #include	"config.h"
 
@@ -833,9 +833,11 @@ dir_if(int argc, char **argv, size_t *size)
 		return(ERR_CONT);
 	}
 	/* check all arguments, true if any matches */
-	for (b = 0, i = 2; i < argc; i += 2)
-		if (b |= match(value, argv[i]))
-			break;
+	b = 0;
+	if (value && *value)
+		for (i = 2; i < argc; i += 2)
+			if (b |= match(value, argv[i]))
+				break;
 	ssiarray[++ssioutput] = b;
 	return(ERR_NONE);
 }
