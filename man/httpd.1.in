@@ -148,7 +148,6 @@ and run it under user ID http and group ID www.
 .SS Automatic decompression
 One of the nice features of the WWW server is automatic decompression.
 This feature is dealt with in the file called \fBcompress.methods\fP.
-You should disable \fIUseCompressed\fP if you don't want it.
 .LP
 This file lists the possible compression types that are understood by the
 WWW server. It works very simply: if somebody asks for (for example)
@@ -217,7 +216,7 @@ These files start with a dot (hidden) and contain special instructions
 for the webserver that apply to a sigle file or all files in a directory
 (and underlying subdirectories).
 .TP
-\fB .noxs\fP
+.B .noxs
 If this file exists in a certain directory, that entire
 directory is considered closed. If somebody attempts to
 retrieve a file from that directory, he will get a
@@ -234,7 +233,7 @@ for IPv4 as well as IPv6 addresses. Or you can use CIDR notation to
 allow an entire subnet. So including "131.155.140.0/23" will unblock
 131.155.140.0 - 131.155.141.255.
 .TP
-\fB .xsuid\fP
+.B .xsuid
 If this file exists in a certain directory, all files in that
 directory will be retrieved as (by default) nobody/nogroup
 instead of under your own UID. This can be useful if you want
@@ -242,48 +241,54 @@ a file permission of say 600 to mean: do not allow retrieval
 (by default, the file is retrieved under your own UID, so the
 daemon could have still read those files).
 .TP
-\fB .redir\fP
+.B .redir
 If this file is present in a certain directory, and a file
 is requested from that directory, then a redirection message
 will be sent to the remote user's browser. See \fBxsredir(5)\fP
 for the format of this file.
 .TP
-\fB *.redir\fP
+.B *.redir
 If a (regular) file is requested and a file exists with the same
 name but with \fB.redir\fP appended to it, then the client will be
 redirected to the URL that is mentioned in this *.redir file.
 .TP
-\fB *.Redir\fP
+.B *.Redir
 The same as \fB*.redir\fP, however instead of a temporary
 redirection (302) a permanent redirection (301) will be sent.
 .TP
-\fB .charset\fP
+.B .charset
 If this file is present in a certain directory, then all files
 requested from that directory will get an extra HTTP header which
 indicates the character set used, as specified by the contents
 of the .charset file. Usefull settings are e.g. UTF-8, ISO-8859-1,
 KOI8-R.
 .TP
-\fB *.charset\fP
+.B *.charset
 Sets the character set for a specific file (see *.redir).
 .TP
-\fB .mimetypes\fP
+.B .mimetypes
 This file lets a user override the contents of the global
 \fImime.types\fP file. The syntax of this file is exactly the
 same as that for the global configuration file, but it applies
 (recursively) to the local subdirectories.
 .TP
-\fB .xsauth\fP
+.B .xsauth
 If this file exists, all files in that directory and
 subdirectories are protected by usercode/password
 combinations. See \fBxsauth(5)\fP for more details about this.
 .TP
-\fB .xsscripts
+.B .xsscripts
 This file lets a user override the contents of the global
 \fIscript.methods\fP file. The syntax of this file is exactly the
 same as that for the global configuration file and it applies
 (recursively) to the local subdirectories. See \fBxsscripts(5)\fP
 for more information.
+.TP
+.B .xsconf
+This file provides a generic interface to set a lot of the previously
+mentioned options, specifically for a certain file or group of files.
+It allows you to set file-specific mimetype, character set, passwords
+and other access restrictions. See \fBxsconf(5)\fP for full details.
 
 .SH SERVER-SIDE INCLUDES (SSI)
 One of the most advanced features of this WWW server is its
