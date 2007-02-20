@@ -18,17 +18,11 @@
 
 all: cert.pem
 
-ca.pem:
-	openssl req -out ca.pem -new -x509
+cert.req:
+	openssl req -newkey rsa:1024 -keyout key.pem -new -out cert.req
 
-key.pem:
-	openssl genrsa -out key.pem -rand 1024
-
-cert.req: key.pem
-	openssl req -key key.pem -new -out cert.req
-
-cert.pem: ca.pem cert.req
-	openssl x509 -req -in cert.req -CA ca.pem -CAkey privkey.pem -CAcreateserial -days 1000 -out cert.pem
+cert.pem:
+	openssl req -x509 -newkey rsa:1024 -keyout key.pem -out cert.pem
 
 clean:
-	rm cert.req cert.pem key.pem
+	rm -f cert.req cert.pem key.pem
