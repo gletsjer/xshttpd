@@ -4,6 +4,7 @@ xspasswd \- Manager for WWW authentication passwords using the XS\-HTTPD
 .SH SYNOPSIS
 .ta 8n
 .B xspasswd
+.RI [ -l | -u ]\ [ user ]
 .LP 
 .SH DESCRIPTION OF XSPASSWD
 XSPASSWD is a program that lets you manage the usercode/password database
@@ -16,28 +17,27 @@ to be retrieved. This program manages the \fI.xsauth\fP file.
 .SH RUNNING XSPASSWD
 Change your current directory to the directory that you wish to protect
 with usercodes and passwords. Note that subdirectories of that subdirectory
-are \fBnot\fP protected. You have to place a seperate \fI.xsauth\fP file per
-directory that you wish to protect. You can of course use symbolic or
-hard links to make them all equal.
+will also be protected.
 .LP
-Then, type \fBxspasswd\fP. The program will start up. It will ask you
-for a username. Type a username and press ENTER. Then, the program asks
+Then, type \fBxspasswd\fP. The program will ask you for a username (unless
+you already supplied this as an argument on the command line).
+Type a username and press ENTER. Then, the program asks
 for a password for that username. Type something press ENTER. The program
 then asks you to re\-enter the password that you just typed. Do that and
-press ENTER again. Now the program asks if you wish to \fBlock\fP the
-password. If you answer \fByes\fP, it will not be possible to change the
-password using the WWW form (see below). If you answer \fBno\fP, it is
-possible to change the password using the WWW form. After you press ENTER,
-the program will update (or create) the \fI.xsauth\fP file.
+press ENTER again. the program will update (or create) the \fI.xsauth\fP file.
 .LP
 Note that you can have as many usercodes and passwords as you wish.
 .LP
 You can also use this program to change passwords. Just type an existing
 username when the program prompts you for a username. You do not have to
-enter the old password. Users using the WWW form \fIare\fP required to
-enter the old password before changing it to a new one.
+enter the old password.
+.LP
+The \fBxspasswd\fP accepts two mutually exclusive arguments: \fB-l\fP to
+lock an account and \fB-u\fP to unlock an account. Locked accounts may
+not be changed using the webinterface (see below).
+By default all accounts are unlocked.
 .SH THE WWW FORM
-This program has a similar program for the WWW. This other program is
+This program has a similar interface for the WWW. The webinterface is
 called \fBxschpass\fP. It can be used by making a link to the following URL:
 .LP
 http://your.site.name/cgi\-bin/xschpass/~\fIUSERNAME\fP/\fIdirectory\fP
@@ -45,6 +45,9 @@ http://your.site.name/cgi\-bin/xschpass/~\fIUSERNAME\fP/\fIdirectory\fP
 where \fIUSERNAME\fP is your usercode on that system. \fIdirectory\fP is
 the directory in which the \fI.xsauth\fP file is situated.
 .LP
+It is not possible to change a password using the WWW form if the account
+has been locked using the \fB-l\fP option when the password was initially
+created (or updated using \fBxspasswd\fP). 
 Users using the WWW form are only allowed to change a password if they
 know the old password.
 

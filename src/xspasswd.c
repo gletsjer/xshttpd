@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: xspasswd.c,v 1.16 2006/12/17 13:29:44 johans Exp $ */
+/* $Id: xspasswd.c,v 1.17 2007/02/20 18:13:32 johans Exp $ */
 
 #include	"config.h"
 
@@ -23,16 +23,40 @@ main(int argc, char **argv)
 			total[XS_USER_MAX * 2 + 3],
 			line[BUFSIZ], newfile[XS_PATH_MAX];
 	const	char	*password;
-	int		found, passwdlock;
+	int		found, option, passwdlock = 0;
 	FILE		*authinp, *authout;
 
 	umask(S_IRWXG | S_IRWXO);
+	while ((option = getopt(argc, argv, "hlu")) != EOF)
+	{
+		switch (option)
+		{
+		case 'l':
+			passwdlock = 1;
+			break;
+		case 'u':
+			passwdlock = 0;
+			break;
+		default:
+			errx(1, "Usage: xspasswd [-l] [user]");
+		}
+	}
+	argc -= optind;
+	argv += optind;
+
 	printf("The information will be stored in %s\n\n", AUTHFILE);
-	printf("Please enter a username: "); fflush(stdout);
-	if (!fgets(username, 16, stdin))
-		errx(1, "Username input failed");
-	while (username[0] && (username[strlen(username) - 1] < ' '))
-		username[strlen(username) - 1] = 0;
+	if (argc > 1)
+		errx(1, "Usage: xspasswd [-l] [user]");
+	else if (argc)
+		strlcpy(username, argv[0], XS_USER_MAX);
+	else
+	{
+		printf("Please enter a username: "); fflush(stdout);
+		if (!fgets(username, XS_USER_MAX, stdin))
+			errx(1, "Username input failed");
+		while (username[0] && (username[strlen(username) - 1] < ' '))
+			username[strlen(username) - 1] = 0;
+	}
 	if (strchr(username, ':'))
 		errx(1, "Username may not contain a colon");
 	if (!(password = (const char *)getpass("Please enter a password: ")))
@@ -42,10 +66,6 @@ main(int argc, char **argv)
 		errx(1, "Password input failed");
 	if (strcmp(password, passbak))
 		errx(1, "Password did not match previous entry!");
-	printf("Lock this password (y/n): ");
-	if (!fgets(line, 16, stdin))
-		errx(1, "Lock input failed");
-	passwdlock = ((line[0] == 'y') || (line[0] == 'Y'));
 	pwd = xs_encrypt(password);
 	snprintf(total, sizeof(total), "%c%s:%s",
 		(int)(passwdlock ? 'L' : 'U'), username, pwd);
@@ -76,7 +96,5 @@ main(int argc, char **argv)
 	fclose(authout);
 	if (rename(newfile, AUTHFILE))
 		err(1, "Cannot rename(`%s', `%s')", newfile, AUTHFILE);
-	(void)argc;
-	(void)argv;
 	return 0;
 }

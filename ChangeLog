@@ -1,6 +1,10 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.4 beta 26
+- Include xsconf.1
+- Change xspasswd: it now defaults to unlocked passwords
+
 Changes since 3.4 beta 25
 - Fix #if argument check when argument does not exist
 - Rename .xsmatch to .xsconf
