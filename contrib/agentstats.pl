@@ -63,7 +63,11 @@ if (open ('httpdlog', shift))
 			}
 
 			# Step two - get the browser
- 			if ($agent =~ /^AppleSyndication\//)
+			if ($agent =~ /^Akregator\//)
+			{
+				$browser = 'RSS: Akregator';
+			}
+ 			elsif ($agent =~ /^AppleSyndication\//)
  			{
  				$browser = 'RSS: Apple Syndication (Safari)';
  				$os = 'Mac OS X';
@@ -139,7 +143,7 @@ if (open ('httpdlog', shift))
 			{
 				$browser = 'Bot: Emerald Web Shield';
 			}
-			elsif ($agent =~ /^Exabot\//)
+			elsif ($agent =~ /Exabot\//)
 			{
 				$browser = 'Bot: Exalead Search';
 			}
@@ -306,6 +310,10 @@ if (open ('httpdlog', shift))
 			elsif ($agent =~ /^Prodiance Desktop Search Spider$/)
 			{
 				$browser = 'Bot: Prodiance Desktop Search';
+			}
+			elsif ($agent =~ /^QweeryBot\//)
+			{
+				$browser = 'Bot: Qweery';
 			}
 			elsif ($agent =~ /^RSS-SPIDER /)
 			{
