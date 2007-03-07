@@ -24,7 +24,7 @@
 #endif
 
 extern	char	remotehost[], dateformat[], currentdir[],
-		currenttime[], version[], real_path[],
+		currenttime[], httpver[], real_path[],
 		orig_filename[];
 extern	time_t	modtime;
 extern	int		headers, headonly, postonly, chunked, persistent;

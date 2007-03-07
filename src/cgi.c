@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: cgi.c,v 1.129 2006/12/17 13:29:43 johans Exp $ */
+/* $Id: cgi.c,v 1.130 2007/03/07 19:09:11 johans Exp $ */
 
 #include	"config.h"
 
@@ -189,7 +189,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			goto END;
 		}
 		if (expect && strcasestr(expect, "100-continue"))
-			secprintf("%s 100 Continue\r\n\r\n", version);
+			secprintf("%s 100 Continue\r\n\r\n", httpver);
 	}
 #endif		/* HANDLE_SSL */
 
@@ -372,13 +372,13 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				{
 					status = 1;
 					append(head, 1, "%s %s\r\n",
-						version, skipspaces(header + 7));
+						httpver, skipspaces(header + 7));
 					continue;
 				}
 				else if (!strncasecmp(header, "Location:", 9))
 				{
 					status = 1;
-					append(head, 1, "%s 302 Moved\r\n", version, head);
+					append(head, 1, "%s 302 Moved\r\n", httpver, head);
 				}
 			}
 
@@ -457,7 +457,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		if (showheader)
 		{
 			if (!status)
-				append(head, 1, "%s 200 OK\r\n", version);
+				append(head, 1, "%s 200 OK\r\n", httpver);
 			if (!ctype)
 				append(head, 0, "Content-type: text/html\r\n");
 			setcurrenttime();
@@ -562,8 +562,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		logrequest(request, totalwritten);
 	}
 	END:
-	close(p[0]); close(p[1]); fflush(stdout);
-	close(r[0]); close(r[1]); fflush(stderr);
+	fflush(stdout); close(p[0]); close(p[1]);
+	fflush(stderr); close(r[0]); close(r[1]);
 #ifdef		HANDLE_SSL
 	if (ssl_post)
 	{

@@ -1,5 +1,5 @@
 /* Copyright (C) 2003-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssl.c,v 1.39 2007/02/08 14:20:11 johans Exp $ */
+/* $Id: ssl.c,v 1.40 2007/03/07 19:09:12 johans Exp $ */
 
 #include	"config.h"
 
@@ -39,7 +39,9 @@ static char	netbuf[MYBUFSIZ];
 void
 setreadmode(int mode, int reset)
 {
+#ifdef		HANDLE_SSL
 	unsigned long readerror;
+#endif		/* HANDLE_SSL */
 
 	if (reset)
 	{

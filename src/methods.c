@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.195 2007/02/10 18:18:16 johans Exp $ */
+/* $Id: methods.c,v 1.196 2007/03/07 19:09:11 johans Exp $ */
 
 #include	"config.h"
 
@@ -107,7 +107,9 @@ static int	check_allow_host	(const char *, char *);
 static int	check_noxs		(FILE *);
 static int	check_redirect		(FILE *, const char *);
 static int	check_location		(FILE *, const char *);
+#ifdef		HAVE_CURL
 static size_t	curl_readhack		(void *, size_t, size_t, FILE *);
+#endif		/* HAVE_CURL */
 
 /* Global structures */
 
@@ -129,7 +131,9 @@ static	ctypes	*itype = NULL, *litype = NULL, *ditype = NULL;
 static	ctypes	**isearches[] = { &litype, &itype, &ditype };
 static	char	charset[XS_PATH_MAX], mimetype[XS_PATH_MAX],
 				scripttype[XS_PATH_MAX];
+#ifdef		HAVE_CURL
 static	size_t	curl_readlen;
+#endif		/* HAVE_CURL */
 #ifdef		HANDLE_PERL
 PerlInterpreter *	my_perl = NULL;
 #endif		/* HANDLE_PERL */
@@ -186,10 +190,10 @@ senduncompressed(int fd)
 			if (!dynamic && (mktime(&reqtime) > modtime))
 			{
 				headonly = 1;
-				secprintf("%s 304 Not modified\r\n", version);
+				secprintf("%s 304 Not modified\r\n", httpver);
 			}
 			else
-				secprintf("%s 200 OK\r\n", version);
+				secprintf("%s 200 OK\r\n", httpver);
 		}
 		else if ((env = getenv("IF_UNMODIFIED_SINCE")))
 		{
@@ -201,10 +205,10 @@ senduncompressed(int fd)
 				return;
 			}
 			else
-				secprintf("%s 200 OK\r\n", version);
+				secprintf("%s 200 OK\r\n", httpver);
 		}
 		else
-			secprintf("%s 200 OK\r\n", version);
+			secprintf("%s 200 OK\r\n", httpver);
 		stdheaders(0, 0, 0);
 		getfiletype(1);
 		if (dynamic)
@@ -517,7 +521,7 @@ check_allow_host(const char *hostname, char *pattern)
 static int
 check_noxs(FILE *rfile)
 {
-	char	*remoteaddr, *slash;
+	char	*remoteaddr;
 	char	allowhost[256];
 
 	if (!(remoteaddr = getenv("REMOTE_ADDR")))
@@ -630,17 +634,13 @@ check_location(FILE *fp, const char *filename)
 				restrictallow |= check_allow_host(remoteaddr, value);
 		}
 		else if (!strcasecmp(name, "MimeType"))
-		{
 			strlcpy(mimetype, value, XS_PATH_MAX);
-		}
 		else if (!strcasecmp(name, "Execute"))
-		{
 			strlcpy(scripttype, value, XS_PATH_MAX);
-		}
 		else if (!strcasecmp(name, "Charset"))
-		{
 			strlcpy(charset, value, XS_PATH_MAX);
-		}
+		else if (!strcasecmp(name, "ScriptTimeout"))
+			config.scripttimeout = atoi(value);
 
 		/* ... and much more ... */
 	}
@@ -1219,7 +1219,7 @@ do_head(char *params)
 void
 do_options(const char *params)
 {
-	secprintf("%s 200 OK\r\n", version);
+	secprintf("%s 200 OK\r\n", httpver);
 	stdheaders(0, 0, 0);
 	secputs("Content-length: 0\r\n"
 		"Allow: GET, HEAD, POST, OPTIONS\r\n"
@@ -1267,6 +1267,7 @@ do_proxy(const char *proxy, const char *params)
 	(void)params;
 }
 
+#ifdef		HAVE_CURL
 /* Stupid workaround for buggy libcurl */
 static size_t
 curl_readhack(void *buf, size_t size, size_t nmemb, FILE *stream)
@@ -1282,6 +1283,7 @@ curl_readhack(void *buf, size_t size, size_t nmemb, FILE *stream)
 	(void)stream;
 	return len;
 }
+#endif		/* HAVE_CURL */
 
 void
 loadfiletypes(char *orgbase, char *base)

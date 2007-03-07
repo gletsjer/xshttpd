@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.258 2007/02/08 14:20:11 johans Exp $ */
+/* $Id: httpd.c,v 1.259 2007/03/07 19:09:11 johans Exp $ */
 
 #include	"config.h"
 
@@ -97,7 +97,7 @@ typedef	size_t	socklen_t;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.258 2007/02/08 14:20:11 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.259 2007/03/07 19:09:11 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -107,7 +107,7 @@ gid_t		origegid;
 uid_t		origeuid;
 char		remotehost[NI_MAXHOST],
 		currenttime[80], dateformat[MYBUFSIZ], real_path[XS_PATH_MAX],
-		version[16], currentdir[XS_PATH_MAX],
+		httpver[16], currentdir[XS_PATH_MAX],
 		orig_filename[XS_PATH_MAX];
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[RWBUFSIZE],
 		thisdomain[NI_MAXHOST], message503[MYBUFSIZ], orig[MYBUFSIZ],
@@ -988,7 +988,7 @@ error(const char *message)
 	}
 	if (headers)
 	{
-		secprintf("%s %s\r\n", version, message);
+		secprintf("%s %s\r\n", httpver, message);
 		secprintf("Content-length: %d\r\n", strlen(errmsg));
 		if ((env = getenv("HTTP_ALLOW")))
 			secprintf("Allow: %s\r\n", env);
@@ -1024,10 +1024,10 @@ redirect(const char *redir, int permanent, int pass_env)
 	if (headers)
 	{
 		if (env)
-			secprintf("%s %s moved\r\nLocation: %s?%s\r\n", version,
+			secprintf("%s %s moved\r\nLocation: %s?%s\r\n", httpver,
 				permanent ? "301 Permanently" : "302 Temporarily", redir, env);
 		else
-			secprintf("%s %s moved\r\nLocation: %s\r\n", version,
+			secprintf("%s %s moved\r\nLocation: %s\r\n", httpver,
 				permanent ? "301 Permanently" : "302 Temporarily", redir);
 		secprintf("Content-length: %d\n", strlen(errmsg));
 		stdheaders(1, 1, 1);
@@ -1056,7 +1056,7 @@ check_auth(FILE *authfile)
 			"not understand authentication</p></body></html>\n");
 		if (headers)
 		{
-			secprintf("%s 401 Unauthorized\r\n", version);
+			secprintf("%s 401 Unauthorized\r\n", httpver);
 			secputs("WWW-authenticate: basic realm=\"this page\"\r\n");
 			secprintf("Content-length: %d\r\n", strlen(errmsg));
 			stdheaders(1, 1, 1);
@@ -1112,7 +1112,7 @@ check_auth(FILE *authfile)
 		"</body></html>\n");
 	if (headers)
 	{
-		secprintf("%s 401 Wrong user/password combination\r\n", version);
+		secprintf("%s 401 Wrong user/password combination\r\n", httpver);
 		secputs("WWW-authenticate: basic realm=\"this page\"\r\n");
 		secprintf("Content-length: %d\r\n", strlen(errmsg));
 		stdheaders(1, 1, 1);
@@ -1221,7 +1221,7 @@ logrequest(const char *request, long size)
 		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" 200 %ld\n",
 			remotehost,
 			buffer,
-			getenv("REQUEST_METHOD"), dynrequest, version,
+			getenv("REQUEST_METHOD"), dynrequest, httpver,
 			size > 0 ? (long)size : (long)0);
 		if (rlog &&
 			(!thisdomain[0] || !strcasestr(referer, thisdomain)))
@@ -1234,7 +1234,7 @@ logrequest(const char *request, long size)
 			current ? current->hostname : config.system->hostname,
 			remotehost,
 			buffer,
-			getenv("REQUEST_METHOD"), dynrequest, version,
+			getenv("REQUEST_METHOD"), dynrequest, httpver,
 			size > 0 ? (long)size : (long)0,
 			referer,
 			dynagent);
@@ -1243,7 +1243,7 @@ logrequest(const char *request, long size)
 				"\"%s\" \"%s\"\n",
 			remotehost,
 			buffer,
-			getenv("REQUEST_METHOD"), dynrequest, version,
+			getenv("REQUEST_METHOD"), dynrequest, httpver,
 			size > 0 ? (long)size : (long)0,
 			referer,
 			dynagent);
@@ -1262,7 +1262,7 @@ process_request()
 	size_t		size;
 
 	headers = 11;
-	strlcpy(version, "HTTP/1.1", 16);
+	strlcpy(httpver, "HTTP/1.1", 16);
 	strlcpy(dateformat, "%a %b %e %H:%M:%S %Y", MYBUFSIZ);
 
 	orig[0] = referer[0] = line[0] =
@@ -1334,16 +1334,16 @@ process_request()
 	{
 		if (!strncmp(ver + 5, "1.0", 3))
 		{
-			strlcpy(version, "HTTP/1.0", 16);
+			strlcpy(httpver, "HTTP/1.0", 16);
 			headers = 10;
 		}
 		else
 		{
-			strlcpy(version, "HTTP/1.1", 16);
+			strlcpy(httpver, "HTTP/1.1", 16);
 			headers = 11;
 			persistent = 1;
 		}
-		setenv("SERVER_PROTOCOL", version, 1);
+		setenv("SERVER_PROTOCOL", httpver, 1);
 		while (1)
 		{
 			char		*param, *end;
@@ -1442,15 +1442,15 @@ process_request()
 	else if (!strncasecmp(ver, "HTCPCP/", 7))
 	{
 		headers = 10;
-		strlcpy(version, "HTCPCP/1.0", 16);
+		strlcpy(httpver, "HTCPCP/1.0", 16);
 		error("418 Duh... I'm a webserver Jim, not a coffeepot!");
 		return;
 	}
 	else
 	{
 		headers = 0;
-		strlcpy(version, "HTTP/0.9", 16);
-		setenv("SERVER_PROTOCOL", version, 1);
+		strlcpy(httpver, "HTTP/0.9", 16);
+		setenv("SERVER_PROTOCOL", httpver, 1);
 	}
 
 	if (!getenv("CONTENT_LENGTH"))
