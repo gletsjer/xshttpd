@@ -60,9 +60,10 @@ HTML files (standard header or footer) and never requested directly.
 Give these a special extension like .htmli
 .TP
 .B internal:text
-Disable special parsing of server-side includes for matching documents.
-By default all documents that generate html will be parsed for special
-SSI tags and have them interpreted by the webserver.
+Treat as a normal document rather than an executable CGI.
+This allows you to present HTML documents in a cgi-bin directory.
+The directive can also be used to overrided global settings or
+more general matching rules.
 .TP
 .B internal:exec
 Directly execute the program, without an interpreter. The files with a
