@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.259 2007/03/07 19:09:11 johans Exp $ */
+/* $Id: httpd.c,v 1.260 2007/03/08 10:13:21 johans Exp $ */
 
 #include	"config.h"
 
@@ -97,7 +97,7 @@ typedef	size_t	socklen_t;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.259 2007/03/07 19:09:11 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.260 2007/03/08 10:13:21 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -153,7 +153,8 @@ stdheaders(int lastmod, int texthtml, int endline)
 static	void
 filedescrs()
 {
-	close(0); if (open(BITBUCKETNAME, O_RDONLY, 0) != 0)
+	close(0);
+	if (open(BITBUCKETNAME, O_RDONLY, 0) != 0)
 		err(1, "Cannot open fd 0 (%s)", BITBUCKETNAME);
 	if (dup2(0, 1) != 1)
 		err(1, "Cannot dup2() fd 1");

@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: cgi.c,v 1.130 2007/03/07 19:09:11 johans Exp $ */
+/* $Id: cgi.c,v 1.131 2007/03/08 10:13:21 johans Exp $ */
 
 #include	"config.h"
 
@@ -111,7 +111,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				input[RWBUFSIZE], line[LINEBUFSIZE],
 				head[HEADSIZE];
 	const	char		*argv1, *header;
-	int			p[2], r[2], nph, dossi,
+	int			p[2], nph, dossi,
 				written, chldstat;
 	unsigned	int	left;
 	size_t			count;
@@ -157,8 +157,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 	nph = (!strncmp(file, "nph-", 4) || strstr(file, "/nph-"));
 	dossi = (!strncmp(file, "ssi-", 4) || strstr(file, "/ssi-"));
-	p[0] = p[1] = r[0] = r[1] = -1;
-	pipe(r);
+	p[0] = p[1] = -1;
 	if (1 /* !nph || do_ssl */)
 	{
 		if (pipe(p))
@@ -216,7 +215,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 #endif		/* HAVE_SETRLIMIT */
 
 		dup2(p[1], 1);
-		dup2(r[1], 2);
+
 #ifdef		HANDLE_SSL
 		/* Posting via SSL takes a lot of extra work */
 		if (ssl_post)
@@ -239,7 +238,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 #endif		/* HAVE_SETSID */
 
-		for (count = 3; count < FD_SETSIZE; count++)
+		for (count = 3; count < 1024; count++)
 			close(count);
 
 		/* euid should be set, now fix uid */
@@ -303,7 +302,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		exit(1);
 	default:
 		close(p[1]);
-		close(r[1]);
 #ifdef		HANDLE_SSL
 		if (ssl_post)
 			close(q[0]);
@@ -563,7 +561,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	}
 	END:
 	fflush(stdout); close(p[0]); close(p[1]);
-	fflush(stderr); close(r[0]); close(r[1]);
+	fflush(stderr);
 #ifdef		HANDLE_SSL
 	if (ssl_post)
 	{
