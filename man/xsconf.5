@@ -58,6 +58,12 @@ access to the matching file. Users that cannot produces the required
 credentials will be presented with a 401 Permission Denied error.
 See \fBxsauth(5)\fP for the layout of such a file.
 
+.TP
+.B ScriptTimeout
+Override the default timeout that is used to restrict the execution time
+of all CGI scripts (wall time in minutes). Other limits will still apply
+though, specifically the per process CPU limit.
+
 .SH EXAMPLE
 .TS
 ll.
