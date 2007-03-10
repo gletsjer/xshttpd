@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.260 2007/03/08 10:13:21 johans Exp $ */
+/* $Id: httpd.c,v 1.261 2007/03/10 23:58:18 johans Exp $ */
 
 #include	"config.h"
 
@@ -88,6 +88,7 @@
 #include	"local.h"
 #include	"htconfig.h"
 #include	"fcgi.h"
+#include	"authenticate.h"
 
 #ifndef		HAVE_SOCKLEN_T
 typedef	size_t	socklen_t;
@@ -97,7 +98,7 @@ typedef	size_t	socklen_t;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.260 2007/03/08 10:13:21 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.261 2007/03/10 23:58:18 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -112,7 +113,6 @@ char		remotehost[NI_MAXHOST],
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[RWBUFSIZE],
 		thisdomain[NI_MAXHOST], message503[MYBUFSIZ], orig[MYBUFSIZ],
 		config_path[XS_PATH_MAX], config_preprocessor[XS_PATH_MAX],
-		authentication[MYBUFSIZ],
 		*startparams;
 time_t		modtime;
 struct virtual			*current;
@@ -1037,92 +1037,6 @@ redirect(const char *redir, int permanent, int pass_env)
 	fflush(stdout);
 }
 
-
-int
-check_auth(FILE *authfile)
-{
-	char		*search, line[LINEBUFSIZE], compare[LINEBUFSIZE], *find;
-	char		errmsg[10240];
-
-	if (!authentication[0] ||
-		strncasecmp(authentication, "Basic", 5))
-	{
-		snprintf(errmsg, sizeof(errmsg),
-			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-			"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
-			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
-			"<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
-			"<head><title>Unauthorized</title></head>\n"
-			"<body><h1>Unauthorized</h1><p>Your client does \n"
-			"not understand authentication</p></body></html>\n");
-		if (headers)
-		{
-			secprintf("%s 401 Unauthorized\r\n", httpver);
-			secputs("WWW-authenticate: basic realm=\"this page\"\r\n");
-			secprintf("Content-length: %d\r\n", strlen(errmsg));
-			stdheaders(1, 1, 1);
-		}
-		secputs(errmsg);
-		fclose(authfile);
-		return(1);
-	}
-	strlcpy(line, authentication, LINEBUFSIZE);
-	find = line + strlen(line);
-	while ((find > line) && (*(find - 1) < ' '))
-		*(--find) = 0;
-	for (search = line + 5; *search && isspace(*search); search++)
-		/* DO NOTHING */ ;
-	uudecode(search);
-	if ((find = strchr(search, ':')))
-	{
-		*find++ = 0;
-		setenv("AUTH_TYPE", "Basic", 1);
-		setenv("REMOTE_USER", search, 1);
-		setenv("REMOTE_PASSWORD", find, 1);
-
-#ifdef AUTH_LDAP
-		/*
-		 * Try to do an LDAP auth first. This is because xs_encrypt()
-		 * may alter the buffer, in which case we compare garbage.
-		 */
-		if (!check_auth_ldap(authfile, search, find))
-		{
-			return(0);
-		}
-		rewind (authfile);
-#endif /* AUTH_LDAP */
-
-		snprintf(line, LINEBUFSIZE, "%s:%s\n", search, xs_encrypt(find));
-	}
-	while (fgets(compare, LINEBUFSIZE, authfile))
-	{
-		if (!strcmp(compare + 1, line))
-		{
-			fclose(authfile);
-			return 0;
-		}
-	}
-	snprintf(errmsg, sizeof(errmsg),
-		"\r\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-		"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
-		"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
-		"<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
-		"<head><title>Wrong password</title></head>\n"
-		"<body><h1>Wrong user/password combination</h1>\n"
-		"You don't have permission to view this page.\n"
-		"</body></html>\n");
-	if (headers)
-	{
-		secprintf("%s 401 Wrong user/password combination\r\n", httpver);
-		secputs("WWW-authenticate: basic realm=\"this page\"\r\n");
-		secprintf("Content-length: %d\r\n", strlen(errmsg));
-		stdheaders(1, 1, 1);
-	}
-	secputs(errmsg);
-	fclose(authfile);
-	return(1);
-}
-
 void
 server_error(const char *readable, const char *cgi)
 {
@@ -1495,7 +1409,6 @@ process_request()
 	else if (params[0] != '/' && strcasecmp("OPTIONS", line))
 	{
 		error("400 Relative URL's are not supported");
-		error(line);
 		return;
 	}
 	/* SERVER_NAME may be overriden soon */

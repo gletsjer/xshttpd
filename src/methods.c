@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.196 2007/03/07 19:09:11 johans Exp $ */
+/* $Id: methods.c,v 1.197 2007/03/10 23:58:18 johans Exp $ */
 
 #include	"config.h"
 
@@ -94,6 +94,7 @@
 #include	"path.h"
 #include	"htconfig.h"
 #include	"pcre.h"
+#include	"authenticate.h"
 
 static int	getfiletype		(int);
 #ifdef	INET6

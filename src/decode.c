@@ -1,15 +1,21 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: decode.c,v 1.7 2006/12/06 20:56:53 johans Exp $ */
+/* $Id: decode.c,v 1.8 2007/03/10 23:58:18 johans Exp $ */
+
+#include	"config.h"
 
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<sys/types.h>
 #include	<string.h>
 #include	<ctype.h>
-#include	"config.h"
+#ifdef		HAVE_MD5
+#include	<md5.h>
+#endif		/* HAVE_MD5 */
+
 #include	"httpd.h"
 #include	"decode.h"
+#include	"authenticate.h"
 
 /* Static arrays */
 
@@ -149,5 +155,69 @@ hexdigit(int ch)
 		return (-1);
 	}
 }
+
+/* sizeof(hex) >= 2 * len + 1 */
+int
+hex_encode(const char *bin, size_t len, char *hex)
+{
+	unsigned short	i;
+	unsigned char	j;
+
+	for (i = 0; i < len; i++)
+	{
+		j = (bin[i] >> 4) & 0xf;
+		if (j <= 9)
+			hex[i * 2] = (j + '0');
+		else
+			hex[i * 2] = (j + 'a' - 10);
+		j = bin[i] & 0xf;
+		if (j <= 9)
+			hex[i * 2 + 1] = (j + '0');
+		else
+			hex[i * 2 + 1] = (j + 'a' - 10);
+	}
+	hex[2 * len] = '\0';
+	return 0;
+}
+
+/* sizeof(bin) >= len / 2 */
+int
+hex_decode(const char *hex, size_t len, char *bin)
+{
+	unsigned short i;
+	char j;
+
+	for (i = 0; i < len; i += 2)
+	{
+		j = hex[i];
+		if (j <= '9')
+			bin[i / 2] = (j - '0') << 4;
+		else
+			bin[i / 2] = (j - 'a') << 4;
+		j = hex[i + 1];
+		if (j <= '9')
+			bin[i / 2] |= (j - '0');
+		else
+			bin[i / 2] |= (j - 'a');
+	}
+	return 0;
+}
+
+#ifdef		HAVE_MD5
+/* sizeof(hash) >= MD5_DIGEST_STRING_LENGTH */
+int
+generate_ha1(const char *user, const char *passwd, char *ha1)
+{
+	char	*a1;
+	size_t	len;
+
+	/* calculate h(a1) */
+	len = asprintf(&a1, "%s:%s:%s", user, REALM, passwd);
+	MD5Data((const unsigned char *)a1, len, ha1);
+	free(a1);
+
+	return 0;
+}
+#endif		/* HAVE_MD5 */
 
 

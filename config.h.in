@@ -75,8 +75,8 @@
 /* Define to 1 if you have the `md' functions. */
 #undef HAVE_MD5
 
-/* Define to 1 if you have the `MD5Init' function. */
-#undef HAVE_MD5INIT
+/* Define to 1 if you have the `MD5Data' function. */
+#undef HAVE_MD5DATA
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
@@ -87,11 +87,8 @@
 /* Define to 1 if you have the `mmap' function. */
 #undef HAVE_MMAP
 
-/* Define to 1 if you have the `pcre' functions. */
+/* Define to 1 if you have the pcre library. */
 #undef HAVE_PCRE
-
-/* Define to 1 if you have the `pcre_exec' function. */
-#undef HAVE_PCRE_EXEC
 
 /* Define to 1 if you have the <pcre.h> header file. */
 #undef HAVE_PCRE_H

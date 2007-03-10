@@ -38,6 +38,5 @@ void	redirect		(const char *, int, int);
 int	readline		(int, char *, size_t);
 void	server_error		(const char *, const char *);
 void	logrequest		(const char *, long);
-int	check_auth		(FILE *);
 void	setcurrenttime		(void);
 

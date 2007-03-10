@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(xshttpd, 34b26)
-SERVER_IDENT="xs-httpd/3.4 beta/0.26"
+AC_INIT(xshttpd, 35b01)
+SERVER_IDENT="xs-httpd/3.5 beta/0.01"
 AC_CONFIG_SRCDIR(src/httpd.c)
 AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 no-dist-gzip])
 AC_DEFINE_UNQUOTED(SERVER_IDENT, "${SERVER_IDENT}", [Server version])
@@ -66,17 +66,23 @@ XS_ARG_DIR(logdir, logs)
 
 XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)
-XS_FUNC_IN_LIB(MD5Init, HAVE_MD5, md, httpd)
-AM_CONDITIONAL([MD5], [test x$ac_cv_lib_md_MD5Init = xyes])
+XS_FUNC_IN_LIB(MD5Data, HAVE_MD5, md, libxs)
+AM_CONDITIONAL([MD5], [test x$ac_cv_lib_md_MD5Data = xyes])
 AC_REPLACE_FUNCS(err killpg setenv setgroups setproctitle strlcat strcasestr strerror strlcpy strptime strsep snprintf)
 
 XS_CHECK_WITH(pcre, PCRE support, no)
+AM_CONDITIONAL([PCRE], false)
 if test x${with_pcre} = xyes
 then
-	XS_FUNC_IN_LIB(pcre_exec, HAVE_PCRE, pcre, httpd)
-	AM_CONDITIONAL([PCRE], [test x$ac_cv_lib_pcre_pcre_exec = xyes])
-else
-	AM_CONDITIONAL([PCRE], false)
+	AC_PATH_PROG([PCRECONF], pcre-config)
+	if test x${PCRECONF} != x
+	then
+		AC_DEFINE(HAVE_PCRE,,
+			[Define to 1 if you have the pcre library.])
+		httpd_ldflags="${httpd_ldflags} `${PCRECONF} --libs`"
+		httpd_cflags="${httpd_cflags} `${PCRECONF} --cflags`"
+		AM_CONDITIONAL([PCRE], true)
+	fi
 fi
 
 XS_CHECK_WITH(ldap, LDAP authentication support, no)
@@ -115,8 +121,8 @@ then
 	then
 		AC_DEFINE(HAVE_CURL,,
 			[Define to 1 if you have the curl library.])
-		LDFLAGS="${LDFLAGS} `${CURLCONF} --libs`"
-		CFLAGS="${CFLAGS} `${CURLCONF} --cflags`"
+		httpd_ldflags="${httpd_ldflags} `${CURLCONF} --libs`"
+		httpd_cflags="${httpd_cflags} `${CURLCONF} --cflags`"
 	fi
 fi
 
@@ -155,7 +161,7 @@ XS_ARG_DEFAULT(warnings, DUMMY, no,
 # -Wformat-pre-promo is not standard
 if test x${enable_warnings} = xyes
 then
-	CFLAGS="${CFLAGS} -g -O -fsigned-char -fshort-enums -funroll-loops -finline-functions -fexpensive-optimizations -pedantic -ansi -trigraphs -Wall -W -Wimplicit -Wpointer-arith -Wshadow -pipe -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wreturn-type -Wformat -Wformat=2 -Wtrigraphs -Wswitch -Wcomment -Wchar-subscripts -Wuninitialized -Wparentheses -Wcast-align -Waggregate-return -Wnested-externs -Winline"
+	CFLAGS="${CFLAGS} -g -ggdb -O -fsigned-char -fshort-enums -funroll-loops -finline-functions -fexpensive-optimizations -pedantic -ansi -trigraphs -Wall -W -Wimplicit -Wpointer-arith -Wshadow -pipe -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wreturn-type -Wformat -Wformat=2 -Wtrigraphs -Wswitch -Wcomment -Wchar-subscripts -Wuninitialized -Wparentheses -Wcast-align -Waggregate-return -Wnested-externs -Winline"
 else
 	CFLAGS="${CFLAGS} -g"
 fi
