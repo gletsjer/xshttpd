@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: xspasswd.c,v 1.18 2007/03/10 23:58:19 johans Exp $ */
+/* $Id: xspasswd.c,v 1.19 2007/03/11 10:06:31 johans Exp $ */
 
 #include	"config.h"
 
@@ -28,19 +28,25 @@ main(int argc, char **argv)
 	char		*pwd, *username, *passone,
 			*total, line[BUFSIZ], *newfile;
 	const	char	*password;
-	int		found, option, passwdlock = 0, digest = 0;
+	int		found, option, passwdlock = 0, digest;
 	FILE		*authinp, *authout;
 
+#ifdef		HAVE_MD5
+	digest = 1;
+#else		/* HAVE_MD5 */
+	digest = 0;
+#endif		/* HAVE_MD5 */
+
 	umask(S_IRWXG | S_IRWXO);
-	while ((option = getopt(argc, argv, "dhlu")) != EOF)
+	while ((option = getopt(argc, argv, "bdhlu")) != EOF)
 	{
 		switch (option)
 		{
+		case 'b':
+			digest = 0;
+			break;
 		case 'd':
 			digest = 1;
-#ifndef		HAVE_MD5
-			errx(1, "Digest authentication is not supported");
-#endif		/* Not HAVE_MD5 */
 			break;
 		case 'l':
 			passwdlock = 1;
@@ -82,17 +88,19 @@ main(int argc, char **argv)
 		errx(1, "Password did not match previous entry!");
 	pwd = xs_encrypt(password);
 
-#ifdef		HAVE_MD5
 	if (digest)
 	{
+#ifdef		HAVE_MD5
 		char	ha1[MD5_DIGEST_STRING_LENGTH];
 
 		generate_ha1(username, password, ha1);
 		asprintf(&total, "%c%s:%s:%s\n",
 			(passwdlock ? 'L' : 'U'), username, pwd, ha1);
+#else		/* HAVE_MD5 */
+		errx(1, "Digest authentication is not supported");
+#endif		/* HAVE_MD5 */
 	}
 	else
-#endif		/* HAVE_MD5 */
 		asprintf(&total, "%c%s:%s\n",
 			(passwdlock ? 'L' : 'U'), username, pwd);
 	free(passone);
