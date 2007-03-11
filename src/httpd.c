@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.261 2007/03/10 23:58:18 johans Exp $ */
+/* $Id: httpd.c,v 1.262 2007/03/11 09:31:07 johans Exp $ */
 
 #include	"config.h"
 
@@ -98,7 +98,7 @@ typedef	size_t	socklen_t;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.261 2007/03/10 23:58:18 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.262 2007/03/11 09:31:07 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -2126,6 +2126,7 @@ main(int argc, char **argv)
 #ifndef		HAVE_SETPROCTITLE
 	initproctitle(argc, argv);
 #endif		/* HAVE_SETPROCTITLE */
+	initnonce();
 	setup_environment();
 	standalone_main();
 	(void)copyright;
