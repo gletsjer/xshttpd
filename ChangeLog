@@ -4,9 +4,11 @@ is not complete. Refer to cvs comments for more information.
 Changes since 3.4 beta 26
 - Include xsconf.1
 - Change xspasswd: it now defaults to unlocked passwords
+- Add xspasswd -d option to store password digests (default)
 - Update agentstats (Ed)
 - Add ScriptTimeout option to .xsconf
 - Fix script error logging in system error log
+- Implement RFC2069 Digest Authentication (with fresh nonces)
 
 Changes since 3.4 beta 25
 - Fix #if argument check when argument does not exist

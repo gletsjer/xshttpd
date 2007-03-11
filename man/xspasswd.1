@@ -4,7 +4,7 @@ xspasswd \- Manager for WWW authentication passwords using the XS\-HTTPD
 .SH SYNOPSIS
 .ta 8n
 .B xspasswd
-.RI [ -l | -u ]\ [ user ]
+.RI [ -b | -d ]\ [ -l | -u ]\ [ user ]
 .LP 
 .SH DESCRIPTION OF XSPASSWD
 XSPASSWD is a program that lets you manage the usercode/password database
@@ -32,10 +32,21 @@ You can also use this program to change passwords. Just type an existing
 username when the program prompts you for a username. You do not have to
 enter the old password.
 .LP
-The \fBxspasswd\fP accepts two mutually exclusive arguments: \fB-l\fP to
+The \fBxspasswd\fP accepts the mutually exclusive arguments: \fB-l\fP to
 lock an account and \fB-u\fP to unlock an account. Locked accounts may
 not be changed using the webinterface (see below).
 By default all accounts are unlocked.
+.LP
+The other options are also mutually exclusive: \fB-b\fP to store passwords
+for basic authentication (the old method, where passwords will be stored
+encrypted, but sent over the wire in plain text) and \fB-d\fP to store
+passwords for use with digest authentication (where more sensitive
+information is stored on disk, but only the checksum of user and password
+data is sent over the wire).
+.LP
+For optimal security it is suggested local data is never made accessible
+to other users of the system and that authentication is used over a secure
+channel (i.e. using https).
 .SH THE WWW FORM
 This program has a similar interface for the WWW. The webinterface is
 called \fBxschpass\fP. It can be used by making a link to the following URL:

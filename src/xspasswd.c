@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: xspasswd.c,v 1.19 2007/03/11 10:06:31 johans Exp $ */
+/* $Id: xspasswd.c,v 1.20 2007/03/11 17:49:41 johans Exp $ */
 
 #include	"config.h"
 
@@ -28,14 +28,8 @@ main(int argc, char **argv)
 	char		*pwd, *username, *passone,
 			*total, line[BUFSIZ], *newfile;
 	const	char	*password;
-	int		found, option, passwdlock = 0, digest;
+	int		found, option, passwdlock = 0, digest = 0;
 	FILE		*authinp, *authout;
-
-#ifdef		HAVE_MD5
-	digest = 1;
-#else		/* HAVE_MD5 */
-	digest = 0;
-#endif		/* HAVE_MD5 */
 
 	umask(S_IRWXG | S_IRWXO);
 	while ((option = getopt(argc, argv, "bdhlu")) != EOF)
