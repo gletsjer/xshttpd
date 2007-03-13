@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: xspasswd.c,v 1.20 2007/03/11 17:49:41 johans Exp $ */
+/* $Id: xspasswd.c,v 1.21 2007/03/13 13:30:57 johans Exp $ */
 
 #include	"config.h"
 
@@ -13,13 +13,11 @@
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
 #include	<sys/stat.h>
-#ifdef		HAVE_MD5
-#include	<md5.h>
-#endif		/* HAVE_MD5 */
 
 #include	"httpd.h"
 #include	"extra.h"
 #include	"authenticate.h"
+#include	"md5.h"
 #include	"xscrypt.h"
 
 int

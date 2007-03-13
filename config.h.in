@@ -87,6 +87,9 @@
 /* Define to 1 if you have the `mmap' function. */
 #undef HAVE_MMAP
 
+/* Define if you have openssl, but no MD5Data() */
+#undef HAVE_OPENSSL_MD5
+
 /* Define to 1 if you have the pcre library. */
 #undef HAVE_PCRE
 

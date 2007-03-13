@@ -7,12 +7,12 @@
 #include	<stdlib.h>
 #include	<string.h>
 #include	<ctype.h>
-#include	<md5.h>
 
 #include	"httpd.h"
 #include	"authenticate.h"
 #include	"ssl.h"
 #include	"decode.h"
+#include	"md5.h"
 #include	"xscrypt.h"
 
 char		authentication[MYBUFSIZ];
@@ -20,10 +20,12 @@ unsigned long int	secret;
 
 static int	get_crypted_password(FILE *, const char *, char **, char **);
 static int	check_basic_auth(FILE *authfile);
+#ifdef		HAVE_MD5
 static int	check_digest_auth(FILE *authfile);
 static char	*get_auth_argument(const char *key, char *line);
 static void	fresh_nonce(char *nonce);
 static int	valid_nonce(char *nonce);
+#endif		/* HAVE_MD5 */
 
 /* returns malloc()ed data! */
 static int
@@ -116,6 +118,7 @@ check_basic_auth(FILE *authfile)
 	}
 }
 
+#ifdef		HAVE_MD5
 static char *
 get_auth_argument(const char *key, char *line)
 {
@@ -191,6 +194,7 @@ check_digest_auth(FILE *authfile)
 
 	return 0;
 }
+#endif		/* HAVE_MD5 */
 
 int
 check_auth(FILE *authfile)
@@ -241,14 +245,16 @@ check_auth(FILE *authfile)
 		fclose(authfile);
 		return(1);
 	}
-	if ('b' == authentication[0] || 'B' == authentication[0])
+#ifdef		HAVE_MD5
+	if ('d' == authentication[0] || 'D' == authentication[0])
 	{
-		if (!check_basic_auth(authfile))
+		if (!check_digest_auth(authfile))
 			return 0;
 	}
 	else
+#endif		/* HAVE_MD5 */
 	{
-		if (!check_digest_auth(authfile))
+		if (!check_basic_auth(authfile))
 			return 0;
 	}
 
@@ -281,6 +287,7 @@ initnonce()
 	secret = random();
 }
 
+#ifdef		HAVE_MD5
 static void
 fresh_nonce(char *nonce)
 {
@@ -324,3 +331,4 @@ valid_nonce(char *nonce)
 	/* fresh for 1 hour */
 	return ts + 3600 > tsnow;
 }
+#endif		/* HAVE_MD5 */

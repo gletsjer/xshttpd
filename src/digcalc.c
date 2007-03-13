@@ -26,9 +26,9 @@
  */
 
 #include <sys/types.h>
-#include <md5.h>
 #include <string.h>
 #include "digcalc.h"
+#include "md5.h"
 
 #define	stricmp			strcasecmp
 #define MD5Update(x,y,z)	MD5Update(x, (const unsigned char *)y, z)

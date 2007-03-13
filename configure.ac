@@ -70,6 +70,33 @@ XS_FUNC_IN_LIB(MD5Data, HAVE_MD5, md, libxs)
 AM_CONDITIONAL([MD5], [test x$ac_cv_lib_md_MD5Data = xyes])
 AC_REPLACE_FUNCS(err killpg setenv setgroups setproctitle strlcat strcasestr strerror strlcpy strptime strsep snprintf)
 
+XS_CHECK_WITH(ssl, SSL crypto support, yes)
+if test x${with_ssl} = xyes
+then
+	XS_FUNC_IN_LIB(SSLeay_version, HAVE_SSLEAY, crypto, httpd)
+	XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, httpd, -lcrypto)
+	if test x${ac_cv_lib_ssl_SSL_version} = xyes
+	then
+		httpd_cflags="${httpd_cflags} -I/usr/local/ssl/include"
+		AC_DEFINE(HANDLE_SSL,,
+			[Enable SSL support, you must have UseSSL in your config to enable this])
+		AC_DEFINE(CERT_FILE, "cert.pem",
+			[File containing public SSL certificate])
+		AC_DEFINE(KEY_FILE, "key.pem",
+			[File containing private SSL server key])
+		if test x$ac_cv_lib_md_MD5Data = xno
+		then
+			AC_DEFINE(HAVE_MD5)
+			AC_DEFINE(HAVE_OPENSSL_MD5,,
+				[Define if you have openssl, but no MD5Data()])
+			AC_REPLACE_FUNCS(MD5Data)
+			libxs_ldflags="${libxs_ldflags} ${httpd_ldflags}"
+		fi
+	else
+		AC_MSG_ERROR([Cannot find libraries for --with-ssl])
+	fi
+fi
+
 XS_CHECK_WITH(pcre, PCRE support, no)
 AM_CONDITIONAL([PCRE], false)
 if test x${with_pcre} = xyes
@@ -92,25 +119,6 @@ then
 	AM_CONDITIONAL([LDAP], [test x$ac_cv_lib_ldap_ldap_initialize = xyes])
 else
 	AM_CONDITIONAL([LDAP], false)
-fi
-
-XS_CHECK_WITH(ssl, SSL crypto support, yes)
-if test x${with_ssl} = xyes
-then
-	XS_FUNC_IN_LIB(SSLeay_version, HAVE_SSLEAY, crypto, httpd)
-	XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, httpd, -lcrypto)
-	if test x${ac_cv_lib_ssl_SSL_version} = xyes
-	then
-		httpd_cflags="${httpd_cflags} -I/usr/local/ssl/include"
-		AC_DEFINE(HANDLE_SSL,,
-			[Enable SSL support, you must have UseSSL in your config to enable this])
-		AC_DEFINE(CERT_FILE, "cert.pem",
-			[File containing public SSL certificate])
-		AC_DEFINE(KEY_FILE, "key.pem",
-			[File containing private SSL server key])
-	else
-		AC_MSG_ERROR([Cannot find libraries for --with-ssl])
-	fi
 fi
 
 XS_CHECK_WITH(curl, CURL transfer support, no)
