@@ -1,4 +1,5 @@
 /* Copyright (C) 2007 by Johan van Selst (johans@stack.nl) */
+/* $Id: authenticate.c,v 1.4 2007/03/13 23:31:35 johans Exp $ */
 
 #include	"config.h"
 

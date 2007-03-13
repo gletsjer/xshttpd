@@ -8,6 +8,7 @@
 
 - vhost logging: set host as virtualhostdir name
 - forward proxy
+- digauth support in xschpass
 
 TODO
 - MaxChildren

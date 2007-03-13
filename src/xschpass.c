@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: xschpass.c,v 1.19 2006/12/06 20:56:56 johans Exp $ */
+/* $Id: xschpass.c,v 1.20 2007/03/13 23:31:35 johans Exp $ */
 
 #include	"config.h"
 
@@ -162,6 +162,13 @@ changepasswd(const char *param, int  cl)
 				fclose(input); fclose(output);
 				remove(filename);
 				error("403 Password is locked");
+			}
+			if ((search = strchr(buffer + 2, ':')) &&
+				strchr(search + 1, ':'))
+			{
+				fclose(input); fclose(output);
+				remove(filename);
+				error("403 Cannot change authentication digests");
 			}
 			fprintf(output, "%c%s:%s\n",
 				buffer[0], username, cryptnew);
