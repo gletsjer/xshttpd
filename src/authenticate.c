@@ -99,11 +99,7 @@ check_basic_auth(FILE *authfile)
 		snprintf(line, LINEBUFSIZE, "%s:%s\n", search, xs_encrypt(find));
 	}
 	if (!get_crypted_password(authfile, search, &passwd, NULL) || !passwd)
-	{
-		fclose(authfile);
 		return 1;
-	}
-	fclose(authfile);
 
 	if (!strcmp(passwd, xs_encrypt(find)))
 	{
@@ -192,6 +188,9 @@ check_digest_auth(FILE *authfile)
 		return 1; /* invalid */
 	}
 
+	setenv("AUTH_TYPE", "Digest", 1);
+	setenv("REMOTE_USER", user, 1);
+
 	return 0;
 }
 #endif		/* HAVE_MD5 */
@@ -199,22 +198,21 @@ check_digest_auth(FILE *authfile)
 int
 check_auth(FILE *authfile)
 {
-	char		line[LINEBUFSIZE], errmsg[10240],
+	char		*p, line[LINEBUFSIZE], errmsg[10240],
 			nonce[MAX_NONCE_LENGTH];
+	int		i = 1, digest;
+
+	if ((p = fgets(line, LINEBUFSIZE, authfile)))
+		for (i = 0; *p; p++)
+			if (':' == *p)
+				i++;
+	digest = i > 1;
 
 	if (!authentication[0] ||
 		(strncasecmp(authentication, "Basic", 5) &&
 		 strncasecmp(authentication, "Digest", 6)))
 	{
-		int	i = 1, digest = 0;
-		char	*p;
 
-		if ((p = fgets(line, LINEBUFSIZE, authfile)))
-			for (i = 0; *p; p++)
-				if (':' == *p)
-					i++;
-		if (i > 1)
-			digest = 1;
 		snprintf(errmsg, sizeof(errmsg),
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 			"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
@@ -249,14 +247,21 @@ check_auth(FILE *authfile)
 	if ('d' == authentication[0] || 'D' == authentication[0])
 	{
 		if (!check_digest_auth(authfile))
+		{
+			fclose(authfile);
 			return 0;
+		}
 	}
 	else
 #endif		/* HAVE_MD5 */
 	{
 		if (!check_basic_auth(authfile))
+		{
+			fclose(authfile);
 			return 0;
+		}
 	}
+	fclose(authfile);
 
 	snprintf(errmsg, sizeof(errmsg),
 		"\r\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -270,12 +275,21 @@ check_auth(FILE *authfile)
 	if (headers)
 	{
 		secprintf("%s 401 Wrong user/password combination\r\n", httpver);
-		secputs("WWW-authenticate: basic realm=\"" REALM "\"\r\n");
+#ifdef		HAVE_MD5
+		if (digest)
+		{
+			fresh_nonce(nonce);
+			secprintf("WWW-authenticate: digest realm=\""
+				REALM "\" nonce=\"%s\"\r\n", nonce);
+		}
+		else
+#endif		/* HAVE_MD5 */
+			secputs("WWW-authenticate: basic realm=\""
+				REALM "\"\r\n");
 		secprintf("Content-length: %d\r\n", strlen(errmsg));
 		stdheaders(1, 1, 1);
 	}
 	secputs(errmsg);
-	fclose(authfile);
 	return(1);
 }
 
