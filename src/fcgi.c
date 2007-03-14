@@ -1,6 +1,6 @@
 /* Copyright (C) 2006 by Remco van der Vossen (wich@stack.nl) */
 /* Copyright (C) 2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: fcgi.c,v 1.10 2006/12/17 13:29:43 johans Exp $ */
+/* $Id: fcgi.c,v 1.11 2007/03/14 23:21:04 johans Exp $ */
 
 #include <stdio.h>
 #include <stddef.h>
@@ -250,7 +250,7 @@ int set_env(fcgi_env* env, const char* name, const char* value) {
 			((FCGI_name_value_pair_14*)p)->value_length_0 =         value_len        & 0xff;
 			((FCGI_name_value_pair_14*)p)->value_length_1 =        (value_len >>  8) & 0xff;
 			((FCGI_name_value_pair_14*)p)->value_length_2 =        (value_len >> 16) & 0xff;
-			((FCGI_name_value_pair_14*)p)->value_length_3 = 0x80 | (value_len >> 24) & 0x7f;
+			((FCGI_name_value_pair_14*)p)->value_length_3 = 0x80 | ((value_len >> 24) & 0x7f);
 			p += sizeof(FCGI_name_value_pair_14);
 			break;
 		case FCGI_PAIR_TYPE_41:
@@ -258,7 +258,7 @@ int set_env(fcgi_env* env, const char* name, const char* value) {
 			((FCGI_name_value_pair_41*)p)->name_length_0  =         name_len         & 0xff;
 			((FCGI_name_value_pair_41*)p)->name_length_1  =        (name_len  >>  8) & 0xff;
 			((FCGI_name_value_pair_41*)p)->name_length_2  =        (name_len  >> 16) & 0xff;
-			((FCGI_name_value_pair_41*)p)->name_length_3  = 0x80 | (name_len  >> 24) & 0x7f;
+			((FCGI_name_value_pair_41*)p)->name_length_3  = 0x80 | ((name_len  >> 24) & 0x7f);
 			((FCGI_name_value_pair_41*)p)->value_length   =         value_len;
 			p += sizeof(FCGI_name_value_pair_41);
 			break;
@@ -267,11 +267,11 @@ int set_env(fcgi_env* env, const char* name, const char* value) {
 			((FCGI_name_value_pair_44*)p)->name_length_0  =         name_len         & 0xff;
 			((FCGI_name_value_pair_44*)p)->name_length_1  =        (name_len  >>  8) & 0xff;
 			((FCGI_name_value_pair_44*)p)->name_length_2  =        (name_len  >> 16) & 0xff;
-			((FCGI_name_value_pair_44*)p)->name_length_3  = 0x80 | (name_len  >> 24) & 0x7f;
+			((FCGI_name_value_pair_44*)p)->name_length_3  = 0x80 | ((name_len  >> 24) & 0x7f);
 			((FCGI_name_value_pair_44*)p)->value_length_0 =         value_len        & 0xff;
 			((FCGI_name_value_pair_44*)p)->value_length_1 =        (value_len >>  8) & 0xff;
 			((FCGI_name_value_pair_44*)p)->value_length_2 =        (value_len >> 16) & 0xff;
-			((FCGI_name_value_pair_44*)p)->value_length_3 = 0x80 | (value_len >> 24) & 0x7f;
+			((FCGI_name_value_pair_44*)p)->value_length_3 = 0x80 | ((value_len >> 24) & 0x7f);
 			p += sizeof(FCGI_name_value_pair_44);
 			break;
 	}
@@ -449,5 +449,6 @@ ssize_t recv_stream(fcgi_server* server, ssize_t length, int fd) {
 	}
 
 	free(buffer);
+	(void)fd;
 	return n;
 }

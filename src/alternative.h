@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: alternative.h,v 1.1 2006/12/17 13:29:43 johans Exp $ */
+/* $Id: alternative.h,v 1.2 2007/03/14 23:21:04 johans Exp $ */
 
 #ifndef		ALTERNATIVE_H
 #define		ALTERNATIVE_H	1
@@ -78,9 +78,13 @@ char *	strptime	(char *, char *, struct tm *);
 char *	strsep		(char **, const char *);
 #endif		/* HAVE_STRSEP */
 
-#ifndef HAVE_SNPRINTF
-int	snprintf	(char *, size_t, const char *, ...);
+#ifndef 	HAVE_SNPRINTF
+int	snprintf	(char *, size_t, const char *, ...) PRINTF_LIKE(3, 4);
 int	vsnprintf	(char *, size_t, const char *, va_list);
-#endif /* HAVE_VSNPRINTF */
+#endif		/* HAVE_VSNPRINTF */
+
+#ifndef		HAVE_MD5DATA
+char *	MD5Data		(const unsigned char *, unsigned int, char *);
+#endif		/* HAVE_MD5DATA */
 
 #endif		/* ALTERNATIVE_H */

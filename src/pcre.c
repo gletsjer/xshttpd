@@ -1,11 +1,12 @@
 /* Copyright (C) 2005-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: pcre.c,v 1.6 2006/12/06 20:56:55 johans Exp $ */
+/* $Id: pcre.c,v 1.7 2007/03/14 23:21:04 johans Exp $ */
 
 #include	"config.h"
 #include	"pcre.h"
 
 #include	<stdio.h>
 #include	<string.h>
+#include	<stdlib.h>
 #ifdef		HAVE_PCRE_H
 #include	<pcre.h>
 #else		/* HAVE_PCRE_H */
@@ -25,7 +26,7 @@ pcre_subst(const char * const string, const char * const pattern, const char * c
 		return NULL;
 
 	result = malloc(BUFSIZ);
-	snprintf(result, BUFSIZ, "%.*s%s%s", match - string,
+	snprintf(result, BUFSIZ, "%.*s%s%s", (int)(match - string),
 		string,
 		replacement,
 		match + strlen(pattern));

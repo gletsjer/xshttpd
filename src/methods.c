@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.199 2007/03/14 15:40:51 johans Exp $ */
+/* $Id: methods.c,v 1.200 2007/03/14 23:21:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -150,7 +150,8 @@ senduncompressed(int fd)
 #ifndef		HAVE_MMAP
 	size_t		secreadtotal, writetotal;
 #endif		/* HAVE_MMAP */
-	int			size, written, dynamic = 0;
+	int		written, dynamic = 0;
+	off_t		size;
 	char		modified[32];
 	struct tm	reqtime;
 
@@ -226,7 +227,7 @@ senduncompressed(int fd)
 		}
 		else
 		{
-			secprintf("Content-length: %ld\r\n", (long)size);
+			secprintf("Content-length: %lu\r\n", size);
 			strftime(modified, sizeof(modified),
 				"%a, %d %b %Y %H:%M:%S GMT", gmtime(&modtime));
 			secprintf("Last-modified: %s\r\n", modified);
@@ -260,12 +261,12 @@ senduncompressed(int fd)
 	{
 		char		*buffer;
 
-		if ((buffer = (char *)mmap((caddr_t)0, size, PROT_READ,
+		if ((buffer = (char *)mmap((caddr_t)0, (size_t)size, PROT_READ,
 			MAP_SHARED, fd, (off_t)0)) == (char *)-1)
 			err(1, "[%s] httpd: mmap() failed", currenttime);
 		alarm((size / MINBYTESPERSEC) + 20);
 		fflush(stdout);
-		if ((written = secwrite(buffer, size)) != size)
+		if ((written = secwrite(buffer, (size_t)size)) != size)
 		{
 			if (written != -1)
 				warn("[%s] httpd: Aborted for `%s' (%ld of %ld bytes sent)",
@@ -277,7 +278,7 @@ senduncompressed(int fd)
 					currenttime,
 					remotehost[0] ? remotehost : "(none)");
 		}
-		(void) munmap(buffer, size);
+		(void) munmap(buffer, (size_t)size);
 		size = written;
 		alarm(0);
 	}
@@ -688,7 +689,7 @@ find_file(const char *orgbase, const char *base, const char *file)
 		(p = strrchr(path, '/'));
 		*p = '\0')
 	{
-		snprintf(p, XS_PATH_MAX - (p - path), "/%s", file);
+		snprintf(p, (size_t)(XS_PATH_MAX - (p - path)), "/%s", file);
 		if ((fd = fopen(path, "r")))
 			return fd;
 	}

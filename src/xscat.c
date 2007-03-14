@@ -1,5 +1,5 @@
 /* Copyright (C) 2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: xscat.c,v 1.3 2006/12/17 13:29:44 johans Exp $ */
+/* $Id: xscat.c,v 1.4 2007/03/14 23:21:04 johans Exp $ */
 
 /* show detailed information from the xs counter datafile */
 
@@ -53,7 +53,7 @@ main(int argc, char *argv[])
 	num = 0;
 	while (read(fdin, &counter, sizeof(counter)) == sizeof(counter))
 	{
-		printf("%10lu\t%8u\t%3u: %s\n",
+		printf("%10lu\t%8u\t%3zu: %s\n",
 			(unsigned long)counter.lastseen, counter.total,
 			strlen(counter.filename), counter.filename);
 	}

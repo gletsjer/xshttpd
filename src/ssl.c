@@ -1,5 +1,5 @@
 /* Copyright (C) 2003-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssl.c,v 1.40 2007/03/07 19:09:12 johans Exp $ */
+/* $Id: ssl.c,v 1.41 2007/03/14 23:21:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -393,7 +393,7 @@ secwrite(const char *buf, size_t count)
 	if (chunked)
 	{
 		i = 0;
-		len[0] = snprintf(head, 20, "%x\r\n", count);
+		len[0] = snprintf(head, 20, "%zu\r\n", count);
 		len[1] = count;
 		len[2] = 2;
 		message[0] = head;

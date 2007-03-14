@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2007 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssi.c,v 1.67 2007/02/10 18:18:16 johans Exp $ */
+/* $Id: ssi.c,v 1.68 2007/03/14 23:21:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -417,15 +417,16 @@ parse_values(char *here, char **mapping, size_t maxsize)
 {
 	char		*p, *e, *word, *args, *end = strstr(here, "-->");
 	enum		{ T_INDEX, T_EQUAL, T_VALUE }	expect;
-	size_t		mapsize;
+	size_t		len, mapsize;
 	unsigned int	guard;
 
 	if (!end)
 		return 0;
 	*end = '\0';
 
-	args = malloc(end + 1 - here);
-	strlcpy(args, here, end + 1 - here);
+	len = end + 1 - here;
+	args = (char *)malloc(len);
+	strlcpy(args, here, len);
 	mapsize = 0;
 	expect = T_INDEX;
 	guard = 1;
@@ -990,7 +991,7 @@ parsedirectives(char *parse, size_t *size)
 		{
 			if (printable)
 			{
-				if (secwrite(result, store - result) < 0)
+				if (secwrite(result, (size_t)(store - result)) < 0)
 					return(ERR_QUIT);
 				*size += (store - result);
 			}
@@ -1051,7 +1052,7 @@ parsedirectives(char *parse, size_t *size)
 	{
 		if (print_enabled())
 		{
-			if (secwrite(result, store - result) < 0)
+			if (secwrite(result, (size_t)(store - result)) < 0)
 				return(ERR_QUIT);
 			*size += (store - result);
 		}

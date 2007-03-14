@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: xsindex.c,v 1.19 2006/12/17 13:29:44 johans Exp $ */
+/* $Id: xsindex.c,v 1.20 2007/03/14 23:21:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -29,7 +29,7 @@ static	size_t	max_filename = 0, max_mimetype =0, max_mimealt = 0,
 static	char	mimefile[XS_PATH_MAX];
 static	mime	*mimes;
 
-static	void	usage			(void);
+static	void	usage			(void) NORETURN;
 static	void	loadmime		(const char *);
 static	const	char	*encode		(const char *);
 static	const	char	*neatsize	(long);
@@ -53,6 +53,7 @@ usage()
 	fprintf(stderr, "                   3 - Do not give types\n");
 	fprintf(stderr, "   title        Title of the %s page\n", INDEX_HTML);
 	fprintf(stderr, "                Use \"'s if it's more than one word\n");
+	exit(1);
 }
 
 static	void
@@ -210,20 +211,16 @@ main(int argc, char **argv)
 			show_type = atoi(optarg);
 			if ((show_type < 1) || (show_type > 3))
 			{
+				warnx("Invalid argument to -t");
 				usage();
-				errx(1, "Invalid argument to -t");
 			}
 			break;
 		default:
 			usage();
-			exit(1);
 		}
 	}
 	if (optind != (argc - 1))
-	{
 		usage();
-		exit(1);
-	}
 
 	loadmime(mimefile);
 

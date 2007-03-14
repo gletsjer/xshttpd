@@ -7,5 +7,4 @@ extern char	authentication[MYBUFSIZ];
 
 void	initnonce	(void);
 int	check_auth	(FILE *);
-int	generate_ha1	(const char *user, const char *passwd, char *hash);
 

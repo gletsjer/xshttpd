@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.262 2007/03/11 09:31:07 johans Exp $ */
+/* $Id: httpd.c,v 1.263 2007/03/14 23:21:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -98,7 +98,7 @@ typedef	size_t	socklen_t;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.262 2007/03/11 09:31:07 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.263 2007/03/14 23:21:04 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -990,7 +990,7 @@ error(const char *message)
 	if (headers)
 	{
 		secprintf("%s %s\r\n", httpver, message);
-		secprintf("Content-length: %d\r\n", strlen(errmsg));
+		secprintf("Content-length: %zu\r\n", strlen(errmsg));
 		if ((env = getenv("HTTP_ALLOW")))
 			secprintf("Allow: %s\r\n", env);
 		stdheaders(1, 1, 1);
@@ -1030,7 +1030,7 @@ redirect(const char *redir, int permanent, int pass_env)
 		else
 			secprintf("%s %s moved\r\nLocation: %s\r\n", httpver,
 				permanent ? "301 Permanently" : "302 Temporarily", redir);
-		secprintf("Content-length: %d\n", strlen(errmsg));
+		secprintf("Content-length: %zu\n", strlen(errmsg));
 		stdheaders(1, 1, 1);
 	}
 	secputs(errmsg);
@@ -1858,9 +1858,8 @@ standalone_socket(int id)
 		if (message503[0])
 			secprintf("HTTP/1.1 503 Busy\r\n"
 				"Content-type: text/plain\r\n"
-				"Content-length: %d\r\n\r\n%s",
-				strlen(message503),
-				message503);
+				"Content-length: %zu\r\n\r\n%s",
+				strlen(message503), message503);
 		else
 			do
 			{
@@ -2012,13 +2011,13 @@ main(int argc, char **argv)
 #endif		/* HAVE_UNAME */
 #ifdef		OPENSSL_VERSION_NUMBER
 			if (OPENSSL_VERSION_NUMBER >> 4 & 0xff)
-				printf(" OpenSSL/%u.%u.%u%c",
+				printf(" OpenSSL/%lu.%lu.%lu%c",
 					OPENSSL_VERSION_NUMBER >> 28 & 0xf,
 					OPENSSL_VERSION_NUMBER >> 20 & 0xff,
 					OPENSSL_VERSION_NUMBER >> 12 & 0xff,
 					'a' - 1 + (unsigned char)(OPENSSL_VERSION_NUMBER >> 4 & 0xff));
 			else
-				printf(" OpenSSL/%u.%u.%u",
+				printf(" OpenSSL/%lu.%lu.%lu",
 					OPENSSL_VERSION_NUMBER >> 28 & 0xf,
 					OPENSSL_VERSION_NUMBER >> 20 & 0xff,
 					OPENSSL_VERSION_NUMBER >> 12 & 0xff);

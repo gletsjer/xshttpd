@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: cgi.c,v 1.131 2007/03/08 10:13:21 johans Exp $ */
+/* $Id: cgi.c,v 1.132 2007/03/14 23:21:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -104,7 +104,7 @@ append(char *buffer, int prepend, const char *format, ...)
 void
 do_script(const char *path, const char *base, const char *file, const char *engine, int showheader)
 {
-	long			received, writetodo,
+	unsigned long		received, writetodo,
 				totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
 				request[MYBUFSIZ], *temp,
@@ -119,7 +119,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	char			inbuf[RWBUFSIZE];
 	int			q[2];
 	int			ssl_post = 0;
-	ssize_t		tobewritten;
+	size_t		tobewritten;
 #endif		/* HANDLE_SSL */
 #ifdef		HAVE_SETRLIMIT
 	struct	rlimit		limits;
@@ -316,22 +316,25 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		while (writetodo > 0)
 		{
 			int	offset;
+			int	result;
 
 			tobewritten = writetodo > RWBUFSIZE ? RWBUFSIZE : writetodo;
-			while (!(tobewritten = secread(0, inbuf, tobewritten)))
+			while (!(result = secread(0, inbuf, tobewritten)))
 				mysleep(1);
-			if ((tobewritten < 0))
+			if ((result < 0))
 				goto END;
+			tobewritten = result;
 			offset = 0;
-			while ((written = write(q[1], inbuf + offset, tobewritten - offset)) < tobewritten - offset) {
-				if ((written < 0) && (errno != EINTR))
+			while ((result = write(q[1], inbuf + offset, tobewritten - offset)) < (int)(tobewritten - offset))
+			{
+				if ((result < 0) && (errno != EINTR))
 				{
 					warn("[Connection closed (fd = %d, todo = %ld]",
 						q[1], writetodo);
 					goto END;
 				}
-				else if (written > 0)
-					offset += written;
+				else if (result > 0)
+					offset += result;
 			}
 			writetodo -= tobewritten;
 		}
@@ -508,8 +511,9 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 #endif		/* WANT_SSI */
 	for (;;)
 	{
-		received = read(p[0], input, RWBUFSIZE);
-		if (received < 0)
+		int result = read(p[0], input, RWBUFSIZE);
+
+		if (result < 0)
 		{
 			if (errno == EINTR || errno == EWOULDBLOCK)
 			{
@@ -519,9 +523,10 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			secprintf("[read() error from CGI: %s]", strerror(errno));
 			break;
 		}
-		else if (received == 0)
+		else if (!result)
 			break;
-		writetodo = received; temp = input;
+		/* result > 0 */
+		writetodo = result; temp = input;
 		while (writetodo > 0)
 		{
 			written = secwrite(temp, writetodo);

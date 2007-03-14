@@ -1,5 +1,5 @@
 /* Copyright (C) 2007 by Johan van Selst (johans@stack.nl) */
-/* $Id: authenticate.c,v 1.4 2007/03/13 23:31:35 johans Exp $ */
+/* $Id: authenticate.c,v 1.5 2007/03/14 23:21:04 johans Exp $ */
 
 #include	"config.h"
 
@@ -23,7 +23,7 @@ static int	get_crypted_password(FILE *, const char *, char **, char **);
 static int	check_basic_auth(FILE *authfile);
 #ifdef		HAVE_MD5
 static int	check_digest_auth(FILE *authfile);
-static char	*get_auth_argument(const char *key, char *line);
+static char	*get_auth_argument(const char *key, char *line, size_t len);
 static void	fresh_nonce(char *nonce);
 static int	valid_nonce(char *nonce);
 #endif		/* HAVE_MD5 */
@@ -71,7 +71,7 @@ check_basic_auth(FILE *authfile)
 	char		*search, line[LINEBUFSIZE], *passwd, *find;
 
 	/* basic auth */
-	strlcpy(line, authentication, LINEBUFSIZE);
+	strlcpy(line, authentication, sizeof(LINEBUFSIZE));
 	find = line + strlen(line);
 	while ((find > line) && (*(find - 1) < ' '))
 		*(--find) = 0;
@@ -117,14 +117,14 @@ check_basic_auth(FILE *authfile)
 
 #ifdef		HAVE_MD5
 static char *
-get_auth_argument(const char *key, char *line)
+get_auth_argument(const char *key, char *line, size_t len)
 {
 	char	*p, *q;
 	char	substr[MYBUFSIZ];
 
 	snprintf(substr, MYBUFSIZ, "%s=%c", key, '"');
 
-	if ((p = memmem(line, LINEBUFSIZE, key, strlen(key))) &&
+	if ((p = memmem(line, len, key, strlen(key))) &&
 			(q = strchr(p += strlen(substr), '"')))
 		*q = '\0';
 	else
@@ -144,14 +144,15 @@ check_digest_auth(FILE *authfile)
 	size_t		len;
 
 	/* digest auth, rfc 2069 */
-	memset(line, '\0', LINEBUFSIZE);
-	strlcpy(line, authentication, LINEBUFSIZE);
+	len = strlcpy(line, authentication, LINEBUFSIZE);
+	if (len > LINEBUFSIZE)
+		len = LINEBUFSIZE;
 
-	user	= get_auth_argument("username",	line);
-	realm	= get_auth_argument("realm",	line);
-	nonce	= get_auth_argument("nonce",	line);
-	uri	= get_auth_argument("uri",	line);
-	response= get_auth_argument("response",	line);
+	user	= get_auth_argument("username",	line, len);
+	realm	= get_auth_argument("realm",	line, len);
+	nonce	= get_auth_argument("nonce",	line, len);
+	uri	= get_auth_argument("uri",	line, len);
+	response= get_auth_argument("response",	line, len);
 
 	if (!user || !realm || !nonce || !uri || !response)
 		return 1; /* fail */
@@ -237,7 +238,7 @@ check_auth(FILE *authfile)
 #endif		/* HAVE_MD5 */
 				secputs("WWW-authenticate: basic realm=\""
 					REALM "\"\r\n");
-			secprintf("Content-length: %d\r\n", strlen(errmsg));
+			secprintf("Content-length: %zu\r\n", strlen(errmsg));
 			stdheaders(1, 1, 1);
 		}
 		secputs(errmsg);
@@ -287,7 +288,7 @@ check_auth(FILE *authfile)
 #endif		/* HAVE_MD5 */
 			secputs("WWW-authenticate: basic realm=\""
 				REALM "\"\r\n");
-		secprintf("Content-length: %d\r\n", strlen(errmsg));
+		secprintf("Content-length: %zu\r\n", strlen(errmsg));
 		stdheaders(1, 1, 1);
 	}
 	secputs(errmsg);
@@ -297,8 +298,7 @@ check_auth(FILE *authfile)
 void
 initnonce()
 {
-	time_t		now;
-	srandom(time(&now));
+	srandom((unsigned int)time(NULL));
 	secret = random();
 }
 

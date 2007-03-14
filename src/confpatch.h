@@ -56,9 +56,11 @@
 #define		PRINTF_LIKE(f, p)	__attribute__ ((format (printf, (f), (p))))\
 					__attribute__ ((__nonnull__ (f)))
 #define		CONST_FUNC		__attribute__ ((const))
+#define		MALLOC			__attribute__ ((malloc))
 #define		NORETURN		__attribute__ ((noreturn))
 #else
 #define		PRINTF_LIKE(f, p)
 #define		CONST_FUNC
+#define		MALLOC
 #define		NORETURN
 #endif		/* __GNUC__ */
