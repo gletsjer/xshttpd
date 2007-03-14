@@ -3,6 +3,7 @@ is not complete. Refer to cvs comments for more information.
 
 Changes since 3.5 beta 1
 - Use MD5() from OpenSSL when MD5Data() is not available (Linux)
+- Add p3pReference and p3pCompactPolicy options to set P3P header
 
 Changes since 3.4 beta 26
 - Include xsconf.1

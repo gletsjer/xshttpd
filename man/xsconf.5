@@ -64,6 +64,20 @@ Override the default timeout that is used to restrict the execution time
 of all CGI scripts (wall time in minutes). Other limits will still apply
 though, specifically the per process CPU limit.
 
+.TP
+.B p3pPolicyReference
+Set the URL that contains the full P3P specification which describes
+the privacy policy for the requested file. This URL should refer to
+a correctly formatted XML document. The default location for a site is
+"/w3c/p3p.xml". Don't set this option if you wish to use the default.
+
+.TP
+.B p3pCompactPolicy
+In stead of, or in addition to a policy reference, it's possible to specify
+the full P3P policy in a compat notation (consisting of a string of short
+acronyms). If set, this policy will be added to the headers of the requested
+document.
+
 .SH EXAMPLE
 .TS
 ll.

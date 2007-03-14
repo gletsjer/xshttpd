@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.197 2007/03/10 23:58:18 johans Exp $ */
+/* $Id: methods.c,v 1.198 2007/03/14 14:35:10 johans Exp $ */
 
 #include	"config.h"
 
@@ -131,7 +131,8 @@ static	ctypes	*ctype = NULL;
 static	ctypes	*itype = NULL, *litype = NULL, *ditype = NULL;
 static	ctypes	**isearches[] = { &litype, &itype, &ditype };
 static	char	charset[XS_PATH_MAX], mimetype[XS_PATH_MAX],
-				scripttype[XS_PATH_MAX];
+		scripttype[XS_PATH_MAX],
+		p3pref[XS_PATH_MAX], p3pcp[XS_PATH_MAX];
 #ifdef		HAVE_CURL
 static	size_t	curl_readlen;
 #endif		/* HAVE_CURL */
@@ -235,6 +236,15 @@ senduncompressed(int fd)
 			secprintf("Content-encoding: %s\r\n", getenv("CONTENT_ENCODING"));
 			unsetenv("CONTENT_ENCODING");
 		}
+
+		if (*p3pref && *p3pcp)
+			secprintf("P3P: policyref=\"%s\", CP=\"%s\"\r\n",
+				p3pref, p3pcp);
+		else if (*p3pref)
+			secprintf("P3P: policy-ref=\"%s\"\r\n", p3pref);
+		else if (*p3pcp)
+			secprintf("P3P: CP=\"%s\"\r\n", p3pcp);
+
 		secprintf("\r\n");
 	}
 
@@ -640,6 +650,10 @@ check_location(FILE *fp, const char *filename)
 			strlcpy(scripttype, value, XS_PATH_MAX);
 		else if (!strcasecmp(name, "Charset"))
 			strlcpy(charset, value, XS_PATH_MAX);
+		else if (!strcasecmp(name, "p3pReference"))
+			strlcpy(p3pref, value, XS_PATH_MAX);
+		else if (!strcasecmp(name, "p3pCompactPolicy"))
+			strlcpy(p3pcp, value, XS_PATH_MAX);
 		else if (!strcasecmp(name, "ScriptTimeout"))
 			config.scripttimeout = atoi(value);
 
@@ -949,6 +963,7 @@ do_get(char *params)
 	mimetype[0] = '\0';
 	scripttype[0] = '\0';
 	charset[0] = '\0';
+	p3pref[0] = p3pcp[0] = '\0';
 
 	/* Check user directives */
 	/* These should all send there own error messages when appropriate */
