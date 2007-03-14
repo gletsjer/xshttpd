@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.198 2007/03/14 14:35:10 johans Exp $ */
+/* $Id: methods.c,v 1.199 2007/03/14 15:40:51 johans Exp $ */
 
 #include	"config.h"
 
@@ -132,6 +132,7 @@ static	ctypes	*itype = NULL, *litype = NULL, *ditype = NULL;
 static	ctypes	**isearches[] = { &litype, &itype, &ditype };
 static	char	charset[XS_PATH_MAX], mimetype[XS_PATH_MAX],
 		scripttype[XS_PATH_MAX],
+		language[XS_PATH_MAX], encoding[XS_PATH_MAX],
 		p3pref[XS_PATH_MAX], p3pcp[XS_PATH_MAX];
 #ifdef		HAVE_CURL
 static	size_t	curl_readlen;
@@ -231,11 +232,11 @@ senduncompressed(int fd)
 			secprintf("Last-modified: %s\r\n", modified);
 		}
 
-		if (getenv("CONTENT_ENCODING"))
-		{
-			secprintf("Content-encoding: %s\r\n", getenv("CONTENT_ENCODING"));
-			unsetenv("CONTENT_ENCODING");
-		}
+		if (*encoding)
+			secprintf("Content-encoding: %s\r\n", encoding);
+
+		if (*language)
+			secprintf("Content-language: %s\r\n", language);
 
 		if (*p3pref && *p3pcp)
 			secprintf("P3P: policyref=\"%s\", CP=\"%s\"\r\n",
@@ -650,6 +651,8 @@ check_location(FILE *fp, const char *filename)
 			strlcpy(scripttype, value, XS_PATH_MAX);
 		else if (!strcasecmp(name, "Charset"))
 			strlcpy(charset, value, XS_PATH_MAX);
+		else if (!strcasecmp(name, "Language"))
+			strlcpy(language, value, XS_PATH_MAX);
 		else if (!strcasecmp(name, "p3pReference"))
 			strlcpy(p3pref, value, XS_PATH_MAX);
 		else if (!strcasecmp(name, "p3pCompactPolicy"))
@@ -960,9 +963,8 @@ do_get(char *params)
 #endif
 	}
 
-	mimetype[0] = '\0';
-	scripttype[0] = '\0';
-	charset[0] = '\0';
+	mimetype[0] = scripttype[0] = '\0';
+	charset[0] = encoding[0] = language[0] = '\0';
 	p3pref[0] = p3pcp[0] = '\0';
 
 	/* Check user directives */
@@ -1159,7 +1161,7 @@ do_get(char *params)
 			(temp = getenv("HTTP_ACCEPT_ENCODING")) &&
 			strstr(temp, csearch->name))
 		{
-			setenv("CONTENT_ENCODING", csearch->name, 1);
+			strlcpy(encoding, csearch->name, sizeof(encoding));
 			senduncompressed(fd);
 		}
 		else
