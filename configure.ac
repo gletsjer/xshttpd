@@ -2,6 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT(xshttpd, 35b01)
 SERVER_IDENT="xs-httpd/3.5 beta/0.01"
 AC_CONFIG_SRCDIR(src/httpd.c)
+AC_CONFIG_LIBOBJ_DIR(libcompat)
 AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 no-dist-gzip])
 AC_DEFINE_UNQUOTED(SERVER_IDENT, "${SERVER_IDENT}", [Server version])
 AC_CONFIG_HEADERS([config.h])
@@ -17,7 +18,7 @@ AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "$ppmtogif",
 	[ppmtogif-like program used to create graphic counters])
 
 dnl Checks for libraries.
-CFLAGS="${CFLAGS} -O2 -I/usr/local/include -I/usr/include"
+CFLAGS="${CFLAGS} -I/usr/local/include -I/usr/include"
 LDFLAGS="${LDFLAGS} -L/usr/local/lib"
 httpd_cflags="${CFLAGS}"
 libxs_cflags="${CFLAGS}"
@@ -202,5 +203,5 @@ AC_SUBST(libxs_cflags)
 AC_SUBST(httpd_ldflags)
 AC_SUBST(httpd_cflags)
 AC_SUBST(SERVER_IDENT)
-AC_CONFIG_FILES([Makefile config/Makefile contrib/Makefile fonts/Makefile icons/Makefile man/Makefile src/Makefile man/httpd.1])
+AC_CONFIG_FILES([Makefile config/Makefile contrib/Makefile fonts/Makefile icons/Makefile man/Makefile libcompat/Makefile src/Makefile man/httpd.1])
 AC_OUTPUT
