@@ -2,3 +2,7 @@ Original author: Sven Berkvens (1995-1996)
 Current maintainer: Johan van Selst (1999-2006)
 
 imagemap is based on the NCSA distribution, see the source for details.
+
+The library functions collected for compatibility with older systems
+are stored in libcompat. See the source of each file for license details.
+
