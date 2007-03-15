@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.200 2007/03/14 23:21:04 johans Exp $ */
+/* $Id: methods.c,v 1.201 2007/03/15 09:05:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -150,19 +150,20 @@ senduncompressed(int fd)
 #ifndef		HAVE_MMAP
 	size_t		secreadtotal, writetotal;
 #endif		/* HAVE_MMAP */
-	int		written, dynamic = 0;
-	off_t		size;
+	int		dynamic = 0;
+	ssize_t		written;
+	size_t		size;
 	char		modified[32];
 	struct tm	reqtime;
 
 	alarm(180);
-	if ((size = lseek(fd, (off_t)0, SEEK_END)) == -1)
+	if ((size = (size_t)lseek(fd, 0, SEEK_END)) == (size_t)-1)
 	{
 		error("500 Cannot lseek() to end of file");
 		close(fd);
 		return;
 	}
-	if (lseek(fd, (off_t)0, SEEK_SET))
+	if (lseek(fd, 0, SEEK_SET))
 	{
 		error("500 Cannot lseek() to beginning of file");
 		close(fd);
@@ -227,7 +228,7 @@ senduncompressed(int fd)
 		}
 		else
 		{
-			secprintf("Content-length: %lu\r\n", size);
+			secprintf("Content-length: %zu\r\n", size);
 			strftime(modified, sizeof(modified),
 				"%a, %d %b %Y %H:%M:%S GMT", gmtime(&modtime));
 			secprintf("Last-modified: %s\r\n", modified);
@@ -261,24 +262,24 @@ senduncompressed(int fd)
 	{
 		char		*buffer;
 
-		if ((buffer = (char *)mmap((caddr_t)0, (size_t)size, PROT_READ,
+		if ((buffer = (char *)mmap((caddr_t)0, size, PROT_READ,
 			MAP_SHARED, fd, (off_t)0)) == (char *)-1)
 			err(1, "[%s] httpd: mmap() failed", currenttime);
 		alarm((size / MINBYTESPERSEC) + 20);
 		fflush(stdout);
-		if ((written = secwrite(buffer, (size_t)size)) != size)
+		if ((size_t)(written = secwrite(buffer, size)) != size)
 		{
 			if (written != -1)
-				warn("[%s] httpd: Aborted for `%s' (%ld of %ld bytes sent)",
+				warn("[%s] httpd: Aborted for `%s' (%zu of %zu bytes sent)",
 					currenttime,
 					remotehost[0] ? remotehost : "(none)",
-					(long)written, (long)size);
+					written, size);
 			else
 				warn("[%s] httpd: Aborted for `%s'",
 					currenttime,
 					remotehost[0] ? remotehost : "(none)");
 		}
-		(void) munmap(buffer, (size_t)size);
+		(void) munmap(buffer, size);
 		size = written;
 		alarm(0);
 	}
@@ -315,9 +316,9 @@ senduncompressed(int fd)
 		if (headers >= 11)
 			chunked = 1;
 		alarm((size / MINBYTESPERSEC) + 60);
-		errval = sendwithdirectives(fd, (size_t *)&usize);
+		errval = sendwithdirectives(fd, &usize);
 		if (usize)
-			size = (int)usize;
+			size = usize;
 		close(fd);
 		switch(errval)
 		{

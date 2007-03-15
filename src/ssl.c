@@ -1,5 +1,5 @@
 /* Copyright (C) 2003-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssl.c,v 1.41 2007/03/14 23:21:04 johans Exp $ */
+/* $Id: ssl.c,v 1.42 2007/03/15 09:05:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -320,10 +320,10 @@ loadssl()
 }
 
 
-int
+ssize_t
 secread(int fd, void *buf, size_t count)
 {
-	int	ret;
+	ssize_t	ret;
 
 	if (!count)
 		return 0;
@@ -380,10 +380,11 @@ secfread(void *buf, size_t size, size_t nmemb, FILE *stream)
 	return (size_t)secread(fileno(stream), buf, size * nmemb);
 }
 
-int
+ssize_t
 secwrite(const char *buf, size_t count)
 {
-	int	i, len[3], ret;
+	int	i, len[3];
+	ssize_t		ret;
 	static char	head[20];
 	const char	*message[3];
 
@@ -465,13 +466,13 @@ secfwrite(const char *buf, size_t size, size_t nmemb, FILE *stream)
 	return (size_t)secwrite(buf, size * nmemb);
 }
 
-int
+ssize_t
 secputs(const char *buf)
 {
 	return secwrite(buf, strlen(buf));
 }
 
-int
+ssize_t
 secprintf(const char *format, ...)
 {
 	va_list ap;

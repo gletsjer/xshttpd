@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: cgi.c,v 1.132 2007/03/14 23:21:04 johans Exp $ */
+/* $Id: cgi.c,v 1.133 2007/03/15 09:05:39 johans Exp $ */
 
 #include	"config.h"
 
@@ -111,8 +111,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				input[RWBUFSIZE], line[LINEBUFSIZE],
 				head[HEADSIZE];
 	const	char		*argv1, *header;
-	int			p[2], nph, dossi,
-				written, chldstat;
+	int			p[2], nph, dossi, chldstat;
+	ssize_t			written;
 	unsigned	int	left;
 	size_t			count;
 #ifdef		HANDLE_SSL

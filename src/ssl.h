@@ -6,10 +6,10 @@ int	initssl(void);
 void	loadssl(void);
 void	endssl(void);
 void	setreadmode(int, int);
-int	secread(int, void *, size_t);
+ssize_t	secread(int, void *, size_t);
 size_t	secfread(void *, size_t, size_t, FILE *);
-int	secwrite(const char *, size_t);
+ssize_t	secwrite(const char *, size_t);
 size_t	secfwrite(const char *, size_t, size_t, FILE *);
-int	secputs(const char *);
-int	secprintf(const char *format, ...) PRINTF_LIKE(1, 2);
+ssize_t	secputs(const char *);
+ssize_t	secprintf(const char *format, ...) PRINTF_LIKE(1, 2);
 
