@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: xsindex.c,v 1.20 2007/03/14 23:21:04 johans Exp $ */
+/* $Id: xsindex.c,v 1.21 2007/03/15 14:18:48 johans Exp $ */
 
 #include	"config.h"
 
@@ -219,7 +219,9 @@ main(int argc, char **argv)
 			usage();
 		}
 	}
-	if (optind != (argc - 1))
+	argc -= optind;
+	argv += optind;
+	if (argc > 1)
 		usage();
 
 	loadmime(mimefile);
@@ -283,8 +285,9 @@ main(int argc, char **argv)
 	fprintf(output, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
 		"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n");
 	fprintf(output, "<html><head><title>%s</title></head><body>\n",
-		argv[optind]);
-	fprintf(output, "<h1>%s</h1>\n<hr />\n<pre>", argv[optind]);
+		argc ? argv[0] : "directory listing");
+	fprintf(output, "<h1>%s</h1>\n<hr />\n<pre>",
+		argc ? argv[0] : "directory listing");
 
 	for (count = 0; count < amount; count++)
 	{
