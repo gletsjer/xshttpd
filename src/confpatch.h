@@ -53,14 +53,21 @@
 #endif		/* HAVE_SETEGID */
 
 #ifdef		__GNUC__
-#define		PRINTF_LIKE(f, p)	__attribute__ ((format (printf, (f), (p))))\
+# if		__GNUC__ >= 3
+#  define	PRINTF_LIKE(f, p)	__attribute__ ((format (printf, (f), (p))))\
 					__attribute__ ((__nonnull__ (f)))
-#define		CONST_FUNC		__attribute__ ((const))
-#define		MALLOC			__attribute__ ((malloc))
-#define		NORETURN		__attribute__ ((noreturn))
-#else
-#define		PRINTF_LIKE(f, p)
-#define		CONST_FUNC
-#define		MALLOC
-#define		NORETURN
+#  define	CONST_FUNC		__attribute__ ((const))
+#  define	MALLOC_FUNC		__attribute__ ((malloc))
+#  define	NORETURN		__attribute__ ((noreturn))
+# else		/* __GNUC__ < 3 */
+#  define	PRINTF_LIKE(f, p)	__attribute__ ((format (printf, (f), (p))))
+#  define	CONST_FUNC		__attribute__ ((const))
+#  define	MALLOC_FUNC
+#  define	NORETURN
+# endif		/* __GNUC__ < 3 */
+#else		/* Not __GNUC__ */
+# define	PRINTF_LIKE(f, p)
+# define	CONST_FUNC
+# define	MALLOC_FUNC
+# define	NORETURN
 #endif		/* __GNUC__ */

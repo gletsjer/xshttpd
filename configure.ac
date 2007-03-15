@@ -17,7 +17,7 @@ AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "$ppmtogif",
 	[ppmtogif-like program used to create graphic counters])
 
 dnl Checks for libraries.
-CFLAGS="${CFLAGS} -I/usr/local/include -I/usr/include"
+CFLAGS="${CFLAGS} -O2 -I/usr/local/include -I/usr/include"
 LDFLAGS="${LDFLAGS} -L/usr/local/lib"
 httpd_cflags="${CFLAGS}"
 libxs_cflags="${CFLAGS}"
@@ -68,7 +68,7 @@ XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)
 XS_FUNC_IN_LIB(MD5Data, HAVE_MD5, md, libxs)
 AM_CONDITIONAL([MD5], [test x$ac_cv_lib_md_MD5Data = xyes])
-AC_REPLACE_FUNCS(err killpg setenv setgroups setproctitle strlcat strcasestr strerror strlcpy strptime strsep snprintf)
+AC_REPLACE_FUNCS(err killpg memmem setenv setgroups setproctitle strlcat strcasestr strerror strlcpy strptime strsep snprintf)
 
 XS_CHECK_WITH(ssl, SSL crypto support, yes)
 if test x${with_ssl} = xyes
@@ -101,15 +101,8 @@ XS_CHECK_WITH(pcre, PCRE support, no)
 AM_CONDITIONAL([PCRE], false)
 if test x${with_pcre} = xyes
 then
-	AC_PATH_PROG([PCRECONF], pcre-config)
-	if test x${PCRECONF} != x
-	then
-		AC_DEFINE(HAVE_PCRE,,
-			[Define to 1 if you have the pcre library.])
-		httpd_ldflags="${httpd_ldflags} `${PCRECONF} --libs`"
-		httpd_cflags="${httpd_cflags} `${PCRECONF} --cflags`"
-		AM_CONDITIONAL([PCRE], true)
-	fi
+	XS_FUNC_IN_LIB(pcre_exec, HAVE_PCRE, pcre, httpd)
+	XS_TRY_CONFIG(pcre-config, httpd)
 fi
 
 XS_CHECK_WITH(ldap, LDAP authentication support, no)
@@ -124,14 +117,8 @@ fi
 XS_CHECK_WITH(curl, CURL transfer support, no)
 if test x${with_curl} = xyes
 then
-	AC_PATH_PROG([CURLCONF], curl-config)
-	if test x${CURLCONF} != x
-	then
-		AC_DEFINE(HAVE_CURL,,
-			[Define to 1 if you have the curl library.])
-		httpd_ldflags="${httpd_ldflags} `${CURLCONF} --libs`"
-		httpd_cflags="${httpd_cflags} `${CURLCONF} --cflags`"
-	fi
+	XS_FUNC_IN_LIB(curl_version, HAVE_CURL, curl, httpd)
+	XS_TRY_CONFIG(curl-config, httpd)
 fi
 
 XS_CHECK_WITH(preprocessor, optional configuration preprocessor, no)
@@ -170,17 +157,10 @@ XS_ARG_DEFAULT(warnings, DUMMY, no,
 if test x${enable_warnings} = xyes
 then
 	CFLAGS="${CFLAGS} -g -ggdb -O -fsigned-char -fshort-enums -funroll-loops -finline-functions -fexpensive-optimizations -pedantic -ansi -trigraphs -Wall -W -Wimplicit -Wpointer-arith -Wshadow -pipe -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wreturn-type -Wformat -Wformat=2 -Wtrigraphs -Wswitch -Wcomment -Wchar-subscripts -Wuninitialized -Wparentheses -Wcast-align -Waggregate-return -Wnested-externs -Winline"
-else
-	CFLAGS="${CFLAGS} -g"
 fi
 
 if test x${enable_perl} = xyes
 then
-	if test x${enable_script} = xno
-	then
-		echo "You can only use --enable-perl with --enable-script"
-		exit 1
-	fi
 	httpd_cflags="${httpd_cflags} `perl -MExtUtils::Embed -e ccopts`"
 	httpd_ldflags="${httpd_ldflags} `perl -MExtUtils::Embed -e ldopts`"
 fi

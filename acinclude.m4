@@ -70,3 +70,14 @@ AC_DEFUN([XS_CHECK_WITH], [
 		with_$1=$3
 		AC_MSG_RESULT($3))
 	])
+
+# XS_TRY_CONFIG(path, buildprog)
+AC_DEFUN([XS_TRY_CONFIG], [
+	AC_PATH_PROG(progpath, $1)
+	if test x${progpath} != x
+	then
+		$2_cflags="${$2_cflags} `${progpath} --cflags`"
+		$2_ldflags="${$2_ldflags} `${progpath} --libs`"
+	fi
+	])
+

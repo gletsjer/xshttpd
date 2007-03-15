@@ -3,20 +3,21 @@ cgi_PROGRAMS = xschpass imagemap error gfxcount
 noinst_PROGRAMS = reformatxs xscat
 noinst_LIBRARIES = libxs.a
 
-httpd_SOURCES = httpd.c cgi.c convert.c local.c methods.c ssi.c ssl.c fcgi.c
-error_SOURCES = error.c local.c
-
-libxs_a_SOURCES = authenticate.c decode.c extra.c path.c pcre.c xscrypt.c
+httpd_SOURCES = httpd.c authenticate.c cgi.c convert.c fcgi.c \
+	local.c methods.c pcre.c ssi.c ssl.c
 if LDAP
 httpd_SOURCES += ldap.c 
 endif
+httpd_CFLAGS = @httpd_cflags@ -DBUILD_HTTPD
+httpd_LDFLAGS = @httpd_ldflags@ @libxs_ldflags@
+
+libxs_a_SOURCES = decode.c extra.c local.c path.c xscrypt.c
 libxs_a_LIBADD = @LIBOBJS@		# AC_REPLACE_FUNS sources
 libxs_a_CFLAGS = @libxs_cflags@
 
-httpd_CFLAGS = @httpd_cflags@ -DBUILD_HTTPD
-httpd_LDFLAGS = @httpd_ldflags@ @libxs_ldflags@
 xspasswd_LDFLAGS = @libxs_ldflags@
 xschpass_LDFLAGS = @libxs_ldflags@
+
 LDADD = libxs.a				# default for all *_PROGRAMS
 DEFAULT_INCLUDES =
 

@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: xspasswd.c,v 1.22 2007/03/14 23:21:04 johans Exp $ */
+/* $Id: xspasswd.c,v 1.23 2007/03/15 14:13:09 johans Exp $ */
 
 #include	"config.h"
 
@@ -48,7 +48,7 @@ main(int argc, char **argv)
 			passwdlock = 0;
 			break;
 		default:
-			errx(1, "Usage: xspasswd [-l] [user]");
+			errx(1, "Usage: xspasswd [-b|-d] [-l|-u] [user]");
 		}
 	}
 	argc -= optind;
@@ -56,7 +56,7 @@ main(int argc, char **argv)
 
 	printf("The information will be stored in %s\n\n", AUTHFILE);
 	if (argc > 1)
-		errx(1, "Usage: xspasswd [-l] [user]");
+		errx(1, "Usage: xspasswd [-b|-d] [-l|-u] [user]");
 	else if (argc)
 		username = strdup(argv[0]);
 	else

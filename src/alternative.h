@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: alternative.h,v 1.2 2007/03/14 23:21:04 johans Exp $ */
+/* $Id: alternative.h,v 1.3 2007/03/15 14:13:09 johans Exp $ */
 
 #ifndef		ALTERNATIVE_H
 #define		ALTERNATIVE_H	1
@@ -43,6 +43,14 @@ void	warnx		(const char *, ...) PRINTF_LIKE(1, 2);
 int	killpg		(pid_t, int);
 #endif		/* HAVE_KILLPG */
 
+#ifndef		HAVE_MD5DATA
+char *	MD5Data		(const unsigned char *, unsigned int, char *);
+#endif		/* HAVE_MD5DATA */
+
+#ifndef		HAVE_MEMMEM
+void *	memmem		(const void *, size_t, const void *, size_t);
+#endif		/* HAVE_MEMMEM */
+
 #ifndef		HAVE_SETENV
 char	*getenv		(const char *);
 int	setenv		(const char *, const char *, int);
@@ -82,9 +90,5 @@ char *	strsep		(char **, const char *);
 int	snprintf	(char *, size_t, const char *, ...) PRINTF_LIKE(3, 4);
 int	vsnprintf	(char *, size_t, const char *, va_list);
 #endif		/* HAVE_VSNPRINTF */
-
-#ifndef		HAVE_MD5DATA
-char *	MD5Data		(const unsigned char *, unsigned int, char *);
-#endif		/* HAVE_MD5DATA */
 
 #endif		/* ALTERNATIVE_H */
