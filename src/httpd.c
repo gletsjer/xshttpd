@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.264 2007/03/15 09:05:39 johans Exp $ */
+/* $Id: httpd.c,v 1.265 2007/03/15 09:13:54 johans Exp $ */
 
 #include	"config.h"
 
@@ -98,7 +98,7 @@ typedef	size_t	socklen_t;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.264 2007/03/15 09:05:39 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.265 2007/03/15 09:13:54 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -2012,15 +2012,15 @@ main(int argc, char **argv)
 #ifdef		OPENSSL_VERSION_NUMBER
 			if (OPENSSL_VERSION_NUMBER >> 4 & 0xff)
 				printf(" OpenSSL/%d.%d.%d%c",
-					OPENSSL_VERSION_NUMBER >> 28 & 0xf,
-					OPENSSL_VERSION_NUMBER >> 20 & 0xff,
-					OPENSSL_VERSION_NUMBER >> 12 & 0xff,
+					(int)(OPENSSL_VERSION_NUMBER >> 28 & 0xf),
+					(int)(OPENSSL_VERSION_NUMBER >> 20 & 0xff),
+					(int)(OPENSSL_VERSION_NUMBER >> 12 & 0xff),
 					'a' - 1 + (unsigned char)(OPENSSL_VERSION_NUMBER >> 4 & 0xff));
 			else
 				printf(" OpenSSL/%d.%d.%d",
-					OPENSSL_VERSION_NUMBER >> 28 & 0xf,
-					OPENSSL_VERSION_NUMBER >> 20 & 0xff,
-					OPENSSL_VERSION_NUMBER >> 12 & 0xff);
+					(int)(OPENSSL_VERSION_NUMBER >> 28 & 0xf),
+					(int)(OPENSSL_VERSION_NUMBER >> 20 & 0xff),
+					(int)(OPENSSL_VERSION_NUMBER >> 12 & 0xff));
 #endif		/* OPENSSL_VERSION_NUMBER */
 #ifdef		PCRE_MAJOR
 			printf(" PCRE/%u.%u", PCRE_MAJOR, PCRE_MINOR);
