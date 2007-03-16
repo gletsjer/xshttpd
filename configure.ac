@@ -49,7 +49,7 @@ AC_FUNC_STRFTIME
 AC_CHECK_FUNCS(getaddrinfo getnameinfo mkstemp mmap setegid seteuid setpriority setresgid setresuid setrlimit setsid sigemptyset uname)
 
 dnl Prog specific checks
-if test x{$prefix} = xNONE
+if test x${prefix} = xNONE
 then
 	prefix=/usr/local
 fi
