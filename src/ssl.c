@@ -1,5 +1,5 @@
 /* Copyright (C) 2003-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssl.c,v 1.42 2007/03/15 09:05:39 johans Exp $ */
+/* $Id: ssl.c,v 1.43 2007/03/16 21:53:52 johans Exp $ */
 
 #include	"config.h"
 
@@ -383,7 +383,8 @@ secfread(void *buf, size_t size, size_t nmemb, FILE *stream)
 ssize_t
 secwrite(const char *buf, size_t count)
 {
-	int	i, len[3];
+	int	i;
+	size_t		len[3];
 	ssize_t		ret;
 	static char	head[20];
 	const char	*message[3];
@@ -394,7 +395,7 @@ secwrite(const char *buf, size_t count)
 	if (chunked)
 	{
 		i = 0;
-		len[0] = snprintf(head, 20, "%zu\r\n", count);
+		len[0] = (size_t)snprintf(head, 20, "%zx\r\n", count);
 		len[1] = count;
 		len[2] = 2;
 		message[0] = head;
@@ -440,7 +441,7 @@ secwrite(const char *buf, size_t count)
 		else
 #endif		/* HANDLE_SSL */
 		{
-			while ((ret = write(1, message[i], len[i])) < len[i])
+			while ((ret = write(1, message[i], len[i])) < (int)len[i])
 			{
 				if (ret >= 0)
 				{
@@ -456,7 +457,7 @@ secwrite(const char *buf, size_t count)
 		}
 	}
 
-	return count;
+	return (ssize_t)count;
 }
 
 size_t

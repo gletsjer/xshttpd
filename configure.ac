@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(xshttpd, 35b01)
-SERVER_IDENT="xs-httpd/3.5 beta/0.01"
+AC_INIT(xshttpd, 35b03)
+SERVER_IDENT="xs-httpd/3.5 beta/0.03"
 AC_CONFIG_SRCDIR(src/httpd.c)
 AC_CONFIG_LIBOBJ_DIR(libcompat)
 AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 no-dist-gzip])
@@ -14,7 +14,7 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_PROG_LN_S
 AC_PATH_PROG(ppmtogif, ppmtogif, /bin/true)
-AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "$ppmtogif",
+AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "${ppmtogif}",
 	[ppmtogif-like program used to create graphic counters])
 
 dnl Checks for libraries.
@@ -49,12 +49,13 @@ AC_FUNC_STRFTIME
 AC_CHECK_FUNCS(getaddrinfo getnameinfo mkstemp mmap setegid seteuid setpriority setresgid setresuid setrlimit setsid sigemptyset uname)
 
 dnl Prog specific checks
-if test x$prefix = xNONE
+if test x{$prefix} = xNONE
 then
 	prefix=/usr/local
 fi
 AC_ARG_WITH(rootdir,
-	AS_HELP_STRING(--with-rootdir=PATH,directory to install data files (LIBDIR/httpd)),
+	AS_HELP_STRING(--with-rootdir=PATH,
+		[directory to install data files (LIBDIR/httpd)]),
 	rootdir=${withval},
 	rootdir=${prefix}/lib/httpd)
 configdir=${rootdir}
@@ -76,7 +77,7 @@ if test x${with_ssl} = xyes
 then
 	XS_FUNC_IN_LIB(SSLeay_version, HAVE_SSLEAY, crypto, httpd)
 	XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, httpd, -lcrypto)
-	if test x${ac_cv_lib_ssl_SSL_version} = xyes
+	if test x$ac_cv_lib_ssl_SSL_version = xyes
 	then
 		httpd_cflags="${httpd_cflags} -I/usr/local/ssl/include"
 		AC_DEFINE(HANDLE_SSL,,
@@ -182,10 +183,10 @@ AC_SUBST(logdir)
 
 AC_MSG_CHECKING(for local domain)
 hostname=` ( hostname || cat /etc/HOSTNAME ) 2> /dev/null `
-if test x$hostname = x -o x$hostname = x${hostname#*.}
+if test x${hostname} = x -o x${hostname} = x${hostname#*.}
 then
 	domainname=`dnsdomainname 2> /dev/null`
-	if test x$domainname = x
+	if test x${domainname} = x
 	then
 		domain=".stack.nl"
 	else
@@ -194,8 +195,8 @@ then
 else
 	domain=".${hostname#*.}"
 fi
-AC_MSG_RESULT($domain)
-AC_DEFINE_UNQUOTED(THISDOMAIN, "$domain",
+AC_MSG_RESULT(${domain})
+AC_DEFINE_UNQUOTED(THISDOMAIN, "${domain}",
 	[The name of your domain, including leading dot. This is used to strip out referrers from your own site.])
 
 AC_SUBST(libxs_ldflags)

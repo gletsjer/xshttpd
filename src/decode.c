@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: decode.c,v 1.9 2007/03/13 13:30:57 johans Exp $ */
+/* $Id: decode.c,v 1.10 2007/03/16 21:53:51 johans Exp $ */
 
 #include	"config.h"
 
@@ -13,7 +13,6 @@
 #include	"httpd.h"
 #include	"decode.h"
 #include	"authenticate.h"
-#include	"md5.h"
 
 /* Static arrays */
 

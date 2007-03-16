@@ -1,10 +1,14 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.5 beta 2
+- Fix a bug in chunked transfer encoding (35b01)
+
 Changes since 3.5 beta 1
 - Use MD5() from OpenSSL when MD5Data() is not available (Linux)
 - Add p3pReference and p3pCompactPolicy options to set P3P header
 - Add ContentLanguage option
+- Move standard library replacement functions to libcompat
 - Various portability fixes
 
 Changes since 3.4 beta 26
