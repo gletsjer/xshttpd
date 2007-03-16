@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.5 beta 3
+- Resolve possible md.5 conflict between md and openssl
+
 Changes since 3.5 beta 2
 - Fix a bug in chunked transfer encoding (35b01)
 - Fix a bug in ./configure (35b01)

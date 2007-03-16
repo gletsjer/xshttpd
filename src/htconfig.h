@@ -2,12 +2,10 @@
 #include <sys/socket.h>
 #include <pwd.h>
 
-#ifdef		HANDLE_SSL
-#include <openssl/ssl.h>
-#endif		/* HANDLE_SSL */
 #ifdef		HAVE_PCRE
 #include <pcre.h>
 #endif		/* HAVE_PCRE */
+#include "ssl.h"
 
 typedef	enum { log_none, log_traditional, log_combined, log_virtual }	logstyle_t;
 typedef enum { auth_none, auth_optional, auth_strict }	sslauth_t;

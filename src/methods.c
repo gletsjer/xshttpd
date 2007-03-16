@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.202 2007/03/16 21:53:52 johans Exp $ */
+/* $Id: methods.c,v 1.203 2007/03/16 23:10:26 johans Exp $ */
 
 #include	"config.h"
 
@@ -61,9 +61,6 @@
 #ifdef		HAVE_MEMORY_H
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
-#ifdef		HANDLE_SSL
-#include	<openssl/ssl.h>
-#endif		/* HANDLE_SSL */
 #ifdef		HANDLE_PERL
 #include	<EXTERN.h>
 #include	<perl.h>

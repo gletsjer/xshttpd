@@ -1,6 +1,13 @@
 #include	"config.h"
 #include	<stdio.h>
 
+#ifdef		HANDLE_SSL
+# ifndef	HAVE_OPENSSL_MD5
+#  define	OPENSSL_NO_MD5
+# endif		/* Not HAVE_OPENSSL_MD5 */
+#include <openssl/ssl.h>
+#endif		/* HANDLE_SSL */
+
 /* Wrapper functions are used even if SSL is not enabled */
 int	initssl(void);
 void	loadssl(void);
