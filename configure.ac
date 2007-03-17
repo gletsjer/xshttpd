@@ -123,6 +123,18 @@ then
 	XS_TRY_CONFIG(curl-config, httpd)
 fi
 
+XS_CHECK_WITH(perl, PERL persistent interpreter, no)
+if test x${with_perl} = xyes
+then
+	AC_PATH_PROG(perlpath, perl)
+	if test x${perlpath} != x
+	then
+		AC_DEFINE(HAVE_PERL,, [Define this to use perl cgi environment])
+		httpd_cflags="${httpd_cflags} `${perlpath} -MExtUtils::Embed -e ccopts`"
+		httpd_ldflags="${httpd_ldflags} `${perlpath} -MExtUtils::Embed -e ldopts`"
+	fi
+fi
+
 XS_CHECK_WITH(preprocessor, optional configuration preprocessor, no)
 if test x${with_preprocessor} = xyes
 then
@@ -150,8 +162,6 @@ AC_DEFINE(SCRIPT_METHODS, "script.methods",
 AC_DEFINE(COMPRESS_METHODS, "compress.methods",
 	[File describing compression extensions and programs])
 # XS_SHOW_HELP([--enable options], [disabled by default:])
-XS_ARG_DEFAULT(perl, HANDLE_PERL, no,
-	[enable persistent perl interpreter])
 XS_ARG_DEFAULT(warnings, DUMMY, no,
 	[enable extra compiler warnings])
 
@@ -159,12 +169,6 @@ XS_ARG_DEFAULT(warnings, DUMMY, no,
 if test x${enable_warnings} = xyes
 then
 	CFLAGS="${CFLAGS} -g -ggdb -O -fsigned-char -fshort-enums -funroll-loops -finline-functions -fexpensive-optimizations -pedantic -ansi -trigraphs -Wall -W -Wimplicit -Wpointer-arith -Wshadow -pipe -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wreturn-type -Wformat -Wformat=2 -Wtrigraphs -Wswitch -Wcomment -Wchar-subscripts -Wuninitialized -Wparentheses -Wcast-align -Waggregate-return -Wnested-externs -Winline"
-fi
-
-if test x${enable_perl} = xyes
-then
-	httpd_cflags="${httpd_cflags} `perl -MExtUtils::Embed -e ccopts`"
-	httpd_ldflags="${httpd_ldflags} `perl -MExtUtils::Embed -e ldopts`"
 fi
 
 dnl Test runs for required global variables
