@@ -18,7 +18,7 @@ xspasswd_LDFLAGS = @libxs_ldflags@
 xschpass_LDFLAGS = @libxs_ldflags@
 
 # default for all *_PROGRAMS
-LDADD = ../libcompat/libcompat.a libxs.a
+LDADD = libxs.a ../libcompat/libcompat.a
 DEFAULT_INCLUDES =
 
 EXTRA_DIST = alternative.h authenticate.h cgi.h config.h confpatch.h \
