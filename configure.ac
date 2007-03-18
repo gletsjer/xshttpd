@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(xshttpd, 35b03)
-SERVER_IDENT="xs-httpd/3.5 beta/0.03"
+AC_INIT(xshttpd, 35b04)
+SERVER_IDENT="xs-httpd/3.5 beta/0.04"
 AC_CONFIG_SRCDIR(src/httpd.c)
 AC_CONFIG_LIBOBJ_DIR(libcompat)
 AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 no-dist-gzip])
@@ -29,7 +29,7 @@ dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 
-AC_CHECK_HEADERS(alloca.h crypt.h err.h sys/exec.h getopt.h memory.h pcre.h pcre/pcre.h sys/mman.h sys/param.h sys/pstat.h sys/resource.h sys/select.h sys/syslimits.h sys/sysmips.h sys/sysnews.h sys/time.h time.h)
+AC_CHECK_HEADERS(alloca.h crypt.h err.h sys/exec.h getopt.h inttypes.h memory.h pcre.h pcre/pcre.h sys/mman.h sys/param.h sys/pstat.h sys/resource.h sys/select.h sys/syslimits.h sys/sysmips.h sys/sysnews.h sys/time.h time.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -89,7 +89,7 @@ then
 		if test x$ac_cv_lib_md_MD5Data = xno
 		then
 			AC_DEFINE(HAVE_MD5)
-			AC_DEFINE(HAVE_OPENSSL_MD5,,
+			AC_DEFINE(USE_OPENSSL_MD5,,
 				[Define if you have openssl, but no MD5Data()])
 			AC_REPLACE_FUNCS(MD5Data)
 			libxs_ldflags="${libxs_ldflags} ${httpd_ldflags}"
@@ -168,7 +168,7 @@ XS_ARG_DEFAULT(warnings, DUMMY, no,
 # -Wformat-pre-promo is not standard
 if test x${enable_warnings} = xyes
 then
-	CFLAGS="${CFLAGS} -g -ggdb -O -fsigned-char -fshort-enums -funroll-loops -finline-functions -fexpensive-optimizations -pedantic -ansi -trigraphs -Wall -W -Wimplicit -Wpointer-arith -Wshadow -pipe -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wreturn-type -Wformat -Wformat=2 -Wtrigraphs -Wswitch -Wcomment -Wchar-subscripts -Wuninitialized -Wparentheses -Wcast-align -Waggregate-return -Wnested-externs -Winline"
+	CFLAGS="${CFLAGS} -g -ggdb -O -fsigned-char -fshort-enums -funroll-loops -finline-functions -fexpensive-optimizations -std=c99 -pedantic -trigraphs -Wall -W -Wimplicit -Wpointer-arith -Wshadow -pipe -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wreturn-type -Wformat -Wformat=2 -Wtrigraphs -Wswitch -Wcomment -Wchar-subscripts -Wuninitialized -Wparentheses -Wcast-align -Waggregate-return -Wnested-externs -Winline"
 fi
 
 dnl Test runs for required global variables

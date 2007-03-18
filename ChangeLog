@@ -2,7 +2,12 @@ This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
 Changes since 3.5 beta 3
-- Resolve possible md.5 conflict between md and openssl
+- Resolve possible md.5 conflict between libmd and libssl (35b02)
+- Fix library linking order for old systems (35b01)
+- Rename --enable-perl to --with-perl
+- Change default (unknown) mime type to application/octet-stream
+- Fix authentication handling (first entry was ignored; 35b01)
+- Add large file support (>2Gb)
 
 Changes since 3.5 beta 2
 - Fix a bug in chunked transfer encoding (35b01)
