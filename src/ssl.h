@@ -2,9 +2,9 @@
 #include	<stdio.h>
 
 #ifdef		HANDLE_SSL
-# ifndef	HAVE_OPENSSL_MD5
+# ifndef	USE_OPENSSL_MD5
 #  define	OPENSSL_NO_MD5
-# endif		/* Not HAVE_OPENSSL_MD5 */
+# endif		/* Not USE_OPENSSL_MD5 */
 #include <openssl/ssl.h>
 #endif		/* HANDLE_SSL */
 
