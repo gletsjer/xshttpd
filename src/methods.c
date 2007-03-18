@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.204 2007/03/18 16:36:00 johans Exp $ */
+/* $Id: methods.c,v 1.205 2007/03/18 17:10:00 johans Exp $ */
 
 #include	"config.h"
 
@@ -154,7 +154,7 @@ senduncompressed(int fd)
 	struct tm	reqtime;
 
 	alarm(180);
-	if ((size = lseek(fd, 0, SEEK_END)) == (size_t)-1)
+	if ((size = lseek(fd, 0, SEEK_END)) == -1)
 	{
 		xserror("500 Cannot lseek() to end of file");
 		close(fd);
