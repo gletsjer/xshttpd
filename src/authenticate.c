@@ -1,5 +1,5 @@
 /* Copyright (C) 2007 by Johan van Selst (johans@stack.nl) */
-/* $Id: authenticate.c,v 1.6 2007/03/16 21:53:51 johans Exp $ */
+/* $Id: authenticate.c,v 1.7 2007/03/18 16:32:38 johans Exp $ */
 
 #include	"config.h"
 
@@ -67,10 +67,10 @@ get_crypted_password(FILE *authfile, const char *user, char **passwd, char **has
 static int
 check_basic_auth(FILE *authfile)
 {
-	char		*search, line[LINEBUFSIZE], *passwd, *find;
+	char		*search, *line, *passwd, *find;
 
 	/* basic auth */
-	strlcpy(line, authentication, sizeof(LINEBUFSIZE));
+	line = strdup(authentication);
 	find = line + strlen(line);
 	while ((find > line) && (*(find - 1) < ' '))
 		*(--find) = 0;
@@ -91,24 +91,28 @@ check_basic_auth(FILE *authfile)
 		 */
 		if (!check_auth_ldap(authfile, search, find))
 		{
+			free(line);
 			return(0);
 		}
 		rewind (authfile);
 #endif /* AUTH_LDAP */
-
-		snprintf(line, LINEBUFSIZE, "%s:%s\n", search, xs_encrypt(find));
 	}
 	if (!get_crypted_password(authfile, search, &passwd, NULL) || !passwd)
+	{
+		free(line);
 		return 1;
+	}
 
 	if (!strcmp(passwd, xs_encrypt(find)))
 	{
+		free(line);
 		free(passwd);
 		/* allow access */
 		return 0;
 	}
 	else
 	{
+		free(line);
 		free(passwd);
 		return 1;
 	}
@@ -208,6 +212,7 @@ check_auth(FILE *authfile)
 			if (':' == *p)
 				i++;
 	digest = i > 1;
+	rewind(authfile);
 
 	if (!authentication[0] ||
 		(strncasecmp(authentication, "Basic", 5) &&
