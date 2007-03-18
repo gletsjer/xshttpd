@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2007 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssi.c,v 1.68 2007/03/14 23:21:04 johans Exp $ */
+/* $Id: ssi.c,v 1.69 2007/03/18 16:36:00 johans Exp $ */
 
 #include	"config.h"
 
@@ -63,30 +63,30 @@ static	int	xsc_initcounter		(const char *);
 static	int	xsc_counter		(countermode, const char *);
 static	int	call_counter		(countermode, int, char **);
 static	int	parse_values		(char *, char **, size_t);
-static	int	dir_count_total		(int, char **, size_t *);
-static	int	dir_count_total_gfx	(int, char **, size_t *);
-static	int	dir_count_today		(int, char **, size_t *);
-static	int	dir_count_today_gfx	(int, char **, size_t *);
-static	int	dir_count_month		(int, char **, size_t *);
-static	int	dir_count_month_gfx	(int, char **, size_t *);
-static	int	dir_count_reset		(int, char **, size_t *);
-static	int	dir_date		(int, char **, size_t *);
-static	int	dir_date_format		(int, char **, size_t *);
-static	int	dir_include_file	(int, char **, size_t *);
-static	int	dir_last_mod		(int, char **, size_t *);
-static	int	dir_run_cgi		(int, char **, size_t *);
-static	int	dir_echo		(int, char **, size_t *);
-static	int	dir_echo_obsolete	(int, char **, size_t *);
-static	int	dir_if			(int, char **, size_t *);
-static	int	dir_if_not		(int, char **, size_t *);
-static	int	dir_else		(int, char **, size_t *);
-static	int	dir_endif		(int, char **, size_t *);
-static	int	dir_switch		(int, char **, size_t *);
-static	int	dir_endswitch	(int, char **, size_t *);
-static	int	dir_case		(int, char **, size_t *);
+static	int	dir_count_total		(int, char **, off_t *);
+static	int	dir_count_total_gfx	(int, char **, off_t *);
+static	int	dir_count_today		(int, char **, off_t *);
+static	int	dir_count_today_gfx	(int, char **, off_t *);
+static	int	dir_count_month		(int, char **, off_t *);
+static	int	dir_count_month_gfx	(int, char **, off_t *);
+static	int	dir_count_reset		(int, char **, off_t *);
+static	int	dir_date		(int, char **, off_t *);
+static	int	dir_date_format		(int, char **, off_t *);
+static	int	dir_include_file	(int, char **, off_t *);
+static	int	dir_last_mod		(int, char **, off_t *);
+static	int	dir_run_cgi		(int, char **, off_t *);
+static	int	dir_echo		(int, char **, off_t *);
+static	int	dir_echo_obsolete	(int, char **, off_t *);
+static	int	dir_if			(int, char **, off_t *);
+static	int	dir_if_not		(int, char **, off_t *);
+static	int	dir_else		(int, char **, off_t *);
+static	int	dir_endif		(int, char **, off_t *);
+static	int	dir_switch		(int, char **, off_t *);
+static	int	dir_endswitch	(int, char **, off_t *);
+static	int	dir_case		(int, char **, off_t *);
 static	int	print_enabled		(void);
-static	int	parsedirectives		(char *, size_t *);
-static	int	sendwithdirectives_internal (int, size_t *);
+static	int	parsedirectives		(char *, off_t *);
+static	int	sendwithdirectives_internal (int, off_t *);
 
 #define		MAXINCLUDES	16
 #define		CONDKEYWORDS	16
@@ -498,7 +498,7 @@ parse_values(char *here, char **mapping, size_t maxsize)
 }
 
 static	int
-dir_count_total(int argc, char **argv, size_t *size)
+dir_count_total(int argc, char **argv, off_t *size)
 {
 	(void)size;
 	(void)argc;
@@ -507,14 +507,14 @@ dir_count_total(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_count_total_gfx(int argc, char **argv, size_t *size)
+dir_count_total_gfx(int argc, char **argv, off_t *size)
 {
 	(void)size;
 	return(call_counter(MODE_GFX_ALL, argc, argv));
 }
 
 static	int
-dir_count_today(int argc, char **argv, size_t *size)
+dir_count_today(int argc, char **argv, off_t *size)
 {
 	(void)size;
 	(void)argc;
@@ -523,14 +523,14 @@ dir_count_today(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_count_today_gfx(int argc, char **argv, size_t *size)
+dir_count_today_gfx(int argc, char **argv, off_t *size)
 {
 	(void)size;
 	return(call_counter(MODE_GFX_TODAY, argc, argv));
 }
 
 static	int
-dir_count_month(int argc, char **argv, size_t *size)
+dir_count_month(int argc, char **argv, off_t *size)
 {
 	(void)size;
 	(void)argc;
@@ -539,21 +539,21 @@ dir_count_month(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_count_month_gfx(int argc, char **argv, size_t *size)
+dir_count_month_gfx(int argc, char **argv, off_t *size)
 {
 	(void)size;
 	return(call_counter(MODE_GFX_MONTH, argc, argv));
 }
 
 static	int
-dir_count_reset(int argc, char **argv, size_t *size)
+dir_count_reset(int argc, char **argv, off_t *size)
 {
 	(void)size;
 	return(call_counter(MODE_RESET, argc, argv));
 }
 
 static	int
-dir_date_format(int argc, char **argv, size_t *size)
+dir_date_format(int argc, char **argv, off_t *size)
 {
 	if (!argc)
 	{
@@ -567,7 +567,7 @@ dir_date_format(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_date(int argc, char **argv, size_t *size)
+dir_date(int argc, char **argv, off_t *size)
 {
 	char		buffer[MYBUFSIZ];
 	time_t		theclock;
@@ -581,7 +581,7 @@ dir_date(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_include_file(int argc, char **argv, size_t *size)
+dir_include_file(int argc, char **argv, off_t *size)
 {
 	int		i, fd, ret;
 	const	char	*path = NULL;
@@ -622,7 +622,7 @@ dir_include_file(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_last_mod(int argc, char **argv, size_t *size)
+dir_last_mod(int argc, char **argv, off_t *size)
 {
 	const	char	*path;
 	char		buffer[MYBUFSIZ];
@@ -654,7 +654,7 @@ dir_last_mod(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_run_cgi(int argc, char **argv, size_t *size)
+dir_run_cgi(int argc, char **argv, off_t *size)
 {
 	char	*querystring, *qs;
 	int	oldhead;
@@ -691,7 +691,7 @@ dir_run_cgi(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_printenv(int argc, char **argv, size_t *size)
+dir_printenv(int argc, char **argv, off_t *size)
 {
 	char **p, *c;
 
@@ -706,7 +706,7 @@ dir_printenv(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_set(int argc, char **argv, size_t *size)
+dir_set(int argc, char **argv, off_t *size)
 {
 	int	i;
 
@@ -723,7 +723,7 @@ dir_set(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_echo(int argc, char **argv, size_t *size)
+dir_echo(int argc, char **argv, off_t *size)
 {
 	int	i;
 	char	*var = NULL, *envvar = NULL, *enc = NULL;
@@ -768,7 +768,7 @@ dir_echo(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_echo_obsolete(int argc, char **argv, size_t *size)
+dir_echo_obsolete(int argc, char **argv, off_t *size)
 {
 	char	*value = NULL;
 
@@ -790,7 +790,7 @@ dir_echo_obsolete(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_if(int argc, char **argv, size_t *size)
+dir_if(int argc, char **argv, off_t *size)
 {
 	int	i, b;
 	char	*keyword, *value;
@@ -844,7 +844,7 @@ dir_if(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_if_not(int argc, char **argv, size_t *size)
+dir_if_not(int argc, char **argv, off_t *size)
 {
 	if (dir_if(argc, argv, size) != ERR_NONE)
 		return(ERR_CONT);
@@ -853,7 +853,7 @@ dir_if_not(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_else(int argc, char **argv, size_t *size)
+dir_else(int argc, char **argv, off_t *size)
 {
 	ssiarray[ssioutput] = !ssiarray[ssioutput];
 	(void)size;
@@ -863,7 +863,7 @@ dir_else(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_endif(int argc, char **argv, size_t *size)
+dir_endif(int argc, char **argv, off_t *size)
 {
 	if (!ssioutput)
 	{
@@ -877,7 +877,7 @@ dir_endif(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_switch(int argc, char **argv, size_t *size)
+dir_switch(int argc, char **argv, off_t *size)
 {
 	if (!argc)
 	{
@@ -890,7 +890,7 @@ dir_switch(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_endswitch(int argc, char **argv, size_t *size)
+dir_endswitch(int argc, char **argv, off_t *size)
 {
 	dir_endif(argc, argv, size);
 	if (switchstr)
@@ -899,7 +899,7 @@ dir_endswitch(int argc, char **argv, size_t *size)
 }
 
 static	int
-dir_case(int argc, char **argv, size_t *size)
+dir_case(int argc, char **argv, off_t *size)
 {
 	int	ret;
 
@@ -920,7 +920,7 @@ dir_case(int argc, char **argv, size_t *size)
 typedef	struct
 {
 	const	char	*name;
-	int		(*func) (int, char **, size_t *);
+	int		(*func) (int, char **, off_t *);
 	char		params;
 } directivestype;
 
@@ -971,7 +971,7 @@ print_enabled()
 }
 
 static	int
-parsedirectives(char *parse, size_t *size)
+parsedirectives(char *parse, off_t *size)
 {
 	char		*here, *search, result[MYBUFSIZ], *store;
 	int		len, printable, argc;
@@ -1061,7 +1061,7 @@ parsedirectives(char *parse, size_t *size)
 }
 
 static	int
-sendwithdirectives_internal(int fd, size_t *size)
+sendwithdirectives_internal(int fd, off_t *size)
 {
 	char		line[LINEBUFSIZE];
 	FILE		*parse;
@@ -1101,7 +1101,7 @@ sendwithdirectives_internal(int fd, size_t *size)
 }
 
 int
-sendwithdirectives(int fd, size_t *size)
+sendwithdirectives(int fd, off_t *size)
 {
 	int	ret;
 

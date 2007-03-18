@@ -33,10 +33,10 @@ extern	uid_t	origeuid;
 
 void	stdheaders		(int, int, int);
 void	alarm_handler		(int);
-void	error			(const char *);
+void	xserror			(const char *);
 void	redirect		(const char *, int, int);
 int	readline		(int, char *, size_t);
 void	server_error		(const char *, const char *);
-void	logrequest		(const char *, long);
+void	logrequest		(const char *, off_t);
 void	setcurrenttime		(void);
 

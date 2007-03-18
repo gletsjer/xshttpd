@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: xschpass.c,v 1.20 2007/03/13 23:31:35 johans Exp $ */
+/* $Id: xschpass.c,v 1.21 2007/03/18 16:36:00 johans Exp $ */
 
 #include	"config.h"
 
@@ -16,14 +16,14 @@
 #include	"extra.h"
 #include	"xscrypt.h"
 
-static	void	error			(const char *, ...);
+static	void	xserror			(const char *, ...);
 static	void	urldecode		(char *);
 static	void	changepasswd		(const char *, int);
 static	void	generateform		(void);
 int	main			(int, char *[]);
 
 static	void
-error(const char *format, ...)
+xserror(const char *format, ...)
 {
 	va_list		ap;
 
@@ -84,9 +84,9 @@ changepasswd(const char *param, int  cl)
 	alarm(120); filename[0] = '/';
 	strlcpy(filename + 1, param, XS_PATH_MAX - 64);
 	if (cl > (BUFSIZ - 64))
-		error("400 Too much input from your browser (%d bytes)", cl);
+		xserror("400 Too much input from your browser (%d bytes)", cl);
 	if (read(0, buffer, cl) != cl)
-		error("400 Invalid content length");
+		xserror("400 Invalid content length");
 	buffer[cl] = 0;
 	urldecode(buffer);
 	username[0] = old[0] = new1[0] = new2[0] = 0;
@@ -105,49 +105,49 @@ changepasswd(const char *param, int  cl)
 		else
 		{
 			strtok(search, "=");
-			error("404 Unknown field '%s'", search);
+			xserror("404 Unknown field '%s'", search);
 		}
 		search = search2 + 1;
 	}
 	if (!username[0] || !old[0] || !new1[0] || !new2[0])
-		error("403 Not all fields were filled in correctly!");
+		xserror("403 Not all fields were filled in correctly!");
 	if (strcmp(new1, new2))
-		error("403 You did not type the new password correctly two times!");
+		xserror("403 You did not type the new password correctly two times!");
 	for (search = new1; *search; search++)
 		if (*search < ' ')
-			error("403 Your password contains an invallid character!");
+			xserror("403 Your password contains an invallid character!");
 	cryptnew = xs_encrypt(new1);
 	cryptold = xs_encrypt(old);
 
 	if (lstat(filename, &statbuf1))
-		error("403 Could not lstat directory '%s': %s",
+		xserror("403 Could not lstat directory '%s': %s",
 			filename, strerror(errno));
 	if (S_ISDIR(statbuf1.st_mode))
-		error("403 '%s' is not a directory", filename);
+		xserror("403 '%s' is not a directory", filename);
 	strlcat(filename, "/", XS_PATH_MAX);
 	strlcat(filename, AUTHFILE, XS_PATH_MAX);
 	if (lstat(filename, &statbuf2))
-		error("403 Could not lstat password file '%s': %s",
+		xserror("403 Could not lstat password file '%s': %s",
 			filename, strerror(errno));
 	if ((statbuf2.st_mode & S_IFMT) != S_IFREG)
-		error("403 Password file is not a regular file");
+		xserror("403 Password file is not a regular file");
 	if (statbuf1.st_uid != statbuf2.st_uid)
-		error("403 File and directory user ID's do not match");
+		xserror("403 File and directory user ID's do not match");
 	if (!statbuf1.st_uid)
-		error("403 Directory is owned by root");
+		xserror("403 Directory is owned by root");
 
 	if (!(input = fopen(filename, "r")))
-		error("403 Could not fopen password file '%s': %s",
+		xserror("403 Could not fopen password file '%s': %s",
 			filename, strerror(errno));
 
 	strlcat(filename, ".new", XS_PATH_MAX);
 	if (!lstat(filename, &statbuf2))
-		error("403 Somebody is already changing a password, please retry again in a few moments!");
+		xserror("403 Somebody is already changing a password, please retry again in a few moments!");
 	if (!(output = fopen(filename, "w")))
-		error("403 Could not fopen new password file '%s': %s",
+		xserror("403 Could not fopen new password file '%s': %s",
 			filename, strerror(errno));
 	if (chown(filename, statbuf1.st_uid, statbuf1.st_gid))
-		error("403 Could not chown new password file '%s': %s",
+		xserror("403 Could not chown new password file '%s': %s",
 			filename, strerror(errno));
 
 	found = 0;
@@ -161,14 +161,14 @@ changepasswd(const char *param, int  cl)
 			{
 				fclose(input); fclose(output);
 				remove(filename);
-				error("403 Password is locked");
+				xserror("403 Password is locked");
 			}
 			if ((search = strchr(buffer + 2, ':')) &&
 				strchr(search + 1, ':'))
 			{
 				fclose(input); fclose(output);
 				remove(filename);
-				error("403 Cannot change authentication digests");
+				xserror("403 Cannot change authentication digests");
 			}
 			fprintf(output, "%c%s:%s\n",
 				buffer[0], username, cryptnew);
@@ -179,12 +179,12 @@ changepasswd(const char *param, int  cl)
 	if (!found)
 	{
 		remove(filename);
-		error("403 Old username/password combination not found");
+		xserror("403 Old username/password combination not found");
 	}
 	strlcpy(buffer, filename, BUFSIZ);
 	buffer[strlen(buffer) - 4] = 0;
 	if (rename(filename, buffer))
-		error("500 Could not rename '%s' to '%s': %s",
+		xserror("500 Could not rename '%s' to '%s': %s",
 			filename, buffer, strerror(errno));
 	printf("Content-type: text/html\n\n");
 	printf("<HTML><HEAD><TITLE>Password changed</TITLE></HEAD>\n");
@@ -217,9 +217,9 @@ main(int argc, char **argv)
 	int		length;
 
 	if (geteuid())
-		error("501 Incorrect user ID for operation");
+		xserror("501 Incorrect user ID for operation");
 	if (!(param = getenv("PATH_TRANSLATED")))
-		error("404 Incorrect usage - supply directory name");
+		xserror("404 Incorrect usage - supply directory name");
 	while (*param == '/')
 		param++;
 	cl = getenv("CONTENT_LENGTH");

@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: cgi.c,v 1.133 2007/03/15 09:05:39 johans Exp $ */
+/* $Id: cgi.c,v 1.134 2007/03/18 16:36:00 johans Exp $ */
 
 #include	"config.h"
 
@@ -104,8 +104,8 @@ append(char *buffer, int prepend, const char *format, ...)
 void
 do_script(const char *path, const char *base, const char *file, const char *engine, int showheader)
 {
-	unsigned long		received, writetodo,
-				totalwritten;
+	unsigned long		received, writetodo;
+	off_t			totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
 				request[MYBUFSIZ], *temp,
 				input[RWBUFSIZE], line[LINEBUFSIZE],
@@ -164,7 +164,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		{
 			snprintf(errmsg, MYBUFSIZ, "500 pipe() failed: %s", strerror(errno));
 			if (showheader)
-				error(errmsg);
+				xserror(errmsg);
 			else
 				secprintf("[%s]\n", errmsg);
 			goto END;
@@ -182,7 +182,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			snprintf(errmsg, MYBUFSIZ, "500 pipe() failed: %s",
 				strerror(errno));
 			if (showheader)
-				error(errmsg);
+				xserror(errmsg);
 			else
 				secprintf("[%s]\n", errmsg);
 			goto END;
@@ -197,7 +197,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	case -1:
 		snprintf(errmsg, MYBUFSIZ, "500 fork() failed: %s", strerror(errno));
 		if (showheader)
-			error(errmsg);
+			xserror(errmsg);
 		else
 			secprintf("[%s]\n", errmsg);
 		goto END;
@@ -289,7 +289,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		{
 			snprintf(errmsg, MYBUFSIZ, "500 execl(): %s",
 				/* fullpath, */ strerror(errno));
-			error(errmsg);
+			xserror(errmsg);
 		}
 		else
 		{
@@ -352,7 +352,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			if (readline(p[0], line, sizeof(line)) != ERR_NONE)
 			{
 				if (showheader)
-					error("503 Script did not end header");
+					xserror("503 Script did not end header");
 				else
 					secprintf("[Script did not end header]\n");
 				goto END;
@@ -482,7 +482,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			if (readline(p[0], line, sizeof(line)) != ERR_NONE)
 			{
 				if (showheader)
-					error("503 Script did not end header");
+					xserror("503 Script did not end header");
 				else
 					secprintf("[Script did not end header]\n");
 				goto END;
@@ -502,7 +502,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 #ifdef		WANT_SSI
 	if (dossi)
 	{
-		size_t ttw = 0;
+		off_t ttw = 0;
 		/* Parse the output of CGI script for SSI directives */
 		sendwithdirectives(p[0], &ttw);
 		totalwritten = ttw;

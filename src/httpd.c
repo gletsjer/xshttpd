@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.265 2007/03/15 09:13:54 johans Exp $ */
+/* $Id: httpd.c,v 1.266 2007/03/18 16:36:00 johans Exp $ */
 
 #include	"config.h"
 
@@ -30,6 +30,9 @@
 #ifdef		HAVE_SYS_SYSLIMITS_H
 #include	<sys/syslimits.h>
 #endif		/* HAVE_SYS_SYSLIMITS_H */
+#ifdef		HAVE_INTTYPES_H
+#include	<inttypes.h>
+#endif		/* HAVE_INTTYPES_H */
 
 #include	<netinet/in.h>
 
@@ -98,7 +101,7 @@ typedef	size_t	socklen_t;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.265 2007/03/15 09:13:54 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.266 2007/03/18 16:36:00 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -890,10 +893,8 @@ alarm_handler(int sig)
 {
 	alarm(0); setcurrenttime();
 	/* don't show errors for request (responses) in progress */
-#if		0
 	warnx("[%s] httpd: Send timed out for `%s'",
 		currenttime, remotehost[0] ? remotehost : "(none)");
-#endif		/* 0 */
 	(void)sig;
 	exit(1);
 }
@@ -961,7 +962,7 @@ set_signals()
 }
 
 void
-error(const char *message)
+xserror(const char *message)
 {
 	const	char	*env;
 	char		errmsg[10240];
@@ -1050,7 +1051,7 @@ server_error(const char *readable, const char *cgi)
 		current = config.system;
 	if (headonly || getenv("ERROR_CODE"))
 	{
-		error(readable);
+		xserror(readable);
 		return;
 	}
 	setenv("ERROR_CODE", cgi, 1);
@@ -1082,7 +1083,7 @@ server_error(const char *readable, const char *cgi)
 			calcpath(config.system->phexecdir), filename);
 		if (stat(cgipath, &statbuf))
 		{
-			error(readable);
+			xserror(readable);
 			return;
 		}
 	}
@@ -1099,7 +1100,7 @@ server_error(const char *readable, const char *cgi)
 }
 
 void
-logrequest(const char *request, long size)
+logrequest(const char *request, off_t size)
 {
 	char		buffer[80], *dynrequest, *dynagent, *p;
 	time_t		theclock;
@@ -1133,33 +1134,33 @@ logrequest(const char *request, long size)
 		FILE	*rlog = current->openreferer
 			? current->openreferer
 			: config.system->openreferer;
-		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" 200 %ld\n",
+		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" 200 %" PRId64 "\n",
 			remotehost,
 			buffer,
 			getenv("REQUEST_METHOD"), dynrequest, httpver,
-			size > 0 ? (long)size : (long)0);
+			size > 0 ? (int64_t)size : (int64_t)0);
 		if (rlog &&
 			(!thisdomain[0] || !strcasestr(referer, thisdomain)))
 			fprintf(rlog, "%s -> %s\n", referer, request);
 	}
 	else if (current->logstyle == log_virtual)
 		/* this is combined format + virtual hostname */
-		fprintf(alog, "%s %s - - [%s +0000] \"%s %s %s\" 200 %ld "
-				"\"%s\" \"%s\"\n",
+		fprintf(alog, "%s %s - - [%s +0000] \"%s %s %s\" 200 %" PRId64
+				" \"%s\" \"%s\"\n",
 			current ? current->hostname : config.system->hostname,
 			remotehost,
 			buffer,
 			getenv("REQUEST_METHOD"), dynrequest, httpver,
-			size > 0 ? (long)size : (long)0,
+			size > 0 ? (int64_t)size : (int64_t)0,
 			referer,
 			dynagent);
 	else /* logstyle = combined */
-		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" 200 %ld "
-				"\"%s\" \"%s\"\n",
+		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" 200 %" PRId64
+				" \"%s\" \"%s\"\n",
 			remotehost,
 			buffer,
 			getenv("REQUEST_METHOD"), dynrequest, httpver,
-			size > 0 ? (long)size : (long)0,
+			size > 0 ? (int64_t)size : (int64_t)0,
 			referer,
 			dynagent);
 
@@ -1221,10 +1222,10 @@ process_request()
 		return;
 	case ERR_QUIT:
 	default:
-		error("400 Unable to read begin of request line");
+		xserror("400 Unable to read begin of request line");
 		return;
 	case ERR_LINE:
-		error("400 Request header line exceeded maximum length");
+		xserror("400 Request header line exceeded maximum length");
 		return;
 	}
 	url = line;
@@ -1269,10 +1270,10 @@ process_request()
 				break;
 			case ERR_QUIT:
 			default:
-				error("400 Unable to read request line");
+				xserror("400 Unable to read request line");
 				return;
 			case ERR_LINE:
-				error("400 Request header line exceeded maximum length");
+				xserror("400 Request header line exceeded maximum length");
 				return;
 			}
 			if (extra[0] <= ' ')
@@ -1358,7 +1359,7 @@ process_request()
 	{
 		headers = 10;
 		strlcpy(httpver, "HTCPCP/1.0", 16);
-		error("418 Duh... I'm a webserver Jim, not a coffeepot!");
+		xserror("418 Duh... I'm a webserver Jim, not a coffeepot!");
 		return;
 	}
 	else
@@ -1372,7 +1373,7 @@ process_request()
 	{
 		if (headers >= 11 && !strcasecmp("POST", line))
 		{
-			error("411 Length Required");
+			xserror("411 Length Required");
 			return;
 		}
 		setenv("CONTENT_LENGTH", "0", 1);
@@ -1388,7 +1389,7 @@ process_request()
 	params = url;
 	if (decode(params))
 	{
-		error("500 Cannot process request");
+		xserror("500 Cannot process request");
 		return;
 	}
 
@@ -1408,7 +1409,7 @@ process_request()
 	}
 	else if (params[0] != '/' && strcasecmp("OPTIONS", line))
 	{
-		error("400 Relative URL's are not supported");
+		xserror("400 Relative URL's are not supported");
 		return;
 	}
 	/* SERVER_NAME may be overriden soon */
@@ -1424,7 +1425,7 @@ process_request()
 				*temp != ':' &&
 				*temp != '[' && *temp != ']')
 			{
-				error("400 Invalid Host Header");
+				xserror("400 Invalid Host Header");
 				return;
 			}
 		if ((temp = strchr(http_host, ':')))
@@ -1437,7 +1438,7 @@ process_request()
 		{
 			if (strlen(http_host) >= NI_MAXHOST - 6)
 			{
-				error("400 Invalid Host Header");
+				xserror("400 Invalid Host Header");
 				return;
 			}
 			strlcat(http_host, ":", NI_MAXHOST);
@@ -1454,7 +1455,7 @@ process_request()
 	}
 	else if (headers >= 11)
 	{
-		error("400 Missing Host Header");
+		xserror("400 Missing Host Header");
 		return;
 	}
 
@@ -1545,7 +1546,7 @@ process_request()
 		do_trace(params);
 	*/
 	else
-		error("400 Unknown method");
+		xserror("400 Unknown method");
 }
 
 static	void

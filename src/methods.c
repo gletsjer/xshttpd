@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.203 2007/03/16 23:10:26 johans Exp $ */
+/* $Id: methods.c,v 1.204 2007/03/18 16:36:00 johans Exp $ */
 
 #include	"config.h"
 
@@ -26,6 +26,9 @@
 #ifdef		HAVE_SYS_PARAM_H
 #include	<sys/param.h>
 #endif		/* HAVE_SYS_PARAM_H */
+#ifdef		HAVE_INTTYPES_H
+#include	<inttypes.h>
+#endif		/* HAVE_INTTYPES_H */
 
 #include	<netinet/in.h>
 
@@ -144,25 +147,22 @@ senduncompressed(int fd)
 #ifdef		WANT_SSI
 	int		errval;
 #endif		/* WANT_SSI */
-#ifndef		HAVE_MMAP
-	size_t		secreadtotal, writetotal;
-#endif		/* HAVE_MMAP */
 	int		dynamic = 0;
 	ssize_t		written;
-	size_t		size;
+	off_t		size;
 	char		modified[32];
 	struct tm	reqtime;
 
 	alarm(180);
 	if ((size = lseek(fd, 0, SEEK_END)) == (size_t)-1)
 	{
-		error("500 Cannot lseek() to end of file");
+		xserror("500 Cannot lseek() to end of file");
 		close(fd);
 		return;
 	}
 	if (lseek(fd, 0, SEEK_SET))
 	{
-		error("500 Cannot lseek() to beginning of file");
+		xserror("500 Cannot lseek() to beginning of file");
 		close(fd);
 		return;
 	}
@@ -225,7 +225,7 @@ senduncompressed(int fd)
 		}
 		else
 		{
-			secprintf("Content-length: %zu\r\n", size);
+			secprintf("Content-length: %" PRId64 "\r\n", (int64_t)size);
 			strftime(modified, sizeof(modified),
 				"%a, %d %b %Y %H:%M:%S GMT", gmtime(&modtime));
 			secprintf("Last-modified: %s\r\n", modified);
@@ -254,48 +254,58 @@ senduncompressed(int fd)
 	UNPARSED:
 #ifdef		WANT_SSI
 	if (!dynamic)
+	{
 #endif		/* WANT_SSI */
 #ifdef		HAVE_MMAP
+	/* don't use mmap() for files >12Mb to avoid hogging memory */
+	if (size < 12 * 1048576)
 	{
 		char		*buffer;
+		size_t		msize = (size_t)size;
 
-		if ((buffer = (char *)mmap((caddr_t)0, size, PROT_READ,
+		if ((buffer = (char *)mmap((caddr_t)0, msize, PROT_READ,
 			MAP_SHARED, fd, (off_t)0)) == (char *)-1)
 			err(1, "[%s] httpd: mmap() failed", currenttime);
-		alarm((size / MINBYTESPERSEC) + 20);
+		alarm((msize / MINBYTESPERSEC) + 20);
 		fflush(stdout);
-		if ((size_t)(written = secwrite(buffer, size)) != size)
+		if ((size_t)(written = secwrite(buffer, msize)) != msize)
 		{
 			if (written != -1)
 				warn("[%s] httpd: Aborted for `%s' (%zu of %zu bytes sent)",
 					currenttime,
 					remotehost[0] ? remotehost : "(none)",
-					written, size);
+					written, msize);
 			else
 				warn("[%s] httpd: Aborted for `%s'",
 					currenttime,
 					remotehost[0] ? remotehost : "(none)");
 		}
-		(void) munmap(buffer, size);
+		(void) munmap(buffer, msize);
 		size = written;
 		alarm(0);
 	}
-#else		/* Not HAVE_MMAP */
+	else
+#endif		/* HAVE_MMAP */
+	/* send static content without mmap() */
 	{
 		char		buffer[RWBUFSIZE];
+		ssize_t		secreadtotal;
+		off_t		writetotal;
 
 		writetotal = 0;
-		alarm((size / MINBYTESPERSEC) + 20);
+		/* alarm((size / MINBYTESPERSEC) + 20); */
+		alarm(0);
 		fflush(stdout);
 		while ((secreadtotal = secread(fd, buffer, RWBUFSIZE)) > 0)
 		{
-			if ((written = secwrite(fileno(stdout), buffer,
-				secreadtotal)) != secreadtotal)
+			if ((written = secwrite(buffer, (size_t)secreadtotal))
+					!= secreadtotal)
 			{
-				warn("[%s] httpd: Aborted for `%s' (No mmap) (%ld of %ld bytes sent)",
+				warn("[%s] httpd: Aborted for `%s' (No mmap) (%" PRId64
+						" of %" PRId64 " bytes sent)",
 					currenttime,
 					remotehost[0] ? remotehost : "(none)",
-					writetotal + written, size);
+					(int64_t)writetotal + written, size);
 				size = writetotal;
 				alarm(0); goto DONE;
 			}
@@ -304,11 +314,11 @@ senduncompressed(int fd)
 		size = writetotal;
 		alarm(0);
 	}
-#endif		/* HAVE_MMAP */
 #ifdef		WANT_SSI
+	}
 	else /* dynamic content only */
 	{
-		size_t		usize = 0;
+		off_t		usize = 0;
 
 		if (headers >= 11)
 			chunked = 1;
@@ -348,7 +358,7 @@ sendcompressed(int fd, const char *method)
 #ifdef		HAVE_MKSTEMP
 	if (!(processed = mkstemp(prefix)))
 	{
-		error("500 Unable to open temporary file");
+		xserror("500 Unable to open temporary file");
 		err(1, "[%s] httpd: Cannot create temporary file", currenttime);
 	}
 	remove(prefix);
@@ -362,7 +372,7 @@ sendcompressed(int fd, const char *method)
 		unsigned int	len = 32 + strlen(TEMPORARYPREFIX);
 		if (!(tmp = (char *)malloc(len)))
 		{
-			error("500 Out of memory in sendcompressed()");
+			xserror("500 Out of memory in sendcompressed()");
 			close(fd);
 			return;
 		}
@@ -373,7 +383,7 @@ sendcompressed(int fd, const char *method)
 	if ((processed = open(tmp, O_CREAT | O_TRUNC | O_RDWR | O_EXCL,
 		S_IWUSR | S_IRUSR )) < 0)
 	{
-		error("500 Unable to open temporary file");
+		xserror("500 Unable to open temporary file");
 		err(1, "[%s] httpd: Cannot open(`%s')", currenttime, tmp);
 	}
 	remove(tmp); free(tmp); fflush(stdout);
@@ -382,19 +392,19 @@ sendcompressed(int fd, const char *method)
 	{
 	case -1:
 		warn("[%s] httpd: Cannot fork()", currenttime);
-		error("500 Cannot fork() in sendcompressed()");
+		xserror("500 Cannot fork() in sendcompressed()");
 		close(fd); close(processed); return;
 	case 0:
 #ifdef		HAVE_SETSID
 		if (setsid() == -1)
 		{
-			error("500 setsid() failed");
+			xserror("500 setsid() failed");
 			exit(1);
 		}
 #else		/* Not HAVE_SETSID */
 		if (setpgrp(getpid(), 0) == -1)
 		{
-			error("500 setpgrp() failed");
+			xserror("500 setpgrp() failed");
 			exit(1);
 		}
 #endif		/* HAVE_SETSID */
@@ -403,7 +413,7 @@ sendcompressed(int fd, const char *method)
 		for (count = 3; count < 1024; count++)
 			close(count);
 		(void) execl(method, method, NULL);
-		error("500 Cannot start conversion program");
+		xserror("500 Cannot start conversion program");
 		err(1, "[%s] httpd: Cannot execl(`%s')", currenttime, method);
 	default:
 		close(fd);
@@ -413,14 +423,14 @@ sendcompressed(int fd, const char *method)
 			killpg(pid, SIGTERM);
 			mysleep(3);
 			killpg(pid, SIGKILL);
-			error("500 Conversion program timed out");
+			xserror("500 Conversion program timed out");
 			return;
 		}
 		if (!kill(pid, 0))
 		{
 			close(processed);
 			killpg(pid, SIGKILL);
-			error("500 Interrupted during conversion");
+			xserror("500 Interrupted during conversion");
 			return;
 		}
 	}
@@ -762,7 +772,7 @@ do_get(char *params)
 		}
 		if (!geteuid())
 		{
-			error("500 Effective UID is not valid");
+			xserror("500 Effective UID is not valid");
 			return;
 		}
 		if (temp)
@@ -800,7 +810,7 @@ do_get(char *params)
 				}
 				if (!(geteuid()))
 				{
-					error("500 Effective UID is not valid");
+					xserror("500 Effective UID is not valid");
 					return;
 				}
 			}
@@ -828,7 +838,7 @@ do_get(char *params)
 		}
 		if (!geteuid())
 		{
-			error("500 Effective UID is not valid");
+			xserror("500 Effective UID is not valid");
 			return;
 		}
 		if ((userinfo = getpwuid(geteuid())))
@@ -938,7 +948,7 @@ do_get(char *params)
 		}
 		if (!geteuid())
 		{
-			error("500 Effective UID is not valid");
+			xserror("500 Effective UID is not valid");
 			return;
 		}
 	}
@@ -957,7 +967,7 @@ do_get(char *params)
 	if (userinfo && statbuf.st_uid && (statbuf.st_uid != geteuid()))
 	{
 #if 0
-		error("403 Invalid owner of user directory");
+		xserror("403 Invalid owner of user directory");
 		return;
 #endif
 	}
@@ -1276,7 +1286,7 @@ do_proxy(const char *proxy, const char *params)
 	persistent = 0; headers = 10; /* force HTTP/1.0 */
 
 	if (curl_easy_perform(handle))
-		error("500 Internal forwarding error");
+		xserror("500 Internal forwarding error");
 	else
 		logrequest(params, 0);
 #endif		/* HAVE_CURL */
@@ -1519,11 +1529,11 @@ getfiletype(int print)
 		{
 			if (*charset)
 				secprintf("Content-type: %s; charset=%s\r\n",
-						*mimetype ? mimetype : "text/plain",
+						*mimetype ? mimetype : "application/octet-stream",
 						charset);
 			else
 				secprintf("Content-type: %s\r\n",
-						*mimetype ? mimetype : "text/plain");
+						*mimetype ? mimetype : "application/octet-stream");
 		}
 		return !strcasecmp(mimetype, "text/html");
 	}
@@ -1580,7 +1590,7 @@ check_file_redirect(const char *base, const char *filename)
 	{
 		if ((size = read(fd, total, XS_PATH_MAX)) <= 0)
 		{
-			error("500 Redirection filename error");
+			xserror("500 Redirection filename error");
 			close(fd);
 			return 1;
 		}
