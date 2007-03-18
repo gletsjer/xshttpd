@@ -14,11 +14,11 @@
 #define		extern
 #endif		/* NOEXTERN */
 
-#ifdef		NOvoid
+#ifdef		NOVOID
 #define		void
-#else		/* Not NOvoid */
+#else		/* Not NOVOID */
 #define		void		void
-#endif		/* NOvoid */
+#endif		/* NOVOID */
 
 #ifdef		NOPID_T
 #define		pid_t		long
@@ -29,28 +29,12 @@
 #endif		/* NOSIZE_T */
 
 #ifdef		NOUID_T
-#define		pid_t		int
+#define		uid_t		int
 #endif		/* NOUID_T */
 
 #ifdef		NOGID_T
 #define		gid_t		int
 #endif		/* NOGID_T */
-
-#ifndef		HAVE_SETEUID
-#ifdef		HAVE_SETRESUID
-#define		seteuid(a)	setresuid(-1, (a), -1)
-#else		/* Not HAVE_SETRESUID */
-#define		seteuid(a)	setreuid(-1, (a))
-#endif		/* HAVE_SETRESUID */
-#endif		/* HAVE_SETEUID */
-
-#ifndef		HAVE_SETEGID
-#ifdef		HAVE_SETRESGID
-#define		setegid(a)	setresgid(-1, (a), -1)
-#else		/* Not HAVE_SETRESGID */
-#define		setegid(a)	setregid(-1, (a))
-#endif		/* HAVE_SETRESGID */
-#endif		/* HAVE_SETEGID */
 
 #ifdef		__GNUC__
 # if		__GNUC__ >= 3
