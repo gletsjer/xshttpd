@@ -1,5 +1,5 @@
 /* Copyright (C) 2007 by Johan van Selst (johans@stack.nl) */
-/* $Id: authenticate.c,v 1.7 2007/03/18 16:32:38 johans Exp $ */
+/* $Id: authenticate.c,v 1.8 2007/03/26 12:44:31 johans Exp $ */
 
 #include	"config.h"
 
@@ -302,7 +302,7 @@ check_auth(FILE *authfile)
 void
 initnonce()
 {
-	srandom((unsigned int)time(NULL));
+	srandom((unsigned long)time(NULL));
 	secret = random();
 }
 
@@ -310,33 +310,33 @@ initnonce()
 static void
 fresh_nonce(char *nonce)
 {
-	int	ts = (int)time(NULL);
+	long	ts = (long)time(NULL);
 	char	*ip, *buf;
 	char	bufhex[MD5_DIGEST_STRING_LENGTH];
 	size_t	len;
 
 	ip = getenv("REMOTE_ADDR");
-	len = asprintf(&buf, "%d:%lu:%s", ts, secret, ip);
+	len = asprintf(&buf, "%lx:%lu:%s", ts, secret, ip);
 	MD5Data((const unsigned char *)buf, len, bufhex);
 	free(buf);
 
-	snprintf(nonce, MAX_NONCE_LENGTH, "%d:%s", ts, bufhex);
+	snprintf(nonce, MAX_NONCE_LENGTH, "%lx:%s", ts, bufhex);
 }
 
 static int
 valid_nonce(char *nonce)
 {
-	int	ts, tsnow;
+	long	ts, tsnow;
 	char	*ip, *buf, *ptr;
 	char	bufhex[MD5_DIGEST_LENGTH];
 	size_t	len;
 
 	if (!nonce)
 		return 0;		/* invalid */
-	ts = atoi(nonce);
+	ts = strtol(nonce, NULL, 16);
 	ip = getenv("REMOTE_ADDR");
 
-	len = asprintf(&buf, "%d:%lu:%s", ts, secret, ip);
+	len = asprintf(&buf, "%lx:%lu:%s", ts, secret, ip);
 	MD5Data((const unsigned char *)buf, len, bufhex);
 	free(buf);
 
