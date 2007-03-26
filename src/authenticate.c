@@ -1,5 +1,5 @@
 /* Copyright (C) 2007 by Johan van Selst (johans@stack.nl) */
-/* $Id: authenticate.c,v 1.8 2007/03/26 12:44:31 johans Exp $ */
+/* $Id: authenticate.c,v 1.9 2007/03/26 13:02:44 johans Exp $ */
 
 #include	"config.h"
 
@@ -333,6 +333,9 @@ valid_nonce(char *nonce)
 
 	if (!nonce)
 		return 0;		/* invalid */
+	if (!(ptr = strchr(nonce, ':')))
+		return 0;
+	*ptr++ = '\0';
 	ts = strtol(nonce, NULL, 16);
 	ip = getenv("REMOTE_ADDR");
 
@@ -340,9 +343,7 @@ valid_nonce(char *nonce)
 	MD5Data((const unsigned char *)buf, len, bufhex);
 	free(buf);
 
-	if (!(ptr = strchr(nonce, ':')))
-		return 0;
-	if (strcmp(++ptr, bufhex))
+	if (strcmp(ptr, bufhex))
 		return 0;
 
 	time((time_t *)&tsnow);
