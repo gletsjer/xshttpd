@@ -1,5 +1,5 @@
 /* Copyright (C) 2007 by Johan van Selst (johans@stack.nl) */
-/* $Id: authenticate.c,v 1.9 2007/03/26 13:02:44 johans Exp $ */
+/* $Id: authenticate.c,v 1.10 2007/03/27 18:19:05 johans Exp $ */
 
 #include	"config.h"
 
@@ -11,8 +11,9 @@
 
 #include	"httpd.h"
 #include	"authenticate.h"
-#include	"ssl.h"
 #include	"decode.h"
+#include	"ldap.h"
+#include	"ssl.h"
 #include	"xscrypt.h"
 
 char		authentication[MYBUFSIZ];
