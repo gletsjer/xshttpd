@@ -62,8 +62,8 @@ configdir=${rootdir}
 XS_ARG_DIR(cgidir, cgi-bin)
 XS_ARG_DIR(contribdir, contrib)
 XS_ARG_DIR(fontdir, gfxcount)
-XS_ARG_DIR(icondir, icons)
 XS_ARG_DIR(docdir, htdocs)
+XS_ARG_DIR(icondir, htdocs/icons)
 XS_ARG_DIR(logdir, logs)
 
 XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
