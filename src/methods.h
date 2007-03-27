@@ -3,9 +3,9 @@
 void	loadcompresstypes	(void);
 void	loadscripttypes		(char *, char *);
 void	loadfiletypes		(char *, char *);
-#ifdef		HANDLE_PERL
+#ifdef		HAVE_PERL
 void	loadperl			(void);
-#endif		/* HANDLE_PERL */
+#endif		/* HAVE_PERL */
 
 void	do_get			(char *);
 void	do_post			(char *);

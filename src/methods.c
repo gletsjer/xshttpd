@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.205 2007/03/18 17:10:00 johans Exp $ */
+/* $Id: methods.c,v 1.206 2007/03/27 18:37:14 johans Exp $ */
 
 #include	"config.h"
 
@@ -64,10 +64,10 @@
 #ifdef		HAVE_MEMORY_H
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
-#ifdef		HANDLE_PERL
+#ifdef		HAVE_PERL
 #include	<EXTERN.h>
 #include	<perl.h>
-#endif		/* HANDLE_PERL */
+#endif		/* HAVE_PERL */
 #ifdef		HAVE_CURL
 #include	<curl/curl.h>
 #endif		/* HAVE_CURL */
@@ -137,9 +137,9 @@ static	char	charset[XS_PATH_MAX], mimetype[XS_PATH_MAX],
 #ifdef		HAVE_CURL
 static	size_t	curl_readlen;
 #endif		/* HAVE_CURL */
-#ifdef		HANDLE_PERL
+#ifdef		HAVE_PERL
 PerlInterpreter *	my_perl = NULL;
-#endif		/* HANDLE_PERL */
+#endif		/* HAVE_PERL */
 
 static void
 senduncompressed(int fd)
@@ -1461,10 +1461,10 @@ loadscripttypes(char *orgbase, char *base)
 			*(--end) = 0;
 		if (line == end)
 			continue;
-#ifndef		HANDLE_PERL
+#ifndef		HAVE_PERL
 		if (!strncmp(line, "internal:perl", 13))
 			continue;
-#endif		/* HANDLE_PERL */
+#endif		/* HAVE_PERL */
 		if (!(new = (ctypes *)malloc(sizeof(ctypes))))
 			err(1, "Out of memory in loadscripttypes()");
 		if (sscanf(line, "%s %s", new->prog, new->ext) != 2)
@@ -1493,24 +1493,28 @@ loadscripttypes(char *orgbase, char *base)
 	fclose(methods);
 }
 
-#ifdef		HANDLE_PERL
+#ifdef		HAVE_PERL
 void
 loadperl()
 {
-	const char *embedding[] = { "", HTTPD_ROOT "/persistent.pl" };
+	char *path, *embedding[] = { NULL, NULL };
 	int exitstatus = 0;
 
 	if (!(my_perl = perl_alloc()))
-	   err(1, "No memory!");
+		err(1, "No memory!");
 	perl_construct(my_perl);
 
+	/* perl_parse() doesn't like const arguments: pass dynamic */
+	path = strdup(HTTPD_ROOT "/persistent.pl");
+	embedding[0] = embedding[1] = path;
 	exitstatus = perl_parse(my_perl, NULL, 2, embedding, NULL);
+	free(path);
 	if (!exitstatus)
-	   exitstatus = perl_run(my_perl);
+		exitstatus = perl_run(my_perl);
 	else
 		err(1, "No perl!");
 }
-#endif		/* HANDLE_PERL */
+#endif		/* HAVE_PERL */
 
 static int
 getfiletype(int print)

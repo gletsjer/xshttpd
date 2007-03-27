@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.266 2007/03/18 16:36:00 johans Exp $ */
+/* $Id: httpd.c,v 1.267 2007/03/27 18:37:14 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ typedef	size_t	socklen_t;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.266 2007/03/18 16:36:00 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.267 2007/03/27 18:37:14 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -872,9 +872,9 @@ open_logs(int sig)
 	loadfiletypes(NULL, NULL);
 	loadcompresstypes();
 	loadscripttypes(NULL, NULL);
-#ifdef		HANDLE_PERL
+#ifdef		HAVE_PERL
 	loadperl();
-#endif		/* HANDLE_PERL */
+#endif		/* HAVE_PERL */
 #ifdef		HAVE_CURL
 	curl_global_init(CURL_GLOBAL_ALL);
 #endif		/* HAVE_CURL */
@@ -2057,11 +2057,11 @@ main(int argc, char **argv)
 #else		/* HAVE_PCRE */
 				"-PCRE "
 #endif		/* HAVE_PCRE */
-#ifdef		HANDLE_PERL
+#ifdef		HAVE_PERL
 				"+PERL "
-#else		/* HANDLE_PERL */
+#else		/* HAVE_PERL */
 				"-PERL "
-#endif		/* HANDLE_PERL */
+#endif		/* HAVE_PERL */
 #ifdef		AUTH_LDAP
 				"+LDAP "
 #else		/* AUTH_LDAP */

@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: cgi.c,v 1.134 2007/03/18 16:36:00 johans Exp $ */
+/* $Id: cgi.c,v 1.135 2007/03/27 18:37:14 johans Exp $ */
 
 #include	"config.h"
 
@@ -37,10 +37,10 @@
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
 #include	<stdarg.h>
-#ifdef		HANDLE_PERL
+#ifdef		HAVE_PERL
 #include	<EXTERN.h>
 #include	<perl.h>
-#endif		/* HANDLE_PERL */
+#endif		/* HAVE_PERL */
 
 #include	"httpd.h"
 #include	"ssi.h"
@@ -52,10 +52,10 @@
 static	const	char	*skipspaces(const char *);
 static	void		time_is_up(int);
 
-#ifdef		HANDLE_PERL
-const	char *	perlargs[] = { "", NULL };
+#ifdef		HAVE_PERL
+char *	perlargs[] = { NULL, NULL };
 extern	PerlInterpreter *my_perl;
-#endif		/* HANDLE_PERL */
+#endif		/* HAVE_PERL */
 
 static pid_t			child;
 
@@ -270,7 +270,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			warn("setpriority");
 #endif		/* HAVE_SETPRIORITY */
 
-#ifdef		HANDLE_PERL
+#ifdef		HAVE_PERL
 		if (engine && !strcmp(engine, "internal:perl"))
 		{
 			perlargs[0] = fullpath;
@@ -279,7 +279,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			return;
 		}
 		else
-#endif		/* HANDLE_PERL */
+#endif		/* HAVE_PERL */
 		if (engine)
 			(void) execl(engine, engine, fullpath, argv1, NULL);
 		else
