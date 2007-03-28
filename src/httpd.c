@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.267 2007/03/27 18:37:14 johans Exp $ */
+/* $Id: httpd.c,v 1.268 2007/03/28 10:46:12 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ typedef	size_t	socklen_t;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.267 2007/03/27 18:37:14 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.268 2007/03/28 10:46:12 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -110,8 +110,8 @@ static	int	sd, reqs, mainhttpd = 1;
 gid_t		origegid;
 uid_t		origeuid;
 char		remotehost[NI_MAXHOST],
-		currenttime[80], dateformat[MYBUFSIZ], real_path[XS_PATH_MAX],
-		httpver[16], currentdir[XS_PATH_MAX],
+		currenttime[80], httpver[16], dateformat[MYBUFSIZ],
+		real_path[XS_PATH_MAX], currentdir[XS_PATH_MAX],
 		orig_filename[XS_PATH_MAX];
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[RWBUFSIZE],
 		thisdomain[NI_MAXHOST], message503[MYBUFSIZ], orig[MYBUFSIZ],

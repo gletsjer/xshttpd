@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.206 2007/03/27 18:37:14 johans Exp $ */
+/* $Id: methods.c,v 1.207 2007/03/28 10:46:12 johans Exp $ */
 
 #include	"config.h"
 
@@ -1199,7 +1199,13 @@ do_get(char *params)
 				if (!(idx = current->indexfiles[i + 1]))
 					break;
 
-				strlcpy(real_path + strlen(real_path) - strlen(filename), idx, XS_PATH_MAX + strlen(filename) - strlen(real_path));
+				if (strlen(filename) && strlen(real_path) > strlen(filename))
+				{
+					real_path[strlen(real_path) - strlen(filename)] = '\0';
+					strlcat(real_path, idx, XS_PATH_MAX);
+				}
+				else
+					snprintf(real_path, XS_PATH_MAX, "/%s", idx);
 				filename = idx;
 				break;
 			}
@@ -1219,10 +1225,10 @@ do_get(char *params)
 	}
 
 	/* add original arguments back to real_path */
-	if (question)
+	if (getenv("QUERY_STRING"))
 	{
 		strlcat(real_path, "?", XS_PATH_MAX);
-		strlcat(real_path, question + 1, XS_PATH_MAX);
+		strlcat(real_path, getenv("QUERY_STRING"), XS_PATH_MAX);
 	}
 	params = real_path;
 	wasdir = 0;

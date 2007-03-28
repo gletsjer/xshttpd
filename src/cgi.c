@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: cgi.c,v 1.135 2007/03/27 18:37:14 johans Exp $ */
+/* $Id: cgi.c,v 1.136 2007/03/28 10:46:11 johans Exp $ */
 
 #include	"config.h"
 
@@ -425,7 +425,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			}
 			else if (!strncasecmp(header, "Cache-control:", 14))
 			{
-				if (showheader >= 11)
+				if (headers >= 11)
 					append(head, 0, "Cache-control: %s\r\n",
 						skipspaces(header + 14));
 				else
