@@ -1,5 +1,5 @@
 /* Copyright (C) 2007 by Johan van Selst (johans@stack.nl) */
-/* $Id: authenticate.c,v 1.10 2007/03/27 18:19:05 johans Exp $ */
+/* $Id: authenticate.c,v 1.11 2007/03/28 19:12:21 johans Exp $ */
 
 #include	"config.h"
 
@@ -12,9 +12,11 @@
 #include	"httpd.h"
 #include	"authenticate.h"
 #include	"decode.h"
-#include	"ldap.h"
 #include	"ssl.h"
 #include	"xscrypt.h"
+#ifdef		AUTH_LDAP
+#include	"ldap.h"
+#endif		/* AUTH_LDAP */
 
 char		authentication[MYBUFSIZ];
 unsigned long int	secret;
