@@ -4,7 +4,8 @@ is not complete. Refer to cvs comments for more information.
 Changes since 3.5 beta 4
 - Remember that icons should go into htdocs/icons
 - Fix MD5 selection on systems with libmd
-- Fix perl interpreter (didn't even compile)
+- Fix perl interpreter (compilation)
+- Fix header corruption triggered by IndexFile selection for rootdir
 
 Changes since 3.5 beta 3
 - Resolve possible md.5 conflict between libmd and libssl (35b02)
