@@ -21,5 +21,5 @@
 extern char	authentication[MYBUFSIZ];
 
 void	initnonce	(void);
-int	check_auth	(FILE *);
+int	check_auth	(const char *);
 

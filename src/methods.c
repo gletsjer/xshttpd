@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.207 2007/03/28 10:46:12 johans Exp $ */
+/* $Id: methods.c,v 1.208 2007/03/29 15:20:36 johans Exp $ */
 
 #include	"config.h"
 
@@ -102,12 +102,12 @@ static int	v6masktonum		(int, struct in6_addr *);
 #endif	/* INET6 */
 static void	senduncompressed	(int);
 static void	sendcompressed		(int, const char *);
-static FILE *	find_file		(const char *, const char *, const char *);
+static char *	find_file		(const char *, const char *, const char *)	MALLOC_FUNC;
 static int	check_file_redirect	(const char *, const char *);
 static int	check_allow_host	(const char *, char *);
-static int	check_noxs		(FILE *);
-static int	check_redirect		(FILE *, const char *);
-static int	check_location		(FILE *, const char *);
+static int	check_noxs		(const char *);
+static int	check_redirect		(const char *, const char *);
+static int	check_location		(const char *, const char *);
 #ifdef		HAVE_CURL
 static size_t	curl_readhack		(void *, size_t, size_t, FILE *);
 #endif		/* HAVE_CURL */
@@ -540,10 +540,18 @@ check_allow_host(const char *hostname, char *pattern)
 }
 
 static int
-check_noxs(FILE *rfile)
+check_noxs(const char *cffile)
 {
 	char	*remoteaddr;
 	char	allowhost[256];
+	FILE	*rfile;
+
+	if (!(rfile = fopen(cffile, "r")))
+	{
+		server_error("403 Authentication file is not available",
+			"NOT_AVAILABLE");
+		return 1; /* access denied */
+	}
 
 	if (!(remoteaddr = getenv("REMOTE_ADDR")))
 	{
@@ -573,13 +581,20 @@ check_noxs(FILE *rfile)
 }
 
 static int
-check_location(FILE *fp, const char *filename)
+check_location(const char *cffile, const char *filename)
 {
 	char	line[LINEBUFSIZE];
 	char    *p, *name, *value;
-	int		state = 0;
-	int		restrictcheck = 0, restrictallow = 0;
-	FILE    *authfile;
+	int	state = 0;
+	int	restrictcheck = 0, restrictallow = 0;
+	FILE    *fp;
+
+	if (!(fp = fopen(cffile, "r")))
+	{
+		server_error("403 Authentication file is not available",
+			"NOT_AVAILABLE");
+		return 1; /* access denied */
+	}
 
 	while (fgets(line, LINEBUFSIZE, fp))
 	{
@@ -621,21 +636,16 @@ check_location(FILE *fp, const char *filename)
 		if (!strcasecmp(name, "AuthFilename") ||
 			!strcasecmp(name, "AuthFile"))
 		{
-			if (value && (authfile = fopen(value, "r")))
+			if (value)
 			{
 				/* return if authentication fails
 				 * process other directives on success
 				 */
-				if (check_auth(authfile))
+				if (check_auth(value))
 				{
 					/* a 401 response has been sent */
-					fclose(authfile);
 					fclose(fp);
 					return 1;
-				}
-				else
-				{
-					fclose(authfile);
 				}
 			}
 			else
@@ -682,12 +692,13 @@ check_location(FILE *fp, const char *filename)
 	return 0;
 }
 
-static	FILE	*
+static	char	*
 find_file(const char *orgbase, const char *base, const char *file)
 {
-	char		path[XS_PATH_MAX], *p;
-	FILE		*fd;
+	static char	path[XS_PATH_MAX];
+	char		*p;
 	size_t		len = strlen(orgbase);
+	struct stat	sb;
 
 	/* Check after redirection */
 	/* Ugly way to do this recursively */
@@ -698,8 +709,8 @@ find_file(const char *orgbase, const char *base, const char *file)
 		*p = '\0')
 	{
 		snprintf(p, (size_t)(XS_PATH_MAX - (p - path)), "/%s", file);
-		if ((fd = fopen(path, "r")))
-			return fd;
+		if (!stat(path, &sb))
+			return path;
 	}
 
 	return NULL;
@@ -718,7 +729,8 @@ do_get(char *params)
 	size_t			size;
 	struct	stat		statbuf;
 	const	struct	passwd	*userinfo;
-	FILE			*xsfile, *charfile;
+	FILE			*charfile;
+	char			*xsfile;
 	const	ctypes		*csearch = NULL, *isearch = NULL;
 
 	alarm(240);
@@ -1087,7 +1099,8 @@ do_get(char *params)
 	/* Check for *.charset preferences */
 	snprintf(total, XS_PATH_MAX, "%s%s.charset", base, filename);
 	if ((charfile = fopen(total, "r")) ||
-		(charfile = find_file(orgbase, base, ".charset")))
+		((xsfile = find_file(orgbase, base, ".charset")) &&
+		 (charfile = fopen(xsfile, "r"))))
 	{
 		if (!fread(charset, 1, XS_PATH_MAX, charfile))
 			charset[0] = '\0';
@@ -1341,19 +1354,14 @@ loadfiletypes(char *orgbase, char *base)
 	}
 	lftype = NULL;
 	if (base)
-	{
-		mimepath = NULL;
-		if (!(mime = find_file(orgbase, base, ".mimetypes")))
-			return;
-	}
+		mimepath = find_file(orgbase, base, ".mimetypes");
 	else
-	{
 		mimepath = calcpath(MIMETYPESFILE);
-		if (!(mime = fopen(mimepath, "r")))
-		{
-			warn("fopen(`%s' [read])", mimepath);
-			return;
-		}
+
+	if (!mimepath || !(mime = fopen(mimepath, "r")))
+	{
+		warn("fopen(`%s' [read])", mimepath);
+		return;
 	}
 	prev = NULL;
 	while (fgets(line, LINEBUFSIZE, mime))
@@ -1428,7 +1436,7 @@ loadcompresstypes()
 void
 loadscripttypes(char *orgbase, char *base)
 {
-	char		line[LINEBUFSIZE], *end, *comment, *path;
+	char		line[LINEBUFSIZE], *end, *comment, *path, *cffile;
 	FILE		*methods;
 	ctypes		*prev, *new;
 
@@ -1439,7 +1447,8 @@ loadscripttypes(char *orgbase, char *base)
 		if (ditype)
 			{ free(ditype); ditype = NULL; }
 		path = (char *)malloc(strlen(base) + 12);
-		if (!(methods = find_file(orgbase, base, ".xsscripts")))
+		if (!(cffile = find_file(orgbase, base, ".xsscripts")) ||
+			!(methods = fopen(cffile, "r")))
 		{
 			free(path);
 			return;
@@ -1615,12 +1624,17 @@ check_file_redirect(const char *base, const char *filename)
 }
 
 int
-check_redirect(FILE *fp, const char *filename)
+check_redirect(const char *cffile, const char *filename)
 {
 	int	size;
 	char	*p, *command, *subst,
 		*host, *orig, *repl,
 		line[XS_PATH_MAX], total[XS_PATH_MAX], request[XS_PATH_MAX];
+	FILE	*fp;
+
+	if (!(fp = fopen(cffile, "r")))
+		/* no redir */
+		return 0;
 
 	strlcpy(request, filename, XS_PATH_MAX);
 

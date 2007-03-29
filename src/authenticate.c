@@ -1,5 +1,5 @@
 /* Copyright (C) 2007 by Johan van Selst (johans@stack.nl) */
-/* $Id: authenticate.c,v 1.11 2007/03/28 19:12:21 johans Exp $ */
+/* $Id: authenticate.c,v 1.12 2007/03/29 15:20:36 johans Exp $ */
 
 #include	"config.h"
 
@@ -21,10 +21,10 @@
 char		authentication[MYBUFSIZ];
 unsigned long int	secret;
 
-static int	get_crypted_password(FILE *, const char *, char **, char **);
-static int	check_basic_auth(FILE *authfile);
+static int	get_crypted_password(const char *, const char *, char **, char **);
+static int	check_basic_auth(const char *authfile);
 #ifdef		HAVE_MD5
-static int	check_digest_auth(FILE *authfile);
+static int	check_digest_auth(const char *authfile);
 static char	*get_auth_argument(const char *key, char *line, size_t len);
 static void	fresh_nonce(char *nonce);
 static int	valid_nonce(char *nonce);
@@ -32,17 +32,21 @@ static int	valid_nonce(char *nonce);
 
 /* returns malloc()ed data! */
 static int
-get_crypted_password(FILE *authfile, const char *user, char **passwd, char **hash)
+get_crypted_password(const char *authfile, const char *user, char **passwd, char **hash)
 {
 	char	line[LINEBUFSIZE];
 	char	*lpass, *lhash, *eol;
+	FILE	*af;
+
+	if (!(af = fopen(authfile, "r")))
+		return 0;
 
 	if (passwd)
 		*passwd = NULL;
 	if (hash)
 		*hash = NULL;
 
-	while (fgets(line, LINEBUFSIZE, authfile))
+	while (fgets(line, LINEBUFSIZE, af))
 	{
 		if (strncmp(line + 1, user, strlen(user)) ||
 				line[strlen(user)+1] != ':')
@@ -51,7 +55,10 @@ get_crypted_password(FILE *authfile, const char *user, char **passwd, char **has
 		if ((lpass = strchr(line, ':')))
 			lpass++;
 		else
+		{
+			fclose(af);
 			return 0;
+		}
 		if ((lhash = strchr(lpass, ':')))
 			*lhash++ = '\0';
 		if ((eol = strchr(lhash ? lhash : lpass, '\r')) ||
@@ -62,13 +69,15 @@ get_crypted_password(FILE *authfile, const char *user, char **passwd, char **has
 			*passwd = strdup(lpass);
 		if (hash)
 			*hash = lhash ? strdup(lhash) : NULL;
+		fclose(af);
 		return 1; /* found! */
 	}
+	fclose(af);
 	return 0;
 }
 
 static int
-check_basic_auth(FILE *authfile)
+check_basic_auth(const char *authfile)
 {
 	char		*search, *line, *passwd, *find;
 
@@ -97,7 +106,6 @@ check_basic_auth(FILE *authfile)
 			free(line);
 			return(0);
 		}
-		rewind (authfile);
 #endif /* AUTH_LDAP */
 	}
 	if (!get_crypted_password(authfile, search, &passwd, NULL) || !passwd)
@@ -140,7 +148,7 @@ get_auth_argument(const char *key, char *line, size_t len)
 }
 
 static int
-check_digest_auth(FILE *authfile)
+check_digest_auth(const char *authfile)
 {
 	char		*user, *passwd, *realm, *nonce, *uri, *response,
 			*a2, *digplain,
@@ -204,18 +212,26 @@ check_digest_auth(FILE *authfile)
 #endif		/* HAVE_MD5 */
 
 int
-check_auth(FILE *authfile)
+check_auth(const char *authfile)
 {
 	char		*p, line[LINEBUFSIZE], errmsg[10240],
 			nonce[MAX_NONCE_LENGTH];
 	int		i = 1, digest;
+	FILE		*af;
 
-	if ((p = fgets(line, LINEBUFSIZE, authfile)))
+	if (!(af = fopen(authfile, "r")))
+	{
+		server_error("403 Authentication file is not available",
+			"NOT_AVAILABLE");
+		return 1;
+	}
+
+	if ((p = fgets(line, LINEBUFSIZE, af)))
 		for (i = 0; *p; p++)
 			if (':' == *p)
 				i++;
 	digest = i > 1;
-	rewind(authfile);
+	fclose(af);
 
 	if (!authentication[0] ||
 		(strncasecmp(authentication, "Basic", 5) &&
@@ -249,28 +265,21 @@ check_auth(FILE *authfile)
 			stdheaders(1, 1, 1);
 		}
 		secputs(errmsg);
-		fclose(authfile);
+		fclose(af);
 		return(1);
 	}
 #ifdef		HAVE_MD5
 	if ('d' == authentication[0] || 'D' == authentication[0])
 	{
 		if (!check_digest_auth(authfile))
-		{
-			fclose(authfile);
 			return 0;
-		}
 	}
 	else
 #endif		/* HAVE_MD5 */
 	{
 		if (!check_basic_auth(authfile))
-		{
-			fclose(authfile);
 			return 0;
-		}
 	}
-	fclose(authfile);
 
 	snprintf(errmsg, sizeof(errmsg),
 		"\r\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"

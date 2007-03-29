@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.5 beta 5
+- Show 403 when .noxs/.xsauth/.xsconf exists, but is not readable
+
 Changes since 3.5 beta 4
 - Remember that icons should go into htdocs/icons
 - Fix MD5 selection on systems with libmd
