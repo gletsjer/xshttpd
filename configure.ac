@@ -135,6 +135,18 @@ then
 	fi
 fi
 
+XS_CHECK_WITH(python, Python interpreter, no)
+if test x${with_python} = xyes
+then
+	AC_PATH_PROG(pythonpath, [python2.5-config])
+	if test x${pythonpath} != x
+	then
+		AC_DEFINE(HAVE_PYTHON,, [Define this to use python cgi environment])
+		httpd_cflags="${httpd_cflags} `${pythonpath} --cflags`"
+		httpd_ldflags="${httpd_ldflags} -lpthread `${pythonpath} --ldflags`"
+	fi
+fi
+
 XS_CHECK_WITH(preprocessor, optional configuration preprocessor, no)
 if test x${with_preprocessor} = xyes
 then
@@ -162,13 +174,24 @@ AC_DEFINE(SCRIPT_METHODS, "script.methods",
 AC_DEFINE(COMPRESS_METHODS, "compress.methods",
 	[File describing compression extensions and programs])
 # XS_SHOW_HELP([--enable options], [disabled by default:])
-XS_ARG_DEFAULT(warnings, DUMMY, no,
-	[enable extra compiler warnings])
+XS_ARG_DEFAULT(warnings, DUMMY, no, [enable extra compiler warnings])
 
 # -Wformat-pre-promo is not standard
 if test x${enable_warnings} = xyes
 then
-	CFLAGS="${CFLAGS} -g -ggdb -O -fsigned-char -fshort-enums -funroll-loops -finline-functions -fexpensive-optimizations -std=c99 -pedantic -trigraphs -Wall -W -Wimplicit -Wpointer-arith -Wshadow -pipe -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wreturn-type -Wformat -Wformat=2 -Wtrigraphs -Wswitch -Wcomment -Wchar-subscripts -Wuninitialized -Wparentheses -Wcast-align -Waggregate-return -Wnested-externs -Winline"
+	CFLAGS="${CFLAGS} -g -ggdb -O -fsigned-char -fshort-enums -funroll-loops -finline-functions -fexpensive-optimizations -fstack-protector-all -std=c99 -pedantic -trigraphs -Wall -W -Wimplicit -Wpointer-arith -Wshadow -pipe -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wreturn-type -Wformat -Wformat=2 -Wtrigraphs -Wswitch -Wcomment -Wchar-subscripts -Wuninitialized -Wparentheses -Wcast-align -Waggregate-return -Wnested-externs -Winline"
+fi
+
+XS_ARG_DEFAULT(ssp, DUMMY, no, [enable stack smaching protector])
+if test x${enable_ssp} = xyes
+then
+	AC_MSG_CHECKING([whether ${CC} supports stack protection...])
+	TCFLAGS="${CFLAGS}"
+	CFLAGS="${CFLAGS} -fstack-protector-all"
+	AC_COMPILE_IFELSE(AC_LANG_SOURCE([return 0;]),
+		AC_MSG_RESULT([yes]),
+		AC_MSG_RESULT([no])
+		CFLAGS="${TCFLAGS}")
 fi
 
 dnl Test runs for required global variables

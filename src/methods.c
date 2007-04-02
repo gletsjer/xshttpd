@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.208 2007/03/29 15:20:36 johans Exp $ */
+/* $Id: methods.c,v 1.209 2007/04/02 16:53:38 johans Exp $ */
 
 #include	"config.h"
 
@@ -68,6 +68,9 @@
 #include	<EXTERN.h>
 #include	<perl.h>
 #endif		/* HAVE_PERL */
+#ifdef		HAVE_PYTHON
+#include	<python2.5/Python.h>
+#endif		/* HAVE_PYTHON */
 #ifdef		HAVE_CURL
 #include	<curl/curl.h>
 #endif		/* HAVE_CURL */
@@ -1480,6 +1483,10 @@ loadscripttypes(char *orgbase, char *base)
 		if (!strncmp(line, "internal:perl", 13))
 			continue;
 #endif		/* HAVE_PERL */
+#ifndef		HAVE_PYTHON
+		if (!strncmp(line, "internal:python", 15))
+			continue;
+#endif		/* HAVE_PYTHON */
 		if (!(new = (ctypes *)malloc(sizeof(ctypes))))
 			err(1, "Out of memory in loadscripttypes()");
 		if (sscanf(line, "%s %s", new->prog, new->ext) != 2)
@@ -1530,6 +1537,14 @@ loadperl()
 		err(1, "No perl!");
 }
 #endif		/* HAVE_PERL */
+
+#ifdef		HAVE_PYTHON
+void
+loadpython()
+{
+	Py_InitializeEx(0);
+}
+#endif		/* HAVE_PYTHON */
 
 static int
 getfiletype(int print)

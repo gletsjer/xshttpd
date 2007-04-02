@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.268 2007/03/28 10:46:12 johans Exp $ */
+/* $Id: httpd.c,v 1.269 2007/04/02 16:53:38 johans Exp $ */
 
 #include	"config.h"
 
@@ -101,7 +101,7 @@ typedef	size_t	socklen_t;
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.268 2007/03/28 10:46:12 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.269 2007/04/02 16:53:38 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -875,6 +875,9 @@ open_logs(int sig)
 #ifdef		HAVE_PERL
 	loadperl();
 #endif		/* HAVE_PERL */
+#ifdef		HAVE_PYTHON
+	loadpython();
+#endif		/* HAVE_PYTHON */
 #ifdef		HAVE_CURL
 	curl_global_init(CURL_GLOBAL_ALL);
 #endif		/* HAVE_CURL */

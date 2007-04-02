@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: cgi.c,v 1.136 2007/03/28 10:46:11 johans Exp $ */
+/* $Id: cgi.c,v 1.137 2007/04/02 16:53:37 johans Exp $ */
 
 #include	"config.h"
 
@@ -41,6 +41,9 @@
 #include	<EXTERN.h>
 #include	<perl.h>
 #endif		/* HAVE_PERL */
+#ifdef		HAVE_PYTHON
+#include	<python2.5/Python.h>
+#endif		/* HAVE_PYTHON */
 
 #include	"httpd.h"
 #include	"ssi.h"
@@ -276,6 +279,16 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			perlargs[0] = fullpath;
 			perl_call_argv("Embed::Persistent::eval_file",
 				G_DISCARD | G_EVAL, perlargs);
+			return;
+		}
+		else
+#endif		/* HAVE_PERL */
+#ifdef		HAVE_PYTHON
+		if (engine && !strcmp(engine, "internal:python"))
+		{
+			FILE	*fp = fopen(fullpath, "r");
+			PyRun_SimpleFile(fp, fullpath);
+			fclose(fp);
 			return;
 		}
 		else

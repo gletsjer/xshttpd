@@ -9,7 +9,7 @@
 /* File describing compression extensions and programs */
 #undef COMPRESS_METHODS
 
-/* enable extra compiler warnings */
+/* enable stack smaching protector */
 #undef DUMMY
 
 /* Enable SSL support, you must have UseSSL in your config to enable this */
@@ -104,6 +104,9 @@
 
 /* Define this to use perl cgi environment */
 #undef HAVE_PERL
+
+/* Define this to use python cgi environment */
+#undef HAVE_PYTHON
 
 /* Define to 1 if you have the `setegid' function. */
 #undef HAVE_SETEGID
