@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.209 2007/04/02 16:53:38 johans Exp $ */
+/* $Id: methods.c,v 1.210 2007/04/02 17:51:14 johans Exp $ */
 
 #include	"config.h"
 
@@ -1363,7 +1363,8 @@ loadfiletypes(char *orgbase, char *base)
 
 	if (!mimepath || !(mime = fopen(mimepath, "r")))
 	{
-		warn("fopen(`%s' [read])", mimepath);
+		if (!base)
+			warn("fopen(`%s' [read])", mimepath);
 		return;
 	}
 	prev = NULL;
