@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2007 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssi.c,v 1.69 2007/03/18 16:36:00 johans Exp $ */
+/* $Id: ssi.c,v 1.70 2007/04/07 21:34:51 johans Exp $ */
 
 #include	"config.h"
 
@@ -922,6 +922,7 @@ typedef	struct
 	const	char	*name;
 	int		(*func) (int, char **, off_t *);
 	char		params;
+	/* padding */
 } directivestype;
 
 static	directivestype	directives[] =

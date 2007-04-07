@@ -32,7 +32,7 @@ extern	gid_t	origegid;
 extern	uid_t	origeuid;
 
 void	stdheaders		(int, int, int);
-void	alarm_handler		(int);
+void	alarm_handler		(int)	NORETURN;
 void	xserror			(const char *);
 void	redirect		(const char *, int, int);
 int	readline		(int, char *, size_t);

@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: error.c,v 1.24 2006/12/17 13:29:43 johans Exp $ */
+/* $Id: error.c,v 1.25 2007/04/07 21:34:50 johans Exp $ */
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -19,7 +19,7 @@
 struct virtual			*current;
 struct configuration	config;
 
-void	error			(const char *);
+void	error			(const char *)	NORETURN;
 void	redirect		(const char *, int);
 void	server_error		(const char *, const char *);
 static	int	difference		(const char *, const char *);

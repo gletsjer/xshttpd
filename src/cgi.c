@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: cgi.c,v 1.137 2007/04/02 16:53:37 johans Exp $ */
+/* $Id: cgi.c,v 1.138 2007/04/07 21:34:50 johans Exp $ */
 
 #include	"config.h"
 
@@ -53,7 +53,8 @@
 #include	"htconfig.h"
 
 static	const	char	*skipspaces(const char *);
-static	void		time_is_up(int);
+static	void		time_is_up(int)	NORETURN;
+static	int		append(char *, int, const char *format, ...)	PRINTF_LIKE(3,4);
 
 #ifdef		HAVE_PERL
 char *	perlargs[] = { NULL, NULL };
@@ -392,7 +393,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				else if (!strncasecmp(header, "Location:", 9))
 				{
 					status = 1;
-					append(head, 1, "%s 302 Moved\r\n", httpver, head);
+					append(head, 1, "%s 302 Moved\r\n", httpver);
 				}
 			}
 

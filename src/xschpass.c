@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: xschpass.c,v 1.21 2007/03/18 16:36:00 johans Exp $ */
+/* $Id: xschpass.c,v 1.22 2007/04/07 21:34:51 johans Exp $ */
 
 #include	"config.h"
 
@@ -16,7 +16,7 @@
 #include	"extra.h"
 #include	"xscrypt.h"
 
-static	void	xserror			(const char *, ...);
+static	void	xserror			(const char *, ...)	PRINTF_LIKE(1,2) NORETURN;
 static	void	urldecode		(char *);
 static	void	changepasswd		(const char *, int);
 static	void	generateform		(void);

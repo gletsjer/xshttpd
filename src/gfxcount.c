@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: gfxcount.c,v 1.17 2007/03/18 16:36:00 johans Exp $ */
+/* $Id: gfxcount.c,v 1.18 2007/04/07 21:34:50 johans Exp $ */
 
 #include	"config.h"
 
@@ -18,10 +18,10 @@
 #include	<fcntl.h>
 
 #ifdef		PATH_PPMTOGIF
-static	void	xserror			(const char *, const char *);
+static	void	xserror			(const char *, const char *)	NORETURN;
 static	void	loaddigit		(int);
 static	void	loadfont		(void);
-static	void	buildpicture		(void);
+static	void	buildpicture		(void)	NORETURN;
 
 typedef	struct
 {
@@ -248,9 +248,9 @@ main(int argc, char **argv)
 			"You must supply a number as a query argument");
 	loadfont();
 	buildpicture();
+	/* NOTREACHED */
 	(void)argc;
 	(void)argv;
-	return 0;
 }
 
 #else		/* Not PATH_PPMTOGIF */

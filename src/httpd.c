@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.269 2007/04/02 16:53:38 johans Exp $ */
+/* $Id: httpd.c,v 1.270 2007/04/07 21:34:51 johans Exp $ */
 
 #include	"config.h"
 
@@ -93,15 +93,12 @@
 #include	"fcgi.h"
 #include	"authenticate.h"
 
-#ifndef		HAVE_SOCKLEN_T
-typedef	size_t	socklen_t;
-#endif		/* HAVE_SOCKLEN_T */
 #ifndef		PRIO_MAX
 #define		PRIO_MAX	20
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.269 2007/04/02 16:53:38 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.270 2007/04/07 21:34:51 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -126,18 +123,18 @@ struct configuration	config;
 static	void	filedescrs		(void);
 static	void	detach			(void);
 static	void	child_handler		(int);
-static	void	term_handler		(int);
+static	void	term_handler		(int)	NORETURN;
 static	void	load_config		(void);
 static	void	remove_config		(void);
 static	void	open_logs		(int);
-static	void	core_handler		(int);
+static	void	core_handler		(int)	NORETURN;
 static	void	set_signals		(void);
 
 static	void	process_request		(void);
 
 static	void	setup_environment	(void);
-static	void	standalone_main		(void);
-static	void	standalone_socket	(int);
+static	void	standalone_main		(void)	NORETURN;
+static	void	standalone_socket	(int)	NORETURN;
 
 void
 stdheaders(int lastmod, int texthtml, int endline)
@@ -1572,14 +1569,13 @@ standalone_main()
 			case 0:
 				mainhttpd = 0;
 				standalone_socket(id);
-				exit(0);
+				/* NOTREACHED */
 			default:
 				id++;
 			}
-		else
-			/* make myself useful */
-			standalone_socket(id);
 	}
+	/* make myself useful */
+	standalone_socket(id);
 }
 
 static	void
@@ -2014,17 +2010,19 @@ main(int argc, char **argv)
 			printf(" %s/%s", utsname.sysname, utsname.release);
 #endif		/* HAVE_UNAME */
 #ifdef		OPENSSL_VERSION_NUMBER
-			if (OPENSSL_VERSION_NUMBER >> 4 & 0xff)
+# if		OPENSSL_VERSION_NUMBER >> 4 & 0xff
+			/* if (OPENSSL_VERSION_NUMBER >> 4 & 0xff) */
 				printf(" OpenSSL/%d.%d.%d%c",
 					(int)(OPENSSL_VERSION_NUMBER >> 28 & 0xf),
 					(int)(OPENSSL_VERSION_NUMBER >> 20 & 0xff),
 					(int)(OPENSSL_VERSION_NUMBER >> 12 & 0xff),
 					'a' - 1 + (unsigned char)(OPENSSL_VERSION_NUMBER >> 4 & 0xff));
-			else
+# else
 				printf(" OpenSSL/%d.%d.%d",
 					(int)(OPENSSL_VERSION_NUMBER >> 28 & 0xf),
 					(int)(OPENSSL_VERSION_NUMBER >> 20 & 0xff),
 					(int)(OPENSSL_VERSION_NUMBER >> 12 & 0xff));
+# endif
 #endif		/* OPENSSL_VERSION_NUMBER */
 #ifdef		PCRE_MAJOR
 			printf(" PCRE/%u.%u", PCRE_MAJOR, PCRE_MINOR);
@@ -2132,6 +2130,6 @@ main(int argc, char **argv)
 	initnonce();
 	setup_environment();
 	standalone_main();
+	/* NOTREACHED */
 	(void)copyright;
-	return 0;
 }

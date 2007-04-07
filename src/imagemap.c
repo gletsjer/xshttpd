@@ -15,7 +15,7 @@
 
 	This version by Sven Berkvens (sven@stack.nl).
 */
-/* $Id: imagemap.c,v 1.11 2005/11/27 18:09:18 johans Exp $ */
+/* $Id: imagemap.c,v 1.12 2007/04/07 21:34:51 johans Exp $ */
 
 #include	"config.h"
 
@@ -32,7 +32,7 @@
 #define		Y		1
 
 static	int	isname			(int);
-static	void	servererr		(const char *);
+static	void	servererr		(const char *)	NORETURN;
 static	int	pointinpoly		(void);
 static	int	pointincircle		(void);
 static	int	pointinrect		(void);
@@ -167,9 +167,9 @@ main(int argc, char **argv)
 	if (def[0])
 		sendmesg(def);
 	servererr("No default specified");
+	/* NOTREACHED */
 	(void)argc;
 	(void)argv;
-	return(0);
 }
 
 static	void

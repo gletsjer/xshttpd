@@ -27,9 +27,6 @@ extern struct virtual {
 	FILE *		openreferer;
 	FILE *		openerror;
 	logstyle_t	logstyle;
-	unsigned	virtualid: 1;
-	unsigned	donotuse: 1;
-	unsigned	padding: 6;
 	struct virtual *	next;
 } *current;
 
@@ -38,12 +35,11 @@ struct socket_config {
 	char *		address;
 	char *		port;
 	sa_family_t	family;
-	unsigned short	instances;
+	sslauth_t	sslauth;
 	unsigned	usessl: 1;
-	unsigned	padding: 7;
+	int		instances;
 	char *		sslcertificate;
 	char *		sslprivatekey;
-	sslauth_t	sslauth;
 	char *		sslcafile;
 	char *		sslcapath;
 	char *		sslmatchsdn;
@@ -60,8 +56,7 @@ struct socket_config {
 
 extern struct configuration {
 	char *		systemroot;
-	int		num_sockets;
-	unsigned short	instances;
+	int		instances;
 	int		priority;
 	char *		pidfile;
 	int		scriptpriority;
@@ -72,7 +67,6 @@ extern struct configuration {
 	unsigned	usevirtualuid: 1;
 	unsigned	uselocalscript: 1;
 	unsigned	usednslookup: 1;
-	unsigned	padding: 4;
 	char *		virtualhostdir;
 	char *		defaultcharset;
 	struct virtual *	system;

@@ -4,6 +4,9 @@
 - Mechanism to add extra HTTP header to error script
 - Show 400 error on invalid hostname (tricky with vhost subdirs)
 
+- Redo Perl/Python support: current implementation is crippled
+  because of closed fds and permission drop (setuid)
+
 - vhost logging: set host as virtualhostdir name
 - digauth support in xschpass
 - Config file layout/parsing

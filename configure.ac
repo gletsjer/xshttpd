@@ -179,7 +179,7 @@ XS_ARG_DEFAULT(warnings, DUMMY, no, [enable extra compiler warnings])
 # -Wformat-pre-promo is not standard
 if test x${enable_warnings} = xyes
 then
-	CFLAGS="${CFLAGS} -g -ggdb -O -fsigned-char -fshort-enums -funroll-loops -finline-functions -fexpensive-optimizations -fstack-protector-all -std=c99 -pedantic -trigraphs -Wall -W -Wimplicit -Wpointer-arith -Wshadow -pipe -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wreturn-type -Wformat -Wformat=2 -Wtrigraphs -Wswitch -Wcomment -Wchar-subscripts -Wuninitialized -Wparentheses -Wcast-align -Waggregate-return -Wnested-externs -Winline"
+	CFLAGS="${CFLAGS} -g -ggdb -O3 -fsigned-char -fshort-enums -funroll-loops -std=c99 -pedantic -trigraphs -pipe -Wall -W -Wpointer-arith -Wshadow -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wformat -Wformat-security -Wcomment -Wchar-subscripts -Wcast-align -Waggregate-return -Wnested-externs -Winline -Wundef -Wmissing-noreturn -Wmissing-format-attribute -Wpacked -Wpadded -Wunreachable-code"
 fi
 
 XS_ARG_DEFAULT(ssp, DUMMY, no, [enable stack smaching protector])
@@ -187,7 +187,7 @@ if test x${enable_ssp} = xyes
 then
 	AC_MSG_CHECKING([whether ${CC} supports stack protection...])
 	TCFLAGS="${CFLAGS}"
-	CFLAGS="${CFLAGS} -fstack-protector-all"
+	CFLAGS="${CFLAGS} -fstack-protector-all -Wstack-protector"
 	AC_COMPILE_IFELSE(AC_LANG_SOURCE([return 0;]),
 		AC_MSG_RESULT([yes]),
 		AC_MSG_RESULT([no])

@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: alternative.h,v 1.5 2007/03/27 18:16:12 johans Exp $ */
+/* $Id: alternative.h,v 1.6 2007/04/07 21:34:50 johans Exp $ */
 
 #ifndef		ALTERNATIVE_H
 #define		ALTERNATIVE_H	1
@@ -31,6 +31,10 @@ extern	const char *	strerror		(int);
 extern	char		*sys_errlist[];
 extern	const int	sys_nerr;
 #endif          /* HAVE_DECL_SYS_ERRLIST */
+
+#ifndef		HAVE_SOCKLEN_T
+typedef	size_t	socklen_t;
+#endif		/* HAVE_SOCKLEN_T */
 
 #ifndef		HAVE_ERR
 void	err		(int, const char *, ...) PRINTF_LIKE(2, 3) NORETURN;
