@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: methods.c,v 1.210 2007/04/02 17:51:14 johans Exp $ */
+/* $Id: methods.c,v 1.211 2007/04/07 21:51:58 johans Exp $ */
 
 #include	"config.h"
 
@@ -254,8 +254,8 @@ senduncompressed(int fd)
 	if (headonly)
 		goto DONE;
 
-	UNPARSED:
 #ifdef		WANT_SSI
+	UNPARSED:
 	if (!dynamic)
 	{
 #endif		/* WANT_SSI */
