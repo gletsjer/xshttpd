@@ -1,6 +1,6 @@
 /* Copyright (C) 2005 by Rink Springer (rink@stack.nl) */
 /* Copyright (C) 2005-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: ldap.c,v 1.10 2006/12/06 21:02:16 johans Exp $ */
+/* $Id: ldap.c,v 1.11 2007/04/07 21:51:45 johans Exp $ */
 
 #include	"config.h"
 #include	"ldap.h"
@@ -73,8 +73,9 @@ leave:
 }
 
 int
-check_auth_ldap(FILE *authfile, const char *user, const char *pass)
+check_auth_ldap(const char *authfile, const char *user, const char *pass)
 {
+	FILE	*af;
 	char	ldapuri[MYBUFSIZ];
 	char	ldapdn[MYBUFSIZ];
 	char	ldapattr[MYBUFSIZ];
@@ -98,14 +99,20 @@ check_auth_ldap(FILE *authfile, const char *user, const char *pass)
 	if (!strlen (pass))
 		return(1);
 
+	if (!(af = fopen(authfile, "r")))
+	{
+		server_error("403 Authentication file is not available",
+			"NOT_AVAILABLE");
+		return 1;
+	}
+
 	/*
  	 * Quick 'n dirty parser; usually the .xsauth file consists of
  	 * Uuser:hash entries. By accepting parameter=value entries, we
  	 * won't clash with that (since check_auth() will happily skip
  	 * over them)
  	 */
-	rewind(authfile);
-	while (fgets(line, LINEBUFSIZE, authfile))
+	while (fgets(line, LINEBUFSIZE, af))
 	{
 		/* kill newlines and such, they confuse ldap */
 		while ((ptr = strchr (line, '\n')) != NULL)
@@ -129,11 +136,15 @@ check_auth_ldap(FILE *authfile, const char *user, const char *pass)
 	if ((!strlen (ldapuri)) || (!strlen(ldapdn)) || (!strlen (ldapattr)))
 	{
 		/* LDAP config is incomplete */
+		fclose(af);
 		return(1);
 	}
 
 	if (ldap_initialize (&ld, ldapuri) != LDAP_SUCCESS)
+	{
+		fclose(af);
 		return(1);
+	}
 	ldap_set_option (ld, LDAP_OPT_PROTOCOL_VERSION, &ldapversion);
 
 	/*
@@ -188,7 +199,7 @@ check_auth_ldap(FILE *authfile, const char *user, const char *pass)
 
 	/* only close file if ldap is successful */
 	if (!ok)
-		fclose (authfile);
+		fclose (af);
 
 leave:
 	if (dn)
@@ -197,5 +208,6 @@ leave:
 		ldap_msgfree (res);
 	ldap_unbind (ld);
 
+	fclose(af);
 	return ok;
 }
