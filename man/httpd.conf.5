@@ -97,6 +97,15 @@ DNS and logged with hostname information. You can disable this features
 by setting UseDnsLookup to false. Note that this will also make the
 environment variable REMOTE_HOST useless.
 .TP
+.B UseAcceptFilter [true|false]
+Some systems offer kernel support to delay an \fIaccept(2)\fP call
+until (appropriate) data has actually arrived on the socket.
+On FreeBSD (>= 4.0) the \fIaccf_http(9)\fP module can be used.
+Linux only has an option to wait for any queued data.
+Both mechanisms can effectively reduce the workload of the webserver,
+especially when you are experiencing bogus connects.
+Only enable this option if your system has indeed such a system.
+.TP
 .B Priority
 The system priority that the daemon will be running at. A lower priority causes
 more favorable scheduling. The default priority is 0.
