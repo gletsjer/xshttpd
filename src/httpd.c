@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.272 2007/04/10 11:39:06 johans Exp $ */
+/* $Id: httpd.c,v 1.273 2007/04/10 12:50:14 johans Exp $ */
 
 #include	"config.h"
 
@@ -98,7 +98,7 @@
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.272 2007/04/10 11:39:06 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.273 2007/04/10 12:50:14 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1689,12 +1689,17 @@ standalone_socket(int id)
 		bzero(&afa, sizeof(afa));
 		strcpy(afa.af_name, "httpready");
 		if ((setsockopt(sd, SOL_SOCKET, SO_ACCEPTFILTER, &afa, sizeof(afa))) == -1)
-			err(1, "setsockopt(ACCEPTFILTER)");
+		{
+			warn("setsockopt(ACCEPTFILTER) - missing accf_http(9)?");
+			strcpy(afa.af_name, "dataready");
+			if ((setsockopt(sd, SOL_SOCKET, SO_ACCEPTFILTER, &afa, sizeof(afa))) == -1)
+				warn("setsockopt(ACCEPTFILTER) - missing accf_data(9)?");
+		}
 #else		/* SO_ACCEPTFILTER */
 # ifdef		TCP_DEFER_ACCEPT
 		temp = 180;
 		if ((setsockopt(sd, SOL_TCP, TCP_DEFER_ACCEPT, &temp, sizeof(temp))) == -1)
-			err(1, "setsockopt(TCP_DEFER_ACCEPT)");
+			warn("setsockopt(TCP_DEFER_ACCEPT)");
 # endif		/* TCP_DEFER_ACCEPT */
 #endif		/* SO_ACCEPTFILTER */
 	}
