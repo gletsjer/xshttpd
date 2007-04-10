@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.271 2007/04/10 10:50:56 johans Exp $ */
+/* $Id: httpd.c,v 1.272 2007/04/10 11:39:06 johans Exp $ */
 
 #include	"config.h"
 
@@ -98,7 +98,7 @@
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.271 2007/04/10 10:50:56 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.272 2007/04/10 11:39:06 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -1608,14 +1608,14 @@ standalone_socket(int id)
 #ifdef		HAVE_GETADDRINFO
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = cursock->family;
-#ifdef		__linux__
+# ifdef		__linux__
 	if (PF_UNSPEC == cursock->family)
-#ifdef		INET6
+#  ifdef	INET6
 		hints.ai_family = PF_INET6;
-#else		/* INET6 */
+#  else		/* INET6 */
 		hints.ai_family = PF_INET;
-#endif		/* INET6 */
-#endif		/* __linux__ */
+#  endif	/* INET6 */
+# endif		/* __linux__ */
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
 	if ((getaddrinfo(cursock->address ? cursock->address : NULL,
@@ -1635,11 +1635,11 @@ standalone_socket(int id)
 	if ((setsockopt(sd, SOL_SOCKET, SO_REUSEPORT, &temp, sizeof(temp))) == -1)
 		err(1, "setsockopt(REUSEPORT)");
 #else	/* SO_REUSEPORT */
-#ifdef	SO_REUSEADDR
+# ifdef	SO_REUSEADDR
 	temp = 1;
 	if ((setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &temp, sizeof(temp))) == -1)
 		err(1, "setsockopt(REUSEADDR)");
-#endif	/* SO_REUSEADDR */
+# endif	/* SO_REUSEADDR */
 #endif	/* SO_REUSEPORT */
 
 	temp = 1;
@@ -1681,31 +1681,36 @@ standalone_socket(int id)
 	if (listen(sd, MAXLISTEN))
 		err(1, "listen()");
 
-#ifdef	SO_ACCEPTFILTER
-	/* can only be called after listen() */
 	if (config.useacceptfilter)
 	{
+		/* can only be called after listen() */
+#ifdef		SO_ACCEPTFILTER
 		struct	accept_filter_arg	afa;
 		bzero(&afa, sizeof(afa));
 		strcpy(afa.af_name, "httpready");
 		if ((setsockopt(sd, SOL_SOCKET, SO_ACCEPTFILTER, &afa, sizeof(afa))) == -1)
 			err(1, "setsockopt(ACCEPTFILTER)");
+#else		/* SO_ACCEPTFILTER */
+# ifdef		TCP_DEFER_ACCEPT
+		temp = 180;
+		if ((setsockopt(sd, SOL_TCP, TCP_DEFER_ACCEPT, &temp, sizeof(temp))) == -1)
+			err(1, "setsockopt(TCP_DEFER_ACCEPT)");
+# endif		/* TCP_DEFER_ACCEPT */
+#endif		/* SO_ACCEPTFILTER */
 	}
-#endif	/* SO_ACCEPTFILTER */
-
 
 	if (cursock->usessl)
 		loadssl();
 
 #ifdef		HAVE_SETRLIMIT
-#ifdef		RLIMIT_NPROC
+# ifdef		RLIMIT_NPROC
 	limit.rlim_max = limit.rlim_cur = RLIM_INFINITY;
 	setrlimit(RLIMIT_NPROC, &limit);
-#endif		/* RLIMIT_NPROC */
-#ifdef		RLIMIT_CPU
+# endif		/* RLIMIT_NPROC */
+# ifdef		RLIMIT_CPU
 	limit.rlim_max = limit.rlim_cur = RLIM_INFINITY;
 	setrlimit(RLIMIT_CPU, &limit);
-#endif		/* RLIMIT_CPU */
+# endif		/* RLIMIT_CPU */
 #endif		/* HAVE_SETRLIMIT */
 
 	set_signals(); reqs = 0;
