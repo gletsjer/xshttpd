@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.270 2007/04/07 21:34:51 johans Exp $ */
+/* $Id: httpd.c,v 1.271 2007/04/10 10:50:56 johans Exp $ */
 
 #include	"config.h"
 
@@ -98,7 +98,7 @@
 #endif
 
 static char copyright[] =
-"$Id: httpd.c,v 1.270 2007/04/07 21:34:51 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+"$Id: httpd.c,v 1.271 2007/04/10 10:50:56 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
@@ -320,6 +320,8 @@ load_config()
 						config.virtualhostdir = strdup(value);
 					else if (!strcasecmp("UseLocalScript", key))
 						config.uselocalscript = !strcasecmp("true", value);
+					else if (!strcasecmp("UseAcceptFilter", key))
+						config.useacceptfilter = !strcasecmp("true", value);
 					else if (!strcasecmp("ScriptCpuLimit", key))
 						config.scriptcpulimit = atoi(value);
 					else if (!strcasecmp("ScriptTimeout", key))
@@ -1552,30 +1554,33 @@ process_request()
 static	void
 standalone_main()
 {
-	char			id = 'A';
+	char			id = 'B';
 
-	detach(); open_logs(0);
+	detach();
+	open_logs(0);
 
-	for (cursock = config.sockets; cursock; cursock = cursock->next)
+	/* start with second socket - the first will be last */
+	for (cursock = config.sockets->next; cursock; cursock = cursock->next)
 	{
-		if (cursock->next)
-			/* spawn auxiliary master */
-			switch (fork())
-			{
-			case -1:
-				warn("fork() failed");
-				killpg(0, SIGTERM);
-				exit(1);
-			case 0:
-				mainhttpd = 0;
-				standalone_socket(id);
-				/* NOTREACHED */
-			default:
-				id++;
-			}
+		/* spawn auxiliary master */
+		switch (fork())
+		{
+		case -1:
+			warn("fork() failed");
+			killpg(0, SIGTERM);
+			exit(1);
+		case 0:
+			mainhttpd = 0;
+			standalone_socket(id);
+			/* NOTREACHED */
+		default:
+			id++;
+		}
 	}
 	/* make myself useful */
-	standalone_socket(id);
+	cursock = config.sockets;
+	standalone_socket('A');
+	/* NOTREACHED */
 }
 
 static	void
@@ -1629,7 +1634,7 @@ standalone_socket(int id)
 	temp = 1;
 	if ((setsockopt(sd, SOL_SOCKET, SO_REUSEPORT, &temp, sizeof(temp))) == -1)
 		err(1, "setsockopt(REUSEPORT)");
-#else	/* HAVE_SO_REUSEPORT */
+#else	/* SO_REUSEPORT */
 #ifdef	SO_REUSEADDR
 	temp = 1;
 	if ((setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &temp, sizeof(temp))) == -1)
@@ -1675,6 +1680,19 @@ standalone_socket(int id)
 
 	if (listen(sd, MAXLISTEN))
 		err(1, "listen()");
+
+#ifdef	SO_ACCEPTFILTER
+	/* can only be called after listen() */
+	if (config.useacceptfilter)
+	{
+		struct	accept_filter_arg	afa;
+		bzero(&afa, sizeof(afa));
+		strcpy(afa.af_name, "httpready");
+		if ((setsockopt(sd, SOL_SOCKET, SO_ACCEPTFILTER, &afa, sizeof(afa))) == -1)
+			err(1, "setsockopt(ACCEPTFILTER)");
+	}
+#endif	/* SO_ACCEPTFILTER */
+
 
 	if (cursock->usessl)
 		loadssl();
