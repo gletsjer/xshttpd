@@ -10,45 +10,7 @@ httpd \- WWW server conforming to HTTP/1.1
 .I options
 ]
 
-.SH DESCRIPTION OF HTTPD
-What is XS\-HTTPD? XS\-HTTPD is a WWW server that has the following features:
-.IP \(bu 4
-It is pronounced as "access\-HTTP\-daemon"
-.IP \(bu 4
-It is SMALL (very small in fact: a factor two to three smaller than
-normal servers on disk and in memory)
-.IP \(bu 4
-It is FAST (because it is so small and does not do
-unnecessary things)
-.IP \(bu 4
-Uses very little CPU time
-.IP \(bu 4
-Configurable (configuration compiled in to make it small, but
-largely overridable on the command line)
-.IP \(bu 4
-Runs user CGI binaries under their \fIown\fP user ID!
-.IP \(bu 4
-Gets users' pages under their own user ID, allowing them to
-really have protected pages (using the built\-in authentication
-mechanism)!
-.IP \(bu 4
-Does not fork for every connection (has a fixed number of
-servers), only to replace a lost server (in case of timeouts).
-.IP \(bu 4
-Comes with some other useful programs
-.IP \(bu 4
-Offers Server-Side Includes for many common tasks, including
-built-in page counters (text or graphical)
-.IP \(bu 4
-Supports PHP and other interpreted file formats
-.IP \(bu 4
-Supports automatic decompression to save diskspace and bandwidth
-.IP \(bu 4
-Serves SSL (https) and http connections through the same daemon
-.IP \(bu 4
-Full support for IPv6
-.TP
-This manual describes the behaviour of @SERVER_IDENT@
+This manual describes the behaviour of @SERVER_IDENT@.
 
 .SH RUNNING THE HTTPD
 Note that if you are going to use a port number below or equal to 1024
@@ -144,7 +106,52 @@ httpd \-n 64 \-u http \-g www
 which will start 64 servers (64 concurrent connections possible),
 and run it under user ID http and group ID www.
 
-.SH OTHER FEATURES
+.SH DESIGN
+XS-HTTPD has some important features that distinguishes it from other
+well-know webservers. The following list highlights the main concepts:
+
+.SS Small and fast
+The webserver was designed to be small and fast. Although it should be
+fully standards-compliant, it does lack some of the more elaborate
+features that other servers offer. 
+.LP
+An imortant design choice is to run with pre-forked processes: which
+means it doesn't start up a new client process for every connection to
+the webserver. This has advantages and disadvantages, but in general
+leads to a faster response and less overhead.
+
+.SS Multi-user environment
+The server can be used on a multi-user system where every user has their
+own website(s). The webpages will be retreived under the user's uid, so
+there is no need to make documents with sensitive data (such as database
+passwords) readable to other users on the same server.
+.LP
+CGI scripts, server-side include controls (SSI) and server-side
+interpreters (PHP, Python) will run with full user privileges as well.
+This gives the users a lot of flexibility to organise their own webspace
+and also limits the effect of problems with a user's scripts to their
+own environment.
+
+.SS Full user control
+It should be possible for skilled users to exercise a great deal of
+control over their own webspace. The ability to run CGI binaries in any
+language or choose local interpreters and mime-types for any document is
+an important aspect of this.
+.LP
+But users can also limit access to (part of) their webspace to certain
+visitors using (built-in) HTTP authentication with freely choosen
+usernames and passwords. Users can choose for Basic or Digest
+authentication, or even configure access using SSL client-certificates,
+or blocking/allowing certain IP ranges.
+.LP
+Ofcourse the amount of control a user actually has can be limited by the
+webserver administrator. It is for instance possible to set resource
+limits on user scripts, or even disable the feature completely in the
+global configuration file.
+
+.SH FEATURES
+.LP
+
 .SS Automatic decompression
 One of the nice features of the WWW server is automatic decompression.
 This feature is dealt with in the file called \fBcompress.methods\fP.
@@ -179,6 +186,7 @@ fly for that user.
 Note that only one compression type per file is possible. Of course, you
 can make frontends for types that require multiple filters. In that case,
 it can be helpful to know that the list is traversed from top to bottom.
+
 .SS Authentication
 This server supports the \fIbasic\fP authentication protocol. This
 means that users can protect their pages with a username/password
@@ -191,6 +199,12 @@ worried about other parties intercepting your communications, you should
 configure \fBSSL\fP (as documented below).
 More information about setting up authentication paswords can be found
 in the manual pages of \fBxspasswd(1)\fP and \fBxsauth(5)\fP.
+.LP
+Authentication can also be handled using SSL client certificates.
+However this requires the user to deal with SSL_* environment variables
+in an CGI environment. See the description of the available CGI
+variables below for more information.
+
 .SS Secure Sockets Layer
 The webserver supports secure https connections as well as normal http.
 However if you want to do both, you will need to run seperate instances,
@@ -210,11 +224,34 @@ in the configuration file.
 An example SSL-Makefile that can help you generate the certificate,
 can be found in the httpd source distribution.
 
+.SS Server support for common tasks
+XS-httpd configuration files, server-side includes and several
+additional programs make certain tedious tasks a lot simpler for the
+common user. Examples are:
+.IP \(bu 4
+Pagecounters served using server-side includes: daily or total
+pageviews can be included in text or in graphical fonts.
+.IP \(bu 4
+Easy configuration of headers that describe the content: the
+mime-type, character set and language of documents can be set per file,
+file extension or directory tree by the user.
+.IP \(bu 4
+Allow user-settable redirects (HTTP 301, 302 code), server-side
+filename rewriting rules or proxying to have the server retreive
+contents from another backend server.
+
+
 .SH USER CONFIGURATION FILES
 There are several files that this WWW server considers special.
 These files start with a dot (hidden) and contain special instructions
 for the webserver that apply to a sigle file or all files in a directory
 (and underlying subdirectories).
+.TP
+.B .xsconf
+This file provides a generic interface to set a lot of the options
+mentioned below, specifically for a certain file or group of files.
+It allows you to set file-specific mimetype, character set, passwords
+and other access restrictions. See \fBxsconf(5)\fP for full details.
 .TP
 .B .noxs
 If this file exists in a certain directory, that entire
@@ -283,12 +320,6 @@ This file lets a user override the contents of the global
 same as that for the global configuration file and it applies
 (recursively) to the local subdirectories. See \fBxsscripts(5)\fP
 for more information.
-.TP
-.B .xsconf
-This file provides a generic interface to set a lot of the previously
-mentioned options, specifically for a certain file or group of files.
-It allows you to set file-specific mimetype, character set, passwords
-and other access restrictions. See \fBxsconf(5)\fP for full details.
 
 .SH SERVER-SIDE INCLUDES (SSI)
 One of the most advanced features of this WWW server is its
