@@ -6,22 +6,19 @@ httpd \- WWW server conforming to HTTP/1.1
 .SH SYNOPSIS
 .ta 8n
 .B httpd
-[
-.I options
-]
+.RI [ options ]
 
 This manual describes the behaviour of @SERVER_IDENT@.
 
-.SH RUNNING THE HTTPD
-Note that if you are going to use a port number below or equal to 1024
-(for example 80, the default port number), you will have to be
-.I root
-to start the WWW server. Also, if you want users'
-CGI binaries to be executed under their own user ID, you will have to
-start the WWW server as root.
+.SH RUNNING THE SERVER
+Note that the server must run as \fIroot\fP in order to use a port number 
+below or equal to 1024 (the default is 80).
+Also, to have users' CGI binaries executed under their own user ID,
+the webserver should be started with root privileges.
 .LP
-The server has a number of options. The standard options are listed below.
-These doe not have an equivalent configuration file setting:
+The server has a number of command line options. These are listed below,
+starting with the options that do not have an equivalent
+configuration file setting:
 .TP
 .B \-c configfile
 Uses the specified configuration file instead of the default
@@ -150,7 +147,6 @@ limits on user scripts, or even disable the feature completely in the
 global configuration file.
 
 .SH FEATURES
-.LP
 
 .SS Automatic decompression
 One of the nice features of the WWW server is automatic decompression.
