@@ -3,6 +3,7 @@ is not complete. Refer to cvs comments for more information.
 
 Changes since 3.5 beta 6
 - Minor documentation updates
+- Remove obsoleted command line arguments
 
 Changes since 3.5 beta 5
 - Show 403 when .noxs/.xsauth/.xsconf exists, but is not readable

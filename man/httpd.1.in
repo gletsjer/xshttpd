@@ -82,18 +82,6 @@ functionality on different interfaces. This name is also used for
 redirecting requests back to this host. Therefore, you must use
 a "full" (complete with the host's name and the domain) internet
 address, otherwise remote hosts will not be able to resolve the name.
-.TP
-.B \-A access\-log\-path
-If you give this option to the server, you will override the default
-file in which the server will place all retrieved files.
-.TP
-.B \-E error\-log\-path
-If you give this option to the server, you will override the default
-file in which the server will place all error messages.
-.TP
-.B \-R referer\-log\-path
-If you give this option to the server, you will override the default
-file in which the server will place references to local files.
 
 .SH EXAMPLE
 A typical startup sequence could be:

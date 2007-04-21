@@ -1928,7 +1928,7 @@ main(int argc, char **argv)
 {
 	int			option, num;
 	int			nolog = 0;
-	enum { optionp, optiond, optionhn, optionaa, optionrr, optionee };
+	enum { opt_port, opt_dir, opt_host };
 	char *		longopt[6] = { NULL, NULL, NULL, NULL, NULL, NULL };
 	uid_t		uid = 0;
 	gid_t		gid = 0;
@@ -1965,91 +1965,65 @@ main(int argc, char **argv)
 	config_preprocessor[0] = '\0';
 #endif		/* PATH_PREPROCESSOR */
 	snprintf(config_path, XS_PATH_MAX, "%s/httpd.conf", calcpath(HTTPD_ROOT));
-	while ((option = getopt(argc, argv, "a:c:d:g:l:m:n:p:r:su:vA:D:E:R:NP:")) != EOF)
+	while ((option = getopt(argc, argv, "a:c:d:g:m:n:p:u:NP:v")) != EOF)
 	{
 		switch(option)
 		{
-		case 'n':
-			if ((config.instances = atoi(optarg)) <= 0)
-				errx(1, "Invalid number of processes");
+		case 'a':	/* address */
+			longopt[opt_host] = optarg;
 			break;
-		case 'p':
-			longopt[optionp] = optarg;
+		case 'c':	/* configfile */
+			strlcpy(config_path, optarg, XS_PATH_MAX);
 			break;
-		case 'a':
-			longopt[optionhn] = optarg;
+		case 'd':	/* rootdir */
+			if (*optarg != '/')
+				errx(1, "The -d directory must start with a /");
+			longopt[opt_dir] = optarg;
 			break;
-		case 's':
-#ifdef		HANDLE_SSL
-			errx(1, "Option not supported: "
-				"set SSL options in httpd.conf");
-#else		/* HANDLE_SSL */
-			errx(1, "SSL support not enabled at compile-time");
-#endif		/* HANDLE_SSL */
-			break;
-		case 'u':
-			if ((uid = atoi(optarg)) > 0)
-				break;
-			if (!(userinfo = getpwnam(optarg)))
-				errx(1, "Invalid user ID");
-			uid = userinfo->pw_uid;
-			break;
-		case 'g':
+		case 'g':	/* group */
 			if ((gid = atoi(optarg)) > 0)
 				break;
 			if (!(groupinfo = getgrnam(optarg)))
 				errx(1, "Invalid group ID");
 			gid = groupinfo->gr_gid;
 			break;
-		case 'd':
-			if (*optarg != '/')
-				errx(1, "The -d directory must start with a /");
-			longopt[optiond] = optarg;
-			break;
-		case 'l':
-			errx(1, "-l is deprecated: use Users/HtmlDir");
-			break;
-		case 'm':
+		case 'm':	/* message */
 			strlcpy(message503, optarg, MYBUFSIZ);
 			break;
-		case 'c':
-			strlcpy(config_path, optarg, XS_PATH_MAX);
+		case 'n':	/* num. proceses */
+			if ((config.instances = atoi(optarg)) <= 0)
+				errx(1, "Invalid number of processes");
 			break;
-	 	case 'A':
-			longopt[optionaa] = optarg;
+		case 'p':	/* port */
+			longopt[opt_port] = optarg;
 			break;
-	 	case 'R':
-			longopt[optionrr] = optarg;
+		case 'u':	/* user */
+			if ((uid = atoi(optarg)) > 0)
+				break;
+			if (!(userinfo = getpwnam(optarg)))
+				errx(1, "Invalid user ID");
+			uid = userinfo->pw_uid;
 			break;
-	 	case 'E':
-			longopt[optionee] = optarg;
-			break;
-		case 'N':
+		case 'N':	/* nolog */
 			nolog = 1;
 			strlcpy(config_path, "/dev/null", XS_PATH_MAX);
 			break;
-	 	case 'P':
+	 	case 'P':	/* preprocessor */
 			strlcpy(config_preprocessor, optarg, XS_PATH_MAX);
 			break;
-		case 'v':
+		case 'v':	/* version */
 			printf("%s", SERVER_IDENT);
 #ifdef		HAVE_UNAME
 			uname(&utsname);
 			printf(" %s/%s", utsname.sysname, utsname.release);
 #endif		/* HAVE_UNAME */
 #ifdef		OPENSSL_VERSION_NUMBER
+			printf(" OpenSSL/%d.%d.%d",
+				(int)(OPENSSL_VERSION_NUMBER >> 28 & 0xf),
+				(int)(OPENSSL_VERSION_NUMBER >> 20 & 0xff),
+				(int)(OPENSSL_VERSION_NUMBER >> 12 & 0xff));
 # if		OPENSSL_VERSION_NUMBER >> 4 & 0xff
-			/* if (OPENSSL_VERSION_NUMBER >> 4 & 0xff) */
-				printf(" OpenSSL/%d.%d.%d%c",
-					(int)(OPENSSL_VERSION_NUMBER >> 28 & 0xf),
-					(int)(OPENSSL_VERSION_NUMBER >> 20 & 0xff),
-					(int)(OPENSSL_VERSION_NUMBER >> 12 & 0xff),
-					'a' - 1 + (unsigned char)(OPENSSL_VERSION_NUMBER >> 4 & 0xff));
-# else
-				printf(" OpenSSL/%d.%d.%d",
-					(int)(OPENSSL_VERSION_NUMBER >> 28 & 0xf),
-					(int)(OPENSSL_VERSION_NUMBER >> 20 & 0xff),
-					(int)(OPENSSL_VERSION_NUMBER >> 12 & 0xff));
+			putchar('a' - 1 + (unsigned char)(OPENSSL_VERSION_NUMBER >> 4 & 0xff));
 # endif
 #endif		/* OPENSSL_VERSION_NUMBER */
 #ifdef		PCRE_MAJOR
@@ -2110,7 +2084,7 @@ main(int argc, char **argv)
 				);
 			return 0;
 		default:
-			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number]\n[-d rootdir] [-D documentdir] [-r refer-ignore-domain]\n[-A access_log] [-E error_log] [-R referrer_log] [-m service-message] [-v]");
+			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number]\n[-d rootdir] [-m service-message] [-v]");
 		}
 	}
 	load_config();
@@ -2133,20 +2107,15 @@ main(int argc, char **argv)
 	}
 
 	if (nolog)
-	{
-			config.pidfile =
-					config.system->logaccess =
-					config.system->logreferer =
-					config.system->logerror =
-					strdup("/dev/null");
-	}
+		config.pidfile =
+			config.system->logaccess =
+			config.system->logreferer =
+			config.system->logerror =
+			strdup("/dev/null");
 	if (config.sockets)
-			SET_OPTION(optionp,  config.sockets[0].port);
-	SET_OPTION(optiond,  config.systemroot);
-	SET_OPTION(optionhn, config.system->hostname);
-	SET_OPTION(optionaa, config.system->logaccess);
-	SET_OPTION(optionrr, config.system->logreferer);
-	SET_OPTION(optionee, config.system->logerror);
+		SET_OPTION(opt_port,  config.sockets[0].port);
+	SET_OPTION(opt_dir,  config.systemroot);
+	SET_OPTION(opt_host, config.system->hostname);
 	if (uid)
 		config.system->userid = uid;
 	if (gid)
