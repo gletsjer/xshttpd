@@ -5,6 +5,7 @@ Changes since 3.5 beta 6
 - Minor documentation updates
 - Remove obsoleted command line arguments
 - Remove SSI compile time option (now runtime configuration option)
+- Remove IPv6 compile time option
 
 Changes since 3.5 beta 5
 - Show 403 when .noxs/.xsauth/.xsconf exists, but is not readable

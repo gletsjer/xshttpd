@@ -74,16 +74,18 @@
 #ifdef		HAVE_CURL
 #include	<curl/curl.h>
 #endif		/* HAVE_CURL */
-#ifndef		s6_addr32
-#define		s6_addr32	__u6_addr.__u6_addr32
-#endif		/* s6_addr32 */
-#ifndef		IN6_ARE_MASKED_ADDR_EQUAL
-#define IN6_ARE_MASKED_ADDR_EQUAL(d, a, m)      (       \
+#ifdef		HAVE_STRUCT_IN6_ADDR
+# ifndef	s6_addr32
+#  define	s6_addr32	__u6_addr.__u6_addr32
+# endif		/* s6_addr32 */
+# ifndef	IN6_ARE_MASKED_ADDR_EQUAL
+#  define IN6_ARE_MASKED_ADDR_EQUAL(d, a, m)      (       \
 	(((d)->s6_addr32[0] ^ (a)->s6_addr32[0]) & (m)->s6_addr32[0]) == 0 && \
 	(((d)->s6_addr32[1] ^ (a)->s6_addr32[1]) & (m)->s6_addr32[1]) == 0 && \
 	(((d)->s6_addr32[2] ^ (a)->s6_addr32[2]) & (m)->s6_addr32[2]) == 0 && \
 	(((d)->s6_addr32[3] ^ (a)->s6_addr32[3]) & (m)->s6_addr32[3]) == 0 )
-#endif		/* IN6_ARE_MASKED_ADDR_EQUAL */
+# endif		/* IN6_ARE_MASKED_ADDR_EQUAL */
+#endif		/* HAVE_STRUCT_IN6_ADDR */
 
 #include	"httpd.h"
 #include	"methods.h"
@@ -100,9 +102,9 @@
 #include	"authenticate.h"
 
 static int	getfiletype		(int);
-#ifdef	INET6
+#ifdef		HAVE_STRUCT_IN6_ADDR
 static int	v6masktonum		(int, struct in6_addr *);
-#endif	/* INET6 */
+#endif		/* HAVE_STRUCT_IN6_ADDR */
 static void	senduncompressed	(int);
 static void	sendcompressed		(int, const char *);
 static char *	find_file		(const char *, const char *, const char *)	MALLOC_FUNC;
@@ -432,7 +434,7 @@ sendcompressed(int fd, const char *method)
 	senduncompressed(processed);
 }
 
-#ifdef		INET6
+#ifdef		HAVE_STRUCT_IN6_ADDR
 static	int
 v6masktonum(int mask, struct in6_addr *addr6)
 {
@@ -456,7 +458,7 @@ v6masktonum(int mask, struct in6_addr *addr6)
 
 	return 0;
 }
-#endif		/* INET6 */
+#endif		/* HAVE_STRUCT_IN6_ADDR */
 
 static int
 check_allow_host(const char *hostname, char *pattern)
@@ -489,7 +491,7 @@ check_allow_host(const char *hostname, char *pattern)
 		if (IPMASK(remote, subnet) == IPMASK(allow, subnet))
 			return 1;
 	}
-#ifdef		INET6
+#ifdef		HAVE_STRUCT_IN6_ADDR
 	if ((slash = strchr(pattern, '/')) &&
 		strchr(pattern, ':') &&
 		strchr(hostname, ':'))
@@ -506,7 +508,7 @@ check_allow_host(const char *hostname, char *pattern)
 		if (IN6_ARE_MASKED_ADDR_EQUAL(&remote, &allow, &mask))
 			return 1;
 	}
-#endif		/* INET6 */
+#endif		/* HAVE_STRUCT_IN6_ADDR */
 
 	/* allow any host if the local port matches :port in .noxs */
 #ifdef		HAVE_GETADDRINFO

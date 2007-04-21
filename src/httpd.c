@@ -349,9 +349,7 @@ load_config()
 					else if (!strcasecmp("ListenFamily", key))
 						lsock->family =
 							!strcasecmp("IPv4", value) ? PF_INET :
-#ifdef		INET6
 							!strcasecmp("IPv6", value) ? PF_INET6 :
-#endif		/* INET6 */
 							PF_UNSPEC;
 					else if (!strcasecmp("SocketName", key))
 						lsock->socketname = strdup(value);
@@ -1613,11 +1611,7 @@ standalone_socket(int id)
 	hints.ai_family = cursock->family;
 # ifdef		__linux__
 	if (PF_UNSPEC == cursock->family)
-#  ifdef	INET6
 		hints.ai_family = PF_INET6;
-#  else		/* INET6 */
-		hints.ai_family = PF_INET;
-#  endif	/* INET6 */
 # endif		/* __linux__ */
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
@@ -2033,11 +2027,6 @@ main(int argc, char **argv)
 			printf(" PCRE/%u.%u", PCRE_MAJOR, PCRE_MINOR);
 #endif		/* PCRE_MINOR */
 			printf("\nCompiled options:\n\t"
-#ifdef		INET6
-				"+INET6 "
-#else		/* INET6 */
-				"-INET6 "
-#endif		/* INET6 */
 #ifdef		HANDLE_SSL
 				"+SSL "
 #else		/* HANDLE_SSL */

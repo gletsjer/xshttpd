@@ -195,6 +195,9 @@
 /* Define to 1 if you have the `strsep' function. */
 #undef HAVE_STRSEP
 
+/* Define to 1 if the system has the type `struct in6_addr'. */
+#undef HAVE_STRUCT_IN6_ADDR
+
 /* Define to 1 if you have the <sys/exec.h> header file. */
 #undef HAVE_SYS_EXEC_H
 
@@ -258,9 +261,6 @@
 /* Default root directory for the server. This is were the subdirs /logs,
    /htdocs and /cgi-bin reside. This can be overriden from RootDir config. */
 #undef HTTPD_ROOT
-
-/* enable ipv6 support */
-#undef INET6
 
 /* File containing private SSL server key */
 #undef KEY_FILE

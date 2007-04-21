@@ -40,6 +40,7 @@ AC_TYPE_SIZE_T
 AC_TYPE_SIGNAL
 AC_CHECK_TYPES(socklen_t,,, [#include <sys/types.h>
 #include <sys/socket.h>])
+AC_CHECK_TYPES(struct in6_addr,,, [#include <netinet/in.h>])
 
 dnl Checks for library functions.
 AC_FUNC_FORK
@@ -163,8 +164,6 @@ then
 fi
 
 # XS_SHOW_HELP([--enable options], [default in brackets:])
-XS_ARG_DEFAULT(ipv6, INET6, yes,
-	[enable ipv6 support])
 # This is now enabled by default
 AC_DEFINE(SCRIPT_METHODS, "script.methods",
 	[File describing script extensions and interpreters])
