@@ -160,7 +160,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	setenv("REDIRECT_STATUS", "200", 1);
 
 	nph = (!strncmp(file, "nph-", 4) || strstr(file, "/nph-"));
-	dossi = (!strncmp(file, "ssi-", 4) || strstr(file, "/ssi-"));
+	if (config.usessi)
+		dossi = (!strncmp(file, "ssi-", 4) || strstr(file, "/ssi-"));
 	p[0] = p[1] = -1;
 	if (1 /* !nph || do_ssl */)
 	{
@@ -513,7 +514,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	fflush(stdout);
 
 	totalwritten = 0;
-#ifdef		WANT_SSI
 	if (dossi)
 	{
 		off_t ttw = 0;
@@ -522,48 +522,47 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		totalwritten = ttw;
 	}
 	else
-#endif		/* WANT_SSI */
-	for (;;)
-	{
-		int result = read(p[0], input, RWBUFSIZE);
+		for (;;)
+		{
+			int result = read(p[0], input, RWBUFSIZE);
 
-		if (result < 0)
-		{
-			if (errno == EINTR || errno == EWOULDBLOCK)
+			if (result < 0)
 			{
-				usleep(300);
-				continue;
+				if (errno == EINTR || errno == EWOULDBLOCK)
+				{
+					usleep(300);
+					continue;
+				}
+				secprintf("[read() error from CGI: %s]", strerror(errno));
+				break;
 			}
-			secprintf("[read() error from CGI: %s]", strerror(errno));
-			break;
+			else if (!result)
+				break;
+			/* result > 0 */
+			writetodo = result; temp = input;
+			while (writetodo > 0)
+			{
+				written = secwrite(temp, writetodo);
+				if (written < 0)
+				{
+					secprintf("[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
+						strerror(errno), fileno(stdout), temp,
+						writetodo);
+					goto END;
+				}
+				else if (!written)
+				{
+					secprintf("[Connection closed: couldn't write]\n");
+					goto END;
+				}
+				else
+				{
+					writetodo -= written;
+					temp += written;
+				}
+			}
+			totalwritten += received;
 		}
-		else if (!result)
-			break;
-		/* result > 0 */
-		writetodo = result; temp = input;
-		while (writetodo > 0)
-		{
-			written = secwrite(temp, writetodo);
-			if (written < 0)
-			{
-				secprintf("[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
-					strerror(errno), fileno(stdout), temp,
-					writetodo);
-				goto END;
-			}
-			else if (!written)
-			{
-				secprintf("[Connection closed: couldn't write]\n");
-				goto END;
-			}
-			else
-			{
-				writetodo -= written;
-				temp += written;
-			}
-		}
-		totalwritten += received;
-	}
 
 	if (!getenv("ERROR_CODE"))
 	{

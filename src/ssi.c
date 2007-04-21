@@ -4,8 +4,6 @@
 
 #include	"config.h"
 
-#ifdef		WANT_SSI
-
 #ifdef		HAVE_SYS_TIME_H
 #include	<sys/time.h>
 #endif		/* HAVE_SYS_TIME_H */
@@ -1117,5 +1115,3 @@ sendwithdirectives(int fd, off_t *size)
 			free(setvars[setvarlen]);
 	return ret;
 }
-
-#endif		/* WANT_SSI */

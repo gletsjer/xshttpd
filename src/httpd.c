@@ -245,6 +245,7 @@ load_config()
 
 	/* Set simple defaults - others follow the parsing */
 	config.usednslookup = 1;
+	config.usessi = 1;
 	config.scriptcpulimit = 2;
 	config.scripttimeout = 6;
 	config.sockets = NULL;
@@ -322,6 +323,8 @@ load_config()
 						config.uselocalscript = !strcasecmp("true", value);
 					else if (!strcasecmp("UseAcceptFilter", key))
 						config.useacceptfilter = !strcasecmp("true", value);
+					else if (!strcasecmp("UseServerSideInclude", key))
+						config.usessi = !strcasecmp("true", value);
 					else if (!strcasecmp("ScriptCpuLimit", key))
 						config.scriptcpulimit = atoi(value);
 					else if (!strcasecmp("ScriptTimeout", key))
@@ -2035,11 +2038,6 @@ main(int argc, char **argv)
 #else		/* INET6 */
 				"-INET6 "
 #endif		/* INET6 */
-#ifdef		WANT_SSI
-				"+SSI "
-#else		/* WANT_SSI */
-				"-SSI "
-#endif		/* WANT_SSI */
 #ifdef		HANDLE_SSL
 				"+SSL "
 #else		/* HANDLE_SSL */
@@ -2089,9 +2087,7 @@ main(int argc, char **argv)
 	}
 	load_config();
 	/* sanity chck */
-#ifdef		WANT_SSI
 	counter_versioncheck();
-#endif		/* WANT_SSI */
 
 #ifdef		HAVE_SETPRIORITY
 	if (setpriority(PRIO_PROCESS, (pid_t)0, config.priority))

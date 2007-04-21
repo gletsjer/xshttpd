@@ -84,6 +84,13 @@ virtual host data. The \fIVirtualHostDir\fP may be an absolute path or
 relative to \fISystemRoot\fP - if the setting is omited then
 \fIVirtualHostDir\fP will be the same as \fISystemRoot\fP.
 .TP
+.B UseServerSideInclude [true|false]
+By default all HTML files will be parsed for server-side include directives.
+The output of CGI scripts with the filename prefix "ssi-" will also be
+checked for server-side includes. However if this setting is turned off,
+SSI directives will be ignored and files are not checked
+(which may slightly increase performance of the webserver).
+.TP
 .B UseLocalScript [true|false]
 If enabled all directories will be checked for the presence of a .xsscripts
 file. This can be used to specify how files with certain

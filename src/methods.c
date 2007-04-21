@@ -147,9 +147,7 @@ PerlInterpreter *	my_perl = NULL;
 static void
 senduncompressed(int fd)
 {
-#ifdef		WANT_SSI
 	int		errval;
-#endif		/* WANT_SSI */
 	int		dynamic = 0;
 	ssize_t		written;
 	off_t		size;
@@ -173,9 +171,8 @@ senduncompressed(int fd)
 	{
 		char *env;
 
-#ifdef		WANT_SSI
 		/* This is extra overhead, overhead, overhead! */
-		if (getfiletype(0))
+		if (config.usessi && getfiletype(0))
 		{
 			char input[RWBUFSIZE];
 
@@ -188,7 +185,6 @@ senduncompressed(int fd)
 				}
 			lseek(fd, (off_t)0, SEEK_SET);
 		}
-#endif		/* WANT_SSI */
 		if ((env = getenv("IF_MODIFIED_SINCE")))
 		{
 			strptime(env, "%a, %d %b %Y %H:%M:%S", &reqtime);
@@ -254,70 +250,67 @@ senduncompressed(int fd)
 	if (headonly)
 		goto DONE;
 
-#ifdef		WANT_SSI
 	UNPARSED:
 	if (!dynamic)
 	{
-#endif		/* WANT_SSI */
 #ifdef		HAVE_MMAP
-	/* don't use mmap() for files >12Mb to avoid hogging memory */
-	if (size < 12 * 1048576)
-	{
-		char		*buffer;
-		size_t		msize = (size_t)size;
-
-		if ((buffer = (char *)mmap((caddr_t)0, msize, PROT_READ,
-			MAP_SHARED, fd, (off_t)0)) == (char *)-1)
-			err(1, "[%s] httpd: mmap() failed", currenttime);
-		alarm((msize / MINBYTESPERSEC) + 20);
-		fflush(stdout);
-		if ((size_t)(written = secwrite(buffer, msize)) != msize)
+		/* don't use mmap() for files >12Mb to avoid hogging memory */
+		if (size < 12 * 1048576)
 		{
-			if (written != -1)
-				warn("[%s] httpd: Aborted for `%s' (%zu of %zu bytes sent)",
-					currenttime,
-					remotehost[0] ? remotehost : "(none)",
-					written, msize);
-			else
-				warn("[%s] httpd: Aborted for `%s'",
-					currenttime,
-					remotehost[0] ? remotehost : "(none)");
-		}
-		(void) munmap(buffer, msize);
-		size = written;
-		alarm(0);
-	}
-	else
-#endif		/* HAVE_MMAP */
-	/* send static content without mmap() */
-	{
-		char		buffer[RWBUFSIZE];
-		ssize_t		secreadtotal;
-		off_t		writetotal;
+			char		*buffer;
+			size_t		msize = (size_t)size;
 
-		writetotal = 0;
-		/* alarm((size / MINBYTESPERSEC) + 20); */
-		alarm(0);
-		fflush(stdout);
-		while ((secreadtotal = secread(fd, buffer, RWBUFSIZE)) > 0)
-		{
-			if ((written = secwrite(buffer, (size_t)secreadtotal))
-					!= secreadtotal)
+			if ((buffer = (char *)mmap((caddr_t)0, msize, PROT_READ,
+				MAP_SHARED, fd, (off_t)0)) == (char *)-1)
+				err(1, "[%s] httpd: mmap() failed", currenttime);
+			alarm((msize / MINBYTESPERSEC) + 20);
+			fflush(stdout);
+			if ((size_t)(written = secwrite(buffer, msize)) != msize)
 			{
-				warn("[%s] httpd: Aborted for `%s' (No mmap) (%" PRId64
-						" of %" PRId64 " bytes sent)",
-					currenttime,
-					remotehost[0] ? remotehost : "(none)",
-					(int64_t)writetotal + written, size);
-				size = writetotal;
-				alarm(0); goto DONE;
+				if (written != -1)
+					warn("[%s] httpd: Aborted for `%s' (%zu of %zu bytes sent)",
+						currenttime,
+						remotehost[0] ? remotehost : "(none)",
+						written, msize);
+				else
+					warn("[%s] httpd: Aborted for `%s'",
+						currenttime,
+						remotehost[0] ? remotehost : "(none)");
 			}
-			writetotal += written;
+			(void) munmap(buffer, msize);
+			size = written;
+			alarm(0);
 		}
-		size = writetotal;
-		alarm(0);
-	}
-#ifdef		WANT_SSI
+		else
+#endif		/* HAVE_MMAP */
+		/* send static content without mmap() */
+		{
+			char		buffer[RWBUFSIZE];
+			ssize_t		secreadtotal;
+			off_t		writetotal;
+
+			writetotal = 0;
+			/* alarm((size / MINBYTESPERSEC) + 20); */
+			alarm(0);
+			fflush(stdout);
+			while ((secreadtotal = secread(fd, buffer, RWBUFSIZE)) > 0)
+			{
+				if ((written = secwrite(buffer, (size_t)secreadtotal))
+						!= secreadtotal)
+				{
+					warn("[%s] httpd: Aborted for `%s' (No mmap) (%" PRId64
+							" of %" PRId64 " bytes sent)",
+						currenttime,
+						remotehost[0] ? remotehost : "(none)",
+						(int64_t)writetotal + written, size);
+					size = writetotal;
+					alarm(0); goto DONE;
+				}
+				writetotal += written;
+			}
+			size = writetotal;
+			alarm(0);
+		}
 	}
 	else /* dynamic content only */
 	{
@@ -343,7 +336,6 @@ senduncompressed(int fd)
 			break;
 		}
 	}
-#endif		/* WANT_SSI */
 
 	DONE:
 	logrequest(real_path, size);

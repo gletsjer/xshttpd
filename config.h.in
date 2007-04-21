@@ -316,9 +316,6 @@
 /* Define if you have openssl, but no MD5Data() */
 #undef USE_OPENSSL_MD5
 
-/* enable server-side includes */
-#undef WANT_SSI
-
 /* Define like PROTOTYPES; this can be used by system headers. */
 #undef __PROTOTYPES
 

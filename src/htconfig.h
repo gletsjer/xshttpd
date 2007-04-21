@@ -68,6 +68,7 @@ extern struct configuration {
 	unsigned	uselocalscript: 1;
 	unsigned	usednslookup: 1;
 	unsigned	useacceptfilter: 1;
+	unsigned	usessi: 1;
 	char *		virtualhostdir;
 	char *		defaultcharset;
 	struct virtual *	system;

@@ -163,8 +163,6 @@ then
 fi
 
 # XS_SHOW_HELP([--enable options], [default in brackets:])
-XS_ARG_DEFAULT(ssi, WANT_SSI, yes,
-	[enable server-side includes])
 XS_ARG_DEFAULT(ipv6, INET6, yes,
 	[enable ipv6 support])
 # This is now enabled by default
