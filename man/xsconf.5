@@ -65,6 +65,17 @@ credentials will be presented with a 401 Permission Denied error.
 See \fBxsauth(5)\fP for the layout of such a file.
 
 .TP
+.B IndexFile
+Set an alternative index file to be displayed if the default
+\fIindex.html\fP does not exist.
+This setting only makes sense in a general \fB[*]\fP block.
+Note that the index is still subject to options that match this
+filename in other block.
+For example one can set \fIindex.py\fP as the index and add
+a \fB[*.py]\fP block that sets Python as a local interpreter for
+all *.py files.
+
+.TP
 .B ScriptTimeout
 Override the default timeout that is used to restrict the execution time
 of all CGI scripts (wall time in minutes). Other limits will still apply

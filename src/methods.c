@@ -138,6 +138,7 @@ static	ctypes	**isearches[] = { &litype, &itype, &ditype };
 static	char	charset[XS_PATH_MAX], mimetype[XS_PATH_MAX],
 		scripttype[XS_PATH_MAX],
 		language[XS_PATH_MAX], encoding[XS_PATH_MAX],
+		indexfile[XS_PATH_MAX],
 		p3pref[XS_PATH_MAX], p3pcp[XS_PATH_MAX];
 #ifdef		HAVE_CURL
 static	size_t	curl_readlen;
@@ -613,12 +614,9 @@ check_location(const char *cffile, const char *filename)
 				continue;
 			*p = '\0';
 
-			/* always reset the state */
-			state = 0;
-
 			/* try simple matching */
-			if (fnmatch(name, filename, 0) != FNM_NOMATCH)
-				state = 1;
+			state = !strcmp(name, "*") ||
+				fnmatch(name, filename, 0) != FNM_NOMATCH;
 			continue;
 		}
 
@@ -669,6 +667,8 @@ check_location(const char *cffile, const char *filename)
 			strlcpy(charset, value, XS_PATH_MAX);
 		else if (!strcasecmp(name, "Language"))
 			strlcpy(language, value, XS_PATH_MAX);
+		else if (!strcasecmp(name, "IndexFile"))
+			strlcpy(indexfile, value, XS_PATH_MAX);
 		else if (!strcasecmp(name, "p3pReference"))
 			strlcpy(p3pref, value, XS_PATH_MAX);
 		else if (!strcasecmp(name, "p3pCompactPolicy"))
@@ -982,7 +982,7 @@ do_get(char *params)
 	}
 
 	mimetype[0] = scripttype[0] = '\0';
-	charset[0] = encoding[0] = language[0] = '\0';
+	charset[0] = encoding[0] = language[0] = indexfile[0] = '\0';
 	p3pref[0] = p3pcp[0] = '\0';
 
 	/* Check user directives */
@@ -1195,7 +1195,14 @@ do_get(char *params)
 		*temp = '\0';
 
 	/* find next possible index file */
-	if (current->indexfiles)
+	if (*indexfile && (temp = strrchr(real_path, '/')))
+	{
+		*temp++ = '\0';
+		snprintf(real_path, XS_PATH_MAX, "/%s", indexfile);
+		filename = temp;
+		indexfile[0] = '\0';
+	}
+	else if (current->indexfiles)
 	{
 		char	*idx = NULL;
 
