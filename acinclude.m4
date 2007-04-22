@@ -73,6 +73,7 @@ AC_DEFUN([XS_CHECK_WITH], [
 
 # XS_TRY_CONFIG(path, buildprog)
 AC_DEFUN([XS_TRY_CONFIG], [
+	unset progpath ac_cv_path_progpath
 	AC_PATH_PROG(progpath, $1)
 	if test x${progpath} != x
 	then
