@@ -2052,6 +2052,11 @@ main(int argc, char **argv)
 #else		/* HAVE_PERL */
 				"-PERL "
 #endif		/* HAVE_PERL */
+#ifdef		HAVE_PYTHON
+				"+PYTHON "
+#else		/* HAVE_PYTHON */
+				"-PYTHON "
+#endif		/* HAVE_PYTHON */
 #ifdef		AUTH_LDAP
 				"+LDAP "
 #else		/* AUTH_LDAP */
