@@ -162,6 +162,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	nph = (!strncmp(file, "nph-", 4) || strstr(file, "/nph-"));
 	if (config.usessi)
 		dossi = (!strncmp(file, "ssi-", 4) || strstr(file, "/ssi-"));
+	else
+		dossi = 0;
 	p[0] = p[1] = -1;
 	if (1 /* !nph || do_ssl */)
 	{
