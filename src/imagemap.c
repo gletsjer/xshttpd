@@ -36,7 +36,7 @@ static	void	servererr		(const char *)	NORETURN;
 static	int	pointinpoly		(void);
 static	int	pointincircle		(void);
 static	int	pointinrect		(void);
-static	void	sendmesg		(const char *);
+static	void	sendmesg		(const char *)	NORETURN;
 
 static	double	testpoint[2], pointarray[MAXVERTS][2];
 
