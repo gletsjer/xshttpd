@@ -148,9 +148,7 @@ hexdigit(int ch)
 	if ((temp = strchr(hexdigits, islower(ch) ? toupper(ch) : ch)))
 		return (temp - hexdigits);
 	else
-	{
 		return (-1);
-	}
 }
 
 /* sizeof(hex) >= 2 * len + 1 */

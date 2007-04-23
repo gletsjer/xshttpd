@@ -8,6 +8,7 @@ Changes since 3.5 beta 6
 - Remove IPv6 compile time option
 - Add local IndexFile option to .xsconf
 - Don't install xschpass by default; Install suid root if requested
+- Remove broken user-name guessing from 404 error page
 
 Changes since 3.5 beta 5
 - Show 403 when .noxs/.xsauth/.xsconf exists, but is not readable

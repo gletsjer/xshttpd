@@ -8,10 +8,10 @@ httpd_SOURCES = httpd.c authenticate.c cgi.c convert.c fcgi.c \
 if LDAP
 httpd_SOURCES += ldap.c 
 endif
-httpd_CFLAGS = @httpd_cflags@ -DBUILD_HTTPD
+httpd_CFLAGS = @httpd_cflags@
 httpd_LDFLAGS = @httpd_ldflags@ @libxs_ldflags@
 
-libxs_a_SOURCES = decode.c extra.c local.c path.c xscrypt.c
+libxs_a_SOURCES = decode.c extra.c path.c xscrypt.c
 libxs_a_CFLAGS = @libxs_cflags@
 
 if SUIDCGI

@@ -19,11 +19,7 @@
 struct virtual			*current;
 struct configuration	config;
 
-void	error			(const char *)	NORETURN;
-void	redirect		(const char *, int);
-void	server_error		(const char *, const char *);
-static	int	difference		(const char *, const char *);
-static	int	check_user		(const struct passwd *);
+static	void	error			(const char *)	NORETURN;
 static	void	user_unknown		(void);
 static	void	post_on_non_cgi		(void);
 static	void	invalid_path		(void);
@@ -51,7 +47,7 @@ static	const	char	*error_code, *error_readable, *error_url,
 static	char		buffer[BUFSIZ], *temp;
 char			rootdir[XS_PATH_MAX];
 
-void
+static void
 error(const char *what)
 {
 	printf("Content-type: text/html\r\n\r\n");
@@ -66,72 +62,9 @@ error(const char *what)
 	exit(0);
 }
 
-void
-redirect(const char *redir, int code)
-{
-	printf("[redirect() called - transform_user_dir() is broken]\n");
-	(void)redir;
-	(void)code;
-}
-
-void
-server_error(const char *readable, const char *code)
-{
-	printf("[server_error() called - transform_user_dir() is broken]\n");
-	(void)readable;
-	(void)code;
-}
-
-static	int
-difference(const char *what1, const char *what2)
-{
-	int		rank;
-	const	char	*search, *follow;
-	char		ch;
-
-	rank = 0;
-	for (search = what1, follow = what2; (ch = *search); search++)
-	{
-		if (ch == *follow)
-			rank--;
-		else if (!strchr(what2, ch))
-			rank += 5;
-		else
-			rank += 2;
-		if (*follow)
-			follow++;
-	}
-	rank += strlen(follow);
-	if (rank < 0)
-		rank = 0;
-	return(rank);
-}
-
-static	int
-check_user(const struct passwd *userinfo)
-{
-	char		dirname[XS_PATH_MAX], *end;
-
-	if (transform_user_dir(dirname, userinfo, 0))
-		return(0);
-	strlcat(dirname, "/", XS_PATH_MAX);
-	end = dirname + strlen(dirname);
-	strlcat(dirname, INDEX_HTML, XS_PATH_MAX);
-	if (!access(dirname, F_OK))
-		return(1);
-	*end = '\0';
-	strlcat(dirname, INDEX_HTML_2, XS_PATH_MAX);
-	if (!access(dirname, F_OK))
-		return(1);
-	return(0);
-}
-
 static	void
 user_unknown()
 {
-	userrank		top[10];
-	const	struct	passwd	*user;
-	int			count, count2, rank, said;
 	char			filename[XS_PATH_MAX];
 
 	strlcpy(buffer, error_url_escaped + 2, BUFSIZ);
@@ -139,50 +72,6 @@ user_unknown()
 		*temp = 0;
 	printf("<p>The user <b>%s</b> is unknown to this system.</p>\n",
 		buffer);
-	strlcpy(buffer, error_url + 2, BUFSIZ);
-	if ((temp = strchr(buffer, '/')))
-		*(temp++) = 0;
-	for (count = 0; count < 10; count++)
-	{
-		top[count].username[0] = 0;
-		top[count].rank = 10000;
-	}
-	while ((user = getpwent()))
-	{
-		rank = difference(buffer, user->pw_name);
-		count = 0;
-		while ((count < 10) && (top[count].rank < rank))
-			count++;
-		if (count < 10)
-		{
-			if (!check_user(user))
-				continue;
-			for (count2 = 9; count2 > count; count2--)
-				top[count2] = top[count2 - 1];
-			top[count].rank = rank;
-			strlcpy(top[count].username, user->pw_name, XS_USER_MAX);
-		}
-	}
-	said = 0;
-	for (count = 0; (count < 10) && (top[count].rank <= 20); count++)
-	{
-		if (!said)
-		{
-			printf("<p>There are a few usernames that look\n");
-			printf("similar to what you typed. Perhaps you\n");
-			printf("meant one of these users:</p>\n<ul>\n");
-			said = 1;
-		}
-		printf("<li><a href=\"/%%7E%s/\">%s</a></li>\n",
-			top[count].username, top[count].username);
-	}
-	if (said)
-		printf("</ul>\n");
-	else
-	{
-		printf("<p>There are no usernames here that even look like\n");
-		printf("what you typed...</p>\n");
-	}
 	printf("<p>You may look at the <a href=\"/\">main index page</a>");
 	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTTPD_DOCUMENT_ROOT);
 	if (!access(calcpath(filename), F_OK))
