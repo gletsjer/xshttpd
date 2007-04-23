@@ -170,9 +170,11 @@ AC_DEFINE(SCRIPT_METHODS, "script.methods",
 # This is now enabled by default
 AC_DEFINE(COMPRESS_METHODS, "compress.methods",
 	[File describing compression extensions and programs])
-# XS_SHOW_HELP([--enable options], [disabled by default:])
-XS_ARG_DEFAULT(warnings, DUMMY, no, [enable extra compiler warnings])
 
+XS_ARG_DEFAULT(suidcgi, DUMMY, no, [install CGI scripts with setuid root privs])
+AM_CONDITIONAL([SUIDCGI], [test x$enable_suidcgi = xyes])
+
+XS_ARG_DEFAULT(warnings, DUMMY, no, [enable extra compiler warnings])
 # -Wformat-pre-promo is not standard
 if test x${enable_warnings} = xyes
 then

@@ -1,5 +1,5 @@
 bin_PROGRAMS = httpd xspasswd clearxs readxs xsindex httpdc
-cgi_PROGRAMS = xschpass imagemap error gfxcount
+cgi_PROGRAMS = imagemap error gfxcount
 noinst_PROGRAMS = reformatxs xscat
 noinst_LIBRARIES = libxs.a
 
@@ -13,6 +13,14 @@ httpd_LDFLAGS = @httpd_ldflags@ @libxs_ldflags@
 
 libxs_a_SOURCES = decode.c extra.c local.c path.c xscrypt.c
 libxs_a_CFLAGS = @libxs_cflags@
+
+if SUIDCGI
+cgi_PROGRAMS += xschpass
+install-exec-hook:
+	@chmod u+s @cgidir@/xschpass
+else
+noinst_PROGRAMS += xschpass
+endif
 
 xspasswd_LDFLAGS = @libxs_ldflags@
 xschpass_LDFLAGS = @libxs_ldflags@
