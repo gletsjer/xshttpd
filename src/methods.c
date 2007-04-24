@@ -771,7 +771,7 @@ do_get(char *params)
 			server_error("404 User is unknown", "USER_UNKNOWN");
 			return;
 		}
-		if (transform_user_dir(base, userinfo, 1))
+		if (transform_user_dir(base, userinfo))
 			return;
 		if (!origeuid)
 		{

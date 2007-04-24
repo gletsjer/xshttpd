@@ -27,7 +27,7 @@ convertpath(const char *org)
 		strtok(person, "/");
 		if (!(userinfo = getpwnam(person)))
 			strlcpy(path, "UNKNOWN_USER", XS_PATH_MAX);
-		else if (transform_user_dir(path, userinfo, 0))
+		else if (transform_user_dir(path, userinfo))
 			strlcpy(path, "PERMISSION_DENIED", XS_PATH_MAX);
 		strlcat(path, org + 3 + strlen(person), XS_PATH_MAX);
 	} else if (org[0] == '/')

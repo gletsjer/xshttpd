@@ -1070,7 +1070,7 @@ server_error(const char *readable, const char *cgi)
 		userinfo->pw_uid)
 	{
 		char	base[XS_PATH_MAX];
-		(void) transform_user_dir(base, userinfo, 1);
+		(void) transform_user_dir(base, userinfo);
 		snprintf(cgipath, XS_PATH_MAX, "%s%s%s",
 			base, current->phexecdir, filename);
 	}

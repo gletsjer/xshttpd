@@ -16,15 +16,14 @@
 #include	"htconfig.h"
 
 int
-transform_user_dir(char *base, const struct passwd *userinfo, int errors)
+transform_user_dir(char *base, const struct passwd *userinfo)
 {
 	char		*userpos;
+	int		len;
 
-	userpos = strstr(config.users->htmldir, "%u");
-
-	if (userpos)
+	if ((userpos = strstr(config.users->htmldir, "%u")))
 	{
-		int	len = userpos - config.users->htmldir;
+		len = userpos - config.users->htmldir;
 		snprintf(base, XS_PATH_MAX, "%*.*s%s%s/",
 			len, len, config.users->htmldir,
 			userinfo->pw_name,
@@ -33,7 +32,6 @@ transform_user_dir(char *base, const struct passwd *userinfo, int errors)
 	else
 		snprintf(base, XS_PATH_MAX, "%s/%s/",
 			userinfo->pw_dir, config.users->htmldir);
-	(void) errors;
 	return(0);
 }
 
