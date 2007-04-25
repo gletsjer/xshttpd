@@ -83,14 +83,6 @@ redirecting requests back to this host. Therefore, you must use
 a "full" (complete with the host's name and the domain) internet
 address, otherwise remote hosts will not be able to resolve the name.
 
-.SH EXAMPLE
-A typical startup sequence could be:
-.LP
-httpd \-n 64 \-u http \-g www
-.LP
-which will start 64 servers (64 concurrent connections possible),
-and run it under user ID http and group ID www.
-
 .SH DESIGN
 XS-HTTPD has some important features that distinguishes it from other
 well-know webservers. The following list highlights the main concepts:
