@@ -2,7 +2,6 @@ This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
 Changes since 3.5 beta 6
-- Minor documentation updates
 - Remove obsoleted command line arguments
 - Remove SSI compile time option (now runtime configuration option)
 - Remove IPv6 compile time option
