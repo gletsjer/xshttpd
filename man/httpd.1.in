@@ -72,7 +72,7 @@ start (the factory default is 20).
 Uses \fBrootdir\fP as the base directory for other
 directories like the logs directory, the htdocs
 directory and the cgi\-bin directory. The factory default
-is /usr/local/lib/httpd.
+is @configdir@.
 .TP
 .B \-a address
 Uses \fBaddress\fP as the internet address to listen
@@ -191,8 +191,8 @@ corresponding private key (\fIkey.pem\fP). If you don't have
 certificates -or a certificiate authority to give these to you- then you
 can create the required files yourself using \fBopenssl\fP.
 .LP
-The two \fI*.pem\fP files are usually stored in the httpd root directory
-(by default \fI/usr/local/lib/httpd/\fP).
+The two \fI*.pem\fP files are usually stored in the httpd config directory
+(by default \fI@configdir@\fP).
 You can use other filenames for the certificate and private key by
 setting the parameters \fBSSLCertificate\fP and \fBSSLPrivateKey\fP
 in the configuration file.
