@@ -52,7 +52,7 @@ loaddigit(int num)
 	char		buffer[BUFSIZ], words[4][BUFSIZ], *search;
 	int		word, size;
 
-	snprintf(filename, XS_PATH_MAX, "%s%d.ppm", dirname, num + '0');
+	snprintf(filename, XS_PATH_MAX, "%s%d.ppm", dirname, num);
 	if (!(file = fopen(filename, "r")))
 	{
 		snprintf(buffer, BUFSIZ,
@@ -224,18 +224,19 @@ int
 main(int argc, char **argv)
 {
 	struct	stat	statbuf;
-	char		buffer[BUFSIZ];
+	char		*pathinfo, buffer[BUFSIZ];
 
 	alarm(240);
+	pathinfo = getenv("PATH_INFO");
 	pathtranslated = getenv("PATH_TRANSLATED");
 	strlcpy(dirname, pathtranslated ? pathtranslated : "", XS_PATH_MAX);
 	if (!dirname[0])
 		snprintf(dirname, XS_PATH_MAX, "%s/gfxcount/digital",
 			HTTPD_ROOT);
-	if (!strncmp(dirname, "/fonts/", 7))
+	if (!strncmp(pathinfo, "/fonts/", 7))
 	{
 		snprintf(buffer, BUFSIZ, "%s/gfxcount/%s",
-			HTTPD_ROOT, dirname + 7);
+			HTTPD_ROOT, pathinfo + 7);
 		strlcpy(dirname, buffer, XS_PATH_MAX);
 	}
 	if (dirname[0] && (dirname[strlen(dirname) - 1] != '/'))
