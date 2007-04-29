@@ -1,6 +1,10 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.5 beta 7
+- Fix PATH_TRANSLATED once again;
+  CGI support scripts gfxcount, imagemap, xschpass may now actually work
+
 Changes since 3.5 beta 6
 - Remove obsoleted command line arguments
 - Remove SSI compile time option (now runtime configuration option)

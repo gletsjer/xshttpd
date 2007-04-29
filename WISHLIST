@@ -10,3 +10,6 @@
 - vhost logging: set host as virtualhostdir name
 - digauth support in xschpass
 - Config file layout/parsing
+
+FreeBSD: depends on netpbm
+- Fix convertpath and make others use it

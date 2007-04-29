@@ -906,7 +906,9 @@ do_get(char *params)
 		temp = file;
 		while ((temp = strchr(temp, '/')))
 		{
-			char fullpath[XS_PATH_MAX];
+			char fullpath[XS_PATH_MAX],
+				 transpath[XS_PATH_MAX],
+				 *slash;
 			*temp = 0;
 			snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
 			if (stat(fullpath, &statbuf))
@@ -917,6 +919,30 @@ do_get(char *params)
 				setenv("PATH_INFO", temp, 1);
 				setenv("SCRIPT_FILENAME", fullpath, 1);
 				setenv("PWD", fullpath, 1);
+				if (temp[1] == '~')
+				{
+					strlcpy(transpath, base, XS_PATH_MAX);
+					if ((slash = strrchr(temp, '/')))
+						*slash = '\0';
+					if (!(userinfo = getpwnam(temp + 2)) ||
+						transform_user_dir(transpath, userinfo))
+					{
+						*temp = 0;
+						break;
+					}
+					if (slash)
+					{
+						*slash++ = '/';
+						strlcat(transpath, slash, XS_PATH_MAX);
+					}
+				}
+				else if (current == config.users)
+					snprintf(transpath, XS_PATH_MAX, "%s%s",
+						calcpath(config.system->htmldir), temp);
+				else
+					snprintf(transpath, XS_PATH_MAX, "%s%s",
+						calcpath(current->htmldir), temp);
+				setenv("PATH_TRANSLATED", transpath, 1);
 				*temp = 0;
 				break;
 			}
@@ -1091,7 +1117,6 @@ do_get(char *params)
 		return;
 	}
 	strlcpy(orig_filename, filename, XS_PATH_MAX);
-	setenv("PATH_TRANSLATED", total, 1);
 
 	/* Check for *.charset preferences */
 	snprintf(total, XS_PATH_MAX, "%s%s.charset", base, filename);
