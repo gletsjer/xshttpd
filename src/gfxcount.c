@@ -52,7 +52,7 @@ loaddigit(int num)
 	char		buffer[BUFSIZ], words[4][BUFSIZ], *search;
 	int		word, size;
 
-	snprintf(filename, XS_PATH_MAX, "%s%d.ppm", dirname, num + '0');
+	snprintf(filename, XS_PATH_MAX, "%s%d.ppm", dirname, num);
 	if (!(file = fopen(filename, "r")))
 	{
 		snprintf(buffer, BUFSIZ,
@@ -227,7 +227,7 @@ main(int argc, char **argv)
 	char		buffer[BUFSIZ];
 
 	alarm(240);
-	pathtranslated = getenv("PATH_TRANSLATED");
+	pathtranslated = getenv("PATH_INFO");
 	strlcpy(dirname, pathtranslated ? pathtranslated : "", XS_PATH_MAX);
 	if (!dirname[0])
 		snprintf(dirname, XS_PATH_MAX, "%s/gfxcount/digital",

@@ -338,12 +338,12 @@ representation of the number of times that this page has
 ever been retrieved. If \fIlocation\fP is specified,
 it will be used as a base location for the font. A font
 has 10 digits in it, each in a seperate file, all PPM's.
-Say location is \fB/~user/font1\fP, and digit \fB1\fP
-is needed, then \fP/~user/font1/1.ppm\fP will be used as
+Say location is \fB/www/user/font1\fP, and digit \fB1\fP
+is needed, then \fP/www/user/font1/1.ppm\fP will be used as
 that digit.
-Two default fonts are supplied with this WWW server. They may
-be accessed using the \fBlocation\fPs: \fI/fonts/digital\fP
-and \fI/fonts/large\fP.
+Three default fonts are supplied with this WWW server. They may
+be accessed using the \fBlocation\fPs: \fI/fonts/digital\fP,
+\fI/fonts/large\fP and \fI/fonts/largecol\fP.
 .TP
 \fBcount\-month\-gfx\fP \fB[\fP\fIlocation\fP\fB]\fP
 This directive inserts a HTML tag to include a graphical
