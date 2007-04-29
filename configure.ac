@@ -187,7 +187,7 @@ then
 	AC_MSG_CHECKING([whether ${CC} supports stack protection...])
 	TCFLAGS="${CFLAGS}"
 	CFLAGS="${CFLAGS} -fstack-protector-all -Wstack-protector"
-	AC_COMPILE_IFELSE(AC_LANG_SOURCE([return 0;]),
+	AC_COMPILE_IFELSE(AC_LANG_SOURCE([int i = 0;]),
 		AC_MSG_RESULT([yes]),
 		AC_MSG_RESULT([no])
 		CFLAGS="${TCFLAGS}")
