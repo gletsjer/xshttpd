@@ -85,7 +85,7 @@ size_t	strlcpy		(char *, const char *, size_t);
 #endif		/* HAVE_STRLCPY */
 
 #ifndef		HAVE_STRPTIME
-char *	strptime	(char *, char *, struct tm *);
+char *	strptime	(const char *, const char *, struct tm *);
 #endif		/* HAVE_STRPTIME */
 
 #ifndef		HAVE_STRSEP
