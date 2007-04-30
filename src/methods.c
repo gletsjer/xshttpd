@@ -89,7 +89,7 @@
 
 #include	"httpd.h"
 #include	"methods.h"
-#include	"local.h"
+#include	"convert.h"
 #include	"ssi.h"
 #include	"ssl.h"
 #include	"extra.h"
@@ -765,14 +765,19 @@ do_get(char *params)
 	if (params[1] == '~')
 	{
 		if ((temp = strchr(params + 2, '/')))
-			*temp = 0;
-		if (!(userinfo = getpwnam(params + 2)))
+			*temp = '\0';
+		userinfo = getpwnam(params + 2);
+		if (!userinfo)
 		{
 			server_error("404 User is unknown", "USER_UNKNOWN");
 			return;
 		}
-		if (transform_user_dir(base, userinfo))
+		strlcpy(base, convertpath(params), XS_PATH_MAX);
+		if (!*base)
+		{
+			server_error("404 User is unknown", "USER_UNKNOWN");
 			return;
+		}
 		if (!origeuid)
 		{
 			setegid(userinfo->pw_gid);
@@ -788,8 +793,10 @@ do_get(char *params)
 		{
 			*temp = '/';
 			file = temp;
-		} else
+		}
+		else
 			file = params + strlen(params);
+
 		setenv("USER", userinfo->pw_name, 1);
 		setenv("HOME", userinfo->pw_dir, 1);
 	}
@@ -892,7 +899,6 @@ do_get(char *params)
 
 	/* look for file on disk */
 	snprintf(temppath, XS_PATH_MAX, "%s%s", base, file);
-warnx("looking %s", temppath);
 	if (!wasdir &&
 		!stat(temppath, &statbuf) &&
 		(statbuf.st_mode & S_IFMT) == S_IFREG)
@@ -919,32 +925,8 @@ warnx("looking %s", temppath);
 				*temp = '/';
 				setenv("PATH_INFO", temp, 1);
 				setenv("SCRIPT_FILENAME", fullpath, 1);
-warnx("exec %s", fullpath);
 				setenv("PWD", fullpath, 1);
-				if (temp[1] == '~')
-				{
-					strlcpy(transpath, base, XS_PATH_MAX);
-					if ((slash = strrchr(temp, '/')))
-						*slash = '\0';
-					if (!(userinfo = getpwnam(temp + 2)) ||
-						transform_user_dir(transpath, userinfo))
-					{
-						*temp = 0;
-						break;
-					}
-					if (slash)
-					{
-						*slash++ = '/';
-						strlcat(transpath, slash, XS_PATH_MAX);
-					}
-				}
-				else if (current == config.users)
-					snprintf(transpath, XS_PATH_MAX, "%s%s",
-						calcpath(config.system->htmldir), temp);
-				else
-					snprintf(transpath, XS_PATH_MAX, "%s%s",
-						calcpath(current->htmldir), temp);
-				setenv("PATH_TRANSLATED", transpath, 1);
+				setenv("PATH_TRANSLATED", convertpath(temp), 1);
 				*temp = 0;
 				break;
 			}

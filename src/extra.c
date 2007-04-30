@@ -22,7 +22,6 @@
 #include	<ctype.h>
 
 #include	"extra.h"
-#include	"local.h"
 #include	"httpd.h"
 
 int

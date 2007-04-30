@@ -88,7 +88,6 @@
 #include	"xscrypt.h"
 #include	"path.h"
 #include	"convert.h"
-#include	"local.h"
 #include	"htconfig.h"
 #include	"fcgi.h"
 #include	"authenticate.h"
@@ -1047,8 +1046,7 @@ server_error(const char *readable, const char *cgi)
 	struct	stat		statbuf;
 	char				cgipath[XS_PATH_MAX],
 				*escaped, *temp, filename[] = "/error";
-	const	char		*env;
-	const	struct	passwd	*userinfo;
+	const	char		*env, *username;
 
 	if (!current)
 		current = config.system;
@@ -1065,14 +1063,11 @@ server_error(const char *readable, const char *cgi)
 	setenv("ERROR_URL_ESCAPED", escaped ? escaped : "", 1);
 	env = getenv("QUERY_STRING");
 	/* Look for user-defined error script */
-	if (current == config.users &&
-		(userinfo = getpwuid(geteuid())) &&
-		userinfo->pw_uid)
+	if (current == config.users && (username = getenv("USER")))
 	{
-		char	base[XS_PATH_MAX];
-		(void) transform_user_dir(base, userinfo);
-		snprintf(cgipath, XS_PATH_MAX, "%s%s%s",
-			base, current->phexecdir, filename);
+		snprintf(cgipath, XS_PATH_MAX, "/~%s/%s%s",
+			username, current->execdir, filename);
+		strlcpy(cgipath, convertpath(cgipath), XS_PATH_MAX);
 	}
 	else	/* Look for virtual host error script */
 	{

@@ -39,7 +39,6 @@
 #include	"ssi.h"
 #include	"httpd.h"
 #include	"extra.h"
-#include	"local.h"
 #include	"path.h"
 #include	"ssl.h"
 #include	"convert.h"

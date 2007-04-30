@@ -11,7 +11,6 @@
 
 #include	"httpd.h"
 #include	"htconfig.h"
-#include	"local.h"
 #include	"path.h"
 
 const	char	*
@@ -26,9 +25,9 @@ calcpath(const char *filename)
 
 	if (*filename == '/')
 		strlcpy(buffer, filename, XS_PATH_MAX);
+	else if (dir)
+		snprintf(buffer, XS_PATH_MAX, "%s/%s", dir, filename);
 	else
-		snprintf(buffer, XS_PATH_MAX, "%s/%s",
-			dir ? dir : HTTPD_ROOT,
-			filename);
+		snprintf(buffer, XS_PATH_MAX, HTTPD_ROOT "/%s", filename);
 	return (buffer);
 }

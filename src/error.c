@@ -12,7 +12,6 @@
 #include	<pwd.h>
 
 #include	"config.h"
-#include	"local.h"
 #include	"path.h"
 #include	"htconfig.h"
 

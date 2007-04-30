@@ -9,8 +9,8 @@
 #include	<string.h>
 #include	<sys/stat.h>
 
+#include	"htconfig.h"
 #include	"httpd.h"
-#include	"local.h"
 #include	"convert.h"
 
 const char *
@@ -19,20 +19,36 @@ convertpath(const char *org)
 	static	char		path[XS_PATH_MAX];
 	const	struct	passwd	*userinfo;
 	char			person[XS_USER_MAX];
+	char			*slash, *userpos;
+	int			len;
 
 	if (!strncmp(org, "/~", 2))
 	{
 		strlcpy(person, org + 2, XS_USER_MAX);
-		person[31] = 0;
-		strtok(person, "/");
+		if ((slash = strchr(person, '/')))
+			*slash++ = '\0';
 		if (!(userinfo = getpwnam(person)))
-			strlcpy(path, "UNKNOWN_USER", XS_PATH_MAX);
-		else if (transform_user_dir(path, userinfo))
-			strlcpy(path, "PERMISSION_DENIED", XS_PATH_MAX);
-		strlcat(path, org + 3 + strlen(person), XS_PATH_MAX);
-	} else if (org[0] == '/')
-		strlcpy(path, org, XS_PATH_MAX);
-	else
-		snprintf(path, XS_PATH_MAX, "%s%s", currentdir, org);
+			return NULL;
+		/* transform_user_dir */
+		if ((userpos = strstr(config.users->htmldir, "%u")))
+		{
+			len = userpos - config.users->htmldir;
+			snprintf(path, XS_PATH_MAX, "%*.*s%s%s/",
+				len, len, config.users->htmldir,
+				userinfo->pw_name,
+				userpos + 2);
+		}
+		else
+			snprintf(path, XS_PATH_MAX, "%s/%s/",
+				userinfo->pw_dir, config.users->htmldir);
+		if (slash)
+			strlcat(path, slash, XS_PATH_MAX);
+	}
+	else if (current == config.users)
+		snprintf(path, XS_PATH_MAX, "%s%s",
+			calcpath(config.system->htmldir), org);
+	else /* use htdocs dir for this vhost */
+		snprintf(path, XS_PATH_MAX, "%s%s",
+			calcpath(current->htmldir), org);
 	return (path);
 }

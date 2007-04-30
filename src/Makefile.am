@@ -5,7 +5,7 @@ noinst_LIBRARIES = libxs.a
 AM_CPPFLAGS = -DHTTPD_ROOT=\"$(rootdir)\"
 
 httpd_SOURCES = httpd.c authenticate.c cgi.c convert.c fcgi.c \
-	local.c methods.c path.c pcre.c ssi.c ssl.c
+	methods.c path.c pcre.c ssi.c ssl.c
 if LDAP
 httpd_SOURCES += ldap.c 
 endif
@@ -33,7 +33,7 @@ DEFAULT_INCLUDES =
 EXTRA_DIST = alternative.h authenticate.h cgi.h config.h confpatch.h \
 	confuser.h convert.h decode.h digcalc.h extra.h \
 	fcgi.h fcgi_api.h htconfig.h httpd.h \
-	ldap.h local.h methods.h path.h pcre.h \
+	ldap.h methods.h path.h pcre.h \
 	ssi.h ssl.h xscounter.h xscrypt.h
 
 EXTRA_DIST += digcalc.c ldap.c
