@@ -913,9 +913,8 @@ do_get(char *params)
 		temp = file;
 		while ((temp = strchr(temp, '/')))
 		{
-			char fullpath[XS_PATH_MAX],
-				 transpath[XS_PATH_MAX],
-				 *slash;
+			char fullpath[XS_PATH_MAX], *slash;
+
 			*temp = 0;
 			snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
 			if (stat(fullpath, &statbuf))
@@ -925,9 +924,11 @@ do_get(char *params)
 				*temp = '/';
 				setenv("PATH_INFO", temp, 1);
 				setenv("SCRIPT_FILENAME", fullpath, 1);
-				setenv("PWD", fullpath, 1);
 				setenv("PATH_TRANSLATED", convertpath(temp), 1);
-				*temp = 0;
+				if ((slash = strrchr(fullpath, '/')))
+					*slash = '\0';
+				setenv("PWD", fullpath, 1);
+				*temp = '\0';
 				break;
 			}
 			*(temp++) = '/';

@@ -1260,7 +1260,8 @@ process_request()
 		setenv("SERVER_PROTOCOL", httpver, 1);
 		while (1)
 		{
-			char		*param, *end;
+			char	*param, *end;
+			char	name[65+6], *ptr;
 
 			switch (readline(0, extra, sizeof(extra)))
 			{
@@ -1315,42 +1316,31 @@ process_request()
 				strlcpy(authentication, param, MYBUFSIZ);
 				setenv("HTTP_AUTHORIZATION", param, 1);
 			}
-			else if (!strcasecmp("Cookie", extra))
-				setenv("HTTP_COOKIE", param, 1);
 			else if (!strcasecmp("Connection", extra))
 			{
 				if (strcasestr(param, "close"))
 					persistent = 0;
 				setenv("HTTP_CONNECTION", param, 1);
 			}
-			else if (!strcasecmp("Accept", extra))
-				setenv("HTTP_ACCEPT", param, 1);
-			else if (!strcasecmp("Accept-encoding", extra))
-				setenv("HTTP_ACCEPT_ENCODING", param, 1);
-			else if (!strcasecmp("Accept-language", extra))
-				setenv("HTTP_ACCEPT_LANGUAGE", param, 1);
-			else if (!strcasecmp("Expect", extra))
-				setenv("HTTP_EXPECT", param, 1);
-			else if (!strcasecmp("Host", extra))
-				setenv("HTTP_HOST", param, 1);
-			else if (!strcasecmp("Negotiate", extra))
-				setenv("HTTP_NEGOTIATE", param, 1);
-			else if (!strcasecmp("Pragma", extra))
-				setenv("HTTP_PRAGMA", param, 1);
-			else if (!strcasecmp("Client-ip", extra))
-				setenv("HTTP_CLIENT_IP", param, 1);
 			else if (!strcasecmp("X-Forwarded-For", extra))
 				/* People should use the HTTP/1.1 variant */
 				setenv("HTTP_CLIENT_IP", param, 1);
-			else if (!strcasecmp("Via", extra))
-				setenv("HTTP_VIA", param, 1);
-			else if (!strcasecmp("If-modified-since", extra))
-				setenv("IF_MODIFIED_SINCE", param, 1);
-			else if (!strcasecmp("If-unmodified-since", extra))
-				setenv("IF_UNMODIFIED_SINCE", param, 1);
-			else if (!strcasecmp("If-range", extra))
-				setenv("IF_RANGE", param, 1);
-
+			else
+			{
+				/* Blindly copy any other header value */
+				snprintf(name, sizeof(name), "HTTP_%s", extra);
+				for (ptr = name + 5; *ptr; ptr++)
+					if (*ptr >= 'A' && *ptr <= 'Z')
+						/* DO NOTHING */;
+					else if (*ptr >= 'a' && *ptr <= 'z')
+						*ptr -= 'a' - 'A';
+					else if ('-' == *ptr)
+						*ptr = '_';
+					else
+						break;
+				if (!*ptr)
+					setenv(name, param, 1);
+			}
 		}
 	}
 	else if (!strncasecmp(ver, "HTCPCP/", 7))
