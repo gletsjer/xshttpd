@@ -18,6 +18,7 @@
 #include	<time.h>
 #include	<pwd.h>
 
+#include	"path.h"
 #include	"xscounter.h"
 
 #define		MODE_TODAY	0
@@ -30,8 +31,9 @@ main(int argc, char **argv)
 {
 	int			x, y, z, comp, total, fd, mode = MODE_TOTAL,
 				wrset = 0, wrint = 0, option;
-	char			counterfile[XS_PATH_MAX], url[BUFSIZ];
+	char			url[BUFSIZ];
 	char			xscount_version;
+	const char		*counterfile;
 	countstr		counter;
 
 	while ((option = getopt(argc, argv, "dlmtvw:")) != EOF)
@@ -51,8 +53,7 @@ main(int argc, char **argv)
 			mode = MODE_LAST;
 			break;
 		case 'v':
-			snprintf(counterfile, XS_PATH_MAX, "%s/%s",
-				HTTPD_ROOT, CNT_DATA);
+			counterfile = calcpath(CNT_DATA);
 			if ((fd = open(counterfile, O_RDONLY, 0)) < 0)
 				err(1, "Could not open(%s)", counterfile);
 			if (read(fd, &xscount_version, 1) != 1)
@@ -76,7 +77,7 @@ main(int argc, char **argv)
 
 	strlcpy(url, argv[optind], BUFSIZ);
 
-	snprintf(counterfile, XS_PATH_MAX, "%s/%s", HTTPD_ROOT, CNT_DATA);
+	counterfile = calcpath(CNT_DATA);
 	if ((fd = open(counterfile, wrset ? O_RDWR : O_RDONLY, 0)) < 0)
 		err(1, "Could not open(%s)", counterfile);
 

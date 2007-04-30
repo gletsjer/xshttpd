@@ -892,6 +892,7 @@ do_get(char *params)
 
 	/* look for file on disk */
 	snprintf(temppath, XS_PATH_MAX, "%s%s", base, file);
+warnx("looking %s", temppath);
 	if (!wasdir &&
 		!stat(temppath, &statbuf) &&
 		(statbuf.st_mode & S_IFMT) == S_IFREG)
@@ -918,6 +919,7 @@ do_get(char *params)
 				*temp = '/';
 				setenv("PATH_INFO", temp, 1);
 				setenv("SCRIPT_FILENAME", fullpath, 1);
+warnx("exec %s", fullpath);
 				setenv("PWD", fullpath, 1);
 				if (temp[1] == '~')
 				{
@@ -1013,16 +1015,16 @@ do_get(char *params)
 
 	/* Check user directives */
 	/* These should all send there own error messages when appropriate */
-	if ((xsfile = find_file(orgbase, base, ".noxs")) && check_noxs(xsfile))
+	if ((xsfile = find_file(orgbase, base, NOXS_FILE)) && check_noxs(xsfile))
 		return;
-	if ((xsfile = find_file(orgbase, base, AUTHFILE)) && check_auth(xsfile))
+	if ((xsfile = find_file(orgbase, base, AUTH_FILE)) && check_auth(xsfile))
 		return;
 	if (check_file_redirect(base, filename))
 		return;
-	if ((xsfile = find_file(orgbase, base, ".redir")) &&
+	if ((xsfile = find_file(orgbase, base, REDIR_FILE)) &&
 			check_redirect(xsfile, real_path))
 		return;
-	if ((xsfile = find_file(orgbase, base, ".xsconf")) &&
+	if ((xsfile = find_file(orgbase, base, CONFIG_FILE)) &&
 			check_location(xsfile, filename))
 		return;
 
@@ -1062,8 +1064,7 @@ do_get(char *params)
 			server_error("403 Not a regular filename", "NOT_AVAILABLE");
 			return;
 		}
-		else if (!strcmp(filename, INDEX_HTML) ||
-			!strcmp(file, INDEX_HTML_2))
+		else if (!strcmp(filename, INDEX_HTML))
 		{
 			server_error("403 The index may not be a directory", "NOT_AVAILABLE");
 			return;
@@ -1385,7 +1386,7 @@ loadfiletypes(char *orgbase, char *base)
 	if (base)
 		mimepath = find_file(orgbase, base, ".mimetypes");
 	else
-		mimepath = calcpath(MIMETYPESFILE);
+		mimepath = calcpath(MIME_TYPES);
 
 	if (!mimepath || !(mime = fopen(mimepath, "r")))
 	{

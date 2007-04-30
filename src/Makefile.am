@@ -2,13 +2,14 @@ bin_PROGRAMS = httpd xspasswd clearxs readxs xsindex httpdc
 cgi_PROGRAMS = imagemap error gfxcount
 noinst_PROGRAMS = reformatxs xscat
 noinst_LIBRARIES = libxs.a
+AM_CPPFLAGS = -DHTTPD_ROOT=\"$(rootdir)\"
 
 httpd_SOURCES = httpd.c authenticate.c cgi.c convert.c fcgi.c \
-	local.c methods.c pcre.c ssi.c ssl.c
+	local.c methods.c path.c pcre.c ssi.c ssl.c
 if LDAP
 httpd_SOURCES += ldap.c 
 endif
-httpd_CFLAGS = @httpd_cflags@
+httpd_CFLAGS = @httpd_cflags@ -DBUILD_HTTPD
 httpd_LDFLAGS = @httpd_ldflags@ @libxs_ldflags@
 
 libxs_a_SOURCES = decode.c extra.c path.c xscrypt.c

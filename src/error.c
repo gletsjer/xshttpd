@@ -17,7 +17,6 @@
 #include	"htconfig.h"
 
 struct virtual			*current;
-struct configuration	config;
 
 static	void	error			(const char *)	NORETURN;
 static	void	user_unknown		(void);
@@ -45,7 +44,6 @@ typedef	struct
 static	const	char	*error_code, *error_readable, *error_url,
 			*error_url_escaped, *error_url_expanded;
 static	char		buffer[BUFSIZ], *temp;
-char			rootdir[XS_PATH_MAX];
 
 static void
 error(const char *what)
@@ -73,7 +71,7 @@ user_unknown()
 	printf("<p>The user <b>%s</b> is unknown to this system.</p>\n",
 		buffer);
 	printf("<p>You may look at the <a href=\"/\">main index page</a>");
-	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTTPD_DOCUMENT_ROOT);
+	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTML_DIR);
 	if (!access(calcpath(filename), F_OK))
 		printf(" or the <a href=\"/users.html\">user list</a>\n");
 	printf(".</p>\n");
@@ -124,8 +122,7 @@ not_found()
 	} else
 	{
 		prefix[0] = 0;
-		snprintf(base, XS_PATH_MAX, "%s/%s/",
-			HTTPD_ROOT, HTTPD_DOCUMENT_ROOT);
+		strlcpy(base, calcpath(HTML_DIR), XS_PATH_MAX);
 		begin = error_url;
 	}
 
@@ -157,16 +154,6 @@ not_found()
 					(begin[len - 1] == '/') ? "" : "/");
 				break;
 			}
-			snprintf(buffer, BUFSIZ, "%s%*.*s%s%s",
-				base, -len, len, begin,
-				(begin[len-1] == '/') ? "" : "/", INDEX_HTML_2);
-			if (!stat(buffer, &statbuf) && S_ISREG(statbuf.st_mode))
-			{
-				snprintf(buffer, BUFSIZ, "%s%*.*s%s",
-					prefix, -len, len, begin,
-					(begin[len - 1] == '/') ? "" : "/");
-				break;
-			}
 		}
 		len--;
 	}
@@ -179,7 +166,7 @@ not_found()
 	} else
 		printf("<p>Y");
 	printf("ou may take a look at <a href=\"/\">the main index</a>");
-	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTTPD_DOCUMENT_ROOT);
+	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTML_DIR);
 	if (!access(calcpath(filename), F_OK))
 		printf(" or the <a href=\"/users.html\">user list</a>\n");
 	printf(".</p>\n");
@@ -288,7 +275,7 @@ local_no_page()
 	printf("</p>\n");
 	printf("<p>Perhaps you meant somebody else; in this case, please\n");
 	printf("have a look at the <a href=\"/\">main index</a>");
-	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTTPD_DOCUMENT_ROOT);
+	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTML_DIR);
 	if (!access(calcpath(filename), F_OK))
 		printf(" or the <a href=\"/users.html\">user list</a>\n");
 	printf(".</p>\n");
@@ -323,7 +310,7 @@ local_no_pay()
 	printf("has decided that he/she wants to remain a member.</p>\n");
 	printf("<p>Return to the <a href=\"/\">main index</a>\n");
 	printf("for more information about our society");
-	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTTPD_DOCUMENT_ROOT);
+	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTML_DIR);
 	if (!access(calcpath(filename), F_OK))
 		printf(" or the <a href=\"/users.html\">user list</a>\n");
 	printf(".</p>\n");
@@ -332,10 +319,6 @@ local_no_pay()
 int
 main(int argc, char **argv)
 {
-	if (getenv("HTTPD_ROOT"))
-		strlcpy(rootdir, getenv("HTTPD_ROOT"), XS_PATH_MAX);
-	else
-		strlcpy(rootdir, HTTPD_ROOT, XS_PATH_MAX);
 	alarm(240);
 	if (!(error_code = getenv("ERROR_CODE")) ||
 		!(error_readable = getenv("ERROR_READABLE")) ||

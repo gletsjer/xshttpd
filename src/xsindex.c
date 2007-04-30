@@ -15,6 +15,7 @@
 #ifdef		HAVE_ERR_H
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
+#include	"path.h"
 
 typedef	struct	mime
 {
@@ -24,10 +25,10 @@ typedef	struct	mime
 } mime;
 
 static	int	show_size = 1, show_type = 1, show_back = 1, force_overwrite = 0;
-static	size_t	max_filename = 0, max_mimetype =0, max_mimealt = 0,
+static	size_t	max_filename = 0, max_mimetype = 0, max_mimealt = 0,
 				max_mimeshort = 0;
-static	char	mimefile[XS_PATH_MAX];
 static	mime	*mimes;
+static	const char	*mimefile;
 
 static	void	usage			(void) NORETURN;
 static	void	loadmime		(const char *);
@@ -44,8 +45,7 @@ usage()
 	fprintf(stderr, "   -f           Do not ask whether to overwrite %s\n",
 		INDEX_HTML);
 	fprintf(stderr, "   -m mimefile  Use your own mime.index file\n");
-	fprintf(stderr, "                (default is %s/mime.index)\n",
-		HTTPD_ROOT);
+	fprintf(stderr, "                (default is %s)\n", mimefile);
 	fprintf(stderr, "   -s           Do not give size of each file\n");
 	fprintf(stderr, "   -t number    Specify `file type' field options:\n");
 	fprintf(stderr, "                   1 - Full mime type\n");
@@ -190,7 +190,7 @@ main(int argc, char **argv)
 	struct	stat		statbuf;
 	const	mime		*search;
 
-	snprintf(mimefile, XS_PATH_MAX, "%s/mime.index", HTTPD_ROOT);
+	mimefile = calcpath(MIME_INDEX);
 	while ((option = getopt(argc, argv, "bfm:st:")) != EOF)
 	{
 		switch(option)
@@ -202,7 +202,7 @@ main(int argc, char **argv)
 			force_overwrite = 1;
 			break;
 		case 'm':
-			strlcpy(mimefile, optarg, XS_PATH_MAX);
+			mimefile = optarg;
 			break;
 		case 's':
 			show_size = 0;
@@ -236,8 +236,9 @@ main(int argc, char **argv)
 		if (buffer[0] && (buffer[strlen(buffer) - 1] < ' '))
 			buffer[strlen(buffer) - 1] = 0;
 		if (!strcmp(buffer, ".") || !strcmp(buffer, INDEX_HTML) ||
-			!strcmp(buffer, ".xsuid") || !strcmp(buffer, ".noxs") ||
-			!strcmp(buffer, AUTHFILE))
+			!strcmp(buffer, ".xsuid") ||
+			!strcmp(buffer, NOXS_FILE) ||
+			!strcmp(buffer, AUTH_FILE))
 			continue;
 		if ((strlen(buffer) >= 6) &&
 			(!strcmp(buffer + strlen(buffer) - 6, ".redir")))

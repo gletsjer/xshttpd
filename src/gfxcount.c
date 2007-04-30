@@ -16,6 +16,7 @@
 #endif		/* HAVE_MEMORY_H */
 #include	<errno.h>
 #include	<fcntl.h>
+#include	"path.h"
 
 #ifdef		PATH_PPMTOGIF
 static	void	xserror			(const char *, const char *)	NORETURN;
@@ -231,13 +232,11 @@ main(int argc, char **argv)
 	pathtranslated = getenv("PATH_TRANSLATED");
 	strlcpy(dirname, pathtranslated ? pathtranslated : "", XS_PATH_MAX);
 	if (!dirname[0])
-		snprintf(dirname, XS_PATH_MAX, "%s/gfxcount/digital",
-			HTTPD_ROOT);
-	if (!strncmp(pathinfo, "/fonts/", 7))
+		strlcpy(dirname, calcpath(FONT_DIRT "digital"), XS_PATH_MAX);
+	if (pathinfo && !strncmp(pathinfo, "/fonts/", 7))
 	{
-		snprintf(buffer, BUFSIZ, "%s/gfxcount/%s",
-			HTTPD_ROOT, pathinfo + 7);
-		strlcpy(dirname, buffer, XS_PATH_MAX);
+		snprintf(buffer, BUFSIZ, "%s%s", FONT_DIRT, pathinfo + 7);
+		strlcpy(dirname, calcpath(buffer), XS_PATH_MAX);
 	}
 	if (dirname[0] && (dirname[strlen(dirname) - 1] != '/'))
 	{

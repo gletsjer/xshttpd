@@ -18,6 +18,7 @@
 #endif		/* HAVE_ERR_H */
 #include	<pwd.h>
 
+#include	"path.h"
 #include	"xscounter.h"
 #define		CNT_SZ		sizeof(countstr)
 
@@ -36,7 +37,7 @@ main(void)
 	char		counterfile[XS_PATH_MAX], lockfile[XS_PATH_MAX];
 	char		xscount_version;
 
-	snprintf(counterfile, XS_PATH_MAX, "%s/%s", HTTPD_ROOT, CNT_DATA);
+	strlcpy(counterfile, calcpath(CNT_DATA), XS_PATH_MAX);
 	if ((fdin  = open(counterfile, O_RDONLY, 0)) < 0)
 		err(1, "Could not open(%s)", counterfile);
 
@@ -49,7 +50,7 @@ main(void)
 	if (lseek(fdin, (off_t)0, SEEK_SET) < 0)
 		err(1, "lseek()");
 
-	snprintf(lockfile, XS_PATH_MAX, "%s/%s.rfxs", HTTPD_ROOT, CNT_LOCK);
+	snprintf(lockfile, XS_PATH_MAX, "%s.rfxs", calcpath(CNT_LOCK));
 	if ((fdout = open(lockfile, O_WRONLY | O_CREAT | O_TRUNC, 0644)) < 0)
 		err(1, "Could not open(%s)", lockfile);
 

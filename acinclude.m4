@@ -22,7 +22,18 @@ dnl 		[  --with-$1=PATH	  directory to use for $2 [ROOTDIR/$2]],
 dnl 		$1=${withval},
 dnl 		$1=${rootdir}/$2)
 dnl 	])
-AC_DEFUN([XS_ARG_DIR], $1=${rootdir}/$2)
+AC_DEFUN([XS_ARG_DIR], [
+	$1dir='${rootdir}/$3'
+	AC_SUBST($1dir)
+	AC_DEFINE([$2], "$3", [$1 directory])
+	if test -z "$3"
+	then
+		AC_DEFINE([$2T], [])
+	else
+		AC_DEFINE([$2T], [$2 "/"],
+			[$1 directory with opt. trailing slash])
+	fi
+	])
 
 AC_DEFUN([XS_NEED_CONST], [
 	AC_MSG_CHECKING("for $1")

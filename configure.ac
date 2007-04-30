@@ -49,23 +49,22 @@ AC_FUNC_SETVBUF_REVERSED
 AC_FUNC_STRFTIME
 AC_CHECK_FUNCS(getaddrinfo getnameinfo mkstemp mmap setegid seteuid setpriority setresgid setresuid setrlimit setsid sigemptyset uname)
 
-dnl Prog specific checks
-if test x${prefix} = xNONE
-then
-	prefix=/usr/local
-fi
 AC_ARG_WITH(rootdir,
 	AS_HELP_STRING(--with-rootdir=PATH,
 		[directory to install data files (LIBDIR/httpd)]),
-	rootdir=${withval},
-	rootdir=${prefix}/lib/httpd)
-configdir=${rootdir}
-XS_ARG_DIR(cgidir, cgi-bin)
-XS_ARG_DIR(contribdir, contrib)
-XS_ARG_DIR(fontdir, gfxcount)
-XS_ARG_DIR(docdir, htdocs)
-XS_ARG_DIR(icondir, htdocs/icons)
-XS_ARG_DIR(logdir, logs)
+	rootdir="${withval}",
+	rootdir='${prefix}/lib/httpd')
+AC_SUBST(rootdir)
+
+# various installation directories - relative to ${rootdir}
+XS_ARG_DIR(config,  CONFIG_DIR, [])
+XS_ARG_DIR(cgi,     CGI_DIR,    [cgi-bin])
+XS_ARG_DIR(phexec,  PHEXEC_DIR, [cgi-bin])
+XS_ARG_DIR(contrib, CONTRIB_DIR,[contrib])
+XS_ARG_DIR(font,    FONT_DIR,   [gfxcount])
+XS_ARG_DIR(html,    HTML_DIR,   [htdocs])
+XS_ARG_DIR(icon,    ICON_DIR,   [htdocs/icons])
+XS_ARG_DIR(log,     LOG_DIR,    [logs])
 
 XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)
@@ -83,10 +82,6 @@ then
 		httpd_cflags="${httpd_cflags} -I/usr/local/ssl/include"
 		AC_DEFINE(HANDLE_SSL,,
 			[Enable SSL support, you must have UseSSL in your config to enable this])
-		AC_DEFINE(CERT_FILE, "cert.pem",
-			[File containing public SSL certificate])
-		AC_DEFINE(KEY_FILE, "key.pem",
-			[File containing private SSL server key])
 		if test x$ac_cv_lib_md_MD5Data = xno
 		then
 			AC_DEFINE(HAVE_MD5)
@@ -164,13 +159,6 @@ then
 fi
 
 # XS_SHOW_HELP([--enable options], [default in brackets:])
-# This is now enabled by default
-AC_DEFINE(SCRIPT_METHODS, "script.methods",
-	[File describing script extensions and interpreters])
-# This is now enabled by default
-AC_DEFINE(COMPRESS_METHODS, "compress.methods",
-	[File describing compression extensions and programs])
-
 XS_ARG_DEFAULT(suidcgi, DUMMY, no, [install CGI scripts with setuid root privs])
 AM_CONDITIONAL([SUIDCGI], [test x$enable_suidcgi = xyes])
 
@@ -196,16 +184,6 @@ fi
 dnl Test runs for required global variables
 
 AC_CHECK_DECLS([sys_errlist, optarg, environ])
-
-AC_DEFINE_UNQUOTED(HTTPD_ROOT, "$rootdir",
-	[Default root directory for the server. This is were the subdirs /logs, /htdocs and /cgi-bin reside. This can be overriden from RootDir config.])
-AC_SUBST(configdir)
-AC_SUBST(contribdir)
-AC_SUBST(cgidir)
-AC_SUBST(fontdir)
-AC_SUBST(icondir)
-AC_SUBST(docdir)
-AC_SUBST(logdir)
 
 AC_MSG_CHECKING(for local domain)
 hostname=` ( hostname || cat /etc/HOSTNAME ) 2> /dev/null `

@@ -1,40 +1,7 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
 /* This file contains the backup definitions for old systems. */
-
-#ifdef		NOCONST
-#define		const
-#endif		/* NOCONST */
-
-#ifdef		NOSTATIC
-#define		static
-#endif		/* NOSTATIC */
-
-#ifdef		NOEXTERN
-#define		extern
-#endif		/* NOEXTERN */
-
-#ifdef		NOVOID
-#define		void
-#else		/* Not NOVOID */
-#define		void		void
-#endif		/* NOVOID */
-
-#ifdef		NOPID_T
-#define		pid_t		long
-#endif		/* NOPID_T */
-
-#ifdef		NOSIZE_T
-#define		size_t		long
-#endif		/* NOSIZE_T */
-
-#ifdef		NOUID_T
-#define		uid_t		int
-#endif		/* NOUID_T */
-
-#ifdef		NOGID_T
-#define		gid_t		int
-#endif		/* NOGID_T */
+/* autoconfs handles keywords like const and types as uid_t for us. */
 
 #ifdef		__GNUC__
 # if		__GNUC__ >= 3

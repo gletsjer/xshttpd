@@ -125,7 +125,7 @@ changepasswd(const char *param, int  cl)
 	if (S_ISDIR(statbuf1.st_mode))
 		xserror("403 '%s' is not a directory", filename);
 	strlcat(filename, "/", XS_PATH_MAX);
-	strlcat(filename, AUTHFILE, XS_PATH_MAX);
+	strlcat(filename, AUTH_FILE, XS_PATH_MAX);
 	if (lstat(filename, &statbuf2))
 		xserror("403 Could not lstat password file '%s': %s",
 			filename, strerror(errno));

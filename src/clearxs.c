@@ -18,6 +18,7 @@
 #include	<time.h>
 #include	<pwd.h>
 
+#include	"path.h"
 #include	"xscounter.h"
 
 #define		MODE_TODAY	0
@@ -68,15 +69,15 @@ main(int argc, char **argv)
 	if (argc != optind)
 		errx(1, "Too many arguments");
 
-	snprintf(counterfile, XS_PATH_MAX, "%s/%s", HTTPD_ROOT, CNT_DATA);
+	strlcpy(counterfile, calcpath(CNT_DATA), XS_PATH_MAX);
 	if ((fdin  = open(counterfile, O_RDONLY, 0)) < 0)
 		err(1, "Could not open(%s)", counterfile);
 
-	snprintf(clockfile, XS_PATH_MAX, "%s/%s", HTTPD_ROOT, CNT_LOCK);
+	strlcpy(clockfile, calcpath(CNT_LOCK), XS_PATH_MAX);
 	if ((fdout = open(clockfile, O_WRONLY | O_CREAT | O_TRUNC, 0)) < 0)
 		err(1, "Could not open(%s)", clockfile);
 
-	snprintf(lockfile, XS_PATH_MAX, "%s/clearxs.lock", HTTPD_ROOT);
+	strlcpy(lockfile, calcpath(CNT_CLEAR), XS_PATH_MAX);
 	if ((fdout = open(lockfile, O_WRONLY | O_CREAT | O_TRUNC, 0)) < 0)
 		err(1, "Could not open(%s)", lockfile);
 

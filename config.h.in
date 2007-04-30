@@ -3,14 +3,32 @@
 /* Define to 1 if you have the `ldap' functions. */
 #undef AUTH_LDAP
 
-/* File containing public SSL certificate */
-#undef CERT_FILE
+/* cgi directory */
+#undef CGI_DIR
 
-/* File describing compression extensions and programs */
-#undef COMPRESS_METHODS
+/* cgi directory with opt. trailing slash */
+#undef CGI_DIRT
+
+/* config directory */
+#undef CONFIG_DIR
+
+/* config directory with opt. trailing slash */
+#undef CONFIG_DIRT
+
+/* contrib directory */
+#undef CONTRIB_DIR
+
+/* contrib directory with opt. trailing slash */
+#undef CONTRIB_DIRT
 
 /* enable stack smaching protector */
 #undef DUMMY
+
+/* font directory */
+#undef FONT_DIR
+
+/* font directory with opt. trailing slash */
+#undef FONT_DIRT
 
 /* Enable SSL support, you must have UseSSL in your config to enable this */
 #undef HANDLE_SSL
@@ -258,12 +276,23 @@
 /* Define to 1 if `vfork' works. */
 #undef HAVE_WORKING_VFORK
 
-/* Default root directory for the server. This is were the subdirs /logs,
-   /htdocs and /cgi-bin reside. This can be overriden from RootDir config. */
-#undef HTTPD_ROOT
+/* html directory */
+#undef HTML_DIR
 
-/* File containing private SSL server key */
-#undef KEY_FILE
+/* html directory with opt. trailing slash */
+#undef HTML_DIRT
+
+/* icon directory */
+#undef ICON_DIR
+
+/* icon directory with opt. trailing slash */
+#undef ICON_DIRT
+
+/* log directory */
+#undef LOG_DIR
+
+/* log directory with opt. trailing slash */
+#undef LOG_DIRT
 
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
@@ -286,14 +315,17 @@
 /* preprocessor used to parse configuration files */
 #undef PATH_PREPROCESSOR
 
+/* phexec directory */
+#undef PHEXEC_DIR
+
+/* phexec directory with opt. trailing slash */
+#undef PHEXEC_DIRT
+
 /* Define to 1 if the C compiler supports function prototypes. */
 #undef PROTOTYPES
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #undef RETSIGTYPE
-
-/* File describing script extensions and interpreters */
-#undef SCRIPT_METHODS
 
 /* Server version */
 #undef SERVER_IDENT

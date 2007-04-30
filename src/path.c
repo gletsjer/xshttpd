@@ -18,12 +18,17 @@ const	char	*
 calcpath(const char *filename)
 {
 	static	char	buffer[XS_PATH_MAX];
+#ifdef		BUILD_HTTPD
+	const	char	*dir = config.systemroot;
+#else		/* BUILD_HTTPD */
+	const	char	*dir = getenv("HTTPD_ROOT");
+#endif		/* BUILD_HTTPD */
 
 	if (*filename == '/')
 		strlcpy(buffer, filename, XS_PATH_MAX);
 	else
 		snprintf(buffer, XS_PATH_MAX, "%s/%s",
-			config.systemroot ? config.systemroot : HTTPD_ROOT,
+			dir ? dir : HTTPD_ROOT,
 			filename);
 	return (buffer);
 }

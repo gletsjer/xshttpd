@@ -53,7 +53,7 @@ main(int argc, char **argv)
 	argc -= optind;
 	argv += optind;
 
-	printf("The information will be stored in %s\n\n", AUTHFILE);
+	printf("The information will be stored in %s\n\n", AUTH_FILE);
 	if (argc > 1)
 		errx(1, "Usage: xspasswd [-b|-d] [-l|-u] [user]");
 	else if (argc)
@@ -97,8 +97,8 @@ main(int argc, char **argv)
 			(passwdlock ? 'L' : 'U'), username, pwd);
 	free(passone);
 
-	authinp = fopen(AUTHFILE, "r");
-	asprintf(&newfile, "%s.new", AUTHFILE);
+	authinp = fopen(AUTH_FILE, "r");
+	asprintf(&newfile, "%s.new", AUTH_FILE);
 	if (!(authout = fopen(newfile, "w")))
 		err(1, "fopen(`%s', `w')", newfile);
 	found = 0;
@@ -124,8 +124,8 @@ main(int argc, char **argv)
 	if (authinp)
 		fclose(authinp);
 	fclose(authout);
-	if (rename(newfile, AUTHFILE))
-		err(1, "Cannot rename(`%s', `%s')", newfile, AUTHFILE);
+	if (rename(newfile, AUTH_FILE))
+		err(1, "Cannot rename(`%s', `%s')", newfile, AUTH_FILE);
 	free(newfile);
 	return 0;
 }

@@ -18,6 +18,7 @@
 #endif		/* HAVE_ERR_H */
 #include	<pwd.h>
 
+#include	"path.h"
 #include	"xscounter.h"
 
 typedef	struct	countold
@@ -31,13 +32,13 @@ main(int argc, char *argv[])
 {
 	int		num, fdin;
 	countstr	counter;
-	char		counterfile[XS_PATH_MAX];
+	const char	*counterfile;
 	char		xscount_version;
 
 	if (argc < 2)
-		snprintf(counterfile, XS_PATH_MAX, "%s/%s", HTTPD_ROOT, CNT_DATA);
+		counterfile = calcpath(CNT_DATA);
 	else
-		strlcat(counterfile, argv[1], sizeof(counterfile));
+		counterfile = argv[1];
 
 	if ((fdin  = open(counterfile, O_RDONLY, 0)) < 0)
 		err(1, "Could not open(%s)", counterfile);

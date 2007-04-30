@@ -254,7 +254,7 @@ load_config()
 	config.virtualhostdir = NULL;
 
 	defaultindexfiles = malloc(4 * sizeof(char *));
-	defaultindexfiles[0] = strdup("index.html");
+	defaultindexfiles[0] = strdup(INDEX_HTML);
 	defaultindexfiles[1] = strdup("index.htm");
 	defaultindexfiles[2] = strdup("index.php");
 	defaultindexfiles[3] = NULL;
@@ -639,11 +639,11 @@ load_config()
 		config.system->hostname = strdup(thishostname);
 	}
 	if (!config.system->htmldir)
-		config.system->htmldir = strdup(HTTPD_DOCUMENT_ROOT);
+		config.system->htmldir = strdup(HTML_DIR);
 	if (!config.system->execdir)
-		config.system->execdir = strdup(HTTPD_SCRIPT_ROOT);
+		config.system->execdir = strdup(CGI_DIR);
 	if (!config.system->phexecdir)
-		config.system->phexecdir = strdup(HTTPD_SCRIPT_ROOT_P);
+		config.system->phexecdir = strdup(PHEXEC_DIR);
 	if (!config.system->logaccess)
 		config.system->logaccess = strdup(BITBUCKETNAME);
 	if (!config.system->logerror)
@@ -681,7 +681,7 @@ load_config()
 	if (!config.users->hostname)
 		config.users->hostname = strdup(config.system->hostname);
 	if (!config.users->htmldir)
-		config.users->htmldir = strdup(HTTPD_USERDOC_ROOT);
+		config.users->htmldir = strdup(UHTML_DIR);
 	config.system->next = config.users;
 	config.users->next = config.virtual;
 	/* Check users and virtual sections */
@@ -692,9 +692,9 @@ load_config()
 		if (!current->htmldir)
 			errx(1, "illegal virtual block without directory");
 		if (!current->execdir)
-			current->execdir = strdup(HTTPD_SCRIPT_ROOT);
+			current->execdir = strdup(CGI_DIR);
 		if (!current->phexecdir)
-			current->phexecdir = strdup(HTTPD_SCRIPT_ROOT_P);
+			current->phexecdir = strdup(PHEXEC_DIR);
 		if (!current->logstyle)
 			current->logstyle = config.system->logstyle;
 		if (!current->userid)
@@ -1961,7 +1961,7 @@ main(int argc, char **argv)
 #else		/* Not PATH_PREPROCESSOR */
 	config_preprocessor[0] = '\0';
 #endif		/* PATH_PREPROCESSOR */
-	snprintf(config_path, XS_PATH_MAX, "%s/httpd.conf", calcpath(HTTPD_ROOT));
+	strlcpy(config_path, calcpath(HTTPD_CONF), XS_PATH_MAX);
 	while ((option = getopt(argc, argv, "a:c:d:g:m:n:p:u:NP:v")) != EOF)
 	{
 		switch(option)
