@@ -159,12 +159,10 @@ findmime(const char *ext)
 	const	char	*end;
 
 	if (!strcmp(ext, ".."))
-	{
 		end = "..";
-	} else if (!strcmp(ext, ".directory."))
-	{
+	else if (!strcmp(ext, ".directory."))
 		end = ".directory.";
-	} else
+	else
 	{
 		end = strrchr(ext, '.');
 		end = (end ? (end + 1) : "txt");

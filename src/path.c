@@ -3,11 +3,7 @@
 /* $Id: path.c,v 1.12 2006/12/06 20:56:53 johans Exp $ */
 
 #include	"config.h"
-
-#include	<pwd.h>
-#include	<stdio.h>
 #include	<string.h>
-#include	<sys/stat.h>
 
 #include	"httpd.h"
 #include	"htconfig.h"
@@ -17,16 +13,18 @@ const	char	*
 calcpath(const char *filename)
 {
 	static	char	buffer[XS_PATH_MAX];
+	const	char	*rootdir;
+
 #ifdef		BUILD_HTTPD
-	const	char	*dir = config.systemroot;
+	rootdir = config.systemroot;
 #else		/* BUILD_HTTPD */
-	const	char	*dir = getenv("HTTPD_ROOT");
+	rootdir = getenv("HTTPD_ROOT");
 #endif		/* BUILD_HTTPD */
 
 	if (*filename == '/')
 		strlcpy(buffer, filename, XS_PATH_MAX);
-	else if (dir)
-		snprintf(buffer, XS_PATH_MAX, "%s/%s", dir, filename);
+	else if (rootdir)
+		snprintf(buffer, XS_PATH_MAX, "%s/%s", rootdir, filename);
 	else
 		snprintf(buffer, XS_PATH_MAX, HTTPD_ROOT "/%s", filename);
 	return (buffer);

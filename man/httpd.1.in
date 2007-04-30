@@ -631,40 +631,12 @@ PUT, this is the content type of the data.
 .B CONTENT_LENGTH
 The length of the said content as given by the client.
 .LP
-The following \fIHTTP_* headers\fP are only available if the client
-chooses to add this extra information when requesting an URL from
-the server.
-.TP
-.B HTTP_REFERER
-The URL that refered to the active page.
-.TP
-.B HTTP_COOKIE
-The cookie the client uses for identification.
-Usually the server doesn't request cookies, so the client won't offer any.
-.TP
-.B HTTP_ACCEPT
-The MIME types that the client is willing to accept.
-.TP
-.B HTTP_ACCEPT_ENCODING
-The encoding types the client can decode without user intervention
-(e.g. gzip or compress).
-.TP
-.B HTTP_ACCEPT_LANGUAGE
-The natural document language that the client (user) prefers.
-.TP
-.B HTTP_HOST
-The hostname that the client wishes to retrieve data from.
-.TP
-.B HTTP_CLIENT_IP
-The IP address of the user's machine in case a HTTP proxy is being
-used. In this case REMOTE_ADDR shows the address of the proxy
-server. This information is taken from either the Client-IP: or the
-X-Forwarded-For: header. Note that some non-compliant proxy's may
-not set either of these headers.
-.TP
-.B HTTP_VIA
-The full information from the Via: header which may be added by a
-webproxy.
+In addition an \fIHTTP_*\fP environment variable is available for each
+of the request headers that is sent by the client.
+Common headers include HTTP_REFERER, HTTP_COOKIE, HTTP_HOST and HTTP_ACCEPT.
+.LP
+For compatibility with old webproxies the information from the obsoleted
+X-Forwarded-For header will be stored in the \fIHTTP_CLIENT_IP\fP variable.
 .LP
 The following \fISSL_* information\fP is only available if the client
 is using a securely encrypted https connection.

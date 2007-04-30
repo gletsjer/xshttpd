@@ -11,6 +11,7 @@
 
 #include	"htconfig.h"
 #include	"httpd.h"
+#include	"path.h"
 #include	"convert.h"
 
 const char *
