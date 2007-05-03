@@ -338,7 +338,8 @@ fresh_nonce(char *nonce)
 static int
 valid_nonce(char *nonce)
 {
-	long	ts, tsnow;
+	long	ts;
+	time_t	tsnow;
 	char	*ip, *buf, *ptr;
 	char	bufhex[MD5_DIGEST_LENGTH];
 	size_t	len;
@@ -361,6 +362,6 @@ valid_nonce(char *nonce)
 	time((time_t *)&tsnow);
 
 	/* fresh for 1 hour */
-	return ts + 3600 > tsnow;
+	return ts + 3600 > (long)tsnow;
 }
 #endif		/* HAVE_MD5 */

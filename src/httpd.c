@@ -110,7 +110,7 @@ char		remotehost[NI_MAXHOST],
 		real_path[XS_PATH_MAX], currentdir[XS_PATH_MAX],
 		orig_filename[XS_PATH_MAX];
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[RWBUFSIZE],
-		thisdomain[NI_MAXHOST], message503[MYBUFSIZ], orig[MYBUFSIZ],
+		message503[MYBUFSIZ], orig[MYBUFSIZ],
 		config_path[XS_PATH_MAX], config_preprocessor[XS_PATH_MAX],
 		*startparams;
 time_t		modtime;
@@ -432,7 +432,7 @@ load_config()
 				else if (!strcasecmp("LogReferer", key))
 					current->logreferer = strdup(value);
 				else if (!strcasecmp("LogRefererIgnoreDomain", key))
-					strlcpy(thisdomain, THISDOMAIN, NI_MAXHOST);
+					current->thisdomain = strdup(value);
 				else if (!strcasecmp("IndexFiles", key))
 				{
 					int		i;
@@ -1138,7 +1138,7 @@ logrequest(const char *request, off_t size)
 			getenv("REQUEST_METHOD"), dynrequest, httpver,
 			size > 0 ? (int64_t)size : (int64_t)0);
 		if (rlog &&
-			(!thisdomain[0] || !strcasestr(referer, thisdomain)))
+			(!current->thisdomain || !strcasestr(referer, current->thisdomain)))
 			fprintf(rlog, "%s -> %s\n", referer, request);
 	}
 	else if (current->logstyle == log_virtual)
@@ -1936,11 +1936,6 @@ main(int argc, char **argv)
 	}
 
 	message503[0] = '\0';
-#ifdef		THISDOMAIN
-	strlcpy(thisdomain, THISDOMAIN, NI_MAXHOST);
-#else		/* Not THISDOMAIN */
-	thisdomain[0] = '\0';
-#endif		/* THISDOMAIN */
 #ifdef		PATH_PREPROCESSOR
 	strlcpy(config_preprocessor, PATH_PREPROCESSOR, XS_PATH_MAX);
 #else		/* Not PATH_PREPROCESSOR */

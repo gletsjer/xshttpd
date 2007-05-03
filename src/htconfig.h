@@ -18,6 +18,7 @@ extern struct virtual {
 	char *		logaccess;
 	char *		logerror;
 	char *		logreferer;
+	char *		thisdomain;
 	char **		indexfiles;
 	char **		aliases;
 	char *		socketname;

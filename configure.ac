@@ -191,24 +191,6 @@ dnl Test runs for required global variables
 
 AC_CHECK_DECLS([sys_errlist, optarg, environ])
 
-AC_MSG_CHECKING(for local domain)
-hostname=` ( hostname || cat /etc/HOSTNAME ) 2> /dev/null `
-if test x${hostname} = x -o x${hostname} = x${hostname#*.}
-then
-	domainname=`dnsdomainname 2> /dev/null`
-	if test x${domainname} = x
-	then
-		domain=".stack.nl"
-	else
-		domain=".${domainname}"
-	fi
-else
-	domain=".${hostname#*.}"
-fi
-AC_MSG_RESULT(${domain})
-AC_DEFINE_UNQUOTED(THISDOMAIN, "${domain}",
-	[The name of your domain, including leading dot. This is used to strip out referrers from your own site.])
-
 AC_SUBST(libxs_ldflags)
 AC_SUBST(libxs_cflags)
 AC_SUBST(httpd_ldflags)

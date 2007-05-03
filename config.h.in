@@ -338,10 +338,6 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/* The name of your domain, including leading dot. This is used to strip out
-   referrers from your own site. */
-#undef THISDOMAIN
-
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
 

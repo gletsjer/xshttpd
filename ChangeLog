@@ -6,6 +6,7 @@ Changes since 3.5 beta 7
   CGI support scripts gfxcount, imagemap, xschpass may now actually work
 - Simplify directory and file settings in configure and confuser.h
 - Pass all (unknown) headers as HTTP_* environment variables
+- Improve internal crypt() functionality and usage
 
 Changes since 3.5 beta 6
 - Remove obsoleted command line arguments
