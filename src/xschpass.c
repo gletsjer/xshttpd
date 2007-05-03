@@ -116,8 +116,7 @@ changepasswd(const char *param, int  cl)
 	for (search = new1; *search; search++)
 		if (*search < ' ')
 			xserror("403 Your password contains an invallid character!");
-	cryptnew = xs_encrypt(new1);
-	cryptold = xs_encrypt(old);
+	cryptnew = crypt(new1, mksalt());
 
 	if (lstat(filename, &statbuf1))
 		xserror("403 Could not lstat directory '%s': %s",
@@ -151,11 +150,21 @@ changepasswd(const char *param, int  cl)
 			filename, strerror(errno));
 
 	found = 0;
-	snprintf(new2, BUFSIZ, "%s:%s\n", username, cryptold);
+	snprintf(new2, BUFSIZ, "%s:", username);
 	while (fgets(buffer, BUFSIZ, input))
 	{
-		if (!found && !strcmp(buffer+1, new2))
+		if (!found && !strncmp(buffer+1, new2, strlen(new2)))
 		{
+			char	*opwent;
+
+			opwent = buffer + 1 + strlen(new2) + 1;
+			cryptold = crypt(old, opwent);
+			if (strcmp(cryptold, opwent))
+			{
+				fclose(input); fclose(output);
+				remove(filename);
+				xserror("403 Password doesn't match");
+			}
 			found = 1;
 			if (buffer[0] != 'U')
 			{

@@ -3,21 +3,21 @@
 /* $Id: xscrypt.c,v 1.12 2006/12/06 20:56:56 johans Exp $ */
 
 #include	"config.h"
-
-#include	<unistd.h>
-#ifdef		HAVE_CRYPT_H
-#include	<crypt.h>
-#endif		/* HAVE_CRYPT_H */
+#include	<stdlib.h>
 
 #include	"xscrypt.h"
 
+const	char	alnum[] = "./0123456789"
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+			"abcdefghijklmnopqrstuvwxyz";
+
 char *
-xs_encrypt(const char *buffer)
+mksalt()
 {
-#ifdef		HAVE_CRYPT
-	return crypt(buffer, "xs");
-#else		/* HAVE_CRYPT */
-	/* If you don't have a crypt() function, use plain-text pwd storage */
-	return buffer;
-#endif		/* HAVE_CRYPT */
+	static	char	salt[3];
+
+	salt[0] = alnum[rand() % strlen(alnum)];
+	salt[1] = alnum[rand() % strlen(alnum)];
+	salt[2] = '\0';
+	return salt;
 }

@@ -75,11 +75,12 @@ AC_REPLACE_FUNCS(err killpg memmem setenv setgroups setproctitle strlcat strcase
 XS_CHECK_WITH(ssl, SSL crypto support, yes)
 if test x${with_ssl} = xyes
 then
-	XS_FUNC_IN_LIB(SSLeay_version, HAVE_SSLEAY, crypto, httpd)
-	XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, httpd, -lcrypto)
+	XS_FUNC_IN_LIB(SSLeay_version, HAVE_SSLEAY, crypto, xssl)
+	XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, xssl, -lcrypto)
 	if test x$ac_cv_lib_ssl_SSL_version = xyes
 	then
 		httpd_cflags="${httpd_cflags} -I/usr/local/ssl/include"
+		httpd_ldflags="${httpd_ldflags} ${xssl_ldflags}"
 		AC_DEFINE(HANDLE_SSL,,
 			[Enable SSL support, you must have UseSSL in your config to enable this])
 		if test x$ac_cv_lib_md_MD5Data = xno
@@ -88,7 +89,12 @@ then
 			AC_DEFINE(USE_OPENSSL_MD5,,
 				[Define if you have openssl, but no MD5Data()])
 			AC_REPLACE_FUNCS(MD5Data)
-			libxs_ldflags="${libxs_ldflags} ${httpd_ldflags}"
+			libxs_ldflags="${libxs_ldflags} ${xssl_ldflags}"
+		fi
+		if test x$ac_cv_lib_crypt_crypt = xno
+		then
+			AC_REPLACE_FUNCS(crypt)
+			libxs_ldflags="${libxs_ldflags} ${xssl_ldflags}"
 		fi
 	else
 		AC_MSG_ERROR([Cannot find libraries for --with-ssl])
@@ -159,7 +165,7 @@ then
 fi
 
 # XS_SHOW_HELP([--enable options], [default in brackets:])
-XS_ARG_DEFAULT(suidcgi, DUMMY, no, [install CGI scripts with setuid root privs])
+#XS_ARG_DEFAULT(suidcgi, DUMMY, no, [install CGI scripts with setuid root privs])
 AM_CONDITIONAL([SUIDCGI], [test x$enable_suidcgi = xyes])
 
 XS_ARG_DEFAULT(warnings, DUMMY, no, [enable extra compiler warnings])

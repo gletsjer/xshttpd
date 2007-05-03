@@ -78,7 +78,7 @@ main(int argc, char **argv)
 		errx(1, "Password input failed");
 	if (strcmp(password, passone))
 		errx(1, "Password did not match previous entry!");
-	pwd = xs_encrypt(password);
+	pwd = crypt(password, mksalt());
 
 	if (digest)
 	{

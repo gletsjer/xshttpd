@@ -8,12 +8,12 @@
 #include	<stdlib.h>
 #include	<string.h>
 #include	<ctype.h>
+#include	<unistd.h>
 
 #include	"httpd.h"
 #include	"authenticate.h"
 #include	"decode.h"
 #include	"ssl.h"
-#include	"xscrypt.h"
 #ifdef		AUTH_LDAP
 #include	"ldap.h"
 #endif		/* AUTH_LDAP */
@@ -114,7 +114,7 @@ check_basic_auth(const char *authfile)
 		return 1;
 	}
 
-	if (!strcmp(passwd, xs_encrypt(find)))
+	if (!strcmp(passwd, crypt(find, passwd)))
 	{
 		free(line);
 		free(passwd);

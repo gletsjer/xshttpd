@@ -66,7 +66,12 @@ AC_DEFUN([XS_FUNC_IN_LIB], [
 		AC_DEFINE($2,, [Define to 1 if you have the `$3' functions.]),
 		[AC_CHECK_LIB($3,
 			$1,
-			AC_DEFINE($2) $4_ldflags="${$4_ldflags} -l$3",
+			[AC_DEFINE($2)
+			for i in $4
+			do
+				eval ${i}_ldflags=\"\${${i}_ldflags} -l$3\"
+			done
+			],
 			,
 			$5)
 		])
