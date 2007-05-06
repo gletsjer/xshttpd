@@ -17,6 +17,9 @@
 #ifdef		AUTH_LDAP
 #include	"ldap.h"
 #endif		/* AUTH_LDAP */
+#ifdef		HAVE_CRYPT_H
+#include	<crypt.h>
+#endif		/* HAVE_CRYPT_H */
 
 char		authentication[MYBUFSIZ];
 unsigned long int	secret;

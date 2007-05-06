@@ -95,7 +95,6 @@
 #include	"extra.h"
 #include	"cgi.h"
 #include	"fcgi.h"
-#include	"xscrypt.h"
 #include	"path.h"
 #include	"htconfig.h"
 #include	"pcre.h"

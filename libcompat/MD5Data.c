@@ -2,6 +2,7 @@
 /* $Id: MD5Data.c,v 1.2 2007/03/16 21:53:49 johans Exp $ */
 
 #include	"config.h"
+#include	"decode.h"
 
 #include	<sys/types.h>
 #include	<openssl/md5.h>

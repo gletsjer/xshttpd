@@ -12,6 +12,9 @@
 #include	<errno.h>
 #include	<string.h>
 #include	<ctype.h>
+#ifdef		HAVE_CRYPT_H
+#include	<crypt.h>
+#endif		/* HAVE_CRYPT_H */
 
 #include	"extra.h"
 #include	"xscrypt.h"

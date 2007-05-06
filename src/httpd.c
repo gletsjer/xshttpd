@@ -85,7 +85,6 @@
 #include	"cgi.h"
 #include	"ssi.h"
 #include	"ssl.h"
-#include	"xscrypt.h"
 #include	"path.h"
 #include	"convert.h"
 #include	"htconfig.h"

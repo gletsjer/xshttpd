@@ -26,7 +26,6 @@ httpd_ldlags="${LDLAGS}"
 libxs_ldlags="${LDLAGS}"
 
 dnl Checks for header files.
-AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 
 AC_CHECK_HEADERS(alloca.h crypt.h err.h sys/exec.h getopt.h inttypes.h memory.h pcre.h pcre/pcre.h sys/mman.h sys/param.h sys/pstat.h sys/resource.h sys/select.h sys/syslimits.h sys/sysmips.h sys/sysnews.h sys/time.h time.h)
@@ -93,6 +92,7 @@ then
 		fi
 		if test x$ac_cv_lib_crypt_crypt = xno
 		then
+			AC_DEFINE(HAVE_CRYPT)
 			AC_REPLACE_FUNCS(crypt)
 			libxs_ldflags="${libxs_ldflags} ${xssl_ldflags}"
 		fi

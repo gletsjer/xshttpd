@@ -13,6 +13,9 @@
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
 #include	<sys/stat.h>
+#ifdef		HAVE_CRYPT_H
+#include	<crypt.h>
+#endif		/* HAVE_CRYPT_H */
 
 #include	"httpd.h"
 #include	"decode.h"
