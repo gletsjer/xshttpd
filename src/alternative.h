@@ -58,6 +58,10 @@ char *	MD5Data		(const unsigned char *, unsigned int, char *);
 void *	memmem		(const void *, size_t, const void *, size_t);
 #endif		/* HAVE_MEMMEM */
 
+#ifndef		MKSTEMP
+int	mkstemp		(char *);
+#endif		/* MKSTEMP */
+
 #ifndef		HAVE_SETENV
 char	*getenv		(const char *);
 int	setenv		(const char *, const char *, int);
@@ -97,21 +101,15 @@ char *	strsep		(char **, const char *);
 int	snprintf	(char *, size_t, const char *, ...) PRINTF_LIKE(3, 4);
 int	vsnprintf	(char *, size_t, const char *, va_list);
 #endif		/* HAVE_VSNPRINTF */
+#ifndef		HAVE_ASPRINTF
+int	asprintf	(char **, const char *, ...) PRINTF_LIKE(2, 3);
+#endif		/* HAVE_ASPRINTF */
 
 #ifndef		HAVE_SETEUID
-# ifdef		HAVE_SETRESUID
-#  define	seteuid(a)	setresuid(-1, (a), -1)
-# else		/* Not HAVE_SETRESUID */
-#  define	seteuid(a)	setreuid(-1, (a))
-# endif		/* HAVE_SETRESUID */
+int	seteuid		(uid_t);
 #endif		/* HAVE_SETEUID */
-
 #ifndef		HAVE_SETEGID
-# ifdef		HAVE_SETRESGID
-#  define	setegid(a)	setresgid(-1, (a), -1)
-# else		/* Not HAVE_SETRESGID */
-#  define	setegid(a)	setregid(-1, (a))
-# endif		/* HAVE_SETRESGID */
+int	setguid		(gid_t);
 #endif		/* HAVE_SETEGID */
 
 #ifndef		PRId64

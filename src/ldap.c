@@ -2,8 +2,9 @@
 /* Copyright (C) 2005-2006 by Johan van Selst (johans@stack.nl) */
 /* $Id: ldap.c,v 1.11 2007/04/07 21:51:45 johans Exp $ */
 
-#ifdef		AUTH_LDAP
 #include	"config.h"
+
+#ifdef		AUTH_LDAP
 #include	"ldap.h"
 #include	"httpd.h"
 

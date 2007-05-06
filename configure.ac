@@ -45,19 +45,19 @@ dnl Checks for library functions.
 AC_FUNC_FORK
 AC_FUNC_MMAP
 AC_FUNC_SETVBUF_REVERSED
-AC_FUNC_STRFTIME
-AC_CHECK_FUNCS(getaddrinfo getnameinfo mkstemp mmap setegid seteuid setpriority setresgid setresuid setrlimit setsid sigemptyset uname)
+AC_CHECK_FUNCS(getaddrinfo getnameinfo setpriority setresgid setresuid setrlimit setsid sigemptyset uname)
 
 dnl Checks for functions requiring additional libraries.
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)
 XS_FUNC_IN_LIB(inet_aton, HAVE_INET_ATON, nsl, httpd, -lsocket)
-AS_IF([test "$ac_cv_search_inet_aton" = no], [AC_LIBOBJ(inet_aton)])
 XS_FUNC_IN_LIB(inet_pton, HAVE_INET_PTON, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
 XS_FUNC_IN_LIB(MD5Data, HAVE_MD5, md, libxs)
 
+AS_IF([test "$ac_cv_search_inet_aton" = no], [AC_LIBOBJ(inet_aton)])
 AC_CHECK_FUNC(asnprintf,, [AC_LIBOBJ(snprintf)])
-AC_REPLACE_FUNCS(err killpg memmem setenv setgroups setproctitle strlcat strcasestr strerror strlcpy strptime strsep snprintf)
+AC_CHECK_FUNC(setegid,,   [AC_LIBOBJ(seteuid)])
+AC_REPLACE_FUNCS(err killpg memmem mkstemp setenv seteuid setgroups setproctitle strlcat strcasestr strerror strlcpy strptime strsep snprintf)
 
 dnl Check in6_addr layout; must follow socket library check.
 AC_CHECK_TYPES(struct in6_addr,,, [#include <netinet/in.h>])
@@ -100,7 +100,6 @@ dnl User specified additional (non-system) libraries.
 XS_CHECK_WITH(ssl, SSL crypto support, yes)
 if test x${with_ssl} = xyes
 then
-	XS_FUNC_IN_LIB(SSLeay_version, HAVE_SSLEAY, crypto, xssl)
 	XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, xssl, -lcrypto)
 	if test "$ac_cv_search_SSL_version" != no
 	then
@@ -161,13 +160,7 @@ fi
 XS_CHECK_WITH(python, Python interpreter, no)
 if test x${with_python} = xyes
 then
-	AC_PATH_PROG(pythonpath, [python2.5])
-	if test -n "${pythonpath}"
-	then
-		AC_DEFINE(HAVE_PYTHON,, [Define this to use python cgi environment])
-		httpd_cflags="${httpd_cflags} `${pythonpath} --cflags`"
-		httpd_ldflags="${httpd_ldflags} -lpthread `${pythonpath} --ldflags`"
-	fi
+	XS_TRY_CONFIG([python2.5], httpd)
 fi
 
 XS_CHECK_WITH(preprocessor, optional configuration preprocessor, no)
@@ -196,7 +189,7 @@ then
 	CFLAGS="${CFLAGS} -g -ggdb -O3 -fsigned-char -fshort-enums -funroll-loops -std=c99 -pedantic -trigraphs -pipe -Wall -W -Wpointer-arith -Wshadow -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wformat -Wformat-security -Wcomment -Wchar-subscripts -Wcast-align -Waggregate-return -Wnested-externs -Winline -Wundef -Wmissing-noreturn -Wmissing-format-attribute -Wpacked -Wpadded -Wunreachable-code"
 fi
 
-XS_ARG_DEFAULT(ssp, DUMMY, no, [enable stack smaching protector])
+XS_ARG_DEFAULT(ssp, DUMMY, no, [enable stack smashing protector])
 if test x${enable_ssp} = xyes
 then
 	AC_MSG_CHECKING([whether ${CC} supports stack protection...])

@@ -1,6 +1,6 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Define if you have the `AUTH_LDAP' functions. */
+/* Define if you have the `ldap_initialize' function */
 #undef AUTH_LDAP
 
 /* cgi directory */
@@ -21,7 +21,7 @@
 /* contrib directory with opt. trailing slash */
 #undef CONTRIB_DIRT
 
-/* enable stack smaching protector */
+/* enable stack smashing protector */
 #undef DUMMY
 
 /* font directory */
@@ -36,13 +36,13 @@
 /* Define to 1 if you have the <alloca.h> header file. */
 #undef HAVE_ALLOCA_H
 
-/* Define if you have the `HAVE_CRYPT' functions. */
+/* Define if you have the `crypt' function */
 #undef HAVE_CRYPT
 
 /* Define to 1 if you have the <crypt.h> header file. */
 #undef HAVE_CRYPT_H
 
-/* Define if you have the `HAVE_CURL' functions. */
+/* Define if you have the `curl_version' function */
 #undef HAVE_CURL
 
 /* Define to 1 if you have the declaration of `environ', and to 0 if you
@@ -78,10 +78,10 @@
 /* Define to 1 if you have the `getpagesize' function. */
 #undef HAVE_GETPAGESIZE
 
-/* Define if you have the `HAVE_INET_ATON' functions. */
+/* Define if you have the `inet_aton' function */
 #undef HAVE_INET_ATON
 
-/* Define if you have the `HAVE_INET_PTON' functions. */
+/* Define if you have the `inet_pton' function */
 #undef HAVE_INET_PTON
 
 /* Define to 1 if you have the <inttypes.h> header file. */
@@ -90,7 +90,7 @@
 /* Define to 1 if you have the `killpg' function. */
 #undef HAVE_KILLPG
 
-/* Define if you have the `HAVE_MD5' functions. */
+/* Define if you have the `MD5Data' function */
 #undef HAVE_MD5
 
 /* Define to 1 if you have the `memmem' function. */
@@ -102,20 +102,14 @@
 /* Define to 1 if you have the `mkstemp' function. */
 #undef HAVE_MKSTEMP
 
-/* Define to 1 if you have the `mmap' function. */
+/* Define to 1 if you have a working `mmap' system call. */
 #undef HAVE_MMAP
 
-/* Define if you have the `HAVE_PCRE' functions. */
+/* Define if you have the `pcre_exec' function */
 #undef HAVE_PCRE
 
 /* Define this to use perl cgi environment */
 #undef HAVE_PERL
-
-/* Define this to use python cgi environment */
-#undef HAVE_PYTHON
-
-/* Define to 1 if you have the `setegid' function. */
-#undef HAVE_SETEGID
 
 /* Define to 1 if you have the `setenv' function. */
 #undef HAVE_SETENV
@@ -150,17 +144,14 @@
 /* Define to 1 if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
 
-/* Define if you have the `HAVE_SOCKET' functions. */
+/* Define if you have the `socket' function */
 #undef HAVE_SOCKET
 
 /* Define to 1 if the system has the type `socklen_t'. */
 #undef HAVE_SOCKLEN_T
 
-/* Define if you have the `HAVE_SSL' functions. */
+/* Define if you have the `SSL_version' function */
 #undef HAVE_SSL
-
-/* Define if you have the `HAVE_SSLEAY' functions. */
-#undef HAVE_SSLEAY
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
@@ -173,9 +164,6 @@
 
 /* Define to 1 if you have the `strerror' function. */
 #undef HAVE_STRERROR
-
-/* Define to 1 if you have the `strftime' function. */
-#undef HAVE_STRFTIME
 
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H

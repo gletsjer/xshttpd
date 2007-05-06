@@ -1,3 +1,5 @@
+/* Copyright (C) 2007 by Johan van Selst (johans@stack.nl) */
+
 #include	"config.h"
 #include	<sys/socket.h>
 #include	<arpa/inet.h>

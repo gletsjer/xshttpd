@@ -36,7 +36,7 @@ AC_DEFUN([XS_ARG_DIR], [
 # AC_FUNC_IN_LIB(function, define, library, buildprog, extra-lib)
 AC_DEFUN([XS_FUNC_IN_LIB], [
 	LIBS=
-	AH_TEMPLATE($2, [Define if you have the `$2' functions.])
+	AH_TEMPLATE($2, [Define if you have the `$1' function])
 	AC_SEARCH_LIBS($1, $3, [AC_DEFINE($2)],, $5)
 	AS_IF([test -n "${LIBS}"], [$4_ldflags="${$4_ldflags} ${LIBS}"])
 	])
@@ -55,8 +55,9 @@ AC_DEFUN([XS_CHECK_WITH], [
 AC_DEFUN([XS_TRY_CONFIG], [
 	unset progpath ac_cv_path_progpath
 	AC_PATH_PROG(progpath, $1-config)
-	AS_IF([test -n "${progpath}"], [
-		$2_cflags="${$2_cflags} `${progpath} --cflags`"
-		$2_ldflags="${$2_ldflags} `${progpath} --libs`"
-	])])
+	AS_IF([test -n "${progpath}"],
+		[$2_cflags="${$2_cflags} `${progpath} --cflags`"
+		 $2_ldflags="${$2_ldflags} `${progpath} --libs`"]
+		[$2_ldflags="${$2_ldflags} -l$1"])
+	])
 
