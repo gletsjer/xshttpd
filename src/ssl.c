@@ -15,9 +15,11 @@
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
 
+#ifdef		HANDLE_SSL
 #include	<openssl/rand.h>
 #include	<openssl/err.h>
 #include	<openssl/conf.h>
+#endif		/* HANDLE_SSL */
 
 #include	"htconfig.h"
 #include	"httpd.h"

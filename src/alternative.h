@@ -8,6 +8,7 @@
 #include	"config.h"
 
 #include	<sys/types.h>
+#include	<inttypes.h>
 #include	<stdarg.h>
 #ifdef		HAVE_TIME_H
 #include	<time.h>
@@ -98,19 +99,19 @@ int	vsnprintf	(char *, size_t, const char *, va_list);
 #endif		/* HAVE_VSNPRINTF */
 
 #ifndef		HAVE_SETEUID
-#ifdef		HAVE_SETRESUID
-#define		seteuid(a)	setresuid(-1, (a), -1)
-#else		/* Not HAVE_SETRESUID */
-#define		seteuid(a)	setreuid(-1, (a))
-#endif		/* HAVE_SETRESUID */
+# ifdef		HAVE_SETRESUID
+#  define	seteuid(a)	setresuid(-1, (a), -1)
+# else		/* Not HAVE_SETRESUID */
+#  define	seteuid(a)	setreuid(-1, (a))
+# endif		/* HAVE_SETRESUID */
 #endif		/* HAVE_SETEUID */
 
 #ifndef		HAVE_SETEGID
-#ifdef		HAVE_SETRESGID
-#define		setegid(a)	setresgid(-1, (a), -1)
-#else		/* Not HAVE_SETRESGID */
-#define		setegid(a)	setregid(-1, (a))
-#endif		/* HAVE_SETRESGID */
+# ifdef		HAVE_SETRESGID
+#  define	setegid(a)	setresgid(-1, (a), -1)
+# else		/* Not HAVE_SETRESGID */
+#  define	setegid(a)	setregid(-1, (a))
+# endif		/* HAVE_SETRESGID */
 #endif		/* HAVE_SETEGID */
 
 #ifndef		PRId64

@@ -5,10 +5,7 @@ noinst_LIBRARIES = libxs.a
 AM_CPPFLAGS = -DHTTPD_ROOT=\"$(rootdir)\"
 
 httpd_SOURCES = httpd.c authenticate.c cgi.c convert.c fcgi.c \
-	methods.c path.c pcre.c ssi.c ssl.c
-if LDAP
-httpd_SOURCES += ldap.c 
-endif
+	ldap.c methods.c path.c pcre.c ssi.c ssl.c
 httpd_CFLAGS = @httpd_cflags@ -DBUILD_HTTPD
 httpd_LDFLAGS = @httpd_ldflags@ @libxs_ldflags@
 

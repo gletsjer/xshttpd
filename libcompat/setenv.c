@@ -9,8 +9,6 @@
 #include	<stdio.h>
 #include	<unistd.h>
 
-#include	"setenv.h"
-
 static	char	*findenv		 (const char *, int *);
 
 char	*

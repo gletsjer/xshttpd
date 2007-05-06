@@ -75,9 +75,6 @@
 #include	<curl/curl.h>
 #endif		/* HAVE_CURL */
 #ifdef		HAVE_STRUCT_IN6_ADDR
-# ifndef	s6_addr32
-#  define	s6_addr32	__u6_addr.__u6_addr32
-# endif		/* s6_addr32 */
 # ifndef	IN6_ARE_MASKED_ADDR_EQUAL
 #  define IN6_ARE_MASKED_ADDR_EQUAL(d, a, m)      (       \
 	(((d)->s6_addr32[0] ^ (a)->s6_addr32[0]) & (m)->s6_addr32[0]) == 0 && \

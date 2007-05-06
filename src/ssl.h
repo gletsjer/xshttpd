@@ -4,6 +4,7 @@
 #ifdef		HANDLE_SSL
 # ifndef	USE_OPENSSL_MD5
 #  define	OPENSSL_NO_MD5
+#  define	HEADER_MD5_H	/* trick older openssl */
 # endif		/* Not USE_OPENSSL_MD5 */
 #include <openssl/ssl.h>
 #endif		/* HANDLE_SSL */

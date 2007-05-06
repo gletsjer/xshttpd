@@ -1,4 +1,5 @@
 dnl Make my life easier
+# XS_ARG_DEFAULT(option, define, def.value, help string)
 AC_DEFUN([XS_ARG_DEFAULT], [
 	AC_MSG_CHECKING(for --enable-$1)
 	AC_ARG_ENABLE($1,
@@ -6,7 +7,7 @@ AC_DEFUN([XS_ARG_DEFAULT], [
 		AC_MSG_RESULT(${enable_$1}),
 		enable_$1=$3
 		AC_MSG_RESULT($3))
-	if test ${enable_$1} = "yes" -a -n "$2" ; then AC_DEFINE($2,, [$4]) fi
+	AS_IF([test "${enable_$1}" = yes], AC_DEFINE($2,, [$4]))
 	])
 
 AC_DEFUN([XS_SHOW_HELP], [
@@ -26,55 +27,18 @@ AC_DEFUN([XS_ARG_DIR], [
 	$1dir='${rootdir}/$3'
 	AC_SUBST($1dir)
 	AC_DEFINE([$2], "$3", [$1 directory])
-	if test -z "$3"
-	then
-		AC_DEFINE([$2T], [])
-	else
+	AS_IF([test -z "$3"],
+		AC_DEFINE([$2T], []),
 		AC_DEFINE([$2T], [$2 "/"],
-			[$1 directory with opt. trailing slash])
-	fi
-	])
-
-AC_DEFUN([XS_NEED_CONST], [
-	AC_MSG_CHECKING("for $1")
-	AC_TRY_RUN([
-#include <$3>
-int main() { return $1, 0; }
-],
-		AC_MSG_RESULT(found),
-		AC_MSG_RESULT(will use my own)
-		AC_DEFINE($2,, [define if not declared in system]),
-		AC_MSG_RESULT(unknown))
-	])
-
-AC_DEFUN([XS_NEED_CONST2], [
-	AC_MSG_CHECKING("for $1")
-	AC_TRY_RUN([
-#include <$3>
-#include <$4>
-int main() { return $1, 0; }
-],
-		AC_MSG_RESULT(found),
-		AC_MSG_RESULT(will use my own)
-		AC_DEFINE($2,, [define if not declared in system]),
-		AC_MSG_RESULT(unknown))
+			[$1 directory with opt. trailing slash]))
 	])
 
 # AC_FUNC_IN_LIB(function, define, library, buildprog, extra-lib)
 AC_DEFUN([XS_FUNC_IN_LIB], [
-	AC_CHECK_FUNCS($1,
-		AC_DEFINE($2,, [Define to 1 if you have the `$3' functions.]),
-		[AC_CHECK_LIB($3,
-			$1,
-			[AC_DEFINE($2)
-			for i in $4
-			do
-				eval ${i}_ldflags=\"\${${i}_ldflags} -l$3\"
-			done
-			],
-			,
-			$5)
-		])
+	LIBS=
+	AH_TEMPLATE($2, [Define if you have the `$2' functions.])
+	AC_SEARCH_LIBS($1, $3, [AC_DEFINE($2)],, $5)
+	AS_IF([test -n "${LIBS}"], [$4_ldflags="${$4_ldflags} ${LIBS}"])
 	])
 
 # XS_CHECK_WITH(function, desc, default)
@@ -82,7 +46,7 @@ AC_DEFUN([XS_CHECK_WITH], [
 	AC_MSG_CHECKING([if you want $2])
 	AC_ARG_WITH($1,
 		AC_HELP_STRING([--with-$1], [$2 ($3)]),
-		AC_MSG_RESULT($with_$1),
+		AC_MSG_RESULT(${with_$1}),
 		with_$1=$3
 		AC_MSG_RESULT($3))
 	])
@@ -90,11 +54,9 @@ AC_DEFUN([XS_CHECK_WITH], [
 # XS_TRY_CONFIG(path, buildprog)
 AC_DEFUN([XS_TRY_CONFIG], [
 	unset progpath ac_cv_path_progpath
-	AC_PATH_PROG(progpath, $1)
-	if test x${progpath} != x
-	then
+	AC_PATH_PROG(progpath, $1-config)
+	AS_IF([test -n "${progpath}"], [
 		$2_cflags="${$2_cflags} `${progpath} --cflags`"
 		$2_ldflags="${$2_ldflags} `${progpath} --libs`"
-	fi
-	])
+	])])
 

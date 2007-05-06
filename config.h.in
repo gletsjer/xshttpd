@@ -1,6 +1,6 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Define to 1 if you have the `ldap' functions. */
+/* Define if you have the `AUTH_LDAP' functions. */
 #undef AUTH_LDAP
 
 /* cgi directory */
@@ -30,23 +30,20 @@
 /* font directory with opt. trailing slash */
 #undef FONT_DIRT
 
-/* Enable SSL support, you must have UseSSL in your config to enable this */
+/* Enable OpenSSL support */
 #undef HANDLE_SSL
 
 /* Define to 1 if you have the <alloca.h> header file. */
 #undef HAVE_ALLOCA_H
 
-/* Define to 1 if you have the `crypt' function. */
+/* Define if you have the `HAVE_CRYPT' functions. */
 #undef HAVE_CRYPT
 
 /* Define to 1 if you have the <crypt.h> header file. */
 #undef HAVE_CRYPT_H
 
-/* Define to 1 if you have the `curl' functions. */
+/* Define if you have the `HAVE_CURL' functions. */
 #undef HAVE_CURL
-
-/* Define to 1 if you have the `curl_version' function. */
-#undef HAVE_CURL_VERSION
 
 /* Define to 1 if you have the declaration of `environ', and to 0 if you
    don't. */
@@ -81,20 +78,20 @@
 /* Define to 1 if you have the `getpagesize' function. */
 #undef HAVE_GETPAGESIZE
 
+/* Define if you have the `HAVE_INET_ATON' functions. */
+#undef HAVE_INET_ATON
+
+/* Define if you have the `HAVE_INET_PTON' functions. */
+#undef HAVE_INET_PTON
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
 /* Define to 1 if you have the `killpg' function. */
 #undef HAVE_KILLPG
 
-/* Define to 1 if you have the `ldap_initialize' function. */
-#undef HAVE_LDAP_INITIALIZE
-
-/* Define to 1 if you have the `md' functions. */
+/* Define if you have the `HAVE_MD5' functions. */
 #undef HAVE_MD5
-
-/* Define to 1 if you have the `MD5Data' function. */
-#undef HAVE_MD5DATA
 
 /* Define to 1 if you have the `memmem' function. */
 #undef HAVE_MEMMEM
@@ -108,17 +105,8 @@
 /* Define to 1 if you have the `mmap' function. */
 #undef HAVE_MMAP
 
-/* Define to 1 if you have the `pcre' functions. */
+/* Define if you have the `HAVE_PCRE' functions. */
 #undef HAVE_PCRE
-
-/* Define to 1 if you have the `pcre_exec' function. */
-#undef HAVE_PCRE_EXEC
-
-/* Define to 1 if you have the <pcre.h> header file. */
-#undef HAVE_PCRE_H
-
-/* Define to 1 if you have the <pcre/pcre.h> header file. */
-#undef HAVE_PCRE_PCRE_H
 
 /* Define this to use perl cgi environment */
 #undef HAVE_PERL
@@ -162,23 +150,17 @@
 /* Define to 1 if you have the `snprintf' function. */
 #undef HAVE_SNPRINTF
 
-/* Define to 1 if you have the `socket' function. */
+/* Define if you have the `HAVE_SOCKET' functions. */
 #undef HAVE_SOCKET
 
 /* Define to 1 if the system has the type `socklen_t'. */
 #undef HAVE_SOCKLEN_T
 
-/* Define to 1 if you have the `ssl' functions. */
+/* Define if you have the `HAVE_SSL' functions. */
 #undef HAVE_SSL
 
-/* Define to 1 if you have the `crypto' functions. */
+/* Define if you have the `HAVE_SSLEAY' functions. */
 #undef HAVE_SSLEAY
-
-/* Define to 1 if you have the `SSLeay_version' function. */
-#undef HAVE_SSLEAY_VERSION
-
-/* Define to 1 if you have the `SSL_version' function. */
-#undef HAVE_SSL_VERSION
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
@@ -355,6 +337,9 @@
 
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t
+
+/* */
+#undef s6_addr32
 
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t

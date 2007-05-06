@@ -19,6 +19,10 @@
 #include "fcgi.h"
 #include "htconfig.h"
 
+#ifndef		PF_LOCAL
+#define	PF_LOCAL	PF_UNIX
+#endif		/* PF_LOCAL */
+
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
 fcgi_server	fsrv;

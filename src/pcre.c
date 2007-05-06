@@ -7,13 +7,9 @@
 #include	<stdio.h>
 #include	<string.h>
 #include	<stdlib.h>
-#ifdef		HAVE_PCRE_H
+#ifdef		HAVE_PCRE
 #include	<pcre.h>
-#else		/* HAVE_PCRE_H */
-#ifdef		HAVE_PCRE_PCRE_H
-#include	<pcre/pcre.h>
-#endif		/* HAVE_PCRE_PCRE_H */
-#endif		/* HAVE_PCRE_H */
+#endif		/* HAVE_PCRE */
 
 char *
 pcre_subst(const char * const string, const char * const pattern, const char * const replacement)
