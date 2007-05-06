@@ -50,7 +50,7 @@ int	killpg		(pid_t, int);
 
 #ifdef		USE_OPENSSL_MD5
 # ifndef	HAVE_MD5DATA
-char *	MD5Data		(const unsigned char *, unsigned int, char *);
+char *	MD5Data		(const unsigned char *, size_t, char *);
 # endif		/* HAVE_MD5DATA */
 #endif		/* USE_OPENSSL_MD5 */
 
