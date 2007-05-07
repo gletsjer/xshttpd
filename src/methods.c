@@ -903,6 +903,12 @@ do_get(char *params)
 		if (!getenv("ORIG_PATH_TRANSLATED"))
 			setenv("ORIG_PATH_TRANSLATED", temppath, 1);
 		setenv("SCRIPT_FILENAME", temppath, 1);
+		if ((temp = strrchr(temppath, '/')))
+		{
+			*temp = '\0';
+			setenv("PWD", temppath, 1);
+			*temp = '/';
+		}
 	}
 	else
 	{
