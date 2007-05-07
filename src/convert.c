@@ -45,6 +45,8 @@ convertpath(const char *org)
 		if (slash)
 			strlcat(path, slash, XS_PATH_MAX);
 	}
+	else if (*org != '/')
+		snprintf(path, XS_PATH_MAX, "%s/%s", getenv("PWD"), org);
 	else if (current == config.users)
 		snprintf(path, XS_PATH_MAX, "%s%s",
 			calcpath(config.system->htmldir), org);
