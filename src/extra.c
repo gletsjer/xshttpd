@@ -34,16 +34,6 @@ mysleep(int seconds)
 	return(select(0, NULL, NULL, NULL, &timeout) == 0);
 }
 
-#ifndef		HAVE_KILLPG
-int
-killpg(pid_t process, int sig)
-{
-	if (!process)
-		process = getpid();
-	return(kill(-process, sig));
-}
-#endif		/* HAVE_KILLPG */
-
 int
 match(const char *total, const char *pattern)
 {

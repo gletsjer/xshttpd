@@ -349,39 +349,12 @@ sendcompressed(int fd, const char *method)
 	char	prefix[] = TEMPORARYPREFIX;
 	size_t		count;
 
-#ifdef		HAVE_MKSTEMP
 	if (!(processed = mkstemp(prefix)))
 	{
 		xserror("500 Unable to open temporary file");
 		err(1, "[%s] httpd: Cannot create temporary file", currenttime);
 	}
 	remove(prefix);
-#else		/* HAVE_MKSTEMP */
-	char		*tmp;
-
-	/* Removed obsolete tempnam() call
-	 * if (!(tmp = tempnam(TEMPORARYPATH, "xs-www")))
-	 */
-	{
-		unsigned int	len = 32 + strlen(TEMPORARYPREFIX);
-		if (!(tmp = (char *)malloc(len)))
-		{
-			xserror("500 Out of memory in sendcompressed()");
-			close(fd);
-			return;
-		}
-		snprintf(tmp, len, "%s.%016ld",
-			TEMPORARYPREFIX, (long)getpid());
-	}
-	remove(tmp);
-	if ((processed = open(tmp, O_CREAT | O_TRUNC | O_RDWR | O_EXCL,
-		S_IWUSR | S_IRUSR )) < 0)
-	{
-		xserror("500 Unable to open temporary file");
-		err(1, "[%s] httpd: Cannot open(`%s')", currenttime, tmp);
-	}
-	remove(tmp); free(tmp); fflush(stdout);
-#endif		/* HAVE_MKSTEMP */
 	switch(pid = fork())
 	{
 	case -1:

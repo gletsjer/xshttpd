@@ -1611,17 +1611,17 @@ standalone_socket(int id)
 		err(1, "socket()");
 #endif		/* HAVE_GETADDRINFO */
 
-#ifdef	SO_REUSEPORT
+#ifdef		SO_REUSEPORT
 	temp = 1;
 	if ((setsockopt(sd, SOL_SOCKET, SO_REUSEPORT, &temp, sizeof(temp))) == -1)
 		err(1, "setsockopt(REUSEPORT)");
-#else	/* SO_REUSEPORT */
-# ifdef	SO_REUSEADDR
+#else		/* SO_REUSEPORT */
+# ifdef		SO_REUSEADDR
 	temp = 1;
 	if ((setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &temp, sizeof(temp))) == -1)
 		err(1, "setsockopt(REUSEADDR)");
-# endif	/* SO_REUSEADDR */
-#endif	/* SO_REUSEPORT */
+# endif		/* SO_REUSEADDR */
+#endif		/* SO_REUSEPORT */
 
 	temp = 1;
 	if ((setsockopt(sd, SOL_SOCKET, SO_KEEPALIVE, &temp, sizeof(temp))) == -1)
