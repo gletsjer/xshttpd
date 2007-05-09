@@ -9,6 +9,7 @@ Changes since 3.5 beta 7
 - Improve internal crypt() functionality and usage
 - SSI 'date' now takes an optional format argument
 - Fix encoding=url argument to 'echo' SSI
+- No longer accept arguments for the 'printenv' SSI
 
 Changes since 3.5 beta 6
 - Remove obsoleted command line arguments

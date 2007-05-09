@@ -701,14 +701,9 @@ dir_printenv(int argc, char **argv, off_t *size)
 {
 	char **p, *c;
 
-	if (!argc)
-	{
-		for (p = environ; ((c = *p)); ++p)
-			*size += secprintf("%s<br>\n", c);
-		return(ERR_NONE);
-	}
-	*size += secprintf("%s=%s", argv[0], getenv(argv[0]));
-	return ERR_NONE;
+	for (p = environ; c = *p; ++p)
+		*size += secprintf("%s<br>\n", c);
+	return(ERR_NONE);
 }
 
 static	int
@@ -954,7 +949,7 @@ static	directivestype	directives[] =
 	{ "agent-short",	dir_echo_obsolete,	0	},
 	{ "agent-long",		dir_echo_obsolete,	0	},
 	{ "argument",		dir_echo_obsolete,	0	},
-	{ "printenv",		dir_printenv,		1	},
+	{ "printenv",		dir_printenv,		0	},
 	{ "referer",		dir_echo_obsolete,	0	},
 	{ "set",		dir_set,		1	},
 	{ "echo",		dir_echo,		1	},
