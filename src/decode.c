@@ -142,7 +142,6 @@ escape(const char *what)
 char	*
 urlencode(const char *what)
 {
-	size_t		len;
 	const char	*p;
 	char		*buffer = malloc(strlen(what) * 3 + 1), *q;
 

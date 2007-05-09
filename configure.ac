@@ -55,7 +55,7 @@ XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
 XS_FUNC_IN_LIB(MD5Data, HAVE_MD5, md, libxs)
 
 AS_IF([test "$ac_cv_search_inet_aton" = no], [AC_LIBOBJ(inet_aton)])
-AC_CHECK_FUNC(asnprintf,, [AC_LIBOBJ(snprintf)])
+AC_CHECK_FUNC(asprintf,, [AC_LIBOBJ(snprintf)])
 AC_CHECK_FUNC(setegid,,   [AC_LIBOBJ(seteuid)])
 AC_REPLACE_FUNCS(err killpg memmem mkstemp setenv seteuid setgroups setproctitle strlcat strcasestr strerror strlcpy strptime strsep snprintf)
 
