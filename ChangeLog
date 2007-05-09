@@ -8,6 +8,7 @@ Changes since 3.5 beta 7
 - Pass all (unknown) headers as HTTP_* environment variables
 - Improve internal crypt() functionality and usage
 - SSI 'date' now takes an optional format argument
+- Fix encoding=url argument to 'echo' SSI
 
 Changes since 3.5 beta 6
 - Remove obsoleted command line arguments

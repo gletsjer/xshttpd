@@ -139,6 +139,27 @@ escape(const char *what)
 	return (buffer);
 }
 
+char	*
+urlencode(const char *what)
+{
+	size_t		len;
+	const char	*p;
+	char		*buffer = malloc(strlen(what) * 3 + 1), *q;
+
+	if (!buffer)
+		return NULL;
+
+	for (p = what, q = buffer; *p; p++)
+	{
+		if (isalnum(*p))
+			*q++ = *p;
+		else
+			q += sprintf(q, "%%%02x",
+				(unsigned int)(unsigned char)*p);
+	}
+	*q++ = '\0';
+	return realloc(buffer, q - buffer);
+}
 
 int
 hexdigit(int ch)

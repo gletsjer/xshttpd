@@ -762,8 +762,11 @@ dir_echo(int argc, char **argv, off_t *size)
 	if (enc && !strcmp(enc, "none"))
 		*size += secputs(value);
 	else if (enc && !strcmp(enc, "url"))
-		/* TODO: do url-encoding args */
-		*size += secputs(value);
+	{
+		var = urlencode(value);
+		*size += secputs(var);
+		free(var);
+	}
 	else /* enc = "html" */
 	{
 		var = escape(value);
