@@ -567,13 +567,22 @@ static	int
 dir_date(int argc, char **argv, off_t *size)
 {
 	char		buffer[MYBUFSIZ];
+	char		*format;
 	time_t		theclock;
 
+	format = dateformat;
+	if (argc)
+	{
+		if (2 == argc && !strcmp(argv[0], "format"))
+			format = argv[1];
+		else
+			*size += secprintf("[Illegal date argument '%s']\n",
+				argv[0]);
+	}
+
 	time(&theclock);
-	strftime(buffer, MYBUFSIZ - 1, dateformat, localtime(&theclock));
+	strftime(buffer, MYBUFSIZ - 1, format, localtime(&theclock));
 	*size += strlen(buffer);
-	(void)argc;
-	(void)argv;
 	return(secputs(buffer) == EOF ? ERR_QUIT : ERR_NONE);
 }
 
@@ -931,7 +940,7 @@ static	directivestype	directives[] =
 	{ "count-month",	dir_count_month,	0	},
 	{ "count-month-gfx",	dir_count_month_gfx,	1	},
 	{ "count-reset",	dir_count_reset,	0	},
-	{ "date",		dir_date,		0	},
+	{ "date",		dir_date,		1	},
 	{ "date-format",	dir_date_format,	1	},
 	{ "include",		dir_include_file,	1	},
 	{ "include-file",	dir_include_file,	1	},
