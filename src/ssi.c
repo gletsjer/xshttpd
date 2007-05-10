@@ -556,13 +556,28 @@ dir_count_reset(int argc, char **argv, off_t *size)
 static	int
 dir_date_format(int argc, char **argv, off_t *size)
 {
+	int	i;
+	char	*format, *zone;
+
 	if (!argc)
 	{
 		*size += secputs("[No parameter to date-format]\n");
 		return(ERR_CONT);
 	}
 
-	strlcpy(dateformat, argv[0], MYBUFSIZ);
+	format = zone = NULL;
+	for (i = 0; i < argc; i += 2)
+		if (!strcmp(argv[i], "format"))
+			format = argv[i + 1];
+		else if (!strcmp(argv[i], "zone"))
+			zone = argv[i + 1];
+
+	if (!format && !zone)
+		format = argv[0];
+	if (zone)
+		setenv("TZ", zone, 1);
+	if (format)
+		strlcpy(dateformat, format, MYBUFSIZ);
 	(void)size;
 	return(ERR_NONE);
 }
@@ -570,23 +585,34 @@ dir_date_format(int argc, char **argv, off_t *size)
 static	int
 dir_date(int argc, char **argv, off_t *size)
 {
+	int		i;
 	char		buffer[MYBUFSIZ];
-	char		*format;
+	char		*format, *zone, *ozone;
 	time_t		theclock;
 
 	format = dateformat;
-	if (argc)
-	{
-		if (2 == argc && !strcmp(argv[0], "format"))
-			format = argv[1];
-		else
-			*size += secprintf("[Illegal date argument '%s']\n",
-				argv[0]);
-	}
+	zone = ozone = NULL;
+	for (i = 0; i < argc; i += 2)
+		if (!strcmp(argv[i], "format"))
+			format = argv[i + 1];
+		else if (!strcmp(argv[i], "zone"))
+			zone = argv[i + 1];
 
 	time(&theclock);
-	strftime(buffer, MYBUFSIZ - 1, format, localtime(&theclock));
-	*size += strlen(buffer);
+	if (zone)
+	{
+		if ((ozone = getenv("TZ")))
+			ozone = strdup(ozone);
+		setenv("TZ", zone, 1);
+	}
+	*size += strftime(buffer, MYBUFSIZ - 1, format, localtime(&theclock));
+	if (ozone)
+	{
+		setenv("TZ", ozone, 1);
+		free(ozone);
+	}
+	else if (zone)
+		unsetenv("TZ");
 	return(secputs(buffer) == EOF ? ERR_QUIT : ERR_NONE);
 }
 
@@ -610,7 +636,7 @@ dir_include_file(int argc, char **argv, off_t *size)
 	for (i = 0; i < argc; i += 2)
 		if (!strcmp(argv[i], "virtual"))
 			path = argv[i + 1];
-		if (!strcmp(argv[i], "file"))
+		else if (!strcmp(argv[i], "file"))
 			path = argv[i + 1];
 	if (!path)
 		path = argv[0];
