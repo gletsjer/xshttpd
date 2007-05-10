@@ -841,9 +841,14 @@ do_get(char *params)
 		 * libc will strip leading = from values for backward compatibility
 		 * Try to accommodate both
 		 */
-		setenv("QUERY_STRING",
-				'=' == question[1] ? question[0] = '=', question : question + 1,
-				1);
+		char	*qs;
+		qs = '=' == question[1]
+			? question[0] = '=', question
+			: question + 1;
+		setenv("QUERY_STRING", qs, 1);
+		qs = shellencode(qs);
+		setenv("QUERY_STRING_UNESCAPED", qs, 1);
+		free(qs);
 		*question = 0;
 	}
 
