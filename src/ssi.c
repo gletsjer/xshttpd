@@ -55,10 +55,10 @@ typedef	enum
 	MODE_RESET
 } countermode;
 
-static	int	xsc_initdummy		(void);
-static	int	xsc_initcounter		(const char *);
-static	int	xsc_counter		(countermode, const char *);
-static	int	call_counter		(countermode, int, char **);
+static	int	xsc_initdummy		(off_t *);
+static	int	xsc_initcounter		(const char *, off_t *);
+static	int	xsc_counter		(countermode, const char *, off_t *);
+static	int	call_counter		(countermode, int, char **, off_t *);
 static	int	parse_values		(char *, char **, size_t);
 static	int	dir_count_total		(int, char **, off_t *);
 static	int	dir_count_total_gfx	(int, char **, off_t *);
@@ -96,21 +96,17 @@ static	int	setvarlen;
 static	char	*setvars[SETVARIABLES];
 
 static	int
-xsc_initdummy()
+xsc_initdummy(off_t *size)
 {
 	int		fd;
 	countstr	dummy;
 
-	if ((fd = open(calcpath(CNT_DATA), O_WRONLY,
+	if ((fd = open(calcpath(CNT_DATA), O_WRONLY | O_CREAT,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
 	{
-		if ((fd = open(calcpath(CNT_DATA), O_WRONLY | O_CREAT,
-			S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
-		{
-			secprintf("[Failed to create dummies: %s]\n",
-				strerror(errno));
-			return(1);
-		}
+		*size += secprintf("[Failed to create dummies: %s]\n",
+			strerror(errno));
+		return(1);
 	}
 
 	memset(dummy.filename, 1, sizeof(dummy.filename) - 1);
@@ -120,7 +116,9 @@ xsc_initdummy()
 	dummy.lastseen = (time_t)0;
 	if (write(fd, &dummy, sizeof(dummy)) != sizeof(dummy))
 	{
-		secprintf("[Failed to write dummy file: %s]\n", strerror(errno));
+		*size += secprintf("[Failed to write dummy file: %s]\n",
+			strerror(errno));
+		close(fd);
 		return(1);
 	}
 
@@ -128,14 +126,17 @@ xsc_initdummy()
 	dummy.filename[sizeof(dummy.filename) - 1] = 0;
 	if (write(fd, &dummy, sizeof(dummy)) != sizeof(dummy))
 	{
-		secprintf("[Failed to write dummy file: %s]\n", strerror(errno));
+		*size += secprintf("[Failed to write dummy file: %s]\n",
+			strerror(errno));
+		close(fd);
 		return(1);
 	}
-	close(fd); return(0);
+	close(fd);
+	return(0);
 }
 
 static	int
-xsc_initcounter(const char *filename)
+xsc_initcounter(const char *filename, off_t *size)
 {
 	int		fd, fd2;
 	unsigned int	done, retry;
@@ -147,7 +148,7 @@ xsc_initcounter(const char *filename)
 	if ((fd = open(datafile, O_RDONLY,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
 	{
-		secprintf("[Could not open the counter file: %s]\n",
+		*size += secprintf("[Could not open the counter file: %s]\n",
 			strerror(errno));
 		return(1);
 	}
@@ -160,8 +161,9 @@ xsc_initcounter(const char *filename)
 	}
 	if (fd2 < 0)
 	{
-		secprintf("[Failed to create temporary file: %s]\n",
+		*size += secprintf("[Failed to create temporary file: %s]\n",
 			strerror(errno));
+		close(fd);
 		return(1);
 	}
 
@@ -177,7 +179,7 @@ xsc_initcounter(const char *filename)
 			if (write(fd2, &counter2, sizeof(counter2)) !=
 				sizeof(counter2))
 			{
-				secprintf("[Failed to write temp file: %s]\n",
+				*size += secprintf("[Failed to write temp file: %s]\n",
 					strerror(errno));
 				close(fd); close(fd2); remove(lockfile);
 				return(1);
@@ -186,26 +188,29 @@ xsc_initcounter(const char *filename)
 		}
 		if (write(fd2, &counter, sizeof(counter)) != sizeof(counter))
 		{
-			secprintf("[Failed to write temp file: %s]\n",
+			*size += secprintf("[Failed to write temp file: %s]\n",
 				strerror(errno));
-			close(fd); close(fd2); remove(lockfile); return(1);
+			close(fd); close(fd2); remove(lockfile);
+			return(1);
 		}
 	}
 
 	if (!done)
 	{
 		if (write(fd2, &counter2, sizeof(counter2)) != sizeof(counter2))
-			secprintf("[Failed to write temp file: %s]\n",
+			*size += secprintf("[Failed to write temp file: %s]\n",
 				strerror(errno));
 	}
 	close(fd); close(fd2);
 	if (rename(lockfile, datafile))
 	{
-		secprintf("[Could not rename counter file: %s]\n",
+		*size += secprintf("[Could not rename counter file: %s]\n",
 			strerror(errno));
-		remove(lockfile); return(1);
+		remove(lockfile);
+		return(1);
 	}
-	remove(lockfile); return(0);
+	remove(lockfile);
+	return(0);
 }
 
 int
@@ -234,7 +239,7 @@ counter_versioncheck()
 }
 
 static	int
-xsc_counter(countermode mode, const char *args)
+xsc_counter(countermode mode, const char *args, off_t *size)
 {
 	char			host[XS_PATH_MAX];
 	int			fd = -1, timer, total, x, y, z, comp, already = 0;
@@ -255,15 +260,16 @@ reopen:
 	if ((fd = open(calcpath(CNT_DATA), O_RDWR,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
 	{
-		if (xsc_initdummy())
+		if (xsc_initdummy(size))
 			return(1);
 		goto reopen;
 	}
 
 	if ((total = lseek(fd, (off_t)0, SEEK_END)) == -1)
 	{
-		secprintf("[Could not find end of the counter file: %s]\n",
+		*size += secprintf("[Could not find end of the counter file: %s]\n",
 			strerror(errno));
+		close(fd);
 		return(1);
 	}
 
@@ -271,7 +277,7 @@ reopen:
 	if (total < 2)
 	{
 		close(fd);
-		if (xsc_initdummy())
+		if (xsc_initdummy(size))
 			return(1);
 		goto reopen;
 	}
@@ -282,14 +288,16 @@ reopen:
 		y = (x + z) / 2;
 		if (lseek(fd, (off_t)(y * sizeof(countstr)), SEEK_SET) == -1)
 		{
-			secprintf("[Could not seek in counter file: %s]\n",
+			*size += secprintf("[Could not seek in counter file: %s]\n",
 				strerror(errno));
+			close(fd);
 			return(1);
 		}
 		if (read(fd, &counter, sizeof(countstr)) != sizeof(countstr))
 		{
-			secprintf("[Could not read counter file: %s]\n",
+			*size += secprintf("[Could not read counter file: %s]\n",
 				strerror(errno));
+			close(fd);
 			return(1);
 		}
 		if ((comp = strncmp(filename, counter.filename, sizeof(counter.filename))) < 0)
@@ -303,11 +311,11 @@ reopen:
 		close(fd);
 		if (already)
 		{
-			secprintf("[Failed to create new counter]\n");
+			*size += secprintf("[Failed to create new counter]\n");
 			return(1);
 		}
 		already = 1;
-		if (xsc_initcounter(filename))
+		if (xsc_initcounter(filename, size))
 			return(1);
 		goto reopen;
 	}
@@ -316,9 +324,10 @@ reopen:
 	counter.lastseen = time(NULL);
 	if (lseek(fd, (off_t)(y * sizeof(countstr)), SEEK_SET) == -1)
 	{
-		secprintf("[Could not seek in counter file: %s]\n",
+		*size += secprintf("[Could not seek in counter file: %s]\n",
 			strerror(errno));
-		close(fd); return(1);
+		close(fd);
+		return(1);
 	}
 	if (mode == MODE_RESET)
 	{
@@ -326,18 +335,20 @@ reopen:
 		counter.lastseen = (time_t)0;
 		if (write(fd, &counter, sizeof(countstr)) != sizeof(countstr))
 		{
-			secprintf("[Could not update counter file: %s]\n",
+			*size += secprintf("[Could not update counter file: %s]\n",
 				strerror(errno));
-			close(fd); return(1);
+			close(fd);
+			return(1);
 		}
 		close(fd);
 		return(0);
 	}
 	if (write(fd, &counter, sizeof(countstr)) != sizeof(countstr))
 	{
-		secprintf("[Could not update counter file: %s]\n",
+		*size += secprintf("[Could not update counter file: %s]\n",
 			strerror(errno));
-		close(fd); return(1);
+		close(fd);
+		return(1);
 	}
 	close(fd);
 ALREADY:
@@ -349,26 +360,26 @@ ALREADY:
 	switch(mode)
 	{
 	case MODE_ALL:
-		secprintf("%d", counter.total);
+		*size += secprintf("%d", counter.total);
 		break;
 	case MODE_GFX_ALL:
-		secprintf("<IMG SRC=\"/%s/gfxcount%s?%d\" ALT=\"%d\">",
+		*size += secprintf("<IMG SRC=\"/%s/gfxcount%s?%d\" ALT=\"%d\">",
 			current->execdir,
 			args ? args : "", counter.total, counter.total);
 		break;
 	case MODE_TODAY:
-		secprintf("%d", counter.today);
+		*size += secprintf("%d", counter.today);
 		break;
 	case MODE_GFX_TODAY:
-		secprintf("<IMG SRC=\"/%s/gfxcount%s?%d\" ALT=\"%d\">",
+		*size += secprintf("<IMG SRC=\"/%s/gfxcount%s?%d\" ALT=\"%d\">",
 			current->execdir,
 			args ? args : "", counter.today, counter.today);
 		break;
 	case MODE_MONTH:
-		secprintf("%d", counter.month);
+		*size += secprintf("%d", counter.month);
 		break;
 	case MODE_GFX_MONTH:
-		secprintf("<IMG SRC=\"/%s/gfxcount%s?%d\" ALT=\"%d\">",
+		*size += secprintf("<IMG SRC=\"/%s/gfxcount%s?%d\" ALT=\"%d\">",
 			current->execdir,
 			args ? args : "", counter.month, counter.month);
 		break;
@@ -376,14 +387,14 @@ ALREADY:
 		if (counter.total > 0)
 			/* This is quite redundant... Let's think of a better way */
 			goto reopen;
-		secprintf("[reset stats counter]");
+		*size += secprintf("[reset stats counter]");
 		break;
 	}
 	return(0);
 }
 
 static	int
-call_counter(countermode mode, int argc, char **argv)
+call_counter(countermode mode, int argc, char **argv, off_t *size)
 {
 	int		ret;
 	uid_t		savedeuid;
@@ -401,7 +412,7 @@ call_counter(countermode mode, int argc, char **argv)
 		savedeuid = config.system->userid;
 		savedegid = config.system->groupid;
 	}
-	ret = xsc_counter(mode, path) ? ERR_CONT : ERR_NONE;
+	ret = xsc_counter(mode, path, size) ? ERR_CONT : ERR_NONE;
 	if (!origeuid)
 	{
 		setegid(savedegid); seteuid(savedeuid);
@@ -497,56 +508,49 @@ parse_values(char *here, char **mapping, size_t maxsize)
 static	int
 dir_count_total(int argc, char **argv, off_t *size)
 {
-	(void)size;
 	(void)argc;
 	(void)argv;
-	return(call_counter(MODE_ALL, 0, NULL));
+	return(call_counter(MODE_ALL, 0, NULL, size));
 }
 
 static	int
 dir_count_total_gfx(int argc, char **argv, off_t *size)
 {
-	(void)size;
-	return(call_counter(MODE_GFX_ALL, argc, argv));
+	return(call_counter(MODE_GFX_ALL, argc, argv, size));
 }
 
 static	int
 dir_count_today(int argc, char **argv, off_t *size)
 {
-	(void)size;
 	(void)argc;
 	(void)argv;
-	return(call_counter(MODE_TODAY, 0, NULL));
+	return(call_counter(MODE_TODAY, 0, NULL, size));
 }
 
 static	int
 dir_count_today_gfx(int argc, char **argv, off_t *size)
 {
-	(void)size;
-	return(call_counter(MODE_GFX_TODAY, argc, argv));
+	return(call_counter(MODE_GFX_TODAY, argc, argv, size));
 }
 
 static	int
 dir_count_month(int argc, char **argv, off_t *size)
 {
-	(void)size;
 	(void)argc;
 	(void)argv;
-	return(call_counter(MODE_MONTH, 0, NULL));
+	return(call_counter(MODE_MONTH, 0, NULL, size));
 }
 
 static	int
 dir_count_month_gfx(int argc, char **argv, off_t *size)
 {
-	(void)size;
-	return(call_counter(MODE_GFX_MONTH, argc, argv));
+	return(call_counter(MODE_GFX_MONTH, argc, argv, size));
 }
 
 static	int
 dir_count_reset(int argc, char **argv, off_t *size)
 {
-	(void)size;
-	return(call_counter(MODE_RESET, argc, argv));
+	return(call_counter(MODE_RESET, argc, argv, size));
 }
 
 static	int
