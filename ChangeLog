@@ -10,6 +10,9 @@ Changes since 3.5 beta 7
 - SSI 'date' now takes an optional format argument
 - Fix encoding=url argument to 'echo' SSI
 - No longer accept arguments for the 'printenv' SSI
+- Fix file descriptor leak
+- Add QUERY_STRING_UNESCAPED environment variable (NCSA-compatible)
+- Add 'zone' option for date and date-format SSI
 
 Changes since 3.5 beta 6
 - Remove obsoleted command line arguments
