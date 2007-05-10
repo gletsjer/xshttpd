@@ -104,7 +104,7 @@ int		headers, headonly, postonly, chunked, persistent;
 static	int	sd, reqs, mainhttpd = 1;
 gid_t		origegid;
 uid_t		origeuid;
-char		remotehost[NI_MAXHOST],
+char		remotehost[NI_MAXHOST], remoteaddr[NI_MAXHOST],
 		currenttime[80], httpver[16], dateformat[MYBUFSIZ],
 		real_path[XS_PATH_MAX], currentdir[XS_PATH_MAX],
 		orig_filename[XS_PATH_MAX];
@@ -1181,28 +1181,8 @@ process_request()
 	orig[0] = referer[0] = line[0] =
 		real_path[0] = browser[0] = authentication[0] = '\0';
 	headonly = postonly = 0;
-	unsetenv("SERVER_NAME"); unsetenv("REQUEST_METHOD");
-	unsetenv("CONTENT_LENGTH"); unsetenv("AUTH_TYPE");
-	unsetenv("CONTENT_TYPE"); unsetenv("QUERY_STRING");
-	unsetenv("PATH_INFO"); unsetenv("PATH_TRANSLATED");
-	unsetenv("ORIG_PATH_INFO"); unsetenv("ORIG_PATH_TRANSLATED");
-	unsetenv("SCRIPT_FILENAME");
-	unsetenv("USER"); unsetenv("HOME"); unsetenv("PWD");
-	unsetenv("ERROR_CODE"); unsetenv("ERROR_READABLE");
-	unsetenv("ERROR_URL"); unsetenv("ERROR_URL_ESCAPED");
-	unsetenv("ERROR_URL_EXPANDED"); unsetenv("REMOTE_USER");
-	unsetenv("REMOTE_PASSWORD");
-	unsetenv("HTTP_REFERER"); unsetenv("HTTP_COOKIE");
-	unsetenv("HTTP_CONNECTION");
-	unsetenv("HTTP_ACCEPT"); unsetenv("HTTP_ACCEPT_ENCODING");
-	unsetenv("HTTP_ACCEPT_LANGUAGE"); unsetenv("HTTP_HOST");
-	unsetenv("HTTP_NEGOTIONATE"); unsetenv("HTTP_PRAGMA");
-	unsetenv("HTTP_CLIENT_IP"); unsetenv("HTTP_VIA");
-	unsetenv("HTTP_AUTHORIZATION"); unsetenv("HTTP_ALLOW");
-	unsetenv("IF_MODIFIED_SINCE"); unsetenv("IF_UNMODIFIED_SINCE");
-	unsetenv("IF_RANGE");
-	unsetenv("SSL_CIPHER");
 	current = NULL;
+	setup_environment();
 
 	http_host[0] = '\0';
 
@@ -1654,10 +1634,6 @@ standalone_socket(int id)
 	if (bind(sd, &saddr, sizeof(struct sockaddr)) == -1)
 		err(1, "bind()");
 #endif		/* HAVE_GETADDRINFO */
-	setenv("SERVER_PORT",
-		!strcmp(cursock->port, "http") ? "80" :
-		!strcmp(cursock->port, "https") ? "443" :
-		cursock->port, 1);
 
 	if (listen(sd, MAXLISTEN))
 		err(1, "listen()");
@@ -1807,39 +1783,29 @@ standalone_socket(int id)
 		setvbuf(stdin, _IONBF, NULL, 0);
 #endif		/* SETVBUF_REVERSED */
 
+		strlcpy(remoteaddr, "0.0.0.0", NI_MAXHOST);
 #ifdef		HAVE_GETNAMEINFO
 		if (!getnameinfo((struct sockaddr *)&saddr, clen,
-			remotehost, NI_MAXHOST, NULL, 0, NI_NUMERICHOST))
+			remoteaddr, NI_MAXHOST, NULL, 0, NI_NUMERICHOST))
 		{
 			/* Fake $REMOTE_ADDR because most people don't
 			 * (want to) understand ::ffff: adresses.
 			 */
-			if (strncmp(remotehost, "::ffff:", 7))
-				setenv("REMOTE_ADDR", remotehost, 1);
-			else
-				setenv("REMOTE_ADDR", remotehost + 7, 1);
+			if (!strncmp(remoteaddr, "::ffff:", 7))
+				memmove(remoteaddr, remoteaddr + 7, strlen(remoteaddr) - 7);
 		}
 #else		/* HAVE_GETNAMEINFO */
 		/* I don't need libnsl for this... */
 		laddr = ntohl(((struct sockaddr_in *)&saddr)->sin_addr.s_addr);
-		snprintf(remotehost, NI_MAXHOST, "%d.%d.%d.%d",
+		snprintf(remoteaddr, NI_MAXHOST, "%d.%d.%d.%d",
 			(laddr & 0xff000000) >> 24,
 			(laddr & 0x00ff0000) >> 16,
 			(laddr & 0x0000ff00) >> 8,
 			(laddr & 0x000000ff));
-		setenv("REMOTE_HOST", remotehost, 1);
 #endif		/* HAVE_GETNAMEINFO */
 
-#ifdef		HAVE_GETNAMEINFO
-#ifndef		BROKEN_GETNAMEINFO
-		if (!config.usednslookup ||
-			!getnameinfo((struct sockaddr *)&saddr, clen,
-				remotehost, sizeof(remotehost), NULL, 0, 0))
-		{
-			setenv("REMOTE_HOST", remotehost, 1);
-		}
-#endif		/* Not BROKEN_GETNAMEINFO */
-#else		/* HAVE GETNAMEINFO */
+		strlcpy(remotehost, remoteaddr, NI_MAXHOST);
+#ifndef		HAVE_GETNAMEINFO
 #ifdef		HAVE_GETADDRINFO
 		/* This is especially for broken Linux distro's
 		 * that don't understand what getnameinfo() does
@@ -1847,11 +1813,9 @@ standalone_socket(int id)
 		 */
 		hints.ai_family = PF_INET;
 		hints.ai_flags = AI_CANONNAME;
-		if (!getaddrinfo(
-			(strncmp(remotehost, "::ffff:", 7) ? remotehost : remotehost + 7),
-			NULL, &hints, &res))
+		if (!getaddrinfo(remoteaddr, NULL, &hints, &res))
 		{
-			setenv("REMOTE_HOST", res->ai_canonname, 1);
+			strlcpy(remotehost, res->ai_canonname, NI_MAXHOST);
 			freeaddrinfo(res);
 		}
 #else		/* HAVE_GETADDRINFO */
@@ -1893,15 +1857,19 @@ static	void
 setup_environment()
 {
 	/* start with empty environment */
-	environ = (char **)malloc(sizeof(char *));
-	if (!environ)
-		err(1, "Fatal init error");
+	environ = (char **)realloc(environ, sizeof(char *));
 	*environ = NULL;
 
 	setenv("SERVER_SOFTWARE", SERVER_IDENT, 1);
 	setenv("SERVER_NAME", config.system->hostname, 1);
 	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
 	setenv("HTTPD_ROOT", config.systemroot, 1);
+	setenv("SERVER_PORT",
+		!strcmp(cursock->port, "http") ? "80" :
+		!strcmp(cursock->port, "https") ? "443" :
+		cursock->port, 1);
+	setenv("REMOTE_ADDR", remoteaddr, 1);
+	setenv("REMOTE_HOST", remotehost, 1);
 }
 
 int
@@ -2094,7 +2062,7 @@ main(int argc, char **argv)
 	initproctitle(argc, argv);
 #endif		/* HAVE_SETPROCTITLE */
 	initnonce();
-	setup_environment();
+	environ = (char **)malloc(sizeof(char *));
 	standalone_main();
 	/* NOTREACHED */
 	(void)copyright;
