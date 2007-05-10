@@ -608,7 +608,9 @@ dir_include_file(int argc, char **argv, off_t *size)
 	}
 
 	for (i = 0; i < argc; i += 2)
-		if (argv[i] && !strcmp(argv[i], "virtual"))
+		if (!strcmp(argv[i], "virtual"))
+			path = argv[i + 1];
+		if (!strcmp(argv[i], "file"))
 			path = argv[i + 1];
 	if (!path)
 		path = argv[0];
