@@ -2,17 +2,18 @@ This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
 Changes since 3.5 beta 7
-- Fix PATH_TRANSLATED once again;
-  CGI support scripts gfxcount, imagemap, xschpass may now actually work
 - Simplify directory and file settings in configure and confuser.h
-- Pass all (unknown) headers as HTTP_* environment variables
 - Improve internal crypt() functionality and usage
-- SSI 'date' now takes an optional format argument
-- Fix encoding=url argument to 'echo' SSI
-- No longer accept arguments for the 'printenv' SSI
 - Fix file descriptor leak
-- Add QUERY_STRING_UNESCAPED environment variable (NCSA-compatible)
-- Add 'zone' option for date and date-format SSI
+- CGI changes
+  - Fix PATH_TRANSLATED once again;
+    support scripts gfxcount, imagemap, xschpass may now actually work
+  - Pass all (unknown) headers as HTTP_* environment variables
+  - Add QUERY_STRING_UNESCAPED environment variable (NCSA-compatible)
+- Server-side include changes
+  - Add optional 'format' and 'zone' arguments to 'date', 'date-format'
+  - Implement 'encoding=url' argument to 'echo'
+  - No longer accept arguments to 'printenv'
 
 Changes since 3.5 beta 6
 - Remove obsoleted command line arguments

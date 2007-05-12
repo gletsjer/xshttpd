@@ -421,22 +421,20 @@ only environment variables are used.
 .IP
 The \fIencoding\fP argument is optional and defaults to html encoding,
 which replaces special html symbols (such as < and &) to the appropriate
-sgml entities for proper display. Selecting \fInone\fP will do no
-rewriting at all (useful in text/plain files) and encoding=url is not
-implemented yet.
+sgml entities for proper display. Encoding \fIurl\fP will use
+percent-escaping for all special characters.
+Selecting \fInone\fP will do no rewriting at all (useful in text/plain files).
 See the CGI section on for more details about available variables.
 .TP
-\fBprintenv\fP [\fIVARIABLE\fP]
+\fBprintenv\fP
 Print the values of all CGI environment variables.
 This option is only used for debugging purposes.
 See the CGI section on for more details about available variables.
 .TP
 \fBif\fP \fIkeyword\fP \fIpattern(s)\fP
-The following four directive are the most powerful: they allow
-a kind of flow control in your documents. This directive
-displays all text and directives after it until it encounters
-an \fBendif\fP or a \fBelse\fP directive,
-if the query evaluates to true.
+The following four directive allow a kind of flow control in your documents.
+This directive displays all text and directives after it until it encounters
+an \fBendif\fP or a \fBelse\fP directive, if the query evaluates to true.
 .RS
 .LP
 Possible \fIkeywords\fP are:
@@ -602,6 +600,10 @@ The information which follows the ? in the URL which referenced
 this script. This is the query information. It will not be
 decoded in any fashion. This variable is always set when
 there is query information, regardless of command line decoding.
+.TP
+.B QUERY_STRING_UNESCAPED
+Contains the same data as QUERY_STRING, but has all special shell meta
+characters prefixed by a backslash to prevent shell interpretation.
 .TP
 .B REMOTE_HOST
 The hostname making the request. If the server does not have this
