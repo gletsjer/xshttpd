@@ -38,7 +38,7 @@ AC_DEFUN([XS_FUNC_IN_LIB], [
 	LIBS=
 	AH_TEMPLATE($2, [Define if you have the `$1' function])
 	AC_SEARCH_LIBS($1, $3, [AC_DEFINE($2)],, $5)
-	AS_IF([test -n "${LIBS}"], [$4_ldflags="${$4_ldflags} ${LIBS}"])
+	AS_IF([test -n "${LIBS}"], [$4_ldflags="${$4_ldflags} ${LIBS} $5"])
 	LIBS=
 	])
 

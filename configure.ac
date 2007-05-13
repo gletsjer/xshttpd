@@ -45,12 +45,14 @@ dnl Checks for library functions.
 AC_FUNC_FORK
 AC_FUNC_MMAP
 AC_FUNC_SETVBUF_REVERSED
-AC_CHECK_FUNCS(getaddrinfo getnameinfo setpriority setresgid setresuid setrlimit setsid sigemptyset uname)
+AC_CHECK_FUNCS(setpriority setresgid setresuid setrlimit setsid sigemptyset uname)
 
 dnl Checks for functions requiring additional libraries.
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)
 XS_FUNC_IN_LIB(inet_aton, HAVE_INET_ATON, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(inet_pton, HAVE_INET_PTON, nsl, httpd, -lsocket)
+XS_FUNC_IN_LIB(getaddrinfo, HAVE_GETADDRINFO, nsl, httpd, -lsocket)
+XS_FUNC_IN_LIB(getnameinfo, HAVE_GETNAMEINFO, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
 XS_FUNC_IN_LIB(MD5Data, HAVE_MD5, md, libxs)
 

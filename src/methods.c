@@ -85,6 +85,7 @@
 #endif		/* HAVE_STRUCT_IN6_ADDR */
 
 #include	"httpd.h"
+#include	"decode.h"
 #include	"methods.h"
 #include	"convert.h"
 #include	"ssi.h"
