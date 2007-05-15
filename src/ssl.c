@@ -217,7 +217,6 @@ loadssl()
 {
 #ifdef		HANDLE_SSL
 	SSL_METHOD	*method = NULL;
-	DH			*dh = NULL;
 	BIO			*bio = NULL;
 	struct stat	sb;
 
@@ -274,12 +273,28 @@ loadssl()
 				"/dev/urandom", ERR_reason_error_string(ERR_get_error()));
 	}
 
+	/* read dh parameters from private keyfile */
 	bio = BIO_new_file(calcpath(cursock->sslprivatekey), "r");
 	if (bio)
 	{
+		DSA		*dsa;
+		DH		*dh;
+
 		dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
+
+		if (!dh && (dsa = PEM_read_bio_DSAparams(bio, NULL, NULL, NULL)))
+		{
+			dh = DSA_dup_DH(dsa);
+			DSA_free(dsa);
+		}
+		/* read dh parameters from public certificate file */
 		if (!dh && (bio = BIO_new_file(calcpath(cursock->sslcertificate), "r")))
 			dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
+		if (!dh && (dsa = PEM_read_bio_DSAparams(bio, NULL, NULL, NULL)))
+		{
+			dh = DSA_dup_DH(dsa);
+			DSA_free(dsa);
+		}
 		if (dh)
 		{
 			/* This is required for DH and DSA keys
