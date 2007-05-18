@@ -162,21 +162,15 @@ findmime(const char *ext)
 		end = "..";
 	else if (!strcmp(ext, ".directory."))
 		end = ".directory.";
+	else if ((end = strrchr(ext, '.')))
+		end++;
 	else
-	{
-		end = strrchr(ext, '.');
-		end = (end ? (end + 1) : "txt");
-	}
-	search = mimes;
-	while (search)
-	{
+		end = "txt";
+
+	for (search = mimes; search; search = search->n)
 		if (!strcasecmp(search->ext, end))
 			break;
-		search = search->n;
-	}
-	if (!search)
-		search = mimes;
-	return(search);
+	return search ? search : mimes;
 }
 
 int

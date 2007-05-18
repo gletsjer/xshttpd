@@ -733,8 +733,10 @@ dir_printenv(int argc, char **argv, off_t *size)
 {
 	char **p, *c;
 
-	for (p = environ; c = *p; ++p)
+	for (p = environ; (c = *p); ++p)
 		*size += secprintf("%s<br>\n", c);
+	(void)argc;
+	(void)argv;
 	return(ERR_NONE);
 }
 

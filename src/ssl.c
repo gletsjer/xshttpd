@@ -412,7 +412,7 @@ secwrite(const char *buf, size_t count)
 	if (chunked)
 	{
 		i = 0;
-		len[0] = (size_t)snprintf(head, 20, "%x\r\n", count);
+		len[0] = (size_t)snprintf(head, 20, "%zx\r\n", count);
 		len[1] = count;
 		len[2] = 2;
 		message[0] = head;
