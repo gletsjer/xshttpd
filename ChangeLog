@@ -1,6 +1,10 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.5 beta 8
+- Allow DSA keyfiles to specify DSA parameters instead of DH parameters
+- Fix setting of PWD, SCRIPT_{,FILE}NAME for index file
+
 Changes since 3.5 beta 7
 - Simplify directory and file settings in configure and confuser.h
 - Improve internal crypt() functionality and usage
