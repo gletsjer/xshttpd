@@ -881,6 +881,7 @@ do_get(char *params)
 		/* No PATH_INFO for regular files */
 		if (!getenv("ORIG_PATH_TRANSLATED"))
 			setenv("ORIG_PATH_TRANSLATED", temppath, 1);
+		setenv("SCRIPT_NAME", params, 1);
 		setenv("SCRIPT_FILENAME", temppath, 1);
 		if ((temp = strrchr(temppath, '/')))
 		{
@@ -904,6 +905,7 @@ do_get(char *params)
 			{
 				*temp = '/';
 				setenv("PATH_INFO", temp, 1);
+				setenv("SCRIPT_NAME", params, 1);
 				setenv("SCRIPT_FILENAME", fullpath, 1);
 				setenv("PATH_TRANSLATED", convertpath(temp), 1);
 				if ((slash = strrchr(fullpath, '/')))
@@ -930,8 +932,11 @@ do_get(char *params)
 
 	if ((!*file) && (wasdir) && current->indexfiles)
 	{
+		setenv("PWD", currentdir, 1);
 		filename = current->indexfiles[0];
 		strlcat(real_path, filename, XS_PATH_MAX);
+		setenv("SCRIPT_NAME", real_path, 1);
+		setenv("SCRIPT_FILENAME", convertpath(real_path), 1);
 	}
 	else
 		filename = file;

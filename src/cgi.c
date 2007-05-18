@@ -142,7 +142,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	sigaction(SIGALRM, &action, NULL);
 
 	left = alarm(60 * config.scripttimeout); fflush(stdout);
-	unsetenv("SCRIPT_NAME");
 	unsetenv("REDIRECT_STATUS");
 
 	/* snip++ */
@@ -155,7 +154,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		return;
 	}
 
-	setenv("SCRIPT_NAME", path, 1);
 	setenv("SCRIPT_FILENAME", fullpath, 1);
 	setenv("REDIRECT_STATUS", "200", 1);
 
