@@ -4,6 +4,7 @@ is not complete. Refer to cvs comments for more information.
 Changes since 3.5 beta 8
 - Allow DSA keyfiles to specify DSA parameters instead of DH parameters
 - Fix setting of PWD, SCRIPT_{,FILE}NAME for index file
+- Add -x option to 'xsindex' to exclude certain files or file patterns
 
 Changes since 3.5 beta 7
 - Simplify directory and file settings in configure and confuser.h

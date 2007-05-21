@@ -12,6 +12,7 @@
 #include	<stdlib.h>
 #include	<string.h>
 #include	<fcntl.h>
+#include	<fnmatch.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
@@ -19,10 +20,16 @@
 
 typedef	struct	mime
 {
-	struct	mime	*n;
 	char		type[BUFSIZ], ext[BUFSIZ], icon[BUFSIZ],
 			alt[BUFSIZ], small[BUFSIZ];
+	struct	mime	*next;
 } mime;
+
+typedef struct	exlist
+{
+	char	*pattern;
+	struct	exlist	*next;
+} exlist;
 
 static	int	show_size = 1, show_type = 1, show_back = 1, force_overwrite = 0;
 static	size_t	max_filename = 0, max_mimetype = 0, max_mimealt = 0,
@@ -40,7 +47,7 @@ static	void
 usage()
 {
 	fprintf(stderr,
-		"Usage: xsindex [-b] [-f] [-m mimefile] [-s] [-t number] title\n");
+		"Usage: xsindex [-b] [-f] [-m mimefile] [-s] [-t number] [-x pattern] title\n");
 	fprintf(stderr, "   -b           Do not create a `back' link (..)\n");
 	fprintf(stderr, "   -f           Do not ask whether to overwrite %s\n",
 		INDEX_HTML);
@@ -51,6 +58,8 @@ usage()
 	fprintf(stderr, "                   1 - Full mime type\n");
 	fprintf(stderr, "                   2 - Short mime type\n");
 	fprintf(stderr, "                   3 - Do not give types\n");
+	fprintf(stderr, "   -x pattern   Give a filename or pattern "
+		"for what should not be listed\n");
 	fprintf(stderr, "   title        Title of the %s page\n", INDEX_HTML);
 	fprintf(stderr, "                Use \"'s if it's more than one word\n");
 	exit(1);
@@ -83,7 +92,7 @@ loadmime(const char *name)
 			fprintf(stderr, "Cannot parse line `%s'", buffer);
 			continue;
 		}
-		new->n = mimes; mimes = new;
+		new->next = mimes; mimes = new;
 	}
 	fclose(input);
 	if (!mimes)
@@ -167,7 +176,7 @@ findmime(const char *ext)
 	else
 		end = "txt";
 
-	for (search = mimes; search; search = search->n)
+	for (search = mimes; search; search = search->next)
 		if (!strcasecmp(search->ext, end))
 			break;
 	return search ? search : mimes;
@@ -181,9 +190,11 @@ main(int argc, char **argv)
 	FILE			*output, *ls;
 	struct	stat		statbuf;
 	const	mime		*search;
+	exlist			*exclude, *exhead;
 
+	exclude = NULL;
 	mimefile = calcpath(MIME_INDEX);
-	while ((option = getopt(argc, argv, "bfm:st:")) != EOF)
+	while ((option = getopt(argc, argv, "bfm:st:x:")) != EOF)
 	{
 		switch(option)
 		{
@@ -207,6 +218,12 @@ main(int argc, char **argv)
 				usage();
 			}
 			break;
+		case 'x':
+			exhead = malloc(sizeof(exlist));
+			exhead->next = exclude;
+			exhead->pattern = optarg;
+			exclude = exhead;
+			break;
 		default:
 			usage();
 		}
@@ -225,6 +242,8 @@ main(int argc, char **argv)
 		errx(1, "Out of memory");
 	while (fgets(buffer, BUFSIZ, ls))
 	{
+		int skip = 0;
+
 		if (buffer[0] && (buffer[strlen(buffer) - 1] < ' '))
 			buffer[strlen(buffer) - 1] = 0;
 		if (!strcmp(buffer, ".") || !strcmp(buffer, INDEX_HTML) ||
@@ -236,6 +255,15 @@ main(int argc, char **argv)
 			(!strcmp(buffer + strlen(buffer) - 6, ".redir")))
 			continue;
 		if (!strcmp(buffer, "..") && !show_back)
+			continue;
+		for (exhead = exclude; exhead; exhead = exhead->next)
+			if (fnmatch(exhead->pattern, buffer, 0) != FNM_NOMATCH)
+			{
+				skip = 1;
+				printf("b %s p %s\n", buffer, exhead->pattern);
+				break;
+			}
+		if (skip)
 			continue;
 		if (!(listing[amount] = (char *)strdup(buffer)))
 			errx(1, "Out of memory");

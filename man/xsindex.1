@@ -42,6 +42,11 @@ This option allows you to specify how file types are displayed. The
 the file type. 1 (the default) means full mime types, such as
 \fBimage/jpeg\fP. 2 means user specified (see the \-m option)
 strings, such as \fBJPEG image\fP.
+.TP
+.B \-x pattern [\-x pattern ...]
+Give a filename, or shell file-matching pattern, for the file(s) that
+should not be included in the listing. The \fB-x\fP option may be
+included multiple times to exclude multiple files and/or file patterns.
 .LP
 The \fItitle\fP is used as the title of the document that will be
 created. Use a descriptive title!
