@@ -288,12 +288,17 @@ loadssl()
 			DSA_free(dsa);
 		}
 		/* read dh parameters from public certificate file */
-		if (!dh && (bio = BIO_new_file(calcpath(cursock->sslcertificate), "r")))
-			dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
-		if (!dh && (dsa = PEM_read_bio_DSAparams(bio, NULL, NULL, NULL)))
+		if (!dh)
 		{
-			dh = DSA_dup_DH(dsa);
-			DSA_free(dsa);
+			BIO_free(bio);
+			bio = BIO_new_file(calcpath(cursock->sslcertificate), "r");
+			if (bio)
+				dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
+			if (!dh && (dsa = PEM_read_bio_DSAparams(bio, NULL, NULL, NULL)))
+			{
+				dh = DSA_dup_DH(dsa);
+				DSA_free(dsa);
+			}
 		}
 		if (dh)
 		{
@@ -304,17 +309,21 @@ loadssl()
 			SSL_CTX_set_options(ssl_ctx, SSL_OP_SINGLE_DH_USE);
 			DH_free(dh);
 		}
-		BIO_free(bio);
-#ifdef		OPENSSL_EC_NAMED_CURVE
-		{
-			/* Using default temp ECDH parameters */
-			EC_KEY	*ecdh;
-			ecdh = EC_KEY_new_by_curve_name(NID_sect163r2);
-			SSL_CTX_set_tmp_ecdh(ssl_ctx, ecdh);
-			EC_KEY_free(ecdh);
-		}
-#endif		/* OPENSSL_EC_NAMED_CURVE */
+		if (bio)
+			BIO_free(bio);
 	}
+#ifdef		OPENSSL_EC_NAMED_CURVE
+	{
+		/* Using default temp ECDH parameters */
+		EC_KEY	*ecdh;
+		ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
+		if (!ecdh)
+			errx(1, "Cannot load temp curve: %s",
+				ERR_reason_error_string(ERR_get_error()));
+		SSL_CTX_set_tmp_ecdh(ssl_ctx, ecdh);
+		EC_KEY_free(ecdh);
+	}
+#endif		/* OPENSSL_EC_NAMED_CURVE */
 	(void) SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2);
 
 	switch (cursock->sslauth)
