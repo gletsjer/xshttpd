@@ -361,6 +361,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	if (!nph)
 	{
 		int	ctype = 0, status = 0, lastmod = 0, server = 0;
+		int first = 1;
 
 		for (;;)
 		{
@@ -380,6 +381,13 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				break;
 			if (!showheader)
 				continue;
+			if (first)
+			{
+				if (!strchr(header, ':'))
+					/* assume user forgot to return headers */
+					break;
+				first = 0;
+			}
 
 			/* Look for status header */
 			if (!status)
