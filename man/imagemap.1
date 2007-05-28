@@ -1,40 +1,57 @@
-.TH IMAGEMAP 1 "26 March 1996"
-.SH NAME
-imagemap \- The WWW image mapper
-.SH SYNOPSIS
-.ta 8n
-.B http://your.site.name/cgi\-bin/imagemap/~\fIUSERNAME\fP/\fImapfile\fP
-.LP 
-.SH DESCRIPTION OF IMAGEMAP
-IMAGEMAP is a program that lets you handle imagemaps on the WWW. An imagemap
-is basically a picture (for example a GIF file) that has been divided into
-areas. A user with a browser that understands imagemaps (most modern
-graphical browser understand imagemaps) can then click on a certain part
-of the image. An area\-specific action then occurs.
-.LP
-For example, consider a GIF pictures with two areas on it: a box on the
-left side and a circle on the right side. Then the user who created the
-pictures can define what will happen if the remote user clicks on the
-box, what will happen if the circle is pressed, and also what happens if
-the user clicks on the picture, but not on the box or the circle (the
-default).
-.SH IMAGEMAP
-\fBImagemap\fP is not a program that allows the user to define the map.
-There are other programs that do this; for example, \fBmapedit\fP is
-a good one. \fBImagemap\fP is the program that handles the actions for
-the WWW. What a user must do is create a \fImap\fP file (either by hand,
-which is not very easy, or by using a program like \fBmapedit\fP).
-Then, he or she must use something like the following in his/her WWW page:
-.LP
-<A\ HREF="http://site/cgi\-bin/imagemap/~\fIUSER\fP/pics/image.map">
-.br
-<IMG SRC="pics/image.gif" ISMAP></A>
-.LP
-In other words, make a \fBHREF\fP anchor to the imagemapper and use an image
-as the contents of the anchor. Do not forgot to specify the \fBISMAP\fP keyword
-in the \fBIMG\fP tag.
-
-.SH SEE ALSO
-http://www.stack.nl/xs\-httpd/
-.br
-httpd(1), gfxcount(1), xsindex(1), httpd.conf(5)
+.Dd March 26, 1996
+.Dt IMAGEMAP 1
+.Os xs-httpd/3.5
+.Sh NAME
+.Nm imagemap
+.Nd The WWW image maper
+.Sh SYNOPSIS
+.Nm http://your.site.name/cgi\-bin/imagemap/~ Ns Ar username Ns / Ns Pa mapfile
+.Sh DESCRIPTION
+.Ql imagemap
+is a program that lets you handle imagemaps on the web. An
+imagemap is basically a picture (for example a GIF file)
+that has been divided into areas. A user with a browser that
+understands imagemaps (most modern graphical browser do)
+can then click on a certain part of the image. An
+area\-specific action then occurs.
+.Pp
+For example, consider a GIF picture with two areas on it: a
+box on the left side and a circle on the right side. Then
+the user who created the pictures can define what will
+happen if the remote user clicks on the box, what will
+happen if the circle is pressed, and also what happens if
+the user clicks on the picture, but not on the box or the
+circle (the default).
+.Pp
+.Xr imagemap 1
+is not a program that allows the user to define the map.
+There are other programs that do this; for example,
+.Xr mapedit 1
+is a good one.
+.Xr imagemap
+is the program that handles the actions for the webserver. What a
+user must do is create a map file (either by hand, which is
+not very easy, or by using a program like mapedit).
+Then, he or she must use something like the following in
+his/her webpage:
+.Pp
+.Bd -literal -offset indent -compact
+<A\ HREF="http://site/cgi\-bin/imagemap/~username/pics/image.map">
+ <IMG SRC="pics/image.gif" ISMAP>
+</A>
+.Ed
+.Pp
+In other words, make a
+.Sy href
+anchor to the imagemapper and use an image as the contents
+of the anchor. Do not forgot to specify the
+.Sy ismap
+keyword in the
+.Sy img
+tag.
+.Sh SEE ALSO
+.Xr httpd 1 ,
+.Xr httpd_cgi 7
+.Pp
+The project homepage:
+.Pa http://www.stack.nl/xs\-httpd/

@@ -1,26 +1,37 @@
-.TH GFXCOUNT 1 "28 May 1996"
-.SH NAME
-gfxcount \- The graphical digits generator for XS\-HTTPD
-.SH SYNOPSIS
-.ta 8n
-.B http://your.site.name/cgi\-bin/gfxcount\fI?number\fP
-.br
-.B http://your.site.name/cgi\-bin/gfxcount\fI/path/fontdir?number\fP
-.LP 
-.SH DESCRIPTION OF GFXCOUNT
-GFXCOUNT generates GIF images that represent a number. The number to be
-generated must be supplied as an argument to the CGI binary.
-An optional \fIpath\fP may be supplied. This must be either the name of
-a directory in which the files \fB0.ppm\fP through \fB9.ppm\fP must be
-located, or the prefix of a font name. In this case, \fB0.ppm\fP through
-\fB9.ppm\fP will be appended to the path specified. This way, you can have
-a number of fonts in one directory.
-.LP
+.Dd May 9, 2007
+.Dt GFXCOUNT 1
+.Os xs-httpd/3.5
+.Sh NAME
+.Nm gfxcount
+.Nd The graphical digits generator for XS\-HTTPD
+.Sh SYNOPSIS
+.Nm http://your.site.name/cgi\-bin/gfxcount Ns Ar ?number
+.Nm http://your.site.name/cgi\-bin/gfxcount Ns Ar /path/fontdir?number
+.Sh DESCRIPTION
+.Ql gfxcount
+generates GIF images that represent a number. The number to
+be generated must be supplied as an argument to the CGI
+binary. An optional path may be supplied. This must be
+either the name of a directory in which the files
+.Pa 0.ppm
+through
+.Pa 9.ppm
+must be located - or the prefix of a font name, in which case,
+.Pa 0.ppm
+through
+.Pa 9.ppm
+will be appended to the path specified. This way, you can
+have a number of fonts in one directory.
+.Pp
 This program is usually not called by itself. Instead, use the
-count\-*\-gfx directives supplied by the XS\-HTTPD. See httpd(1) for
-details..
-.LP
-.SH SEE ALSO
-http://www.stack.nl/xs\-httpd/
-.br
-httpd(1), clearxs(1), readxs(1), imagemap(1), httpd.conf(5)
+.Sy count\-*\-gfx
+SSI directives supplied by the webserver. See
+.Xr httpd_ssi 7
+for details..
+.Sh SEE ALSO
+.Xr httpd 1 ,
+.Xr readxs 1 ,
+.Xr httpd_ssi 7
+.Pp
+The project homepage:
+.Pa http://www.stack.nl/xs\-httpd/

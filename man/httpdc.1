@@ -1,66 +1,81 @@
-.TH HTTPDC 1 "29 May 1996"
-.SH NAME
-httpdc \- Control program for the XS\-HTTPD
-.SH SYNOPSIS
-.ta 8n
-.B httpdc
-[
-.I options
-] command
-.LP 
-.SH DESCRIPTION OF HTTPDC
-HTTPDC is a program that lets you control the behaviour of the XS\-HTTPD.
-With this program, you can retrieve its status, kill it, restart it, etc.
-.SH OPTIONS
-.TP
-.B \-d rootdir
-Specify the root directory of the HTTPD (probably not needed).
-.TP
-.B \-p pidfile
-Specify the pidfile to use.
-.SH COMMANDS
-.TP
-.B ?
+.Dd May 29, 1996
+.Dt HTTPDC 1
+.Os xs-httpd/3.5
+.Sh NAME
+.Nm httpdc
+.Nd Control program for the xs-httpd webserver
+.Sh SYNOPSIS
+.Nm httpdc
+.Op Fl d Ar rootdir
+.Op Fl p Ar pidfile
+.Op Ar command
+.Sh DESCRIPTION
+.Ql httpdc
+is a program that lets you control the behaviour of the
+xs\-httpd daemon.
+With this program, you can retrieve its status, terminate
+the webserver, restart it, etc.
+.Pp
+Without any arguments, the program will start in interactive
+mode showing a prompt in which you can issue multiple
+commands.
+If a command is given on the command line, the program will
+execute that command and terminate immediately when it is
+finished.
+.Pp
+The following control commands are available,
+.Bl -tag -width Ds -compact
+.It Sy ?
+.It Sy help
 Gives a list of command and their meanings.
+.Pp
+.It Sy status
+Display the webserver's status. It checks whether the main
+daemon is running and if the process group is still active.
+It also displayes the pid of the main process and the
+command that was used to start the webserver.
+.Pp
+.It Sy stop
+Shutdown the webserver. It stop only the main daemon: That
+daemon will shut down its children before exiting.
+.Pp
+.It Sy kill
+Forcefully kills the webserver and all child processes.
+This should only be used if a normal
+.Ql stop
+command isn't working or doesn't respond fast enough.
+.Pp
+.It Sy restart
+Shutds the webserver down, waits until it is completely dead
+and then restarts it using the command line arguments that
+were used last time it was started. If the daemon was not
+running, it will print a warning and start it anyway.
+.Pp
+.It Sy reload
 .TP
-.B help
-Gives a list of command and their meanings.
-.TP
-.B status
-Display XS\-HTTPD's status. It checks whether the main daemon is running
-(which reforks children if they die due to timeouts). It also checks if
-the process group is running (main daemon and its children). And it display
-how XS\-HTTPD was started up last time it was started.
-.TP
-.B stop
-Shutdown the XS\-HTTPD. It stop only the main daemon. That daemon will shut
-down its children before exiting.
-.TP
-.B kill
-Forcefully kills the XS\-HTTPD and all child processes.
-.TP
-.B reload
-This makes the XS\-HTTPD reload its global configuration files
-(\fIhttpd.conf\fP, \fImime.types\fP and \fIcompress.methods\fP).
-Note that this will not set up or terminate any new sockets that have been
-added to or removed from the httpd.conf - nor will it change the owner
-(uid/gid) of running processes: if you want the webserver to redo its socket
-configuration, you must restart it.
-.TP
-.B restart
-Kills the XS\-HTTPD, waits until it is completely dead and then restarts
-it using the command line arguments that were used last time it was started.
-If the HTTPD was not running, it will print a warning and start it anyway.
-.TP
-.B quit
-Quits the control program.
-.TP
-.B exit
-Quits the control program.
-.LP
-You may also press CTRL\-D (or any other key that means End\-Of\-Input) to
+This makes the webserver reload its global configuration files
+.Pf ( Pa httpd.conf ,
+.Pa mime.types
+and
+.Pa compress.methods ) .
+Note that this will not redo the complete configuration; in
+particular this will not create or terminate any new sockets
+that have been added to or removed from the
+.Xr httpd.conf 5
+- nor will it change the owner (uid/gid) of running
+processes. In general it is better to use
+.Sy restart
+to ensure that the complete new configuration has been
+activated.
+.Pp
+.It Sy quit
+.It Sy exit
+Quits the control program. You may also press CTRL\-D
+(or any other key that means end\-of\-input) to
 quit the program.
-.SH SEE ALSO
-http://www.stack.nl/xs\-httpd/
-.br
-httpd(1), httpd.conf(5)
+.Sh SEE ALSO
+.Xr httpd 1 ,
+.Xr httpd.conf 5
+.Pp
+The project homepage:
+.Pa http://www.stack.nl/xs\-httpd/

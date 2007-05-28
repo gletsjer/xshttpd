@@ -1,71 +1,84 @@
-.TH XSPASSWD 1 "26 March 1996"
-.SH NAME
-xspasswd \- Manager for WWW authentication passwords using the XS\-HTTPD
-.SH SYNOPSIS
-.ta 8n
-.B xspasswd
-.RI [ -b | -d ]\ [ -l | -u ]\ [ user ]
-.LP 
-.SH DESCRIPTION OF XSPASSWD
-XSPASSWD is a program that lets you manage the usercode/password database
-for the authentication feature of the XS\-HTTPD.
-.LP
-Authentication works very simply: if a file called \fI.xsauth\fP is present
-in the directory in which a file is going to be retrieved, then the remote
-user will be asked for a usercode and password before the file is allowed
-to be retrieved. This program manages the \fI.xsauth\fP file.
-.SH RUNNING XSPASSWD
-Change your current directory to the directory that you wish to protect
-with usercodes and passwords. Note that subdirectories of that subdirectory
-will also be protected.
-.LP
-Then, type \fBxspasswd\fP. The program will ask you for a username (unless
-you already supplied this as an argument on the command line).
-Type a username and press ENTER. Then, the program asks
-for a password for that username. Type something press ENTER. The program
-then asks you to re\-enter the password that you just typed. Do that and
-press ENTER again. the program will update (or create) the \fI.xsauth\fP file.
-.LP
-Note that you can have as many usercodes and passwords as you wish.
-.LP
-You can also use this program to change passwords. Just type an existing
-username when the program prompts you for a username. You do not have to
-enter the old password.
-.LP
-The \fBxspasswd\fP accepts the mutually exclusive arguments: \fB-l\fP to
-lock an account and \fB-u\fP to unlock an account. Locked accounts may
-not be changed using the webinterface (see below).
-By default all accounts are unlocked.
-.LP
-The other options are also mutually exclusive: \fB-b\fP to store passwords
-for basic authentication (the old method, where passwords will be stored
-encrypted, but sent over the wire in plain text) and \fB-d\fP to store
-passwords for use with digest authentication (where more sensitive
-information is stored on disk, but only the checksum of user and password
-data is sent over the wire).
-.LP
-For optimal security it is suggested local data is never made accessible
-to other users of the system and that authentication is used over a secure
-channel (i.e. using https).
-.SH THE WWW FORM
-This program has a similar interface for the WWW. The webinterface is
-called \fBxschpass\fP. It can be used by making a link to the following URL:
-.LP
-http://your.site.name/cgi\-bin/xschpass/~\fIUSERNAME\fP/\fIdirectory\fP
-.LP
-where \fIUSERNAME\fP is your usercode on that system. \fIdirectory\fP is
-the directory in which the \fI.xsauth\fP file is situated.
-.LP
-It is not possible to change a password using the WWW form if the account
-has been locked using the \fB-l\fP option when the password was initially
-created (or updated using \fBxspasswd\fP). 
-Users using the WWW form are only allowed to change a password if they
-know the old password.
-.LP
-Note that this webform is \fBnot\fP installed with the default webserver
-configuration: it must be enabled explicitly by the webserver administrator.
-
-.SH SEE ALSO
-http://www.stack.nl/xs\-httpd/
-.br
-httpd(1), httpd.conf(5), xsauth(5), xsconf(5)
+.Dd March 26, 1996
+.Dt XSPASSWD 1
+.Os xs-httpd/3.5
+.Sh NAME
+.Nm xspasswd
+.Nd Manager for WWW authentication passwords
+.Sh SYNOPSIS
+.Nm xspasswd
+.Op Fl b | Fl d
+.Op Fl l | Fl u
+.Op Ar username
+.Sh DESCRIPTION
+.Ql xspasswd
+is a program that lets you manage the usercode/password
+database for the authentication feature of the xs\-httpd
+webserver.
+.Pp
+Authentication works very simply: if a file called
+.Pa .xsauth
+is present in the directory in which a file is going to be
+retrieved, then the remote user will be asked for a usercode
+and password before the file is allowed to be retrieved.
+This program manages the
+.Pa xsauth
+file.
+.Pp
+Change your current directory to the directory that you wish
+to protect with usercodes and passwords. Note that
+subdirectories of that subdirectory will also be protected.
+Then, type
+.Ql xspasswd .
+The program will ask you for a username (unless you already
+supplied this as an argument on the command line). Next, the
+program asks for a password for that username.The program
+will ask you to re\-enter the password after you have given
+it. When you have done this, the program will update (or
+create) the
+.Pa .xsauth
+file.
+.Pp
+By running the program again, you can add as many usercodes
+and passwords as you wish. You can also use this program to
+change passwords. Just type an existing username when the
+program prompts you for a username. You do not have to enter
+the old password.
+.Pp
+The program accepts the mutually exclusive arguments
+.Fl l
+to lock an account and
+.Fl u
+to unlock an account. Locked accounts may not be changed
+using the webinterface (see below). By default all accounts
+are unlocked.
+.Pp
+The other options are also mutually exclusive:
+.Fl b
+to store passwords for basic authentication (the old method,
+where passwords will be stored encrypted, but sent over the
+wire in plain text) and
+.Fl d
+to store passwords for use with digest authentication (where
+more sensitive information is stored on disk, but only the
+checksum of user and password data is sent over the wire).
+However in this case password hashes are also stored to be
+able to handle basic authentication in case the client
+doesn't understand digest authentication.
+.Pp
+For optimal security it is suggested local data is never
+made accessible to other users of the system and that
+authentication is used over a secure channel (i.e. using
+https). In this case digest authentication does not add
+any additional security.
+.Sh SEE ALSO
+.Xr httpd 1 ,
+.Xr xsauth 5
+.Pp
+The project homepage:
+.Pa http://www.stack.nl/xs\-httpd/
+.Sh STANDARDS
+.Rs
+.%R RFC 2617
+.%T HTTP Authentication: Basic and Digest Access Authentication
+.%D June 1999
+.Re

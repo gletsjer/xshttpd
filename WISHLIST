@@ -13,4 +13,6 @@
 - xsindex config (exclude files)
 - Config file layout/parsing
 
+- SSL client auth matching options in .xsconf
+
 FreeBSD: depends on netpbm

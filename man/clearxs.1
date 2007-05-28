@@ -1,45 +1,53 @@
-.TH CLEARXS 1 "26 March 1996"
-.SH NAME
-clearxs \- Updates the WWW counter file every day
-.SH SYNOPSIS
-.ta 8n
-.B clearxs
-[
-.I options
-]
-.LP 
-.SH DESCRIPTION OF CLEARXS
-CLEARXS is a program that you should install in \fIcron\fP's table.
-What it does is clear some of the fields in the WWW counter file every night.
-This is so that the counter can assume three values: a day counter, a
-month counter and a total counter. This program resets the day counter
-to 0 every day and the month counter to 0 every first of the month.
-.SH OPTIONS
-The program has three options:
-.TP
-.B \-d
-This makes the program clear all the day counters, but leaves the other
-counters as they were. This option should be used every night.
-.TP
-.B \-m
-This makes the program clear the day and the month counter. The total
-counter is left as it was. This should be run by \fIcron\fP every first of
-the month.
-.TP
-.B \-T
-Clears all the counters. Do NOT use :)
-.TP
-.B \-x YYYYMMDD
+.Dd May 9, 2007
+.Dt CLEARXS 1
+.Os xs-httpd/3.5
+.Sh NAME
+.Nm clearxs
+.Nd Daily update for the xs\-httpd counter file
+.Sh SYNOPSIS
+.Nm clearxs
+.Op Fl d | Fl m | Fl T | Fl x Ar yyyymmdd
+.Sh DESCRIPTION
+.Sq clearxs
+is a program that you should install in a
+.Xr cron 1
+table.
+What it does is clear some of the fields in the WWW counter
+file every night. This is so that the counter can assume
+three values: a day counter, a month counter and a total
+counter. This program resets the day counter to 0 every day
+and the month counter to 0 every first of the month.
+.Pp
+The option controls which counters should be cleared:
+.Bl -tag -width Ds
+.It Fl d
+This makes the program clear all the day counters, but
+leaves the other counters as they were. This option should
+be used every night.
+.It Fl m
+This makes the program clear the day and the month counter.
+The total counter is left as it was. This should be run by
+cron every first of the month.
+.It Fl T
+Clears all the counters. Do
+.Em not
+use...
+.It Fl x Ar yyyymmdd
 Expunge counters that have not been used since the given day.
 This will remove historical data from disk - use with care.
-.SH EXAMPLE
-The following can be used as a cron table entry:
-.LP
+.El
+.Sh EXAMPLES
+The following can be used as a
+.Xr crontab 5
+entry:
+.Bd -literal -offset indent -compact
 0       0       2\-31    *       *       root    clearxs \-d
-.br
 0       0       1       *       *       root    clearxs \-m
-
-.SH SEE ALSO
-http://www.stack.nl/xs\-httpd/
-.br
-httpd(1), readxs(1), gfxcount(1), httpdc(1), httpd.conf(5)
+.Ed
+.Sh SEE ALSO
+.Xr httpd 1 ,
+.Xr readxs 1 ,
+.Xr httpd_ssi 7
+.Pp
+The project homepage:
+.Pa http://www.stack.nl/xs\-httpd/

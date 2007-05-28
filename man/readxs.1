@@ -1,46 +1,53 @@
-.TH READXS 1 "26 March 1996"
-.SH NAME
-readxs \- Display the WWW counter file status
-.SH SYNOPSIS
-.ta 8n
-.B readxs
-[
-.I options
-] URI
-.LP 
-.SH DESCRIPTION OF READXS
-READXS is a program that lets you read the WWW counter file.
-.SH RUNNING READXS
-Say you have a counter installed on your WWW page using the WWW
-server's server side includes. Say this page is called \fBindex.html\fP.
-Then you can get the value of this counter on standard output for use
-in shell scripts using this program. In this case you could type:
-.LP
-readxs /~\fIUSER\fP/index.html
-.SH OPTIONS
-.TP
-.B \-d
-Display the "day" type counter.
-.TP
-.B \-m
-Display the "month" type counter.
-.TP
-.B \-t
-Display the "total" type counter (this is the default).
-.TP
-.B \-l
-Display last access timestamp.
-.TP
-.B \-v
-Display counter datafile version id (for debugging purposes).
-.TP
-.B \-w <number>
-Set the selected type counter to the specified number.
-This option may only be used by an administrator and should be used with
-care as it can be used to set "impossible" values. If you want to reset
-the counters, use clearxs(1) instead.
-
-.SH SEE ALSO
-http://www.stack.nl/xs\-httpd/
-.br
-httpd(1), clearxs(1), gfxcount(1)
+.Dd March 26, 1996
+.Dt READXS 1
+.Os xs-httpd/3.5
+.Sh NAME
+.Nm readxs
+.Nd Display the xs\-httpd counte file status
+.Sh SYNOPSIS
+.Nm readxs
+.Op Fl d | Fl m | Fl t | Fl l | Fl v
+.Op Fl w Ar number
+.Sh DESCRIPTION
+Say you have a counter installed on your webpage using the
+server's server side includes as explained in
+.Xr httpd_ssi 7 .
+Say this page is called
+.Pa index.html .
+Then you can get the value of this counter on standard
+output for use in shell scripts using this program. In this
+case you could type:
+.Pp
+.Dl readxs /~username/index.html
+.Pp
+The following options are available
+.Bl -tag -width Ds -compact
+.It Fl d
+display the
+.Ql day
+type counter
+.It Fl m
+display the
+.Ql month
+type counter
+.It Fl t
+display the
+.Ql total
+type counter (this is the default)
+.It Fl l
+display last access timestamp
+.It Fl v
+display counter datafile version id (for debugging purposes)
+.It Fl w Ar number
+set the selected type counter to the specified number. This
+option may only be used by an administrator and should be
+used with care as it can be used to set "impossible" values.
+If you want to reset the counters, use clearxs(1) instead.
+.El
+.Sh SEE ALSO
+.Xr httpd 1 ,
+.Xr clearxs 1 ,
+.Xr httpd_ssi 7
+.Pp
+The project homepage:
+.Pa http://www.stack.nl/xs\-httpd/

@@ -1,62 +1,79 @@
-.TH XSINDEX 1 "28 May 1996"
-.SH NAME
-xsindex \- Create a nice index file for a directory
-.SH SYNOPSIS
-.ta 8n
-.B xsindex
-[
-.I options
-]
-.I title
-.LP 
-.SH DESCRIPTION OF XSINDEX
-XSINDEX is a program that will create a nice index page for a directory.
-What it does is make a listing of all files in the current directory
-(except for special files, like \fB.\fP, \fB.xsauth\.\fP, etc) and create
-a table\-like overview of them. Included with every file is the type of
-that file (in two different formats, see the \fB\-t\fP option) and its
-size.
-
-.SH OPTIONS
+.Dd May 28, 1996
+.Dt XSINDEX 1
+.Os xs-httpd/3.5
+.Sh NAME
+.Nm xsindex
+.Nd Create a simple index file for a directory
+.Sh SYNOPSIS
+.Nm xsindex
+.Op Fl b
+.Op Fl f
+.Op Fl m Ar mimefile
+.Op Fl s
+.Op Fl t Ar mimetype
+.Op Fl x Ar pattern
+.Ar title
+.Sh DESCRIPTION
+.Ql xsindex
+is a program that will create a nice index page for a
+directory. What it does is make a listing of all files in
+the current directory (except for special files, like
+.Ql \&. ,
+.Ql .xsauth ,
+etc) and create a table\-like overview of them. Included
+with every file is the type of that file and its size.
+.Pp
 The program has a number of options:
-.TP
-.B \-b
-If you activate this option, \fB..\fP will not be listed in the index.
-This is useful if \fB..\fP has no meaning in that directory.
-.TP
-.B \-f
-This option disabled the 'Are you sure you want to overwrite?' prompt.
-.TP
-.B \-m mimefile
-This option allows you to specify a different mime index file. This
-allows you to specify, for example, different icon images for file
-types. Start the program without any arguments to see where the default
-mime index file is located.
-.TP
-.B \-s
+.Bl -tag -width Ds
+.It Fl b
+If you activate this option,
+.Ql ..
+will not be listed in the index.
+This is useful if
+.Ql ..
+has no meaning in that directory.
+.It Fl f
+This option disabled the
+.Ql Are you sure you want to overwrite?
+prompt.
+.It Fl m Ar mimefile
+This option allows you to specify a non\-standard mime index
+file. This allows you to specify, for example, different
+icon images for file types.
+.It Fl s
 Disable the display of file sizes.
-.TP
-.B \-t mimetype
-This option allows you to specify how file types are displayed. The
-\fImimetype\fP can be either 1, 2 or 3. 3 disables the display of
-the file type. 1 (the default) means full mime types, such as
-\fBimage/jpeg\fP. 2 means user specified (see the \-m option)
-strings, such as \fBJPEG image\fP.
-.TP
-.B \-x pattern [\-x pattern ...]
-Give a filename, or shell file-matching pattern, for the file(s) that
-should not be included in the listing. The \fB-x\fP option may be
-included multiple times to exclude multiple files and/or file patterns.
-.LP
-The \fItitle\fP is used as the title of the document that will be
-created. Use a descriptive title!
-.LP
-
-.SH EXAMPLE
-xsindex \-t 2 "Directory of /pub/ftp"
-.LP
-
-.SH SEE ALSO
-http://www.stack.nl/xs\-httpd/
-.br
-httpd(1), httpd.conf(5)
+.It Fl t Ar mimetype
+This option allows you to specify how file types are
+displayed. The
+.Ar mimetype
+can be either
+.Sy 1
+(default) show full mime types such as
+.Ql image/jpeg ,
+.Sy 2
+show a descriptive text such as
+.Ql JPEG image
+(see the
+.Fl m
+option) or
+.Sy 3
+disable display of the file type.
+.It Fl x Ar pattern Oo Fl x Ar pattern ... Oc
+Give a filename, or shell file\-matching pattern, for the
+file(s) that should not be included in the listing. The
+.Fl x
+option may be included multiple times to exclude multiple
+files and/or file patterns.
+.El
+.Pp
+The
+.Ar title
+is used as the title of the document that will be created.
+Use a descriptive title!
+.Sh EXAMPLES
+.Dl $ xsindex \-t 2 Qq Directory of /pub/ftp
+.Sh SEE ALSO
+.Xr httpd 1
+.Pp
+The project homepage:
+.Pa http://www.stack.nl/xs\-httpd/

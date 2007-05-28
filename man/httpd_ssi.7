@@ -1,0 +1,312 @@
+.\"
+.\"
+.\" $Id$
+.\" Written by Janjaap van Velthooven based on the original manpage
+.Dd May 9, 2007
+.Dt HTTPD_SSI 7
+.Os xs-httpd/3.5
+.Sh NAME
+.Nm httpd_ssi
+.Nd Server Side Includes (SSI) for xs-httpd
+.Sh DESCRIPTION
+One of the advanced features of this WWW server is its
+server side includes. Server side includes (SSIs) are
+.Dq commands
+to the server to do something. These may be embedded in HTML
+documents.
+.Pp
+The format of such a directive is as follows:
+.D1 <!--# Ns Nm name Oo Ar argument ... Oc Ns -->
+.Nm name
+is the name of the directive. You may specify
+.Ar arguments
+to the directive if needed or wanted, seperated from the directive's
+name by
+.Em one
+space.
+Note also that a directive must start and end on the same line.
+You may have other things on that line, including other directives.
+.Pp
+When the server sends a HTML document to the remote client, it will
+parse all of the directives that are embedded in that document.
+The following directives are recognized:
+.Pp
+.Ss Content directives
+.Bl -tag -width Ds -compact
+.It <!--# Ns Nm count-total Ns -->
+This directive inserts the number of times that this page has
+ever been retrieved. You may use counters as many times as you
+wish per page, they will only increment once.
+.Pp
+.It <!--# Ns Nm count-month Ns -->
+This directive inserts the number of times that this page has
+been retrieved this month.
+.Pp
+.It <!--# Ns Nm count-today Ns -->
+This directive inserts the number of times that this page has
+been retrieved today.
+.Pp
+.It <!--# Ns Nm count-total-gfx Oo Ar location Oc Ns -->
+This directive inserts a HTML tag to include a graphical
+representation of the number of times that this page has
+ever been retrieved.
+If
+.Ar location
+is specified, it will be used as a base location for the font.
+A font has 10 digits in it, each in a seperate file, all PPM's.
+Say
+.Ar location
+is
+.Pa /~user/font1/ ,
+and digit
+.Li 1
+is needed, then
+.Pa /~user/font1/1.ppm
+will be used as that digit.
+Three standard fonts are supplied with this WWW server.
+They may be accessed using the locations:
+.Pa /fonts/digital
+(which is the default),
+.Pa /fonts/large
+and
+.Pa /fonts/largecol .
+.Pp
+.It <!--# Ns Nm count-month-gfx Oo Ar location Oc Ns -->
+This directive inserts a HTML tag to include a graphical
+representation of the number of times that this page has
+been retrieved this month.
+See above for
+.Ar location .
+.Pp
+.It <!--# Ns Nm count-today-gfx Oo Ar location Oc Ns -->
+This directive inserts a HTML tag to include a graphical
+representation of the number of times that this page has
+been retrieved today.
+See above for
+.Ar location .
+.Pp
+.It <!--# Ns Nm count-reset Ns -->
+This directive resets all counters for this page to 0.
+.Pp
+.It <!--# Ns Nm date Oo Cm format= Ns Ar conv-spec Oc Ns -->
+This directive inserts the current date and time, optionally
+in your own format. The conversion specification
+.Ar conv-spec
+must be in
+.Xr strftime 3
+format.
+.Pp
+.It <!--# Ns Nm date-format Cm format= Ns Ar conv-spec Ns -->
+This directive sets
+.Ar format
+as the new date and time format.
+You must specify the format in
+.Xr strftime 3
+format.
+.Pp
+.It <!--# Ns Nm echo Ar varname Oo Cm encoding= Ns Xo
+.Pf { Cm none Ns No | Ns Cm html Ns No | Ns Cm url Ns No }
+.Xc Oc Ns -->
+.It <!--# Ns Nm echo Cm var= Ns Ar varname Oo Cm encoding= Ns Xo
+.Pf { Cm none Ns No | Ns Cm html Ns No | Ns Cm url Ns No }
+.Xc Oc Ns -->
+.It <!--# Ns Nm echo Cm envvar= Ns Ar varname Oo Cm encoding= Ns Xo
+.Pf { Cm none Ns No | Ns Cm html Ns No | Ns Cm url Ns No }
+.Xc Oc Ns -->
+Print the value of a variable. This can be a local variable that was
+set using the
+.Nm set
+directive, or an CGI environment variable that was
+set by the webserver. If the
+.Ar envvar
+option is used, only CGI environment variables are searched.
+.Pp
+The optional
+.Cm encoding=
+argument defaults to html encoding.
+Selecting
+.Cm none
+will do no rewriting at all and is therfore useful in text/plain files.
+Selecting
+.Cm html
+replaces special html symbols (such as
+.Ql < 
+and 
+.Ql & )
+to the appropriate
+sgml entities for proper display.
+Selecting
+.Cm url
+encodes any non alphanumeric characters with their
+.Ql %xx
+equivalent.
+.Pp
+.It <!--# Ns Nm include-file Ar file Ns -->
+This directive allows you to include
+.Ar file 
+in this document.
+This is very useful for standard headers and footers.
+Note that included files may be nested and that directives
+are parsed in them.
+Note also that counters and such always count the
+.Em original
+file, so you can use the
+.Nm count
+directives in your standard headers and footers.
+The argument can be an absolute path
+.Pa ( /home/username/.html/file.html ) ,
+a virtual path relative to the user's html directory
+.Pa ( /~username/file.html )
+or a relative path
+.Pa ( file.html ) .
+.Pp
+.It <!--# Ns Nm last-mod Oo Ar file Oc Ns -->
+.It <!--# Ns Nm last-modified Oo Ar file Oc Ns -->
+This directive inserts the last modification date of either
+the originally request file (the current document) or the
+optionally specified
+.Ar file .
+The date will be in the format specified by the
+.Nm date-format
+directive.
+.Pp
+.It <!--# Ns Nm run-cgi Ar cgi Ns -->
+Runs the CGI binary
+.Ar cgi
+and inserts its output at this point.
+Standard
+.Ev PATH_INFO
+and 
+.Ev PATH_TRANSLATED
+parsing is done, so you can give argumens to the CGI binary.
+All standard CGI environment variables will be set up
+appriopriately.
+See
+.Xr httpd_cgi 7
+for more details on CGI's.
+.Pp
+.It <!--# Ns Nm set Ar varname Ns Cm = Ns Ar value\
+ Oo Ar varname Ns Cm = Ns Ar value ...  Oc Ns -->
+Set one or more internal variables with given names and values.
+These variables can later be printed using the
+.Nm echo
+directive.
+The variables can also be accessed from other files that are
+processed during the same request. 
+This means that variables can be set or printed in any of the
+files that are included using the
+.Nm include
+directive.
+.Pp
+Variable names or values may contain spaces if this value is
+enclosed in double quotes, e.g.
+.D1 <!--# Ns Cm set Li title="Hello\~World" Ns -->
+.El
+.Ss Control directives
+.Bl -tag -width Ds -compact
+.It <!--# Ns Nm \&if Ar keyword Ar pattern Oo Ar pattern ... Oc Ns -->
+.It <!--# Ns Nm if-not Ar keyword Ar pattern Oo Ar pattern ... Oc Ns -->
+The
+.Nm if
+and 
+.Nm if-not
+directives try to match the value associated with the given
+keyword against the set of patterns. If any pattern matches or
+in the case of
+.Nm if-not
+if no pattern matches the section until the next matching
+.Nm else
+or
+.Nm endif 
+is parsed. Otherwise when a matching
+.Nm else
+directive is encountered the section up to the matching
+.Nm endif
+directive is parsed.
+Patterns are simple case-insensitive wildcard patterns.
+.Pp
+The following keywords are recognized:
+.Pp
+.Bl -tag -width Ds -compact
+.It Cm var= Ns Ar varname
+.It Cm envvar= Ns Ar varname
+Use the requested variable or CGI environment variable to check
+against the given pattern(s).
+.Pp
+.El
+For backwards compatibility reasons the following
+.Ar keyword
+aliases are also recognized:
+.Pp
+.Bl -tag -width Ds -compact
+.It Cm browser
+Alias for
+.Cm envvar= Ns Li USER_AGENT
+.It Cm remote-host
+Alias for
+.Cm envvar= Ns Li REMOTE_HOST
+.It Cm remote-name
+Alias for
+.Cm envvar= Ns Li REMOTE_HOST
+.It Cm remote-addr
+Alias for
+.Cm envvar= Ns Li REMOTE_ADDR
+.El
+.Pp
+.It <!--# Ns Nm else  Ns -->
+This directive optionally separates the code for the true and the
+false evaluation of the corresponding checking (i.e.
+.Nm if No or Nm if-not )
+directive.
+If there is no
+.Nm else
+directive between the checking directive and the corresponding
+.Nm endif
+directive nothing will be evaluated when the check fails.
+.Pp
+.It <!--# Ns Nm endif Ns -->
+This directive closes a conditional section started by an
+.Nm if 
+or
+.Nm if-not 
+directive.
+.Pp
+.It <!--# Ns Nm switch Ar keyword Ns -->
+The
+.Nm switch 
+directive tries to find a corresponding
+.Nm case
+directive with a matching
+.Ar pattern
+before the corresponding
+.Nm endswitch
+directive.
+If a matching
+.Nm case
+directive is found the code following this case up to the next corresponding
+.Nm case
+directive or the next corresponding
+.Nm endswitch
+directive.
+.Pp
+.It <!--# Ns Nm case Ar pattern Oo Ar pattern ... Oc Ns -->
+The
+.Nm case
+directive starts the section to parse if any of its
+.Ar patterns
+matches the
+.Ar keyword
+from the corresponding switch.
+.Pp
+.It <!--# Ns Nm endswitch Ns -->
+This directive closes a conditional section started by the corresponding
+.Nm switch
+directive.
+.Pp
+.El
+.Sh SEE ALSO
+.Xr httpd 1 ,
+.Xr httpd_cgi 7
+.Pp
+The project homepage:
+.Pa http://www.stack.nl/xs\-httpd/
