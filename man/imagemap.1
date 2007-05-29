@@ -3,7 +3,7 @@
 .Os xs-httpd/3.5
 .Sh NAME
 .Nm imagemap
-.Nd The WWW image maper
+.Nd The WWW image mapper
 .Sh SYNOPSIS
 .Nm http://your.site.name/cgi\-bin/imagemap/~ Ns Ar username Ns / Ns Pa mapfile
 .Sh DESCRIPTION
@@ -29,9 +29,10 @@ There are other programs that do this; for example,
 .Xr mapedit 1
 is a good one.
 .Xr imagemap
-is the program that handles the actions for the webserver. What a
-user must do is create a map file (either by hand, which is
-not very easy, or by using a program like mapedit).
+is the program that handles the actions for the webserver.
+.Sh EXAMPLES
+What a user must do is create a map file (either by hand,
+which is not very easy, or by using a program like mapedit).
 Then, he or she must use something like the following in
 his/her webpage:
 .Pp
@@ -55,3 +56,9 @@ tag.
 .Pp
 The project homepage:
 .Pa http://www.stack.nl/xs\-httpd/
+.Sh HISTORY
+This program is derived from the NCSA httpd distribution,
+which can be found at
+.Pa http://hoohoo.ncsa.uiuc.edu/cgi/ .
+It was cleaned up and converted for inclusing in the
+xs\-httpd distribution in 1995.

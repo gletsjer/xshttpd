@@ -24,26 +24,6 @@ This program manages the
 .Pa xsauth
 file.
 .Pp
-Change your current directory to the directory that you wish
-to protect with usercodes and passwords. Note that
-subdirectories of that subdirectory will also be protected.
-Then, type
-.Ql xspasswd .
-The program will ask you for a username (unless you already
-supplied this as an argument on the command line). Next, the
-program asks for a password for that username.The program
-will ask you to re\-enter the password after you have given
-it. When you have done this, the program will update (or
-create) the
-.Pa .xsauth
-file.
-.Pp
-By running the program again, you can add as many usercodes
-and passwords as you wish. You can also use this program to
-change passwords. Just type an existing username when the
-program prompts you for a username. You do not have to enter
-the old password.
-.Pp
 The program accepts the mutually exclusive arguments
 .Fl l
 to lock an account and
@@ -70,6 +50,26 @@ made accessible to other users of the system and that
 authentication is used over a secure channel (i.e. using
 https). In this case digest authentication does not add
 any additional security.
+.Sh EXAMPLES
+Change your current directory to the directory that you wish
+to protect with usercodes and passwords. Note that
+subdirectories of that subdirectory will also be protected.
+Then, type
+.Ql xspasswd .
+The program will ask you for a username (unless you already
+supplied this as an argument on the command line). Next, the
+program asks for a password for that username.The program
+will ask you to re\-enter the password after you have given
+it. When you have done this, the program will update (or
+create) the
+.Pa .xsauth
+file.
+.Pp
+By running the program again, you can add as many usercodes
+and passwords as you wish. You can also use this program to
+change passwords. Just type an existing username when the
+program prompts you for a username. You do not have to enter
+the old password.
 .Sh SEE ALSO
 .Xr httpd 1 ,
 .Xr xsauth 5

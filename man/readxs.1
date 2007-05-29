@@ -3,22 +3,20 @@
 .Os xs-httpd/3.5
 .Sh NAME
 .Nm readxs
-.Nd Display the xs\-httpd counte file status
+.Nd Display xs\-httpd counter file information
 .Sh SYNOPSIS
 .Nm readxs
 .Op Fl d | Fl m | Fl t | Fl l | Fl v
 .Op Fl w Ar number
+.Ar URI
 .Sh DESCRIPTION
-Say you have a counter installed on your webpage using the
-server's server side includes as explained in
+Read statistics from the xs\-httpd pageview counter data.
+This information is usually displayed using the webserver's
+server-side include
+.Sy count-*
+directives, explained in
 .Xr httpd_ssi 7 .
-Say this page is called
-.Pa index.html .
-Then you can get the value of this counter on standard
-output for use in shell scripts using this program. In this
-case you could type:
-.Pp
-.Dl readxs /~username/index.html
+This program is mainly used for debugging purposes.
 .Pp
 The following options are available
 .Bl -tag -width Ds -compact
@@ -44,6 +42,17 @@ option may only be used by an administrator and should be
 used with care as it can be used to set "impossible" values.
 If you want to reset the counters, use clearxs(1) instead.
 .El
+.Sh EXAMPLES
+Say you have a counter installed on your webpage using the
+server's server side includes as explained in
+.Xr httpd_ssi 7 .
+Say this page is called
+.Pa index.html .
+Then you can get the value of this counter on standard
+output for use in shell scripts using this program. In this
+case you could type:
+.Pp
+.Dl readxs /~ Ns Ar username Ns /index.html
 .Sh SEE ALSO
 .Xr httpd 1 ,
 .Xr clearxs 1 ,
