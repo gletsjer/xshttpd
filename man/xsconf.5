@@ -1,112 +1,135 @@
-.TH HTTPD 5 "10 February 2007"
-.SH FILENAME
-.B \.xsconf
-\- XS httpd local configuation file
-.LP
-.SH CONCEPT
-An \fI.xsconf\fP file allows the user to set special directives for handling
-certain files in a directory. Using simple file matching commands,
-the user can set the mime-type, interpreter, character set or other
-options that are specific to a certain file or file pattern.
-
-The file consists of block which apply to a specific filename pattern.
-The pattern should be listed in square brackets and the options listed
-below will apply to all files that match the given pattern. See the
-EXAMPLE section below for an illustration.
-These patterns are standard \fBfnmatch(3)\fP patterns.
-The special case \fB[*]\fP will match every file in a directory.
-
-.LP
-.SH CONFIGURATION DIRECTIVES
-All directives can only be used once in a block, unless explicitly
-mentioned otherwise (e.g. Restrict).
-
-.TP
-.B MimeType
+.Dd February 10, 2007
+.Dt XSCONF 5
+.Os xs-httpd/3.5                                                                
+.Sh NAME                                                                        
+.Nm \.xsconf
+.Nd XS-httpd local configuration file
+.Sh DESCRIPTION
+An
+.Pa .xsconf
+file allows the user to set special directives for handling
+certain files in a directory. Using simple file matching
+commands, the user can set the mime-type, interpreter,
+character set or other options that are specific to a
+certain file or file pattern.
+.Pp
+The file consists of block which apply to a specific
+filename pattern. The pattern should be listed in square
+brackets and the options listed below will apply to all
+files that match the given pattern. See the EXAMPLE section
+below for an illustration.
+These patterns are standard
+.Xr fnmatch 3
+patterns. The special case
+.Li [*]
+will match every file in a directory.
+.Ss Configuration Directives
+All directives can only be used once in a block, unless
+explicitly mentioned otherwise (e.g. Restrict).
+.Bl -tag -width Ds
+.It Sy MimeType
 Set the Content-Type for this file. This overrides the global
-\fBmimetypes(5)\fP file.
-A type must be of the form \fImajor/minor\fP, e.g. text/html.
-
-.TP
-.B Charset
-Specify the character of the document. Common character sets include
-US-ASCII, UTF-8, ISO-8859-1, KOI8-R and EUC-JP.
-
-.TP
-.B Language
-Specify the natural language(s) of intended audience for the specified
-document. Note that this might not be equivalent to all the languages used
-within the entity-body. For example: "en-GB, nl".
-
-.TP
-.B Execute
-An execute command sets the program (full path name) that should be used
-as an interpreter (preprocessor) for the file. This overrides any settings
-in the global \fBscripttypes\fP configuration file.
-You can use this, for example to have all *.pl files interpreted by
-/usr/bin/perl.
-The special internal commands (such as \fIinternal:404\fP) may also be used
-here. See \fBxsscripts(5)\fP for a more details.
-
-.TP
-.B Restrict
-The argument to a restrict block should be an IP address, IP prefix or
-IP subnet (in CIDR) notation. A block may contain multiple \fIRestrict\fP
-commands, but every line can only include one IP address specification.
-Access to the matching file will only be granted if the IP of the visitor
-matches one of the restrict address blocks. All other visitors will be
-presented with a 403 Permission Denied error.
-
-.TP
-.B AuthFile
-Specify a password file that should be used to decide who is granted
-access to the matching file. Users that cannot produces the required
-credentials will be presented with a 401 Permission Denied error.
-See \fBxsauth(5)\fP for the layout of such a file.
-
-.TP
-.B IndexFile
+.Xr mimetypes 5
+file. A type must be of the form
+.Sy major/minor ,
+e.g. text/html.
+.It Sy Charset
+Specify the character of the document. Common character sets
+include
+.Ql US-ASCII ,
+.Ql UTF-8 ,
+.Ql ISO-8859-1 ,
+.Ql KOI8-R
+and
+.Ql EUC-JP .
+.It Sy Language
+Specify the natural language(s) of intended audience for the
+specified document. Note that this might not be equivalent
+to all the languages used within the entity-body. For
+example
+.Ql "en-GB, nl" .
+.It Sy Execute
+An execute command sets the program (full path name) that
+should be used as an interpreter (preprocessor) for the
+file. This overrides any settings in the global
+.Pa scripttypes
+configuration file. You can use this, for example to have
+all *.pl files interpreted by
+.Pa /usr/bin/perl .
+The special internal commands (such as
+.Li internal:404 )
+may also be used here. See
+.Xr xsscripts 5
+for a more details.
+.It Sy Restrict
+The argument to a restrict block should be an IP address, IP
+prefix or IP subnet (in CIDR) notation. A block may contain
+multiple
+.Sy Restrict
+commands, but every line can only include one IP address
+specification. Access to the matching file will only be
+granted if the IP of the visitor matches one of the restrict
+address blocks. All other visitors will be presented with a
+403 Permission Denied error.
+.It Sy AuthFile
+Specify a password file that should be used to decide who is
+granted access to the matching file. Users that cannot
+produces the required credentials will be presented with a
+.Ql 401 Permission Denied
+error. See
+.Xr xsauth 5
+for the layout of such a file.
+.It Sy IndexFile
 Set an alternative index file to be displayed if the default
-\fIindex.html\fP does not exist.
-This setting only makes sense in a general \fB[*]\fP block.
-Note that the index is still subject to options that match this
-filename in other block.
-For example one can set \fIindex.py\fP as the index and add
-a \fB[*.py]\fP block that sets Python as a local interpreter for
-all *.py files.
-
-.TP
-.B ScriptTimeout
-Override the default timeout that is used to restrict the execution time
-of all CGI scripts (wall time in minutes). Other limits will still apply
-though, specifically the per process CPU limit.
-
-.TP
-.B p3pPolicyReference
-Set the URL that contains the full P3P specification which describes
-the privacy policy for the requested file. This URL should refer to
-a correctly formatted XML document. The default location for a site is
-"/w3c/p3p.xml". Don't set this option if you wish to use the default.
-
-.TP
-.B p3pCompactPolicy
-In stead of, or in addition to a policy reference, it's possible to specify
-the full P3P policy in a compat notation (consisting of a string of short
-abbreviations). If set, this policy will be added to the headers of the
-requested document.
-
-.SH EXAMPLE
-.TS
-ll.
+.Pa index.html
+does not exist. This setting only makes sense in a general
+.Li [*]
+block. Note that the index is still subject to options that
+match this filename in other block.
+For example one can set
+.Pa index.py
+as the index and add a
+.Li [*.py]
+block that sets Python as a local interpreter for all *.py
+files.
+.It Sy ScriptTimeout
+Override the default timeout that is used to restrict the
+execution time of all CGI scripts (wall time in minutes).
+Other limits will still apply though, specifically the per
+process CPU limit.
+.It Sy p3pPolicyReference
+Set the URL that contains the full P3P specification which
+describes the privacy policy for the requested file. This
+URL should refer to a correctly formatted XML document. The
+default location for a site is
+.Pa /w3c/p3p.xml .
+Don't set this option if you wish to use the default.
+.It Sy p3pCompactPolicy
+In stead of, or in addition to a policy reference, it's
+possible to specify the full P3P policy in a compat notation
+(consisting of a string of short abbreviations). If set,
+this policy will be added to the headers of the requested
+document.
+.Sh EXAMPLES
+An
+.Pa .xsconf
+file in a directory tree that can only be accesses by
+authenticated users from the local network, might look
+something like this,
+.Bd -literal -offset indent
 [*.shtml]
 Restrict	131.155.140.0/23
 MimeType	text/html
-Charset	utf-8
-Execute	/usr/local/bin/php-cgi
+Charset		utf-8
+Execute		/usr/local/bin/php-cgi
 AuthFile	/wwwsys/xsauth
-.TE
-
-.SH "SEE ALSO"
-http://www.stack.nl/xs\-httpd/
-.br
-httpd(1), httpd.conf(5), xsauth(5), xsredir(5), xsscripts(5)
+.Ed
+.Sh SEE ALSO
+.Xr httpd 1 ,
+.Xr httpd.conf 5 ,
+.Xr xsauth 5 ,
+.Xr xsredir 5 ,
+.Xr xsscripts 5
+.Pp
+The project homepage:
+.Pa http://www.stack.nl/xs\-httpd/

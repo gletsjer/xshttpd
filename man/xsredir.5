@@ -1,95 +1,125 @@
-.TH HTTPD 5 "17 December 2006"
-.SH FILENAME
-.B \.redir
-\- XS httpd redirection file
-.LP
-.SH CONCEPT
-The .redir and *.redir files tell the xs\-httpd webserver to redirect
-the client to an alternative location when it attempts to retrieve a
+.Dd December 17, 2006
+.Dt XSREDIR 5
+.Os xs-httpd/3.5                                                                
+.Sh NAME                                                                        
+.Nm \.redir
+.Nd XS-httpd HTTP redirection file
+.Sh DESCRIPTION
+The
+.Pa .redir
+and
+.Pa *.redir
+files tell the xs\-httpd webserver to redirect the client to
+an alternative location when it attempts to retrieve a
 certain resource.
-
-.SH SIMPLE REDIRECT
-A simple HTTP redirect message will be sent when the client requests a
-resource for which a file with the *.redir or *.Redir postfix exists.
-.TP
-\fB *.redir\fP
-If a (regular) file is requested and a file exists with the same
-name but with \fB.redir\fP appended to it, the requested file will
-not be sent. Instead, the server will send a redirection message to
-the remote user's browser. The redirected location is retrieved
-from the \fB*.redir\fP file. This file should contain (only) one absolute
-URL. It does not matter if the file that was requested by the client
+.Ss Simple Redirect
+A simple HTTP redirect message will be sent when the client
+requests a resource for which a file with the *.redir or
+*.Redir postfix exists.
+.Bl -tag -width Ds
+.It Pa *.redir
+If a (regular) file is requested and a file exists with the
+same name but with
+.Ql .redir
+appended to it, the requested file will not be sent.
+Instead, the server will send a redirection message to the
+remote user client. The redirected location is retrieved
+from the
+.Pa *.redir
+file. This file should contain (only) one absolute URL. It
+does not matter if the file that was requested by the client
 actually exists or not.
-.TP
-\fB *.Redir\fP
-The same as \fB*.redir\fP, however instead of a temporary
-redirection (302) a permanent redirection (301) will be sent.
-Users probably won't notice any difference, but it should keep
-robots from keep on using the old address.
-
-.SH DIRECTORY REDIRECT
-If a file named \fB.redir\fP is present in a certain directory, and
-any file is requested from that directory, then a redirection message
-will be sent to the remote user's browser. It works simply
-by substituting the server name and the directory that the
+.It Pa *.Redir
+The same as
+.Pa *.redir ,
+however instead of a temporary redirection (302) a permanent
+redirection (301) will be sent. Users probably won't notice
+any difference, but it should keep robots from keep on using
+the old address.
+.El
+.Ss Directory Redirect
+If a file named
+.Pa .redir
+is present in a certain directory, and any file is requested
+from that directory, then a redirection message will be sent
+to the remote user's browser. It works simply by
+substituting the server name and the directory that the
 remote user to get to this file by the contents of the file.
-This way, an entire directory can be automatically be redirected.
-
-.SH REGULAR EXPRESSION MATCHING
-If \fBPCRE\fP (perl-compatible regular expression) support is compiled in
-then more flexible redirection rules can be written. The \fB.redir\fP file
-may contain multiple redirection commands. These commands may use several
-types: pass, redir, Redir, rewrite or forward.
-.TP
-.B pass \fIoldurl\fP
-If the requested URL matches the \fIoldurl\fP regular expression then no
-redirection action will be taken. The file will be retrieved as normal and
-if the corresponding file does not exist, this may even lead to a 404 Not
-Found error. This command may be useful since \fB.redir\fP files are parsed
-line by line and the first matching directive will be executed. If the
-\fBpass\fP command matches, the rest of the redir file will be ignored.
-.TP
-.B redir \fIoldurl newurl\fP
-The requested URL is matched against the \fIoldurl\fP expression.
-If this matches, the client will be redirected to the \fInewurl\fP
-location. This location may contain string substitutions. If the .redir
-file contains multiple mathing URLs, the first match will be used for
-redirection. The resulting URL should be an absolute URL including
-protocol, hostname and path.
-.TP
-.B Redir \fIoldurl newurl\fP
-This directive is similar to the \fBredir\fP command. But rather than a
-temporary redirect, a permanent redirect (301) will be generated.
-.TP
-.B rewrite \fIoldurl newurl\fP
+This way, an entire directory can be automatically be
+redirected.
+.Ss Regular Expression Matching
+If
+.Sy PCRE
+(perl-compatible regular expression) support is compiled in
+then more flexible redirection rules can be written. The
+.Pa .redir
+file may contain multiple redirection commands. These
+commands may use several types: pass, redir, Redir, rewrite
+or forward.
+.Bl -tag -width Ds
+.It Sy pass Ar oldurl
+If the requested URL matches the
+.Ar oldurl
+regular expression then no redirection action will be taken.
+The file will be retrieved as normal and if the
+corresponding file does not exist, this may even lead to a
+404 Not Found error. This command may be useful since
+.Pa .redir
+files are parsed line by line and the first matching
+directive will be executed. If the
+.Sy pass
+command matches, the rest of the redir file will be ignored.
+.It Sy redir Ar oldurl Ar newurl
+The requested URL is matched against the
+.Ar oldurl
+expression. If this matches, the client will be redirected
+to the
+.Ar newurl
+location. This location may contain string substitutions. If
+the .redir file contains multiple mathing URLs, the first
+match will be used for redirection. The resulting URL should
+be an absolute URL including protocol, hostname and path.
+.It Sy Redir Ar oldurl Ar newurl
+This directive is similar to the
+.Sy redir
+command. But rather than a temporary redirect, a permanent
+redirect (301) will be generated.
+.It Sy rewrite Ar oldurl Ar newurl
 In this case the same matching sceme as for redirects will
-be used, but rather than generating a redirect, the webserver will try
-to resolve the filename itself and dispay the resolved file directly.
-Note that unlike the \fBredir\fP commands, it is not allowed to
-generate full URL's in this case: only local URL's are permitted
-(omitting the protocol and hostname).
-.TP
-.B forward \fIhostname oldurl newurl\fP
+be used, but rather than generating a redirect, the
+webserver will try to resolve the filename itself and dispay
+the resolved file directly.
+Note that unlike the
+.Sy redir
+commands, it is not allowed to generate full URL's in this
+case: only local URL's are permitted (omitting the protocol
+and hostname).
+.It Sy forward Ar hostname Ar oldurl Ar newurl
 If the webserver has been compiled with forwarding support (curl),
-then one can also use \fBforward\fP directives.
-Forwarding behaves transparently (like rewrite), but in this case
-the webserver will retrieve the resulting file from a remote webserver,
-named \fIhostname\fP.
-.br
-The hostname may optionally contain a \fI:portnum\fP postfix forcing
-the request to be forwarded to the specified port rather than the default
-http port (80). If this postfix is \fI:https\fP or \fI:443\fP then SSL
-encryption will be applied.
-.br
+then one can also use
+.Sy forward
+directives. Forwarding behaves transparently (like rewrite),
+but in this case the webserver will retrieve the resulting
+file from a remote webserver, named
+.Ar hostname .
+.Pp
+The hostname may optionally contain a
+.Sy :portnum
+postfix forcing the request to be forwarded to the specified
+port rather than the default http port (80). If this postfix
+is
+.Sy :https
+or
+.Sy :443
+then SSL encryption will be applied.
+.Pp
 Note that forwarding unencrypted requests to a https location or
 encrypted requests to a plain-text http location may lead to a false
 sense of security. Use forwards with care.
-
-.SH ACKNOWLEDGEMENTS
-I thank all the members at MCGV Stack who are actively involved in the
-entire WWW happening.
-
-.SH "SEE ALSO"
-http://www.stack.nl/xs\-httpd/
-.br
-httpd(1), httpd.conf(5), xsconf(5)
+.El
+.Sh SEE ALSO
+.Xr httpd 1 ,
+.Xr xsconf 5
+.Pp
+The project homepage:
+.Pa http://www.stack.nl/xs\-httpd/

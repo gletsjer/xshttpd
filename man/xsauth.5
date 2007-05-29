@@ -1,68 +1,90 @@
-.TH HTTPD 5 "12 June 2002"
-.SH FILENAME
-.B \.xsauth
-\- XS httpd authentication file
-.LP
-.SH CONCEPT
-An .xsauth file informs the xs\-httpd webserver which authenticated users
-should be granted read access to a directory-hierarchy. Only users mentioned
-in this file can view the available data.
-
-An .xsauth file is created with the \fBxspasswd(1)\fP utility. This can
-also be used to add more username and password combinations later.
-However this utility can not be used to remove users or to add special
-options: for this you will need to edit the file manually and remove the
-line that mentions the obsolete user entry.
-
-The .xsauth file can be used in data directories (HtmlDir) as well as
-in cgi-bin script directories (PhExecDir). So you really don't have to
-implement authentication support in your own scripts.
-
+.Dd June 12, 2002
+.Dt XSAUTH 5
+.Os xs-httpd/3.5                                                                
+.Sh NAME                                                                        
+.Nm \.xsauth
+.Nd XS-httpd authentication data
+.Sh DESCRIPTION
+An
+.Pa .xsauth
+file informs the xs\-httpd webserver which authenticated
+users should be granted read access to a
+directory-hierarchy. Only users mentioned in this file can
+view the available data.
+.Pp
+This file is created with the
+.Xr xspasswd 1
+utility. This can also be used to add more username and
+password combinations later. However this utility can not be
+used to remove users or to add special options: for this you
+will need to edit the file manually and remove the line that
+mentions the obsolete user entry.
+.Pp
+The
+.Pa .xsauth
+file can be used in data directories
+.Sy Pf ( HtmlDir )
+as well as in cgi-bin script directories
+.Sy Pf ( PhExecDir ) .
+So there is no need to implement authentication support in
+CGI scripts.
+.Pp
 If you want to disallow access through the webinterface completely, or
-you want to restrict access based on IP addresses, use a \fI.noxs\fP file
+you want to restrict access based on IP addresses, use a
+.Pa .noxs
+file instead.
+.Ss Password Entries
+Normal password entries consist of a
+.Ql L
+(locked) or
+.Ql U
+(unlocked), indicating if the password entry may be modified
+through the webinterface, using the
+.Xr xschpass 1
+CGI binary (which is no longer installed by default). This
+letter is immediately followed by the username, a colon and
+the encrypted version of the password. This is optionally
+followed by an additional colon and a hash value to be used
+for digest access authentication.
+.Pp
+On systems that don't have a standard
+.Xr crypt 3
+function available, all passwords will be stored unencryped
 instead.
-.LP
-.SH PASSWORD ENTRIES
-Normal password entries consist of a 'L' (locked) or 'U' (unlocked),
-indicating if the password entry may be modified through the webinterface,
-using the \fBxschpass(1)\fP CGI binary. This letter is immediately followed by
-the username, a colon and the encrypted version of the password.
-
-On systems that don't have a standard \fBcrypt(3)\fP function available,
-all passwords will be stored unencryped instead.
-.LP
-.SH LDAP AUTHENTICATION
-If LDAP authentication is enabled at compile time, then special directives can
-be used in \fI.xspasswd\fP files to enable password checks via a removed
-authentication server.
-
-.TP
-.B ldaphost=...
+.Ss LDAP Authentication
+If LDAP support is enabled at compile time, then special
+directives can be used in
+.Pa .xsauth
+files to enable password checks via a removed authentication
+server.
+.Bl -tag -width Ds
+.It Sy ldaphost = Ar hostname
 Set the hostname or IP address of the LDAP server.
-.TP
-.B ldapuri=...
-Set the LDAP server name in URL format, starting with ldap:// or ldaps://.
-Setting ldapuri overrides the ldaphost setting - and vice versa.
-.TP
-.B ldapattr=...
-Set username attribute. The LDAP server will be queried for a matching
-$ldapattr=$username entry. The default is \fIuid\fP.
-.TP
-.B ldapdn=...
-Set the base DN (directory name) for the LDAP query. Setting a DN is mandatory.
-.TP
-.B ldapversion=...
-Protocol version to use. The default is 3, but for older servers one may
-want to use 2 instead.
-.TP
-.B ldapgroups=...
-List of groups of which the user should be a member. If the username is
-found in any of these groups, then access will be granted. If no groups
-are specified, then a matching username and password will be enough
-to be granted access.
-
-
-.SH "SEE ALSO"
-http://www.stack.nl/xs\-httpd/
-.br
-httpd(1), xspasswd(1), httpd.conf(5), xsconf(5)
+.It Sy ldapuri = Ar URL
+Set the LDAP server name in URL format, starting with
+ldap:// or ldaps://. Setting ldapuri overrides the ldaphost
+setting - and vice versa.
+.It Sy ldapattr = Ar attribute
+Set username attribute. The LDAP server will be queried for
+a matching
+.Ql $ldapattr=$username
+entry. The default is
+.Sy uid .
+.It Sy ldapdn = Ar DN
+Set the base DN (directory name) for the LDAP query. Setting
+a DN is mandatory.
+.It Sy ldapversion = Ar ver
+Protocol version to use. The default is 3, but for older
+servers one may want to use 2 instead.
+.It Sy ldapgroups = Ar groups
+List of groups of which the user should be a member. If the
+username is found in any of these groups, then access will
+be granted. If no groups are specified, then a matching
+username and password will be enough to be granted access.
+.Sh SEE ALSO
+.Xr httpd 1 ,
+.Xr xspasswd 1 ,
+.Xr xsconf 5
+.Pp
+The project homepage:
+.Pa http://www.stack.nl/xs\-httpd/
