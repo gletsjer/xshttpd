@@ -127,7 +127,7 @@ then
 	fi
 fi
 
-XS_CHECK_WITH(pcre, PCRE support, no)
+XS_CHECK_WITH(pcre, PCRE support, yes)
 if test x${with_pcre} = xyes
 then
 	XS_FUNC_IN_LIB(pcre_exec, HAVE_PCRE, pcre, httpd)

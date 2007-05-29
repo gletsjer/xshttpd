@@ -7,6 +7,7 @@ Changes since 3.5 beta 8
 - Add -x option to 'xsindex' to exclude certain files or file patterns
 - Allow CGI output to start directly with content
 - Include httpd_ssi and httpd_cgi manuals by Janjaap van Velthooven
+- Enable PCRE support by default (where available)
 
 Changes since 3.5 beta 7
 - Simplify directory and file settings in configure and confuser.h
