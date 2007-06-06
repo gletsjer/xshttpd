@@ -555,6 +555,8 @@ check_location(const char *cffile, const char *filename)
 	char    *p, *name, *value;
 	int	state = 0;
 	int	restrictcheck = 0, restrictallow = 0;
+	int	sslcheck = 0, sslallow = 0;
+	int	sslchecki = 0, sslallowi = 0;
 	FILE    *fp;
 	struct ldap_auth	ldap;
 
@@ -684,11 +686,39 @@ check_location(const char *cffile, const char *filename)
 			ldap.groups = strdup(value);
 		}
 
+		/* SSL client cert options */
+		else if (!strcasecmp(name, "SSLSubjectMatch"))
+		{
+			int	match;
+			char	*subject = getenv("SSL_CLIENT_S_DN");
+
+			sslcheck = 1;
+			match = subject ? pcre_match(subject, value) : -1;
+			if (match < 0)
+				sslallow = 0;
+			else
+				sslallow |= match;
+		}
+		else if (!strcasecmp(name, "SSLIssuerMatch"))
+		{
+			int	match;
+			char	*issuer = getenv("SSL_CLIENT_I_DN");
+
+			sslcheck = 1;
+			match = issuer ? pcre_match(issuer, value) : -1;
+			if (match < 0)
+				sslallow = 0;
+			else
+				sslallow |= match;
+		}
+
 		/* ... and much more ... */
 	}
 
 	fclose(fp);
-	if (restrictcheck && !restrictallow)
+	if ((restrictcheck && !restrictallow) ||
+		(sslcheck && !sslallow) ||
+		(sslchecki && !sslallowi))
 	{
 		server_error("403 File is not available", "NOT_AVAILABLE");
 		return 1;

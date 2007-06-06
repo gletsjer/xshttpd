@@ -1,7 +1,7 @@
 .Dd June 12, 2002
 .Dt XSAUTH 5
-.Os xs-httpd/3.5                                                                
-.Sh NAME                                                                        
+.Os xs-httpd/3.5
+.Sh NAME
 .Nm \.xsauth
 .Nd XS-httpd authentication data
 .Sh DESCRIPTION
@@ -54,33 +54,11 @@ instead.
 .Ss LDAP Authentication
 If LDAP support is enabled at compile time, then special
 directives can be used in
-.Pa .xsauth
+.Xr xsconf 5
 files to enable password checks via a remote authentication
-server.
-.Bl -tag -width Ds
-.It Sy ldaphost = Ar hostname
-Set the hostname or IP address of the LDAP server.
-.It Sy ldapuri = Ar URL
-Set the LDAP server name in URL format, starting with
-ldap:// or ldaps://. Setting ldapuri overrides the ldaphost
-setting - and vice versa.
-.It Sy ldapattr = Ar attribute
-Set username attribute. The LDAP server will be queried for
-a matching
-.Ql $ldapattr=$username
-entry. The default is
-.Sy uid .
-.It Sy ldapdn = Ar DN
-Set the base DN (directory name) for the LDAP query. Setting
-a DN is mandatory.
-.It Sy ldapversion = Ar ver
-Protocol version to use. The default is 3, but for older
-servers one may want to use 2 instead.
-.It Sy ldapgroups = Ar groups
-List of groups of which the user should be a member. If the
-username is found in any of these groups, then access will
-be granted. If no groups are specified, then a matching
-username and password will be enough to be granted access.
+server. The use of special LDAP directives in
+.Pa .xsauth
+files is deprecated and will not be supported in future versions.
 .Sh SEE ALSO
 .Xr httpd 1 ,
 .Xr xspasswd 1 ,

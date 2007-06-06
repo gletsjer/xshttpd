@@ -15,5 +15,7 @@
 
 - SSL client auth matching options in .xsconf
 - LDAP auth matching options in .xsconf
+- Allow multiple AuthFile and SSL client directives in .xsconf
+  (any match ok)
 
 FreeBSD: depends on netpbm
