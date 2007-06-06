@@ -240,7 +240,7 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 		return 1;
 	}
 
-	if (af)
+	if (authfile)
 	{
 		if ((p = fgets(line, LINEBUFSIZE, af)))
 			for (i = 0; *p; p++)

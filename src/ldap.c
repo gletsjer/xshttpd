@@ -34,8 +34,8 @@ check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 	 */
 	snprintf (filter, MYBUFSIZ, "(cn=%s)", group);
 
-	if (ldap_search_s (ld, ldapdn, LDAP_SCOPE_SUBTREE, filter, attrs,
-			0, &res) != LDAP_SUCCESS)
+	if (ldap_search_ext_s (ld, ldapdn, LDAP_SCOPE_SUBTREE, filter, attrs,
+			0, NULL, NULL, NULL, 0, &res) != LDAP_SUCCESS)
 		goto leave;
 	e = ldap_first_entry (ld, res);
 	if (e == NULL)
@@ -80,14 +80,7 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
 {
 	FILE	*af;
 	char	line[LINEBUFSIZE];
-	char	filter[MYBUFSIZ];
-	char	*dn = NULL;
 	char	*ptr;
-	char	*curoffs;
-	LDAP	*ld;
-	LDAPMessage	*res = NULL;
-	LDAPMessage	*e;
-	int	ok = 1;
 	struct ldap_auth	ldap;
 
 	memset(&ldap, 0, sizeof(ldap));
@@ -113,8 +106,6 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
 	while (fgets(line, LINEBUFSIZE, af))
 	{
 		/* kill newlines and such, they confuse ldap */
-		while ((ptr = strchr (line, '\n')) != NULL)
-			*ptr = 0;
 		while ((ptr = strchr (line, '\r')) != NULL)
 			*ptr = 0;
 		if (!strncasecmp ("ldaphost=", line, 9))
@@ -167,6 +158,10 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 	LDAPMessage	*res = NULL;
 	LDAPMessage	*e;
 	int	ok = 1, version = 3;
+	struct	berval	cred;
+
+	cred.bv_val = pass;
+	cred.bv_len = strlen(pass);
 
 	if ((!strlen (ldap->uri)) || (!strlen(ldap->dn)) || (!strlen (ldap->attr)))
 		/* LDAP config is incomplete */
@@ -184,7 +179,7 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 	 */
 	snprintf (filter, MYBUFSIZ - 1, "(%s=%s)", ldap->attr, user);
 
-	if (ldap_search_s (ld, ldap->dn, LDAP_SCOPE_SUBTREE, filter, NULL, 0, &res) != LDAP_SUCCESS)
+	if (ldap_search_ext_s (ld, ldap->dn, LDAP_SCOPE_SUBTREE, filter, NULL, 0, NULL, NULL, NULL, 0, &res) != LDAP_SUCCESS)
 		goto leave;
   
 	/* simply grab the first item */
@@ -197,7 +192,7 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 		goto leave;
 
 	/* the bind is the actual login, and verifies our password */ 
-	if (ldap_bind_s (ld, dn, pass, LDAP_AUTH_SIMPLE) != LDAP_SUCCESS)
+	if (ldap_sasl_bind_s (ld, dn, LDAP_SASL_SIMPLE, &cred, NULL, NULL, NULL) != LDAP_SUCCESS)
 		goto leave;
 
 	if (!strcmp (ldap->groups, ""))
@@ -233,7 +228,7 @@ leave:
 		ldap_memfree (dn);
 	if (res)
 		ldap_msgfree (res);
-	ldap_unbind (ld);
+	ldap_unbind_ext_s (ld, NULL, NULL);
 	return ok;
 }
 
