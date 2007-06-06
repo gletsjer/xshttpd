@@ -10,6 +10,7 @@
 #include	<string.h>
 #include	<ctype.h>
 
+#include	"htconfig.h"
 #include	"httpd.h"
 #include	"decode.h"
 #include	"authenticate.h"

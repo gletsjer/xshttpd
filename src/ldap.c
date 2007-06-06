@@ -5,6 +5,7 @@
 #include	"config.h"
 
 #ifdef		AUTH_LDAP
+#include	"htconfig.h"
 #include	"ldap.h"
 #include	"httpd.h"
 
@@ -21,7 +22,7 @@ check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 	BerElement	*ber = NULL;
 	char		filter[MYBUFSIZ];
 	char		*a;
-	char		**vals;
+	struct berval	**vals;
 	char		*attrs[] = { NULL, NULL };
 	int		result = 0, i;
 
@@ -48,16 +49,16 @@ check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 	for (a = ldap_first_attribute (ld, e, &ber); a != NULL;
 	     a = ldap_next_attribute (ld, e, ber))
 	{
-		vals = ldap_get_values (ld, e, a);
+		vals = ldap_get_values_len (ld, e, a);
 		if (vals != NULL)
 		{
-			for (i = 0; vals[i] != NULL; i++)
+			for (i = 0; vals[i]->bv_val != NULL; i++)
 			{
-				if (!strcasecmp (vals[i], user))
+				if (!strcasecmp (vals[i]->bv_val, user))
 					result++;
 			}
 
-			ldap_value_free (vals);
+			ldap_value_free_len (vals);
 		}
 
 		ldap_memfree (a);
@@ -78,12 +79,7 @@ int
 check_auth_ldap(const char *authfile, const char *user, const char *pass)
 {
 	FILE	*af;
-	char	ldapuri[MYBUFSIZ];
-	char	ldapdn[MYBUFSIZ];
-	char	ldapattr[MYBUFSIZ];
-	char	ldapgroups[MYBUFSIZ];
 	char	line[LINEBUFSIZE];
-	int	ldapversion;
 	char	filter[MYBUFSIZ];
 	char	*dn = NULL;
 	char	*ptr;
@@ -92,9 +88,9 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
 	LDAPMessage	*res = NULL;
 	LDAPMessage	*e;
 	int	ok = 1;
+	struct ldap_auth	ldap;
 
-	ldapuri[0] = ldapdn[0] = ldapattr[0] = ldapgroups[0] = '\0';
-	ldapversion = 3;
+	memset(&ldap, 0, sizeof(ldap));
 
 	/* LDAP may support empty passwords to do an anonymous bind. That's
 	 * not what our idea of security is ... */
@@ -122,40 +118,73 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
 		while ((ptr = strchr (line, '\r')) != NULL)
 			*ptr = 0;
 		if (!strncasecmp ("ldaphost=", line, 9))
-			snprintf (ldapuri, MYBUFSIZ, "ldap://%s", (line + 9));
+                {
+                        if (ldap.uri)
+                                free(ldap.uri);
+                        if ((ldap.uri = malloc(strlen(line))))
+				sprintf(ldap.uri, "ldap://%s", line + 9);
+                }
 		if (!strncasecmp ("ldapattr=", line, 9))
-			strlcpy (ldapattr, (line + 9), MYBUFSIZ);
+                {
+                        if (ldap.attr)
+                                free(ldap.attr);
+			ldap.attr = strdup(line + 9);
+                }
 		if (!strncasecmp ("ldapuri=", line, 8))
-			strlcpy (ldapuri, (line + 8), MYBUFSIZ);
+                {
+                        if (ldap.uri)
+                                free(ldap.uri);
+			ldap.uri = strdup(line + 8);
+                }
 		if (!strncasecmp ("ldapdn=", line, 7))
-			strlcpy (ldapdn, (line + 7), MYBUFSIZ);
+                {
+                        if (ldap.dn)
+                                free(ldap.dn);
+			ldap.dn = strdup(line + 7);
+                }
 		if (!strncasecmp ("ldapversion=", line, 12))
-			ldapversion = atoi (line + 12);
+			ldap.version = atoi (line + 12);
 		if (!strncasecmp ("ldapgroups=", line, 11))
-			strlcpy (ldapgroups, (line + 11), MYBUFSIZ);
+                {
+                        if (ldap.groups)
+                                free(ldap.groups);
+			ldap.groups = strdup(line + 11);
+                }
 	}
+	fclose(af);
+	return check_auth_ldap_full(user, pass, &ldap);
+}
 
-	if ((!strlen (ldapuri)) || (!strlen(ldapdn)) || (!strlen (ldapattr)))
-	{
+int
+check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth *ldap)
+{
+	char	filter[MYBUFSIZ];
+	char	line[LINEBUFSIZE];
+	char	*dn = NULL;
+	char	*ptr;
+	char	*curoffs;
+	LDAP	*ld;
+	LDAPMessage	*res = NULL;
+	LDAPMessage	*e;
+	int	ok = 1, version = 3;
+
+	if ((!strlen (ldap->uri)) || (!strlen(ldap->dn)) || (!strlen (ldap->attr)))
 		/* LDAP config is incomplete */
-		fclose(af);
 		return(1);
-	}
 
-	if (ldap_initialize (&ld, ldapuri) != LDAP_SUCCESS)
-	{
-		fclose(af);
+	if (ldap_initialize (&ld, ldap->uri) != LDAP_SUCCESS)
 		return(1);
-	}
-	ldap_set_option (ld, LDAP_OPT_PROTOCOL_VERSION, &ldapversion);
+	if (ldap->version)
+		version = ldap->version;
+	ldap_set_option (ld, LDAP_OPT_PROTOCOL_VERSION, &version);
 
 	/*
 	 * This search may look confusing. Basically, we do a search for the
 	 * user in the tree given, _including all subtrees_.
 	 */
-	snprintf (filter, MYBUFSIZ - 1, "(%s=%s)", ldapattr, user);
+	snprintf (filter, MYBUFSIZ - 1, "(%s=%s)", ldap->attr, user);
 
-	if (ldap_search_s (ld, ldapdn, LDAP_SCOPE_SUBTREE, filter, NULL, 0, &res) != LDAP_SUCCESS)
+	if (ldap_search_s (ld, ldap->dn, LDAP_SCOPE_SUBTREE, filter, NULL, 0, &res) != LDAP_SUCCESS)
 		goto leave;
   
 	/* simply grab the first item */
@@ -171,14 +200,14 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
 	if (ldap_bind_s (ld, dn, pass, LDAP_AUTH_SIMPLE) != LDAP_SUCCESS)
 		goto leave;
 
-	if (!strcmp (ldapgroups, ""))
+	if (!strcmp (ldap->groups, ""))
 	{
 		/* no groups specified, so it's a definite go */
 		ok = 0;
 	}
 	else
 	{
-		curoffs = ldapgroups;
+		curoffs = ldap->groups;
 		for (;;)
 		{
 			/* isolate a group on a ',' boundery */
@@ -187,7 +216,7 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
 				ptr = strchr (curoffs, 0);
 			strlcpy (line, curoffs, (ptr - curoffs));
 
-			if (check_group (ld, ldapdn, user, line))
+			if (check_group (ld, ldap->dn, user, line))
 			{
 				ok = 0;
 				break;
@@ -199,18 +228,12 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
 		}
 	}
 
-	/* only close file if ldap is successful */
-	if (!ok)
-		fclose (af);
-
 leave:
 	if (dn)
 		ldap_memfree (dn);
 	if (res)
 		ldap_msgfree (res);
 	ldap_unbind (ld);
-
-	fclose(af);
 	return ok;
 }
 

@@ -10,13 +10,12 @@
 #include	<ctype.h>
 #include	<unistd.h>
 
+#include	"htconfig.h"
 #include	"httpd.h"
-#include	"authenticate.h"
 #include	"decode.h"
 #include	"ssl.h"
-#ifdef		AUTH_LDAP
+#include	"authenticate.h"
 #include	"ldap.h"
-#endif		/* AUTH_LDAP */
 #ifdef		HAVE_CRYPT_H
 #include	<crypt.h>
 #endif		/* HAVE_CRYPT_H */
@@ -25,7 +24,7 @@ char		authentication[MYBUFSIZ];
 unsigned long int	secret;
 
 static int	get_crypted_password(const char *, const char *, char **, char **);
-static int	check_basic_auth(const char *authfile);
+static int	check_basic_auth(const char *authfile, const struct ldap_auth *);
 #ifdef		HAVE_MD5
 static int	check_digest_auth(const char *authfile);
 static char	*get_auth_argument(const char *key, char *line, size_t len);
@@ -80,7 +79,7 @@ get_crypted_password(const char *authfile, const char *user, char **passwd, char
 }
 
 static int
-check_basic_auth(const char *authfile)
+check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 {
 	char		*search, *line, *passwd, *find;
 
@@ -104,7 +103,12 @@ check_basic_auth(const char *authfile)
 		 * Try to do an LDAP auth first. This is because xs_encrypt()
 		 * may alter the buffer, in which case we compare garbage.
 		 */
-		if (!check_auth_ldap(authfile, search, find))
+		if (authfile && !check_auth_ldap(authfile, search, find))
+		{
+			free(line);
+			return(0);
+		}
+		else if (ldap && !check_auth_ldap_full(search, find, ldap))
 		{
 			free(line);
 			return(0);
@@ -215,26 +219,38 @@ check_digest_auth(const char *authfile)
 #endif		/* HAVE_MD5 */
 
 int
-check_auth(const char *authfile)
+check_auth(const char *authfile, const struct ldap_auth *ldap)
 {
 	char		*p, line[LINEBUFSIZE], errmsg[10240],
 			nonce[MAX_NONCE_LENGTH];
 	int		i = 1, digest;
 	FILE		*af;
 
-	if (!(af = fopen(authfile, "r")))
+	if (!authfile && !ldap)
+	{
+		server_error("403 Authentication information is not available",
+			"NOT_AVAILABLE");
+		return 1;
+	}
+
+	if (authfile && !(af = fopen(authfile, "r")))
 	{
 		server_error("403 Authentication file is not available",
 			"NOT_AVAILABLE");
 		return 1;
 	}
 
-	if ((p = fgets(line, LINEBUFSIZE, af)))
-		for (i = 0; *p; p++)
-			if (':' == *p)
-				i++;
-	digest = i > 1;
-	fclose(af);
+	if (af)
+	{
+		if ((p = fgets(line, LINEBUFSIZE, af)))
+			for (i = 0; *p; p++)
+				if (':' == *p)
+					i++;
+		digest = i > 1;
+		fclose(af);
+	}
+	else
+		digest = 0;
 
 	if (!authentication[0] ||
 		(strncasecmp(authentication, "Basic", 5) &&
@@ -280,7 +296,7 @@ check_auth(const char *authfile)
 	else
 #endif		/* HAVE_MD5 */
 	{
-		if (!check_basic_auth(authfile))
+		if (!check_basic_auth(authfile, ldap))
 			return 0;
 	}
 

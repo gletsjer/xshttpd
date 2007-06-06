@@ -17,6 +17,7 @@
 #include	<crypt.h>
 #endif		/* HAVE_CRYPT_H */
 
+#include	"htconfig.h"
 #include	"httpd.h"
 #include	"decode.h"
 #include	"extra.h"

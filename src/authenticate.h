@@ -21,5 +21,5 @@
 extern char	authentication[MYBUFSIZ];
 
 void	initnonce	(void);
-int	check_auth	(const char *);
+int	check_auth	(const char *, const struct ldap_auth *);
 

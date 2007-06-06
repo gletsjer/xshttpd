@@ -10,7 +10,14 @@
 typedef	enum { log_none, log_traditional, log_combined, log_virtual }	logstyle_t;
 typedef enum { auth_none, auth_optional, auth_strict }	sslauth_t;
 
-extern struct virtual {
+struct ldap_auth
+{
+	char	*uri, *attr, *dn, *groups;
+	int	version;
+};
+
+extern struct virtual
+{
 	char *		hostname;
 	char *		htmldir;
 	char *		execdir;
@@ -31,7 +38,8 @@ extern struct virtual {
 	struct virtual *	next;
 } *current;
 
-struct socket_config {
+struct socket_config
+{
 	char *		socketname;
 	char *		address;
 	char *		port;
@@ -55,7 +63,8 @@ struct socket_config {
 	struct socket_config *	next;
 } *cursock;
 
-extern struct configuration {
+extern struct configuration
+{
 	char *		systemroot;
 	int		instances;
 	int		priority;

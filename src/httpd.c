@@ -71,9 +71,6 @@
 #ifdef		HAVE_MEMORY_H
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
-#ifdef		AUTH_LDAP
-#include	"ldap.h"
-#endif		/* AUTH_LDAP */
 #ifdef		HAVE_CURL
 #include	<curl/curl.h>
 #endif		/* HAVE_CURL */
@@ -90,6 +87,7 @@
 #include	"htconfig.h"
 #include	"fcgi.h"
 #include	"authenticate.h"
+#include	"ldap.h"
 
 #ifndef		PRIO_MAX
 #define		PRIO_MAX	20

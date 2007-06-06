@@ -556,6 +556,9 @@ check_location(const char *cffile, const char *filename)
 	int	state = 0;
 	int	restrictcheck = 0, restrictallow = 0;
 	FILE    *fp;
+	struct ldap_auth	ldap;
+
+	memset(&ldap, 0, sizeof(ldap));
 
 	if (!(fp = fopen(cffile, "r")))
 	{
@@ -606,7 +609,7 @@ check_location(const char *cffile, const char *filename)
 				/* return if authentication fails
 				 * process other directives on success
 				 */
-				if (check_auth(value))
+				if (check_auth(value, NULL))
 				{
 					/* a 401 response has been sent */
 					fclose(fp);
@@ -646,6 +649,41 @@ check_location(const char *cffile, const char *filename)
 		else if (!strcasecmp(name, "ScriptTimeout"))
 			config.scripttimeout = atoi(value);
 
+		/* ldap options */
+		else if (!strcasecmp(name, "LdapHost"))
+		{
+			if (ldap.uri)
+				free(ldap.uri);
+			ldap.uri = malloc(8 + strlen(value));
+			sprintf(ldap.uri, "ldap://%s", value);
+		}
+		else if (!strcasecmp(name, "LdapURI"))
+		{
+			if (ldap.uri)
+				free(ldap.uri);
+			ldap.uri = strdup(value);
+		}
+		else if (!strcasecmp(name, "LdapAttr"))
+		{
+			if (ldap.attr)
+				free(ldap.attr);
+			ldap.attr = strdup(value);
+		}
+		else if (!strcasecmp(name, "LdapDN"))
+		{
+			if (ldap.dn)
+				free(ldap.dn);
+			ldap.dn = strdup(value);
+		}
+		else if (!strcasecmp(name, "LdapVersion"))
+			ldap.version = atoi(value);
+		else if (!strcasecmp(name, "LdapGroups"))
+		{
+			if (ldap.groups)
+				free(ldap.groups);
+			ldap.groups = strdup(value);
+		}
+
 		/* ... and much more ... */
 	}
 
@@ -653,6 +691,11 @@ check_location(const char *cffile, const char *filename)
 	if (restrictcheck && !restrictallow)
 	{
 		server_error("403 File is not available", "NOT_AVAILABLE");
+		return 1;
+	}
+	if (ldap.dn && !check_auth(value, NULL))
+	{
+		/* a 401 response has been sent */
 		return 1;
 	}
 
@@ -986,7 +1029,7 @@ do_get(char *params)
 	/* These should all send there own error messages when appropriate */
 	if ((xsfile = find_file(orgbase, base, NOXS_FILE)) && check_noxs(xsfile))
 		return;
-	if ((xsfile = find_file(orgbase, base, AUTH_FILE)) && check_auth(xsfile))
+	if ((xsfile = find_file(orgbase, base, AUTH_FILE)) && check_auth(xsfile, NULL))
 		return;
 	if (check_file_redirect(base, filename))
 		return;

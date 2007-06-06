@@ -14,5 +14,6 @@
 - Config file layout/parsing
 
 - SSL client auth matching options in .xsconf
+- LDAP auth matching options in .xsconf
 
 FreeBSD: depends on netpbm
