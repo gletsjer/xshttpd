@@ -602,26 +602,19 @@ check_location(const char *cffile, const char *filename)
 		while ((value = strsep(&p, " \t\r\n")) && !*value)
 			/* continue */;
 
+		if (!value)
+			continue;
+
 		/* AuthFilename => $file does .xsauth-type authentication */
 		if (!strcasecmp(name, "AuthFilename") ||
 			!strcasecmp(name, "AuthFile"))
 		{
-			if (value)
+			/* return if authentication fails
+			 * process other directives on success
+			 */
+			if (check_auth(value, NULL))
 			{
-				/* return if authentication fails
-				 * process other directives on success
-				 */
-				if (check_auth(value, NULL))
-				{
-					/* a 401 response has been sent */
-					fclose(fp);
-					return 1;
-				}
-			}
-			else
-			{
-				server_error("403 Authentication data not available",
-					"NOT_AVAILABLE");
+				/* a 401 response has been sent */
 				fclose(fp);
 				return 1;
 			}
@@ -689,27 +682,27 @@ check_location(const char *cffile, const char *filename)
 		/* SSL client cert options */
 		else if (!strcasecmp(name, "SSLSubjectMatch"))
 		{
-			int	match;
+			int	smatch;
 			char	*subject = getenv("SSL_CLIENT_S_DN");
 
 			sslcheck = 1;
-			match = subject ? pcre_match(subject, value) : -1;
-			if (match < 0)
+			smatch = subject ? pcre_match(subject, value) : -1;
+			if (smatch < 0)
 				sslallow = 0;
 			else
-				sslallow |= match;
+				sslallow |= smatch;
 		}
 		else if (!strcasecmp(name, "SSLIssuerMatch"))
 		{
-			int	match;
+			int	smatch;
 			char	*issuer = getenv("SSL_CLIENT_I_DN");
 
 			sslcheck = 1;
-			match = issuer ? pcre_match(issuer, value) : -1;
-			if (match < 0)
+			smatch = issuer ? pcre_match(issuer, value) : -1;
+			if (smatch < 0)
 				sslallow = 0;
 			else
-				sslallow |= match;
+				sslallow |= smatch;
 		}
 
 		/* ... and much more ... */
@@ -723,7 +716,7 @@ check_location(const char *cffile, const char *filename)
 		server_error("403 File is not available", "NOT_AVAILABLE");
 		return 1;
 	}
-	if (ldap.dn && !check_auth(value, NULL))
+	if (ldap.dn && !check_auth(NULL, &ldap))
 	{
 		/* a 401 response has been sent */
 		return 1;

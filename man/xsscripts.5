@@ -1,75 +1,99 @@
-.TH HTTPD 5 "12 June 2002"
-.SH FILENAME
-.B \.xsscripts
-\- XS-httpd file interpreter settings
-.LP
-.SH CONCEPT
-Traditionally all files in a user's \fI.html\fP directory contain static
-data. Mostly HTML markup data, but also images and archives. However most
-people desire more than only static HTML.
-
-So webservers offer Server-Side Includes, to allow conditional blocks, page
-counters and even output from external programs in HTML text (see
-\fBhttpd(1)\fP for a full overview). But even SSI's may not offer all the
-flexibility that people look for, so it is possible to include your own
-programs (be it shell scripts, compiled C progs, PHP or anything else you can
-start from Unix prompt) by placing them in the \fI/cgi-bin\fP subdirectory.
-
-Rather than being confined to a single directory, XS\-httpd also offers a
-flexible mechanism to let the users specify which files should be executed
-and which should be offered with full source to the website visitor. This
-allows you a per-file configuration so that you can have any file interpreted
-as a program, rather than being confined to the /cgi-bin directory, which
-is more typing and a also clear indication to any visitor that it is a program.
-
-Users can include the interpretion settings through a \fI.xsscripts\fP file
-which may be placed in any html directory. The settings apply recursively
-to all subdirectories. The system administration may also include global
-settings through the \fIscript.methods\fP file in the main XS\-httpd
-configuration directory. This may be convenient if you want, for instance,
-all *.php files to be parsed by a PHP interpreter.
-
-.SH FILE LAYOUT
-
+.Dd June 12, 2002
+.Dt XSSCRIPTS 5
+.Os xs-httpd/3.5
+.Sh NAME
+.Nm \.xsscripts
+.Nd XS-httpd file interpreter settings
+.Sh DESCRIPTION
+Traditionally all files in a user's
+.Pa .html
+directory contain static data. Mostly HTML markup data, but
+also images and archives. However most people desire more
+than only static HTML.
+.Pp
+So webservers offer Server-Side Includes, to allow
+conditional blocks, page counters and even output from
+external programs in HTML text (see
+.Xr httpd 1
+for a full overview). But even SSI's may not offer all the
+flexibility that people look for, so it is possible to
+include your own programs (be it shell scripts, compiled C
+progs, PHP or anything else you can start from Unix prompt)
+by placing them in the
+.Pa /cgi-bin
+subdirectory.
+.Pp
+Rather than being confined to a single directory, xs\-httpd
+also offers a flexible mechanism to let the users specify
+which files should be executed and which should be offered
+with full source to the website visitor. This allows you a
+per-file configuration so that you can have any file
+interpreted as a program, rather than being confined to the
+/cgi-bin directory, which is more typing and a also clear
+indication to any visitor that it is a program.
+.Pp
+Users can include the interpretion settings through a
+.Pa .xsscripts
+file which may be placed in any html directory. The settings
+apply recursively to all subdirectories. The system
+administration may also include global settings through the
+.Pa script.methods
+file in the main xs\-httpd configuration directory. This may
+be convenient if you want, for instance, all *.php files to
+be parsed by a PHP interpreter.
+.Ss File Layout
 Every line contains the name of the interpreter that should be run, and a
 suffix of the filenames from the html directory that are to be handled by
 this interpreter. To have all files with the extension .pl interpreted
 by Perl, add the following line:
-
+.Bd -literal -offset indent -compact
 	/usr/local/bin/perl		.pl
-
-Lines starting with # will be ignored as comments.
-
-.TP
-The special extension \fI*\fP is supported to indicate a default interpreter
-program that should handle all files for which no other interpreters are
-specified. Note that the directive \fIinternal:exec *\fP practically turns
-a normal directory into a cgi-binary directory.
-
-.SH BUILT-IN INTERPRETERS
-
-Apart from external programs, several built-in directives can be specified
-as well, to handle files with a certain extension in a special way.
-The directives that can be used are:
-
-.TP
-.B internal:404
-To generate a '404 Not Found' error whenever a matching file is requested.
-This can for instance be used for files that are only included in other
-HTML files (standard header or footer) and never requested directly.
-Give these a special extension like .htmli
-.TP
-.B internal:text
+.Ed
+.Pp
+Lines starting with
+.Ql #
+will be ignored as comments.
+.Pp
+The special extension
+.Ql *
+is supported to indicate a default interpreter program that
+should handle all files for which no other interpreters are
+specified. Note that the directive
+.Bd -literal -offset indent -compact
+	internal:exec			*
+.Ed
+practically turns a normal directory into a cgi-binary
+directory.
+.Ss Built-in Interpreters
+Apart from external programs, several built-in directives
+can be specified as well, to handle files with a certain
+extension in a special way. The directives that can be used
+are:
+.Bl -tag -width Ds
+.It Sy internal:404
+To generate a
+.Ql 404 Not Found
+error whenever a matching file is requested. This can for
+instance be used for files that are only included in other
+HTML files (standard header or footer) and never requested
+directly. Give these a special extension like
+.Pa .htmli
+.It Sy internal:text
 Treat as a normal document rather than an executable CGI.
-This allows you to present HTML documents in a cgi-bin directory.
-The directive can also be used to overrided global settings or
-more general matching rules.
-.TP
-.B internal:exec
-Directly execute the program, without an interpreter. The files with a
-matching extension should have the execute bit set with chmod(1).
-
-.SH "SEE ALSO"
-http://www.stack.nl/xs\-httpd/
-.br
-httpd(1), httpd.conf(5), xsconf(5), mime.types(5)
+This allows you to present HTML documents in a cgi-bin
+directory. The directive can also be used to overrided
+global settings or more general matching rules.
+.It Sy internal:exec
+Directly execute the program, without an interpreter. The
+files with a matching extension should have the execute bit
+set with
+.Xr chmod 1 .
+.El
+.Sh SEE ALSO
+.Xr httpd 1 ,
+.Xr xsconf 5 ,
+.Xr mime.types 5 ,
+.Xr httpd_cgi 7
+.Pp
+The project homepage:
+.Pa http://www.stack.nl/xs\-httpd/

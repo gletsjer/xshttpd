@@ -9,13 +9,9 @@
 
 - vhost logging: set host as virtualhostdir name
 - digauth support in xschpass
-- comb xschpass (it'll overwrite half of .xsauth on error)
-- xsindex config (exclude files)
+- fix/cleanup xschpass (it'll overwrite half of .xsauth on error)
 - Config file layout/parsing
 
-- SSL client auth matching options in .xsconf
-- LDAP auth matching options in .xsconf
-- Allow multiple AuthFile and SSL client directives in .xsconf
-  (any match ok)
+- Allow multiple AuthFile directives in .xsconf
 
 FreeBSD: depends on netpbm

@@ -284,7 +284,6 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 			stdheaders(1, 1, 1);
 		}
 		secputs(errmsg);
-		fclose(af);
 		return(1);
 	}
 #ifdef		HAVE_MD5
