@@ -89,6 +89,18 @@ files with a matching extension should have the execute bit
 set with
 .Xr chmod 1 .
 .El
+.Sh FILES
+.Bl -tag -width Ds
+.It Pa script.methods
+Global configation file with interpreter directives,
+located in
+.Sy SystemRoot
+(see
+.Xr httpd.conf 5 ) .
+.It Pa .xsscripts
+Local configation file with interpreter directives,
+located in any html data directory.
+.El
 .Sh SEE ALSO
 .Xr httpd 1 ,
 .Xr xsconf 5 ,
