@@ -1,11 +1,12 @@
-.TH HTTPD 5 xs-httpd
-.SH FILENAME
-httpd.conf \- XS-httpd configuration file
-.LP
-.SH HTTPD.CONF LAYOUT
-.LP
+.Dd June 12, 2002
+.Dt HTTPD.CONF 5
+.Os xs-httpd/3.5
+.Sh NAME
+.Nm httpd.conf
+.Nd XS-httpd configuration file
+.Sh DESCRIPTION
 The httpd.conf configuration file has the following general layout:
-
+.Bd -literal -offset indent
  ... global options ...
 
  <System>
@@ -23,319 +24,425 @@ The httpd.conf configuration file has the following general layout:
  <Socket>
  ... options for binding specific sockets ...
  </Socket>
-.LP
-Options and their values must be seperated by whitespace.
-.LP
-The file can have only one System and one Users section, but multiple
-Virtual sections (one per virtual hostname). Keep in mind that there
-are fall-back defaults for all options: you are not required to use a
-configuration file and leaving out an option does not mean it will be
-automatically disabled.
 
-.LP
-.SH GLOBAL OPTIONS
+.Ed
+The file can have only one
+.Sy System
+and one
+.Sy Users
+section, but multiple
+.Sy Virtual
+sections (one per virtual hostname). Keep in mind that there
+are fall-back defaults for all options: you are not required
+to use a configuration file and leaving out an option does
+not mean it will be automatically disabled.
+.Pp
+Options names and their values must be seperated by whitespace.
+Option values in the configuration file should never be quoted
+using single or double quotation marks.
+Note that a
+.Ar boolean
+value in the configuration file should always be entered as
+.Ql true
+or
+.Ql false .
+.Pp
+.Ss Global Options
 The following options can be set in the global section:
-.TP
-.B SystemRoot <directory>
+.Bl -tag -width Ds
+.It Sy SystemRoot Ar directory
 The main httpd directory which contains all the data subdirectories
-(like htdocs, cgi-bin, logs, ...).
-.TP
-.B PidFile <filename>
-The file to store the current pid and the last startup command line.
-This will be used by
-.B httpdc(1)
+(like
+.Pa htdocs , cgi-bin , logs ,
+\&...).
+.It Sy PidFile Ar filename
+The file to store the current pid and the last startup
+command line. This will be used by
+.Xr httpdc 1
 for restarting and other maintainance commands.
-.TP
-.B UserId <username>
-The username or numeric uid that will be used to process all requests.
-This may not be the 'root' superuser, however 'nobody' (default) or
- 'http' are good candidates.
-.TP
-.B GroupId <groupname>
-The groupname or numeric gid that will be used to process all requests.
-.TP
-.B ExecAsUser [true|false]
-If enabled then filenames and CGI's in a user directory will be read and
-executed with the permissions of that user. This is the default.
-.TP
-.B DefaultCharset <charset>
-The chacterset to be used if no user-defined charset is specified.
-If this is not specified, then US-ASCII will be used.
-This can be overridden locally by
-.B .charset
-files. The .charset file should contain one line which specifies the
-character set that is used for HTML files. If this option is not set or
-no .charset file can be found, the clients should assume that plain 7bit
-text is used. This option is enabled by default.
-.TP
-.B UseVirtualUid [true|false]
-If enabled files in virtual host directories will be retreived with the
-permissions of the owner over the virtual host rootdir. This can be
-useful if different users maintain different sites.
-.TP
-.B VirtualHostDir <directory>
-When virtual hosts are enabled, the server also supports "automatic"
-detection of virtual hostnames - that is without specific <Virtual>
-blocks in the configuration file. If the
-.I VirtualHostDir
-contains subdirectories with names that match a requested hostname, then
-this subdirectory will be used as the HTML root directory for the
-virtual host data. The \fIVirtualHostDir\fP may be an absolute path or
-relative to \fISystemRoot\fP - if the setting is omited then
-\fIVirtualHostDir\fP will be the same as \fISystemRoot\fP.
-.TP
-.B UseServerSideInclude [true|false]
-By default all HTML files will be parsed for server-side include directives.
-The output of CGI scripts with the filename prefix "ssi-" will also be
-checked for server-side includes. However if this setting is turned off,
-SSI directives will be ignored and files are not checked
-(which may slightly increase performance of the webserver).
-.TP
-.B UseLocalScript [true|false]
-If enabled all directories will be checked for the presence of a .xsscripts
+.It Sy UserId Ar username
+The username or numeric uid that will be used to process all
+requests. This must not be the
+.Ql root
+superuser, however
+.Ql nobody
+(default) or
+.Ql http
+are good candidates.
+.It Sy GroupId Ar groupname
+The groupname or numeric gid that will be used to process
+all requests.
+.It Sy ExecAsUser Ar boolean
+If enabled then filenames and CGI's in a user directory will
+be read and executed with the permissions of that user. This
+is enabled by default.
+.It Sy DefaultCharset Ar charset
+The chacterset in which text documents will be displayed by
+deafult. If this is not specified, then
+.Ql US-ASCII
+will be used. This can be overridden locally by
+.Pa .charset
+files. The
+.Pa .charset
+file should contain one line which specifies the character
+set that is used for all text files in that directory (and
+any subdirectories).
+.It Sy UseVirtualUid Ar boolean
+If enabled, files in virtual host directories will be
+retreived with the permissions of the owner over the virtual
+host rootdir. This can be useful if different users maintain
+different sites.
+.It Sy VirtualHostDir Ar directory
+When virtual hosts are enabled, the server also supports
+.Qq automatic
+detection of virtual hostnames - that is without specific
+.Sy Virtual
+blocks in the configuration file. If the given
+.Ar directory
+contains subdirectories with names that match a requested
+hostname, then this subdirectory will be used as the HTML
+root directory for the virtual host data. The
+.Ar directory
+may be an absolute path or relative to
+.Sy SystemRoot
+- if the setting is omited then the value of
+.Sy VirtualHostDir
+will be the same as
+.Sy SystemRoot .
+.It Sy UseServerSideInclude Ar boolean
+By default all HTML files will be parsed for server-side
+include directives. The output of CGI scripts with the
+filename prefix
+.Ql ssi-
+will also be checked for server-side includes. However if
+this setting is turned off, SSI directives will be ignored
+and files are not checked (which may slightly increase
+performance of the webserver).
+.It Sy UseLocalScript Ar boolean
+If enabled all directories will be checked for the presence
+of a
+.Pa .xsscripts
 file. This can be used to specify how files with certain
-extensions should be handled by the webserver. These files use the exact
-same syntax as the global script.methods file, see \fIhttpd(1)\fP
+extensions should be handled by the webserver. These files
+use the exact same syntax as the global
+.Pa script.methods
+file, see
+.Xr httpd 1
 for details.
-.TP
-.B UseDnsLookup [true|false]
-By default the IP addresses of incoming connections are resolved through
-DNS and logged with hostname information. You can disable this features
-by setting UseDnsLookup to false. Note that this will also make the
-environment variable REMOTE_HOST useless.
-.TP
-.B UseAcceptFilter [true|false]
-Some systems offer kernel support to delay an \fIaccept(2)\fP call
-until (appropriate) data has actually arrived on the socket.
-On FreeBSD (>= 4.0) the \fIaccf_http(9)\fP module can be used.
-Linux only has an option to wait for any queued data.
-Both mechanisms can effectively reduce the workload of the webserver,
-especially when you are experiencing bogus connects.
-Only enable this option if your system has indeed such a system.
-.TP
-.B Priority
-The system priority that the daemon will be running at. A lower priority causes
-more favorable scheduling. The default priority is 0.
-.TP
-.B ScriptPriority
-The CPU priority that user CGI scripts will be running at. A lower priority
-causes more favorable scheduling. The default value is PRIO_MAX, which may
-cause scripts to respond quite slowly, but at least your other processes won't
-be suffering too much from broken scripts.
-.TP
-.B ScriptTimeout <minutes>
-The time a CGI script is allowed to run before it will be considered runaway
-and killed by the server. The time should be specified in minutes (default is 6).
-Note that several browsers will kill a connection even earlier than this.
-.TP
-.B ScriptCpuLimit <minutes>
-The amount of CPU time a CGI script is allowed to use before it will be
-considered runaway and killed by the server. The time should be specified
-in minutes (default is 2).
-.TP
-.B ScriptEnvPath <path>
-The $PATH environment variable that should be presented to CGI binaries.
-This must be a colon seperated list of directories; no sanity checking is done.
-A reasonable default is provided.
-
-.LP
-.SH SOCKET OPTIONS
-It is possible to bind to multiple sockets at the same time (e.g.
-http and https, or IPv4 and IPv6), using multiple <Socket> blocks
-in the configuration. The following options are valid within a
-Socket-block:
-
-.TP
-.B ListenAddress <hostname>
-The hostname or IP-address the webserver should bind on. If the
-hostname resolves to multiple IP-addresses, the webserver will only
-bind to the first address resolved.
-.TP
-.B ListenPort <port>
-The service name or port number to bind on. If you want to listen to
-multiple ports, you can add more Socket-blocks.
-.TP
-.B ListenFamily [IPv4|IPv6]
-The address family to use: IPv6 is only available when enabled at
-compile-time. The default is to leave the family unspecified - which
-means that your operating system can choose: in this case the httpd can
-even listen to both IPv4 and IPv6 addresses. Note that most operation
-systems don't allow binding to multi-family sockets, in which case you
-will need to start httpds for IPv4 and IPv6 seperately.
-.TP
-.B SocketName <key>
-A SocketName is optional and should usually not be specified.
-If a socket name is present, then connections to this socket will not use
-the default settings from the System section, but instead use the settings
-from the Virtual section(s) with a matching HostName.
-.TP
-.B Instances <number>
+.It Sy UseDnsLookup Ar boolean
+By default the IP addresses of incoming connections are
+resolved through DNS and logged with hostname information.
+You can disable this features by setting
+.Sy UseDnsLookup
+to
+.Ql false .
+Note that this will also make the environment variable
+.Ev REMOTE_HOST
+useless.
+.It Sy UseAcceptFilter Ar boolean
+Some systems offer kernel support to delay an
+.Xr accept 2
+call until (appropriate) data has actually arrived on the
+socket. On FreeBSD (>= 4.0) the
+.Xr accf_http 9
+module can be used. Linux only has an option to wait for any
+queued data. Both mechanisms can effectively reduce the
+workload of the webserver, especially when you are
+experiencing bogus connects. Only enable this option if your
+system has indeed such a system.
+.It Sy Priority Ar level
+The system priority that the daemon will be running at. A
+lower priority causes more favorable scheduling. The default
+priority is 0.
+.It Sy ScriptPriority Ar level
+The CPU priority that user CGI scripts will be running at. A
+lower priority causes more favorable scheduling. The default
+value is
+.Sy PRIO_MAX ,
+which may cause scripts to respond quite slowly, but at
+least your other processes won't be suffering too much from
+broken scripts.
+.It Sy ScriptTimeout Ar minutes
+The time a CGI script is allowed to run before it will be
+considered runaway and killed by the server. The time should
+be specified in minutes (default is 6). Note that several
+browsers will kill a connection even earlier than this.
+.It Sy ScriptCpuLimit Ar minutes
+The amount of CPU time a CGI script is allowed to use before
+it will be considered runaway and killed by the server. The
+time should be specified in minutes (default is 2).
+.It Sy ScriptEnvPath Ar path
+The
+.Ev PATH
+environment variable that should be presented to CGI
+binaries. This must be a colon seperated list of
+directories; no sanity checking is done. A reasonable
+default is provided.
+.El
+.Ss Socket Options
+It is possible to bind to multiple sockets at the same time
+(e.g. http and https, or IPv4 and IPv6), using multiple
+.Sy Socket
+blocks in the configuration. The following options are valid
+within a
+.Sy Socket
+block:
+.Bl -tag -width Ds
+.It Sy ListenAddress Ar hostname
+The hostname or IP-address the webserver should bind on. If
+the hostname resolves to multiple IP-addresses, the
+webserver will only bind to the first address resolved.
+.It Sy ListenPort Ar port
+The service name or port number to bind on. If you want to
+listen to multiple ports, you can add more Socket-blocks.
+.It Sy ListenFamily No { Ns Cm IPv4 Ns No | Ns Cm IPv6 Ns No }
+The address family to use:
+.Sy IPv6
+may not be available on all systems. The default is to leave
+the family unspecified - which means that your operating
+system can choose: in this case the httpd can even listen to
+both IPv4 and IPv6 addresses. Note that most operation
+systems don't allow binding to multi-family sockets, in
+which case you will need seperate
+.Sy Socket
+blocks for IPv4 and IPv6.
+.It Sy SocketName Ar key
+A socket name is optional and should usually not be
+specified. If such a
+.Ar key
+is present, then connections to this socket will not use the
+default settings from the
+.Sy System
+section, but instead use the settings from the
+.Sy Virtual
+section(s) with a matching
+.Sy HostName .
+.It Sy Instances Ar number
 The number of parallell services to run.
-.TP
-.B UseSSL [true|false]
-If enabled, use SSL instead of plain text. This can only be used if SSL
-support is enabled at compile time. If this option is set then the
-https (443) port will be used by default, instead of http (80). This
-option is disabled by default. Note that you may include both blocks with
-and without UseSSL.
-.TP
-.B SSLCertificate <filename>
-The location of the x509 certificate to be used for SSL connections.
-This defaults to \fISystemRoot\fP/cert.pem
-.TP
-.B SSLPrivateKey <filename>
+.It Sy UseSSL Ar boolean
+If enabled, use SSL instead of plain text. This can only be
+used if SSL support is enabled at compile time. If this
+option is set then the https (443) port will be used by
+default, instead of http (80). This option is disabled by
+default. Note that you may include both blocks with and
+without
+.Sy UseSSL .
+.It Sy SSLCertificate Ar filename
+The location of the x509 certificate to be used for SSL
+connections. This defaults to
+.Sy SystemRoot Ns Pa /cert.pem .
+.It Sy SSLPrivateKey Ar filename
 The location of the x509 certificate's key to be used for SSL connections.
-This defaults to \fISystemRoot\fP/key.pem - but may be contained in the
-same file as the \fISSLCertificate\fP file.
-Note that this key should not be protected with a secret passphrase.
-.TP
-.B SSLAuthentication [none|optional|strict]
-.RS
-This setting indicates whether clients connecting of https should sent a
-client certificate to authenticate themselves. Note that certificate
-exchange is part of the SSL handshake and thus applies to all connections
-to the socket in which it is specified.
-.LP
-The default is \fInone\fP: don't request a client certificate. When set to
-\fIoptional\fP, the client must send an identifying cert, but this
-certificate won't be checked in any way (it may be self-signed).
-The most secure setting is \fIstrict\fP: all client certificates will be
-checked and must validate against the list of root Certificate
-Authorities. This implies \fISSLCAfile\fP or \fISSLCApath\fP: if neither
-is set, checks will automatically (without further warning) fall back to
-\fIoptional\fP mode.
-.LP
-When \fISSLAuthentication\fP is enabled, extra environment variables are
-available in the CGI environment to offer details about the client
-certificate subject and issuing organisation.
-.RE
-.TP
-.B SSLCAfile <filename>
-The location of the list of x509 root certificates to be used for validation
-of client certificates. This is unset by default; although an example
-\fIcaroot.pem\fP file is included in the distribution.
-.TP
-.B SSLCApath <directory>
-The location of the list of files containing x509 root certificates to be
-used for validation of client certs. This is unset by default and
-can be used in combination with \fISSLCAfile\fP.
-.TP
-.B SSLMatchSDN <pcre>
-If \fISSLAuthentication\fP is enabled (optional or strict) and PCRE
-support is compiled in, this expression should match the client
-certificate subject as presented in the environment variable
-\fBSSL_CLIENT_S_DN\fP. Otherwise the client certificate will be rejected.
-.TP
-.B SSLMatchIDN <pcre>
-If SSLAuthentication is enabled (optional or strict) and PCRE support
-is compiled in, this expression should match the client certificate issuer
-as presented in the environment variable \fBSSL_CLIENT_I_DN\fP.
+This defaults to
+.Sy SystemRoot Ns Pa /key.pem
+- but may be contained in the same file as the
+.Sy SSLCertificate
+file. Note that this key should not be protected with a
+secret passphrase.
+.It Sy SSLAuthentication No { Ns Cm none Ns No | Ns Cm optional Ns No | Ns Cm strict Ns No }
+This setting indicates whether clients connecting using https
+should sent a client certificate to authenticate themselves.
+The certificate exchange is part of the SSL handshake and
+thus applies to all connections to the socket in which it is
+specified.
+.Pp
+The default is
+.Sy none :
+don't request a client certificate. When set to
+.Sy optional ,
+the client must send an identifying cert, but this
+certificate won't be checked in any way (it may be
+self-signed). The most secure setting is
+.Sy strict :
+all client certificates will be checked and must validate
+against the list of root Certificate Authorities. This
+implies
+.Sy SSLCAfile
+or
+.Sy SSLCApath :
+if neither is set, checks will automatically (without
+further warning) fall back to
+.Sy optional
+mode.
+.Pp
+When
+.Sy SSLAuthentication
+is enabled, extra environment variables are available in the
+CGI environment to offer details about the client
+certificate subject and issuing organisation; see
+.Xr httpd_cgi 7 .
+.It Sy SSLCAfile Ar filename
+The location of the list of x509 root certificates to be
+used for validation of client certificates. This is unset by
+default; although an example
+.Pa caroot.pem
+file is included in the distribution.
+.It Sy SSLCApath Ar directory
+The location of the list of files containing x509 root
+certificates to be used for validation of client certs. This
+is unset by default. Both
+.Sy SSLCAfile
+and
+.Sy SSLCAfile
+may be set, in which case both locations will be checked for
+certification authority certificates.
+.It Sy SSLMatchSDN Ar pcre
+If
+.Sy SSLAuthentication
+is enabled
+.Pf ( Ql optional
+or
+. Ql strict Ns )
+and PCRE support is compiled in, this expression should
+match the client certificate subject as presented in the
+environment variable
+.Ev SSL_CLIENT_S_DN .
 Otherwise the client certificate will be rejected.
-
-.LP
-.SH SECTION OPTIONS
-The following options can be set in the System, Virtual and Users sections:
-
-.TP
-.B HostName <hostname>
-The hostname of the server. This is required for a Virtual section.
-For the System en Users sections it defaults to the name of the machine.
-.TP
-.B HostAlias <hostname> [hostname ...]
+.It Sy SSLMatchIDN Ar pcre
+If
+.Sy SSLAuthentication
+is enabled
+.Pf ( Ql optional
+or
+. Ql strict Ns )
+and PCRE support is compiled in, this expression should
+match the client certificate issuer as presented in the
+environment variable
+.Ev SSL_CLIENT_I_DN .
+Otherwise the client certificate will be rejected.
+.El
+.Ss Section Options
+The following options can be set in any of the
+.Sy System , Virtual
+and
+.Sy Users
+sections:
+.Bl -tag -width Ds
+.It Sy HostName Ar hostname
+The hostname of the server. This is required for a
+.Sy Virtual
+section. For the
+.Sy System
+and
+.Sy Users
+sections it defaults to the name of the machine.
+.It Sy HostAlias Ar hostname Op Ar hostname ...
 One or more aliases for the previously mentioned hostname.
-.TP
-.B HtmlDir <directory>
-The main directory containing all the HTML files. This defaults to
-\fISystemRoot\fP/htdocs/ for the main server and ~/.html/ for users.
-It is a mandatory option in Virtual sections.
-.TP
-.B ExecDir <directory>
-The path contain the CGI scripts. This is the directory as it is
-specified in the URL, which is not necessary the same as the directory
-on disk (default: cgi-bin).
-.TP
-.B PhExecDir <directory>
-Physical CGI directory: this is the subdirectory where scripts are
-stored on disk. However if you do not use the same value as ExecDir, it
-is easy to get confused (default: \fIcgi-bin\fP)
-.TP
-.B LogAccess <filename>
-Logfile to use for normal HTTP requests (answered with a \fB2xx\fP
-response). Instead of a filename, it is possible to log to an external
-process using a pipe-symbol and full pathname. If the command is
-followed by options or arguments, make sure to quote it using double
-quotes. For example to enable logging through cronolog:
-.IP
+.It Sy HtmlDir Ar directory
+The main directory containing all the HTML files. This
+defaults to
+.Sy SystemRoot Ns Pa /htdocs/
+for the main server and
+.Pa ~/.html/
+for users.
+It is a mandatory option in
+.Sy Virtual
+sections.
+.It Sy ExecDir Ar directory
+The
+.Ar directory
+containing the CGI scripts. This is the directory as it is
+specified in the URL, which is not necessary the same as the
+directory on disk (default:
+.Pa cgi-bin ) .
+.It Sy PhExecDir Ar directory
+Physical CGI directory: this is the subdirectory where
+scripts are stored on disk. However if you do not use the
+same value as
+.Sy ExecDir ,
+it is easy to get confused (default:
+.Pa cgi-bin ) .
+.It Sy LogAccess Ar filename
+Logfile to use for normal HTTP requests (answered with a
+.Li 2xx
+response). Instead of a filename, it is possible to log to
+an external process using a pipe-symbol and full pathname.
+If the command is followed by options or arguments, make
+sure to quote it using double quotes. For example to enable
+logging through cronolog:
+.Bd -literal
 LogAccess "|/usr/local/sbin/cronolog /wwwsys/logs/access_%Y%m%d"
-.TP
-.B LogError <filename>
-Logfile or program to use for HTTP requests that trigger errors (like
-file not found, \fB4xx\fP responses).
-.TP
-.B LogReferer <filename>
+.Ed
+.It Sy LogError Ar filename
+Logfile or program to use for HTTP requests that trigger
+errors (like file not found,
+.Li 4xx
+responses).
+.It Sy LogReferer Ar filename
 Logfile or program to use for HTTP referrer information. Note that this
-is only used when \fILogStyle\fP traditional is selected - otherwise
-referrer information will be included in the standard \fILogAccess\fP
+is only used when
+.Sy LogStyle
+.Ql traditional
+is selected - otherwise referrer information will be
+included in the standard
+.Sy LogAccess
 file.
-.TP
-.B LogRefererIgnoreDomain <domain>
-References coming from this domain will not be logged in the
-\fILogReferer\fP file. This is usually your own domain. Note that
-it is wise to start the domain with a dot (.). You may also
-give a machine name instead of a domain name.
-Note: This only affects traditional logging where a sperate referrer
-logfile is used. It will be ignored when using more modern logstyles.
-.TP
-.B LogStyle [traditional|combined|virtual]
-Defines the logfile format. Traditionally access and referrer logs will
-be split over two different files (common logfile format), but using a
-\fIcombined\fP accesslog is more common nowadays (extended logfile
-format). The \fIvirtual\fP format is basically an combined log with an
-extra first field indicating the virtual hostname that was accessed on
+.It Sy LogRefererIgnoreDomain Ar domain
+References coming from this
+.Ar domain
+will not be logged in the
+.Sy LogReferer
+file. This is usually your local network domain. Note that
+it is wise to start the domain with a dot (.) to match all
+hosts in the domain as well. You may also give a machine
+name instead of a domain name. Note: This only affects
+.Ql traditional
+logging where a sperate referrer logfile is used. It will be
+ignored when using more modern logstyles.
+.It Sy LogStyle No { Ns Cm traditional Ns No | Ns Cm combined Ns No | Ns Cm virtual Ns No }
+Defines the logfile format. Traditionally access and
+referrer logs will be split over two different files
+. Pf ( Ql common logfile format Ns ) ,
+but using a
+.Sy combined
+accesslog is more common nowadays
+.Pf ( Ql extended logfile format Ns ) .
+The
+.Sy virtual
+format is basically a combined log with an extra first
+field indicating the virtual hostname that was accessed on
 the webserver.
-.TP
-.B IndexFiles <filename> [filename ...]
-Defines the filename(s) that should be used when the user asks for a
-directory. The webserver will never autogenerate a directory index: you
-can use \fIxsindex(1)\fP for that. You can specify multiple filenames
-seperated by commas or whitespace. The default value is \fBindex.html
-index.htm index.php\fP (meaning that index.htm will only be tried if
-index.html is not present, etc.).
-.LP
-If this option is omitted for the <Virtual> or <Users> section, it will
-default to the definition in the <System> block. Or the previously
-mentioned default if this is also unspecified.
-.TP
-.B SocketName <key>
-A SocketName is optional and should usually not be specified.
-If a socket name is present, then this virtual section will only be applied
-to listening sockets that match the same key. There may be multiple sockets
-or Virtual sections with the same \fISocketName\fP.
-
-.SH EXAMPLE
-Refer to the \fIhttpd.conf.sample\fP file that comes with the source
-distribution.
-
-.SH ACKNOWLEDGEMENTS
-I thank all the members at MCGV Stack who are actively involved in the
-entire WWW happening.
-
-.SH "SEE ALSO"
-http://www.stack.nl/xs\-httpd/
-.LP
-httpd(1), xspasswd(1), imagemap(1), clearxs(1), readxs(1), gfxcount(1),
-xsindex(1), httpdc(1), xsauth(5), xsconf(5), xsredir(5), xsscripts(5),
-mime.types(5)
-
-.SH COPYRIGHT
-All the programs in the XS\-HTTPD package are copyright (C) 1995-2007
-by Sven Berkvens and Johan van Selst, except the imagemapper.
-
-.SH AUTHOR
-The original author of this WWW server and its accompanying programs
-is Sven Berkvens, except the imagemapper which was taken from the NCSA
-distribution and cleaned up. The current maintainer is Johan van Selst.
-.LP
-New features have been added by other people at Stack. If you have
-problems with this version please contact the Stack maintainers
-(xs-httpd@stack.nl) about it and don't bother Sven.
+.It Sy IndexFiles Ar filename Op Ar filename ...
+Defines the filename(s) that should be used when the user
+asks for a directory. The webserver will never autogenerate
+a directory index: you can use
+.Xr xsindex 1
+for that. You can specify multiple filenames seperated by
+commas or whitespace. The default value is
+.Ql index.html index.htm index.php
+(meaning that
+.Pa index.htm
+will only be tried if
+.Pa index.html
+is not present, etc.).
+.Pp
+If this option is omitted for the
+.Sy Virtual or
+.Sy Users
+section, it will default to the definition in the
+.Sy System
+block, or the previously mentioned default if this is also
+unspecified.
+.It Sy SocketName Ar key
+A socket name is optional and should usually not be
+specified. If such a
+.Ar key
+is present, then this virtual section will only be applied
+to listening sockets that match the same key. There may be
+multiple sockets or
+.Sy Virtual
+sections with the same
+.Sy SocketName .
+.El
+.Sh EXAMPLES
+Refer to the
+.Pa httpd.conf.sample
+file that comes with the source distribution.
+.Sh SEE ALSO
+.Xr httpd 1 ,
+.Xr xsscripts 5 ,
+.Xr xsconf 5 ,
+.Xr mime.types 5
+.Pp
+The project homepage:
+.Pa http://www.stack.nl/xs\-httpd/

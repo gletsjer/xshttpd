@@ -46,13 +46,12 @@ This should only be used if a normal
 command isn't working or doesn't respond fast enough.
 .Pp
 .It Sy restart
-Shutds the webserver down, waits until it is completely dead
+Shuts the webserver down, waits until it is completely dead
 and then restarts it using the command line arguments that
 were used last time it was started. If the daemon was not
 running, it will print a warning and start it anyway.
 .Pp
 .It Sy reload
-.TP
 This makes the webserver reload its global configuration files
 .Pf ( Pa httpd.conf ,
 .Pa mime.types
@@ -73,6 +72,7 @@ activated.
 Quits the control program. You may also press CTRL\-D
 (or any other key that means end\-of\-input) to
 quit the program.
+.El
 .Sh SEE ALSO
 .Xr httpd 1 ,
 .Xr httpd.conf 5
