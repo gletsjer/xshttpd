@@ -876,6 +876,11 @@ do_get(char *params)
 				file += size + 2;
 				strlcpy(base, calcpath(current->phexecdir), XS_PATH_MAX);
 			}
+			else if (!strncmp(params + 1, ICON_DIR, strlen(ICON_DIR)))
+			{
+				file += size + 2;
+				strlcpy(base, calcpath(current->icondir), XS_PATH_MAX);
+			}
 			else
 				strlcpy(base, calcpath(current->htmldir), XS_PATH_MAX);
 		}

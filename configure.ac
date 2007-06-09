@@ -89,13 +89,13 @@ AC_ARG_WITH(rootdir,
 AC_SUBST(rootdir)
 
 dnl Various installation directories - relative to ${rootdir}.
-XS_ARG_DIR(config,  CONFIG_DIR, [])
+XS_ARG_DIR(config,  CONFIG_DIR, [conf])
 XS_ARG_DIR(cgi,     CGI_DIR,    [cgi-bin])
 XS_ARG_DIR(phexec,  PHEXEC_DIR, [cgi-bin])
 XS_ARG_DIR(contrib, CONTRIB_DIR,[contrib])
 XS_ARG_DIR(font,    FONT_DIR,   [gfxcount])
 XS_ARG_DIR(html,    HTML_DIR,   [htdocs])
-XS_ARG_DIR(icon,    ICON_DIR,   [htdocs/icons])
+XS_ARG_DIR(icon,    ICON_DIR,   [icons])
 XS_ARG_DIR(log,     LOG_DIR,    [logs])
 
 dnl User specified additional (non-system) libraries.

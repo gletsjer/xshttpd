@@ -335,11 +335,21 @@ The main directory containing all the HTML files. This
 defaults to
 .Sy SystemRoot Ns Pa /htdocs/
 for the main server and
-.Pa ~/.html/
-for users.
+.Pa .html
+for users (path relative to user's homedir).
 It is a mandatory option in
 .Sy Virtual
 sections.
+.Pp
+For the
+.Sy Users
+section the special substring
+.Ql %u
+may be used in this setting, which will be replaced with the
+user's login. There is no need to use this for the home
+directory (as the path given is relative to the homedir),
+but one might want to do something like
+.Pa /data/www/%u/ .
 .It Sy ExecDir Ar directory
 The
 .Ar directory
@@ -354,6 +364,11 @@ same value as
 .Sy ExecDir ,
 it is easy to get confused (default:
 .Pa cgi-bin ) .
+.It Sy IconDir Ar directory
+Location where the icons used by
+.Xr xsindex 1
+are to be stored on disk. This defaults to
+.Sy SystemRoot Ns Pa /icons .
 .It Sy LogAccess Ar filename
 Logfile to use for normal HTTP requests (answered with a
 .Li 2xx

@@ -22,6 +22,7 @@ extern struct virtual
 	char *		htmldir;
 	char *		execdir;
 	char *		phexecdir;
+	char *		icondir;
 	char *		logaccess;
 	char *		logerror;
 	char *		logreferer;

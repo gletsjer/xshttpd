@@ -640,6 +640,8 @@ load_config()
 		config.system->execdir = strdup(CGI_DIR);
 	if (!config.system->phexecdir)
 		config.system->phexecdir = strdup(PHEXEC_DIR);
+	if (!config.system->icondir)
+		config.system->icondir = strdup(ICON_DIR);
 	if (!config.system->logaccess)
 		config.system->logaccess = strdup(BITBUCKETNAME);
 	if (!config.system->logerror)
@@ -691,6 +693,8 @@ load_config()
 			current->execdir = strdup(CGI_DIR);
 		if (!current->phexecdir)
 			current->phexecdir = strdup(PHEXEC_DIR);
+		if (!current->icondir)
+			current->icondir = strdup(calcpath(ICON_DIR));
 		if (!current->logstyle)
 			current->logstyle = config.system->logstyle;
 		if (!current->userid)
