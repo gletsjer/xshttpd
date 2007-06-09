@@ -1500,11 +1500,9 @@ process_request()
 			strcasecmp(http_host, config.system->hostname))
 	{
 		char	**aliasp = NULL;
-		warnx("checking aliases");
 		if ((aliasp = config.system->aliases))
 			for (; *aliasp; aliasp++)
 			{
-				warnx(*aliasp);
 				if (!strcasecmp(http_host, *aliasp))
 					break;
 			}

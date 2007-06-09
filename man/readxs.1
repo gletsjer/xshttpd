@@ -42,6 +42,17 @@ option may only be used by an administrator and should be
 used with care as it can be used to set "impossible" values.
 If you want to reset the counters, use clearxs(1) instead.
 .El
+.Sh FILES
+.Bl -tag -width Ds
+.It Pa xs-counter.data
+The data file containing all counter details. The default
+location for this file is in
+.Sy SystemRoot Ns Pa /logs/ .
+.It Pa xs-counter.lock
+Temporary lock file used when writing (incrementing or
+resetting) counter data. Stale lock files will not be
+removed automatically.
+.El
 .Sh EXAMPLES
 Say you have a counter installed on your webpage using the
 server's server side includes as explained in

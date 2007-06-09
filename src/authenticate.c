@@ -134,6 +134,8 @@ check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 		free(passwd);
 		return 1;
 	}
+	/* NOTREACHED */
+	(void)ldap;
 }
 
 #ifdef		HAVE_MD5

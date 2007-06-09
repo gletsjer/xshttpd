@@ -67,13 +67,12 @@ struct socket_config
 extern struct configuration
 {
 	char *		systemroot;
+	char *		pidfile;
 	int		instances;
 	int		priority;
-	char *		pidfile;
 	int		scriptpriority;
 	unsigned int	scriptcpulimit;
 	unsigned int	scripttimeout;
-	char *		scriptpath;
 	unsigned	execasuser: 1;
 	unsigned	usevirtualuid: 1;
 	unsigned	uselocalscript: 1;
@@ -83,6 +82,7 @@ extern struct configuration
 	unsigned	usessi: 1;
 	char *		virtualhostdir;
 	char *		defaultcharset;
+	char *		scriptpath;
 	struct virtual *	system;
 	struct virtual *	users;
 	struct virtual *	virtual;
