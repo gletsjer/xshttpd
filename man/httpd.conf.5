@@ -158,7 +158,7 @@ priority is 0.
 The CPU priority that user CGI scripts will be running at. A
 lower priority causes more favorable scheduling. The default
 value is
-.Sy PRIO_MAX ,
+.Dv PRIO_MAX ,
 which may cause scripts to respond quite slowly, but at
 least your other processes won't be suffering too much from
 broken scripts.
@@ -195,7 +195,7 @@ webserver will only bind to the first address resolved.
 .It Sy ListenPort Ar port
 The service name or port number to bind on. If you want to
 listen to multiple ports, you can add more Socket-blocks.
-.It Sy ListenFamily No { Ns Cm IPv4 Ns No | Ns Cm IPv6 Ns No }
+.It Sy ListenFamily Brq Cm IPv4 Ns No | Ns Cm IPv6
 The address family to use:
 .Sy IPv6
 may not be available on all systems. The default is to leave
@@ -239,7 +239,9 @@ This defaults to
 .Sy SSLCertificate
 file. Note that this key should not be protected with a
 secret passphrase.
-.It Sy SSLAuthentication No { Ns Cm none Ns No | Ns Cm optional Ns No | Ns Cm strict Ns No }
+.It Sy SSLAuthentication Xo
+.Brq Cm none Ns No | Ns Cm optional Ns No | Ns Cm strict
+.Xc
 This setting indicates whether clients connecting using https
 should sent a client certificate to authenticate themselves.
 The certificate exchange is part of the SSL handshake and
@@ -389,14 +391,16 @@ name instead of a domain name. Note: This only affects
 .Ql traditional
 logging where a sperate referrer logfile is used. It will be
 ignored when using more modern logstyles.
-.It Sy LogStyle No { Ns Cm traditional Ns No | Ns Cm combined Ns No | Ns Cm virtual Ns No }
+.It Sy LogStyle Xo
+.Brq Cm traditional Ns | Ns Cm combined Ns | Ns Cm virtual
+.Xc
 Defines the logfile format. Traditionally access and
 referrer logs will be split over two different files
-. Pf ( Ql common logfile format Ns ) ,
+.Pq Ql common logfile format ,
 but using a
 .Sy combined
 accesslog is more common nowadays
-.Pf ( Ql extended logfile format Ns ) .
+.Pq Ql extended logfile format Ns .
 The
 .Sy virtual
 format is basically a combined log with an extra first

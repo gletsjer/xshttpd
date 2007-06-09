@@ -25,53 +25,52 @@ finished.
 .Pp
 The following control commands are available,
 .Bl -tag -width Ds -compact
-.It Sy ?
-.It Sy help
+.It Ic ?
+.It Ic help
 Gives a list of command and their meanings.
 .Pp
-.It Sy status
+.It Ic status
 Display the webserver's status. It checks whether the main
 daemon is running and if the process group is still active.
 It also displayes the pid of the main process and the
 command that was used to start the webserver.
 .Pp
-.It Sy stop
+.It Ic stop
 Shutdown the webserver. It will only stop the main daemon:
 that daemon will shut down its child processes before exiting.
 .Pp
-.It Sy kill
+.It Ic kill
 Forcefully kills the webserver and all child processes.
 This should only be used if a normal
-.Ql stop
+.Ic stop
 command isn't working or doesn't respond fast enough.
 .Pp
-.It Sy restart
+.It Ic restart
 Shuts the webserver down, waits until it is completely dead
 and then restarts it using the command line arguments that
 were used last time it was started. If the daemon was not
 running, it will print a warning and start it anyway.
 .Pp
-.It Sy reload
+.It Ic reload
 This makes the webserver reload its global configuration files
-.Pf ( Pa httpd.conf ,
-.Pa mime.types
-and
-.Pa compress.methods ) .
+.Pq Pa httpd.conf , mime.types No and Pa compress.methods .
 Note that this will not redo the complete configuration; in
 particular this will not create or terminate any new sockets
 that have been added to or removed from the
 .Xr httpd.conf 5
 - nor will it change the owner (uid/gid) of running
 processes. In general it is better to use
-.Sy restart
+.Ic restart
 to ensure that the complete new configuration has been
 activated.
 .Pp
-.It Sy quit
-.It Sy exit
-Quits the control program. You may also press CTRL\-D
-(or any other key that means end\-of\-input) to
-quit the program.
+.It Ic quit
+.It Ic exit
+Quits the control program. You may also press
+.Li CTRL-D
+(or any other key that means
+.Ql end of input )
+to quit the program.
 .El
 .Sh SEE ALSO
 .Xr httpd 1 ,
