@@ -878,7 +878,7 @@ do_get(char *params)
 			}
 			else if (!strncmp(params + 1, ICON_DIR, strlen(ICON_DIR)))
 			{
-				file += size + 2;
+				file += strlen(ICON_DIR) + 2;
 				strlcpy(base, calcpath(current->icondir), XS_PATH_MAX);
 			}
 			else

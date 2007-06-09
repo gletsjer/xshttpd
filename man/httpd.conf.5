@@ -139,6 +139,16 @@ to
 Note that this will also make the environment variable
 .Ev REMOTE_HOST
 useless.
+.It Sy UseStrictHostname Ar boolean
+Setting this option will disable the use of
+.Sy VirtualHostDir
+and the fallback default site: only if the requested host
+exactly matches a
+.Sy HostName
+or
+.Sy HostAlias
+entry, will the request be accepted and any content
+displayed.
 .It Sy UseAcceptFilter Ar boolean
 Some systems offer kernel support to delay an
 .Xr accept 2

@@ -78,6 +78,7 @@ extern struct configuration
 	unsigned	usevirtualuid: 1;
 	unsigned	uselocalscript: 1;
 	unsigned	usednslookup: 1;
+	unsigned	usestricthostname: 1;
 	unsigned	useacceptfilter: 1;
 	unsigned	usessi: 1;
 	char *		virtualhostdir;

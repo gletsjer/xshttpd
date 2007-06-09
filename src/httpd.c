@@ -321,6 +321,8 @@ load_config()
 						config.useacceptfilter = !strcasecmp("true", value);
 					else if (!strcasecmp("UseServerSideInclude", key))
 						config.usessi = !strcasecmp("true", value);
+					else if (!strcasecmp("UseStrictHostname", key))
+						config.usestricthostname = !strcasecmp("true", value);
 					else if (!strcasecmp("ScriptCpuLimit", key))
 						config.scriptcpulimit = atoi(value);
 					else if (!strcasecmp("ScriptTimeout", key))
@@ -895,9 +897,10 @@ void
 alarm_handler(int sig)
 {
 	alarm(0); setcurrenttime();
-	/* don't show errors for request (responses) in progress */
+	/* don't show errors for request (responses) in progress
 	warnx("[%s] httpd: Send timed out for `%s'",
 		currenttime, remotehost[0] ? remotehost : "(none)");
+	 */
 	(void)sig;
 	exit(1);
 }
@@ -1490,6 +1493,25 @@ process_request()
 				if (*aliasp)
 					break;
 			}
+		}
+	}
+	if (config.usestricthostname &&
+			!current &&
+			strcasecmp(http_host, config.system->hostname))
+	{
+		char	**aliasp = NULL;
+		warnx("checking aliases");
+		if ((aliasp = config.system->aliases))
+			for (; *aliasp; aliasp++)
+			{
+				warnx(*aliasp);
+				if (!strcasecmp(http_host, *aliasp))
+					break;
+			}
+		if (!aliasp || !*aliasp)
+		{
+			xserror("400 Unknown Host");
+			return;
 		}
 	}
 	if (params[0] && params[1] == '~')

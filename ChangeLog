@@ -7,6 +7,7 @@ Changes since 3.5 beta 9
 - Use OpenLDAP 2.3+ function names
 - Move all global configuration files to Rootdir/conf subdir
 - Move icons back to Rootdir/icons and add IconDir config option
+- Add option UseStrictHostname to check Host: headers
 
 Changes since 3.5 beta 8
 - Allow DSA keyfiles to specify DSA parameters instead of DH parameters
