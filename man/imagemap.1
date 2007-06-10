@@ -30,6 +30,15 @@ There are other programs that do this; for example,
 is a good one.
 .Xr imagemap
 is the program that handles the actions for the webserver.
+.Pp
+Note that the
+.Xr imagemap 1
+program runs without special privileges, which means that the
+.Ar mapfile
+must be accessible and world-readable on the local system.
+The mapfile is never retrieved through the webserver, even
+though it usually resides inside the normal webdocuments
+tree.
 .Sh EXAMPLES
 What a user must do is create a map file (either by hand,
 which is not very easy, or by using a program like mapedit).
