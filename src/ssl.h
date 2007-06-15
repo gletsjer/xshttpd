@@ -11,6 +11,7 @@
 
 /* Wrapper functions are used even if SSL is not enabled */
 int	initssl(void);
+void	ssl_environment(void);
 void	loadssl(void);
 void	endssl(void);
 void	setreadmode(int, int);

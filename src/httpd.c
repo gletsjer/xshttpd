@@ -1892,6 +1892,7 @@ setup_environment()
 		cursock->port, 1);
 	setenv("REMOTE_ADDR", remoteaddr, 1);
 	setenv("REMOTE_HOST", remotehost, 1);
+	ssl_environment();
 }
 
 int

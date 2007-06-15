@@ -63,8 +63,6 @@ int
 initssl()
 {
 #ifdef		HANDLE_SSL
-	X509		*xs;
-
 	if (!cursock->usessl)
 		return 0;
 
@@ -85,6 +83,46 @@ initssl()
 			warnx("SSL flipped");
 		return -1;
 	}
+
+#ifdef		HAVE_PCRE
+	if (cursock->sslmatchsdn || cursock->sslmatchidn)
+	{
+		int		erroffset;
+		const char	*errormsg;
+
+		if (cursock->sslmatchsdn)
+		{
+			cursock->sslpcresdn =
+				pcre_compile(cursock->sslmatchsdn,
+					0, &errormsg, &erroffset, NULL);
+			if (!cursock->sslmatchsdn)
+				/* TODO: error handling */
+				return -1;
+		}
+		if (cursock->sslmatchidn)
+		{
+			cursock->sslpcreidn =
+				pcre_compile(cursock->sslmatchidn,
+					0, &errormsg, &erroffset, NULL);
+			if (!cursock->sslmatchidn)
+				/* TODO: error handling */
+				return -1;
+		}
+	}
+#endif		/* HAVE_PCRE */
+#endif		/* HANDLE_SSL */
+	return 0;
+}
+
+void
+ssl_environment()
+{
+#ifdef		HANDLE_SSL
+	X509		*xs;
+
+	if (!cursock->usessl)
+		return;
+
 	if ((xs = SSL_get_peer_certificate(cursock->ssl)))
 	{
 		X509_NAME	*xsname = X509_get_subject_name(xs);
@@ -125,35 +163,9 @@ initssl()
 		unsetenv("SSL_CLIENT_I_DN_Email");
 		setenv("SSL_CLIENT_VERIFY", "NONE", 1);
 	}
-
-#ifdef		HAVE_PCRE
-	if (cursock->sslmatchsdn || cursock->sslmatchidn)
-	{
-		int		erroffset;
-		const char	*errormsg;
-
-		if (cursock->sslmatchsdn)
-		{
-			cursock->sslpcresdn =
-				pcre_compile(cursock->sslmatchsdn,
-					0, &errormsg, &erroffset, NULL);
-			if (!cursock->sslmatchsdn)
-				/* TODO: error handling */
-				return -1;
-		}
-		if (cursock->sslmatchidn)
-		{
-			cursock->sslpcreidn =
-				pcre_compile(cursock->sslmatchidn,
-					0, &errormsg, &erroffset, NULL);
-			if (!cursock->sslmatchidn)
-				/* TODO: error handling */
-				return -1;
-		}
-	}
-#endif		/* HAVE_PCRE */
+	/* we are now doing SSL-only */
+	setenv("HTTPS", "on", 1);
 #endif		/* HANDLE_SSL */
-	return 0;
 }
 
 void
@@ -340,8 +352,6 @@ loadssl()
 			SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
 			&sslverify_callback);
 	}
-	/* we are now doing SSL-only */
-	setenv("HTTPS", "on", 1);
 #endif		/* HANDLE_SSL */
 }
 
