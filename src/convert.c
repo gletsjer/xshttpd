@@ -28,6 +28,8 @@ convertpath(const char *org)
 		strlcpy(person, org + 2, XS_USER_MAX);
 		if ((slash = strchr(person, '/')))
 			*slash++ = '\0';
+		if ((slash = strchr(org + 2, '/')))
+			slash++;
 		if (!(userinfo = getpwnam(person)))
 			return NULL;
 		/* transform_user_dir */
