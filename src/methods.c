@@ -974,10 +974,10 @@ do_get(char *params)
 				break; /* error later */
 			if ((statbuf.st_mode & S_IFMT) == S_IFREG)
 			{
-				*temp = '/';
-				setenv("PATH_INFO", temp, 1);
 				setenv("SCRIPT_NAME", params, 1);
 				setenv("SCRIPT_FILENAME", fullpath, 1);
+				*temp = '/';
+				setenv("PATH_INFO", temp, 1);
 				setenv("PATH_TRANSLATED", convertpath(temp), 1);
 				if ((slash = strrchr(fullpath, '/')))
 					*slash = '\0';
