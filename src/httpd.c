@@ -126,6 +126,7 @@ static	void	open_logs		(int);
 static	void	core_handler		(int)	NORETURN;
 static	void	set_signals		(void);
 
+static	int		string_to_array		(char *, char ***);
 static	void	process_request		(void);
 
 static	void	setup_environment	(void);
@@ -213,6 +214,34 @@ term_handler(int sig)
 	}
 	(void)sig;
 	exit(0);
+}
+
+static	int
+string_to_array(char *value, char ***arrayp)
+{
+	int		i, j;
+	char	*p, *prev = NULL, *next = value, **array;
+
+	if (*arrayp)
+		free(*arrayp);
+
+	/* this may malloc more than required */
+	for (p = value, j = 2; *p; p++)
+		if (',' == *p || ' ' == *p || '\t' == *p)
+			j++;
+	array = malloc(j * sizeof(char *));
+	for (i = 0; i < j; )
+	{
+		if ((prev = strsep(&next, ", \t")) && *prev)
+			array[i++] = strdup(prev);
+		else if (!prev)
+		{
+			array[i] = NULL;
+			break;
+		}
+	}
+	*arrayp = array;
+	return i;
 }
 
 static	void
@@ -400,24 +429,9 @@ load_config()
 				else if (!strcasecmp("Hostname", key))
 					current->hostname = strdup(value);
 				else if (!strcasecmp("HostAlias", key))
-				{
-					int		i;
-					char	*prev = NULL, *next = value;
-
-					if (current->aliases)
-							free(current->aliases);
-					current->aliases = malloc(MAXVHOSTALIASES);
-					for (i = 0; i < MAXVHOSTALIASES; )
-					{
-						if ((prev = strsep(&next, ", \t")) && *prev)
-							current->aliases[i++] = strdup(prev);
-						else if (!prev)
-						{
-							current->aliases[i] = NULL;
-							break;
-						}
-					}
-				}
+					string_to_array(value, &current->aliases);
+				else if (!strcasecmp("PathInfoScripts", key))
+					string_to_array(value, &current->uidscripts);
 				else if (!strcasecmp("HtmlDir", key))
 					current->htmldir = strdup(value);
 				else if (!strcasecmp("ExecDir", key))
@@ -433,22 +447,7 @@ load_config()
 				else if (!strcasecmp("LogRefererIgnoreDomain", key))
 					current->thisdomain = strdup(value);
 				else if (!strcasecmp("IndexFiles", key))
-				{
-					int		i;
-					char	*prev = NULL, *next = value;
-
-					current->indexfiles = malloc(MAXINDEXFILES);
-					for (i = 0; i < MAXINDEXFILES; )
-					{
-						if ((prev = strsep(&next, ", \t")) && *prev)
-							current->indexfiles[i++] = strdup(prev);
-						else if (!prev)
-						{
-							current->indexfiles[i] = NULL;
-							break;
-						}
-					}
-				}
+					string_to_array(value, &current->indexfiles);
 				else if (!strcasecmp("LogStyle", key))
 					if (!strcasecmp("common", value) ||
 							!strcasecmp("traditional", value))

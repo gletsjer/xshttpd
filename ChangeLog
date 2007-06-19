@@ -3,6 +3,7 @@ is not complete. Refer to cvs comments for more information.
 
 Changes since 3.5 beta 11
 - Fix $SCRIPT_NAME for secondary index files
+- Add PathInfoScripts option to use $PATH_INFO uid for system CGIs
 
 Changes since 3.5 beta 10
 - Fix convertpath() which was broken for long filenames

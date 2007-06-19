@@ -756,7 +756,7 @@ do_get(char *params)
 				base[XS_PATH_MAX], orgbase[XS_PATH_MAX],
 				total[XS_PATH_MAX], temppath[XS_PATH_MAX];
 	const	char		*filename, *http_host;
-	int			fd, wasdir,
+	int			fd, wasdir, switcheduid = 0,
 				delay_redir = 0, script = 0;
 	unsigned int		i;
 	size_t			size;
@@ -875,6 +875,29 @@ do_get(char *params)
 				script = 1;
 				file += size + 2;
 				strlcpy(base, calcpath(current->phexecdir), XS_PATH_MAX);
+
+				/* opt. set uid to path_info user */
+				if (question &&
+					current->uidscripts &&
+					'/' == question[1] && '~' == question[2] &&
+					(temp = strchr(&question[3], '/')) && !origeuid)
+				{
+					*question = '\0';
+					for (i = 0; current->uidscripts[i]; i++)
+						if (!strcmp(params, current->uidscripts[i]))
+						{
+							*temp = '\0';
+							userinfo = getpwnam(&question[3]);
+							if (!userinfo->pw_uid)
+								break;
+							setegid(userinfo->pw_gid);
+							setgroups(1, (const gid_t *)&userinfo->pw_gid);
+							seteuid(userinfo->pw_uid);
+							*temp = '/';
+							break;
+						}
+					*question = '?';
+				}
 			}
 			else if (!strncmp(params + 1, ICON_DIR, strlen(ICON_DIR)))
 			{
@@ -1022,6 +1045,7 @@ do_get(char *params)
 			setegid(config.system->groupid);
 			setgroups(1, &config.system->groupid);
 			seteuid(config.system->userid);
+			switcheduid = 1;
 		}
 		if (!geteuid())
 		{

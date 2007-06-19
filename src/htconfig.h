@@ -29,6 +29,7 @@ extern struct virtual
 	char *		thisdomain;
 	char **		indexfiles;
 	char **		aliases;
+	char **		uidscripts;
 	char *		socketname;
 	uid_t		userid;
 	gid_t		groupid;

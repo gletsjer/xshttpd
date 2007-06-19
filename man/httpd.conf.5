@@ -340,6 +340,12 @@ and
 sections it defaults to the name of the machine.
 .It Sy HostAlias Ar hostname Op Ar hostname ...
 One or more aliases for the previously mentioned hostname.
+.It Sy PathInfoScripts Ar filename Op Ar filename ...
+One or more filenames (URIs) of scripts that should be
+executed using the username path specified in the
+.Ev PATH_INFO
+argument. A good example of such a filename would be
+.Pa /cgi-bin/imagemap .
 .It Sy HtmlDir Ar directory
 The main directory containing all the HTML files. This
 defaults to
