@@ -1263,8 +1263,8 @@ do_get(char *params)
 	/* find next possible index file */
 	if (*indexfile && (temp = strrchr(real_path, '/')))
 	{
-		*temp++ = '\0';
-		snprintf(real_path, XS_PATH_MAX, "/%s", indexfile);
+		*++temp = '\0';
+		strlcat(real_path, indexfile, XS_PATH_MAX);
 		filename = temp;
 		indexfile[0] = '\0';
 	}
@@ -1308,6 +1308,8 @@ do_get(char *params)
 	}
 
 	/* add original arguments back to real_path */
+	setenv("SCRIPT_NAME", real_path, 1);
+	setenv("SCRIPT_FILENAME", convertpath(real_path), 1);
 	if (getenv("QUERY_STRING"))
 	{
 		strlcat(real_path, "?", XS_PATH_MAX);

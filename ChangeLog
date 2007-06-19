@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.5 beta 11
+- Fix $SCRIPT_NAME for secondary index files
+
 Changes since 3.5 beta 10
 - Fix convertpath() which was broken for long filenames
 - Fix SSL environment vars (now available again to CGI)
