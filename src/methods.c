@@ -968,7 +968,15 @@ do_get(char *params)
 
 	/* look for file on disk */
 	snprintf(temppath, XS_PATH_MAX, "%s%s", base, file);
-	if (!wasdir &&
+	if (wasdir &&
+		!stat(temppath, &statbuf) &&
+		(statbuf.st_mode & S_IFMT) == S_IFDIR)
+	{
+		setenv("SCRIPT_NAME", params, 1);
+		setenv("SCRIPT_FILENAME", temppath, 1);
+		setenv("PWD", temppath, 1);
+	}
+	else if (!wasdir &&
 		!stat(temppath, &statbuf) &&
 		(statbuf.st_mode & S_IFMT) == S_IFREG)
 	{
@@ -1029,7 +1037,6 @@ do_get(char *params)
 		setenv("PWD", currentdir, 1);
 		filename = current->indexfiles[0];
 		strlcat(real_path, filename, XS_PATH_MAX);
-		setenv("SCRIPT_NAME", real_path, 1);
 		setenv("SCRIPT_FILENAME", convertpath(real_path), 1);
 	}
 	else
@@ -1332,7 +1339,6 @@ do_get(char *params)
 	}
 
 	/* add original arguments back to real_path */
-	setenv("SCRIPT_NAME", real_path, 1);
 	setenv("SCRIPT_FILENAME", convertpath(real_path), 1);
 	if (getenv("QUERY_STRING"))
 	{
