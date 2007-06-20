@@ -7,7 +7,6 @@ SystemRoot	/usr/local/lib/httpd
 
 PidFile		/var/run/httpd.pid
 VirtualHostDir	vhosts
-ExecAsUser	true
 
 <Socket>
 # ListenAddress	www.stack.nl
@@ -26,15 +25,15 @@ GroupId		nogroup
 # IndexFiles	index.html, index.htm, index.php
 LogAccess	logs/access_log
 LogError	logs/error_log
-LogStyle	combined
+LogStyle	virtual
+PathInfoScripts	/cgi-bin/imagemap, /cgi-bin/xschpass
 </System>
 
-# <Users>
-# Hostname	www.stack.nl
+<Users>
 # HtmlDir	.html
 # ExecDir	cgi-bin
 # PhExecDir	cgi-bin
-# </Users>
+</Users>
 
 # <Virtual>
 # Hostname	www.ipv6.stack.nl
