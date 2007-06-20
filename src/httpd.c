@@ -271,6 +271,7 @@ load_config()
 	/* Set simple defaults - others follow the parsing */
 	config.usednslookup = 1;
 	config.usessi = 1;
+	config.execasuser = 1;
 	config.scriptcpulimit = 2;
 	config.scripttimeout = 6;
 	config.sockets = NULL;
