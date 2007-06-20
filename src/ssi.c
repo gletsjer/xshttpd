@@ -619,7 +619,7 @@ dir_date(int argc, char **argv, off_t *size)
 static	int
 dir_include_file(int argc, char **argv, off_t *size)
 {
-	int		i, fd, ret;
+	int		i, fd, ret, virtual;
 	const	char	*path = NULL;
 
 	if ((numincludes++) > MAXINCLUDES)
@@ -633,15 +633,20 @@ dir_include_file(int argc, char **argv, off_t *size)
 		return(ERR_CONT);
 	}
 
+	virtual = 0;
 	for (i = 0; i < argc; i += 2)
 		if (!strcmp(argv[i], "virtual"))
+		{
+			virtual = 1;
 			path = argv[i + 1];
+		}
 		else if (!strcmp(argv[i], "file"))
 			path = argv[i + 1];
 	if (!path)
 		path = argv[0];
 
-	path = convertpath(path);
+	if (virtual || '/' != path[0] || '~' == path[1])
+		path = convertpath(path);
 	fd = open(path, O_RDONLY, 0);
 	if (fd < 0)
 	{

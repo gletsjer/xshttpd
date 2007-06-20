@@ -8,5 +8,3 @@
 - fix/cleanup xschpass (it'll overwrite half of .xsauth on error)
 - Config file layout/parsing
 - Allow multiple AuthFile directives in .xsconf
-
-FreeBSD: depends on netpbm
