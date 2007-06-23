@@ -5,6 +5,8 @@ Changes since 3.5 beta 11
 - Fix $SCRIPT_NAME for secondary index files
 - Add PathInfoScripts option to use $PATH_INFO uid for system CGIs
 - Fix absolute pathnames in #include SSI
+- Clean up xschpass and xscrypt
+- Install xschpass by default again (not suid; with manpage)
 
 Changes since 3.5 beta 10
 - Fix convertpath() which was broken for long filenames

@@ -875,29 +875,6 @@ do_get(char *params)
 				script = 1;
 				file += size + 2;
 				strlcpy(base, calcpath(current->phexecdir), XS_PATH_MAX);
-
-				/* opt. set uid to path_info user */
-				if (question &&
-					current->uidscripts &&
-					'/' == question[1] && '~' == question[2] &&
-					(temp = strchr(&question[3], '/')) && !origeuid)
-				{
-					*question = '\0';
-					for (i = 0; current->uidscripts[i]; i++)
-						if (!strcmp(params, current->uidscripts[i]))
-						{
-							*temp = '\0';
-							userinfo = getpwnam(&question[3]);
-							if (!userinfo->pw_uid)
-								break;
-							setegid(userinfo->pw_gid);
-							setgroups(1, (const gid_t *)&userinfo->pw_gid);
-							seteuid(userinfo->pw_uid);
-							*temp = '/';
-							break;
-						}
-					*question = '?';
-				}
 			}
 			else if (!strncmp(params + 1, ICON_DIR, strlen(ICON_DIR)))
 			{
@@ -1014,6 +991,26 @@ do_get(char *params)
 					*slash = '\0';
 				setenv("PWD", fullpath, 1);
 				*temp = '\0';
+
+				/* opt. set uid to path_info user */
+				if (current->uidscripts && '~' == temp[1] &&
+					(slash = strchr(&temp[2], '/')) && !origeuid)
+				{
+					*slash = '\0';
+					for (i = 0; current->uidscripts[i]; i++)
+						if (!strcmp(params, current->uidscripts[i]))
+						{
+							userinfo = getpwnam(&temp[2]);
+							if (!userinfo || !userinfo->pw_uid)
+								break;
+							seteuid(origeuid);
+							setegid(userinfo->pw_gid);
+							setgroups(1, (const gid_t *)&userinfo->pw_gid);
+							seteuid(userinfo->pw_uid);
+							break;
+						}
+					*slash = '/';
+				}
 				break;
 			}
 			*(temp++) = '/';

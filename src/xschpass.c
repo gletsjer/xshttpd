@@ -31,10 +31,7 @@ xserror(const char *format, ...)
 	va_list		ap;
 
 	va_start(ap, format);
-
-	alarm(180);
-
-	printf("Content-type: text/html\n\n");
+	printf("Content-type: text/html\r\n\r\n");
 	printf("<HTML><HEAD><TITLE>");
 	vprintf(format, ap);
 	printf("</TITLE></HEAD>\n<BODY>\n<H1>");
@@ -84,7 +81,7 @@ changepasswd(const char *param, int  cl)
 	FILE		*input, *output;
 	int		found;
 
-	alarm(120); filename[0] = '/';
+	filename[0] = '/';
 	strlcpy(filename + 1, param, XS_PATH_MAX - 64);
 	if (cl > (BUFSIZ - 64))
 		xserror("400 Too much input from your browser (%d bytes)", cl);
@@ -119,12 +116,12 @@ changepasswd(const char *param, int  cl)
 	for (search = new1; *search; search++)
 		if (*search < ' ')
 			xserror("403 Your password contains an invallid character!");
-	cryptnew = crypt(new1, mksalt());
+	cryptnew = strdup(crypt(new1, mksalt()));
 
-	if (lstat(filename, &statbuf1))
-		xserror("403 Could not lstat directory '%s': %s",
+	if (stat(filename, &statbuf1))
+		xserror("403 Could not stat directory '%s': %s",
 			filename, strerror(errno));
-	if (S_ISDIR(statbuf1.st_mode))
+	if (!S_ISDIR(statbuf1.st_mode))
 		xserror("403 '%s' is not a directory", filename);
 	strlcat(filename, "/", XS_PATH_MAX);
 	strlcat(filename, AUTH_FILE, XS_PATH_MAX);
@@ -148,26 +145,29 @@ changepasswd(const char *param, int  cl)
 	if (!(output = fopen(filename, "w")))
 		xserror("403 Could not fopen new password file '%s': %s",
 			filename, strerror(errno));
-	if (chown(filename, statbuf1.st_uid, statbuf1.st_gid))
-		xserror("403 Could not chown new password file '%s': %s",
-			filename, strerror(errno));
 
 	found = 0;
 	snprintf(new2, BUFSIZ, "%s:", username);
 	while (fgets(buffer, BUFSIZ, input))
 	{
-		if (!found && !strncmp(buffer+1, new2, strlen(new2)))
+		if (!found && strlen(buffer) > 1 &&
+			!strncmp(buffer+1, new2, strlen(new2)))
 		{
 			char	*opwent;
+			char	*eol = buffer + strlen(buffer) - 1;
 
-			opwent = buffer + 1 + strlen(new2) + 1;
-			cryptold = crypt(old, opwent);
+			if (*eol != '\n')
+				continue;
+			*eol = '\0';
+			opwent = buffer + 1 + strlen(new2);
+			cryptold = strdup(crypt(old, opwent));
 			if (strcmp(cryptold, opwent))
 			{
 				fclose(input); fclose(output);
 				remove(filename);
 				xserror("403 Password doesn't match");
 			}
+			free(cryptold);
 			found = 1;
 			if (buffer[0] != 'U')
 			{
@@ -175,7 +175,7 @@ changepasswd(const char *param, int  cl)
 				remove(filename);
 				xserror("403 Password is locked");
 			}
-			if ((search = strchr(buffer + 2, ':')) &&
+			if ((search = strchr(buffer, ':')) &&
 				strchr(search + 1, ':'))
 			{
 				fclose(input); fclose(output);
@@ -207,7 +207,6 @@ changepasswd(const char *param, int  cl)
 static	void
 generateform()
 {
-	alarm(180);
 	printf("Content-type: text/html\n\n");
 	printf("<HTML><HEAD><TITLE>Change password</TITLE></HEAD>\n");
 	printf("<BODY><H1>Change password</H1><PRE>\n");
@@ -228,8 +227,7 @@ main(int argc, char **argv)
 	const	char	*param, *cl;
 	int		length;
 
-	if (geteuid())
-		xserror("501 Incorrect user ID for operation");
+	alarm(120);
 	if (!(param = getenv("PATH_TRANSLATED")))
 		xserror("404 Incorrect usage - supply directory name");
 	while (*param == '/')

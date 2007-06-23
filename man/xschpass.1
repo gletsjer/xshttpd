@@ -1,0 +1,43 @@
+.Dd June 23, 2007
+.Dt XSCHPASS 1
+.Os xs-httpd/3.5
+.Sh NAME
+.Nm xschpass
+.Nd Change password for access to protected webdirectories
+.Sh SYNOPSIS
+.Nm http://your.site.name/cgi\-bin/xschpass/~ Ns Ar username Ns / Ns Pa directory
+.Sh DESCRIPTION
+.Ql xschpass
+is a program that lets remote users change the password that
+they use to access a protected webdirectory with the
+xs\-httpd webserver. This allows users to set a password
+that is only known by themselves and not even by the person
+who controls the webdirectory and who set up the initial
+password. Accounts can not be added or removed through the
+webinterface - this can only be done by a person with local
+directory access through
+.Xr xspasswd 1 .
+.Sh EXAMPLES
+To change the password that is used to access the URL
+.Bd -literal -offset indent -compact
+.Pa http://your.site.name/~johans/protected/index.html
+.Ed
+one should visit the following
+.Ql xschpass
+location:
+.Bd -literal -offset indent -compact
+.Pa http://your.site.name/cgi-bin/xschpass/~johans/protected/
+.Ed
+.Sh SEE ALSO
+.Xr httpd 1 ,
+.Xr xspasswd 1 ,
+.Xr httpd_cgi 7
+.Pp
+The project homepage:
+.Pa http://www.stack.nl/xs\-httpd/
+.Sh BUGS
+At the moment it is only possible to change a password when
+Basic Authentication is used exclusively for this user
+(that is, when passwords are stored encrypted on disk).
+The program will refuse to change a password when Digest
+Authentication is prefered.

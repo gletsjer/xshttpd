@@ -20,8 +20,9 @@ mksalt()
 {
 	static	char	salt[3];
 
-	salt[0] = alnum[rand() % strlen(alnum)];
-	salt[1] = alnum[rand() % strlen(alnum)];
+	srandom((unsigned long)time(NULL));
+	salt[0] = alnum[random() % strlen(alnum)];
+	salt[1] = alnum[random() % strlen(alnum)];
 	salt[2] = '\0';
 	return salt;
 }

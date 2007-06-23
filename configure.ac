@@ -181,9 +181,6 @@ then
 fi
 
 dnl User may tweak compilation behaviour.
-#XS_ARG_DEFAULT(suidcgi, DUMMY, no, [install CGI scripts with setuid root privs])
-AM_CONDITIONAL([SUIDCGI], [test x${enable_suidcgi} = xyes])
-
 XS_ARG_DEFAULT(warnings, DUMMY, no, [enable extra compiler warnings])
 # -Wformat-pre-promo is not standard
 if test x${enable_warnings} = xyes
