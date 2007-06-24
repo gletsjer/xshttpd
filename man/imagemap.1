@@ -31,14 +31,18 @@ is a good one.
 .Xr imagemap
 is the program that handles the actions for the webserver.
 .Pp
-Note that the
+To make sure that the
 .Xr imagemap 1
-program runs without special privileges, which means that the
+program will have access to the
 .Ar mapfile
-must be accessible and world-readable on the local system.
-The mapfile is never retrieved through the webserver, even
-though it usually resides inside the normal webdocuments
-tree.
+in a user's private webdirectory, it should be included in the
+.Sy PathInfoScripts
+option of the
+.Xr httpd.conf 5
+configuration file, with its relative pathname
+.Pa /cgi\-bin/imagemap/ .
+This lets the script be executed with the privileges of the
+user whose directory is accessed.
 .Sh EXAMPLES
 What a user must do is create a map file (either by hand,
 which is not very easy, or by using a program like mapedit).
