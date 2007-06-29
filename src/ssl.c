@@ -382,6 +382,11 @@ secread(int fd, void *buf, size_t count)
 				warn("SSL_read error");
 				break;
 			}
+			else if (SSL_ERROR_ZERO_RETURN == s_err)
+			{
+				/* clean shutdown */
+				break;
+			}
 			else
 			{
 				warnx("SSL_read error: %s",
