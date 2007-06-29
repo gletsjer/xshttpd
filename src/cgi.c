@@ -296,7 +296,23 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		else
 #endif		/* HAVE_PERL */
 		if (engine)
-			(void) execl(engine, engine, fullpath, argv1, NULL);
+		{
+			const char	meta[] = " \t&();<>|{}$";
+
+			/* let shell handle engines containing metacharacters */
+			if (engine[strcspn(engine, meta)])
+			{
+				char	*buffer;
+				if (buffer = (char *)malloc(2 + strlen(engine) + strlen(fullpath)))
+				{
+					sprintf(buffer, "%s %s", engine, fullpath);
+					(void) execl("/bin/sh", "sh", "-c", buffer, NULL);
+					free(buffer);
+				}
+			}
+			else
+				(void) execl(engine, engine, fullpath, argv1, NULL);
+		}
 		else
 			(void) execl(fullpath, file, argv1, NULL);
 		/* no need to give local path info to the visitor */
