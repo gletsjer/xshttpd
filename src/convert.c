@@ -31,7 +31,7 @@ convertpath(const char *org)
 		if ((slash = strchr(org + 2, '/')))
 			slash++;
 		if (!(userinfo = getpwnam(person)))
-			return NULL;
+			return BITBUCKETNAME;
 		/* transform_user_dir */
 		if ((userpos = strstr(config.users->htmldir, "%u")))
 		{
