@@ -41,6 +41,13 @@ administration may also include global settings through the
 file in the main xs\-httpd configuration directory. This may
 be convenient if you want, for instance, all *.php files to
 be parsed by a PHP interpreter.
+.Pp
+Additional command line options may not be specified in the
+configuration file. In order to supply extra parameters to
+the interpreter, one must write a wapper script that handles
+these options. The interpreter will be executed from the
+directory containing the requested file; with the
+appropriate filename as the single argument.
 .Ss File Layout
 Every line contains the name of the interpreter that should be run, and a
 suffix of the filenames from the html directory that are to be handled by
