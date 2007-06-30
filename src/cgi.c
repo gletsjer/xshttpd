@@ -548,6 +548,9 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	}
 	fflush(stdout);
 
+	if (headonly)
+		goto END;
+
 	totalwritten = 0;
 	if (dossi)
 	{

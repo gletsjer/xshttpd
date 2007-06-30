@@ -10,4 +10,3 @@
 - Allow multiple AuthFile directives in .xsconf
 
 - User configurable decompress options
-- Fix HEAD on CGI
