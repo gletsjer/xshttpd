@@ -297,15 +297,26 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 #endif		/* HAVE_PERL */
 		if (engine)
 		{
-			const char	meta[] = " \t&();<>|{}$";
+			const char	meta[] = " \t&();<>|{}$%";
 
 			/* let shell handle engines containing metacharacters */
 			if (engine[strcspn(engine, meta)])
 			{
-				char	*buffer;
-				if (buffer = (char *)malloc(2 + strlen(engine) + strlen(fullpath)))
+				int		len, pos;
+				char	*buffer, *p;
+
+				len = 2 + strlen(engine) + strlen(fullpath);
+				if ((buffer = (char *)malloc(len)))
 				{
-					sprintf(buffer, "%s %s", engine, fullpath);
+					/* optional %f indicates filename */
+					if ((p = strstr(engine, "%f")))
+					{
+						pos = p - engine;
+						snprintf(buffer, len, "%*.*s%s%s", pos, pos,
+								engine, fullpath, p + 2);
+					}
+					else
+						snprintf(buffer, len, "%s %s", engine, fullpath);
 					(void) execl("/bin/sh", "sh", "-c", buffer, NULL);
 					free(buffer);
 				}

@@ -67,6 +67,12 @@ special shell (redirection) characters the command will be
 executed in the system Bourne shell
 .Pa /bin/sh
 after appending the requested filename to the command line.
+The command line may also contain the special string
+.Ql %f
+which will be replaced by the filename. If
+.Ql %f
+is present, then the filename won't be appended at the end
+of the command line.
 .It Sy Restrict
 The argument to a restrict block should be an IP address, IP
 prefix or IP subnet (in CIDR) notation. A block may contain
