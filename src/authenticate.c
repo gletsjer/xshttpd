@@ -282,9 +282,9 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 			{
 				fresh_nonce(nonce);
 				secprintf("WWW-authenticate: digest realm=\""
-					REALM "\" nonce=\"%s\"\r\n", nonce);
-				if (rfc2617_digest)
-					secprintf("\tqop=\"auth\"\r\n");
+					REALM "\" nonce=\"%s\"%s\r\n",
+					nonce,
+					rfc2617_digest ? " qop=\"auth\"" : "");
 			}
 			else
 #endif		/* HAVE_MD5 */

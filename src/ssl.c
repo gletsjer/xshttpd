@@ -400,10 +400,14 @@ secread(int fd, void *buf, size_t count)
 	{
 		while (((ret = read(fd, buf, count)) < 0))
 		{
-			if (errno == EWOULDBLOCK || errno == EINTR)
+			if (errno == EWOULDBLOCK)
 				usleep(200);
-			else if (errno == ECONNRESET)
+			else if (errno == ECONNRESET ||
+				errno == EINTR)
+			{
+				warn("Read error");
 				break;
+			}
 			else
 			{
 				warn("Read error");
@@ -538,25 +542,25 @@ readline(int rd, char *buf, size_t len)
 			return(ERR_LINE);
 		if (netbufind >= netbufsiz)
 		{
-			TRYAGAIN:
-			netbufsiz = secread(rd, netbuf,
-				readlinemode ? MYBUFSIZ : 1);
-			if (netbufsiz == -1)
+			while ((netbufsiz = secread(rd, netbuf,
+				readlinemode ? MYBUFSIZ : 1)) <= 0)
 			{
-				if ((errno == EAGAIN) || (errno == EINTR))
+				if (netbufsiz < 0)
 				{
-					mysleep(1); goto TRYAGAIN;
+					switch (errno)
+					{
+					case EAGAIN:
+						break;
+					case EINTR:
+					case ECONNRESET:
+						return(ERR_CLOSE);
+					default:
+						warn("[%s] httpd: readline() [%d]",
+							currenttime, rd);
+						return(ERR_QUIT);
+					}
 				}
-				if (errno == ECONNRESET)
-					return(ERR_CLOSE);
-				warn("[%s] httpd: readline() [%d]",
-					currenttime, rd);
-				return(ERR_QUIT);
-			}
-			if (netbufsiz == 0)
-			{
 				mysleep(1);
-				goto TRYAGAIN;
 			}
 			netbufind = 0;
 		}

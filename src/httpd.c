@@ -99,7 +99,7 @@ static char copyright[] =
 /* Global variables */
 
 int		headers, headonly, postonly, chunked, persistent;
-static	int	sd, reqs, mainhttpd = 1;
+static	int	sd, reqs, mainhttpd = 1, in_progress = 0;
 gid_t		origegid;
 uid_t		origeuid;
 char		remotehost[NI_MAXHOST], remoteaddr[NI_MAXHOST],
@@ -873,6 +873,12 @@ alarm_handler(int sig)
 		currenttime, remotehost[0] ? remotehost : "(none)");
 	 */
 	(void)sig;
+	if (!in_progress)
+	{
+		fflush(stdout); fflush(stdin); fflush(stderr);
+		endssl();
+		return;
+	}
 	exit(1);
 }
 
@@ -1198,6 +1204,7 @@ process_request()
 		temp++;
 	*temp = 0;
 
+	in_progress = 1;
 	alarm(180);
 	if (!strncasecmp(ver, "HTTP/", 5))
 	{
@@ -1821,6 +1828,7 @@ standalone_socket(int id)
 		setcurrenttime();
 		setreadmode(READCHAR, 1);
 		alarm(30);
+		in_progress = 0;
 		if (message503[0])
 			secprintf("HTTP/1.1 503 Busy\r\n"
 				"Content-type: text/plain\r\n"
@@ -1836,6 +1844,7 @@ standalone_socket(int id)
 					chunked = 0;
 					secputs("0\r\n\r\n");
 				}
+				in_progress = 0;
 			}
 			while (persistent && fflush(stdout) != EOF);
 		reqs++;
