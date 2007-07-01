@@ -217,10 +217,7 @@ check_digest_auth(const char *authfile)
 		return 1; /* no match */
 
 	if (!valid_nonce(nonce))
-	{
-		fprintf(stderr, "401: Valid id with invalid nonce %s\n", nonce);
-		return 1; /* invalid */
-	}
+		return 2; /* invalid nonce */
 
 	setenv("AUTH_TYPE", "Digest", 1);
 	setenv("REMOTE_USER", user, 1);
@@ -234,7 +231,7 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 {
 	char		*p, line[LINEBUFSIZE], errmsg[10240],
 			nonce[MAX_NONCE_LENGTH];
-	int		i = 1, digest;
+	int		i = 1, digest, rv;
 	FILE		*af;
 
 	if (!authfile && !ldap)
@@ -302,7 +299,7 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 #ifdef		HAVE_MD5
 	if ('d' == authentication[0] || 'D' == authentication[0])
 	{
-		if (!check_digest_auth(authfile))
+		if (!(rv = check_digest_auth(authfile)))
 			return 0;
 	}
 	else
@@ -329,9 +326,10 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 		{
 			fresh_nonce(nonce);
 			secprintf("WWW-authenticate: digest realm=\""
-				REALM "\" nonce=\"%s\"\r\n", nonce);
-			if (rfc2617_digest)
-				secprintf("\tqop=\"auth\"\r\n");
+				REALM "\" nonce=\"%s\"%s%s\r\n",
+				nonce,
+				rfc2617_digest ? " qop=\"auth\"" : "",
+				2 == rv ? " stale=true" : "");
 		}
 		else
 #endif		/* HAVE_MD5 */

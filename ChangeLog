@@ -5,6 +5,7 @@ Changes since 3.5 beta 12
 - Allow shell redirect or command line options in Execute argument
 - Fix segfault in error message for non-existant user pages
 - Discard the body from a CGI on HEAD requests
+- Implement RFC 2617 digest auth with qop=auth, algorithm=md5
 
 Changes since 3.5 beta 11
 - Fix $SCRIPT_NAME for secondary index files
