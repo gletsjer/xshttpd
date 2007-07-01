@@ -16,6 +16,7 @@
 #include	<crypt.h>
 #endif		/* HAVE_CRYPT_H */
 
+#include	"htconfig.h"
 #include	"extra.h"
 #include	"xscrypt.h"
 
@@ -31,7 +32,7 @@ xserror(const char *format, ...)
 	va_list		ap;
 
 	va_start(ap, format);
-	printf("Content-type: text/html\r\n\r\n");
+	printf("Content-type: text/html\n\n");
 	printf("<HTML><HEAD><TITLE>");
 	vprintf(format, ap);
 	printf("</TITLE></HEAD>\n<BODY>\n<H1>");

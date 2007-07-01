@@ -85,6 +85,7 @@
 #endif		/* HAVE_STRUCT_IN6_ADDR */
 
 #include	"httpd.h"
+#include	"htconfig.h"
 #include	"decode.h"
 #include	"methods.h"
 #include	"convert.h"
@@ -94,7 +95,6 @@
 #include	"cgi.h"
 #include	"fcgi.h"
 #include	"path.h"
-#include	"htconfig.h"
 #include	"pcre.h"
 #include	"authenticate.h"
 

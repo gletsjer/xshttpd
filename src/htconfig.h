@@ -16,6 +16,11 @@ struct ldap_auth
 	int	version;
 };
 
+struct mapping
+{
+	char	*index, *value;
+};
+
 extern struct virtual
 {
 	char *		hostname;

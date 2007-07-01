@@ -21,6 +21,7 @@
 #include	<string.h>
 #include	<ctype.h>
 
+#include	"htconfig.h"
 #include	"extra.h"
 #include	"httpd.h"
 
@@ -94,6 +95,117 @@ match_list(char *list, const char *browser)
 		}
 	}
 	return(0);
+}
+
+/* Convert whitespace/comma-seperated index=value string into mapping */
+#define ISALNUM(p) ((p >= '0' && p <= '9') || (p >= 'a' && p <= 'z') || \
+		(p >= 'A' && p <= 'Z') || p == '-' || p == '_')
+size_t
+eqstring_to_array(char *string, struct mapping *map)
+{
+	size_t		num;
+	char		*p, *q;
+	enum { s_findkey, s_findeq, s_findval, s_findnext }	state;
+
+	num = 0;
+	state = s_findkey;
+	for (p = string; *p; p++)
+	{
+		switch (state)
+		{
+		case s_findkey:
+			if (ISALNUM(*p))
+			{
+				if (map)
+				{
+					map[num].index = p;
+					map[num].value = NULL;
+				}
+				state = s_findeq;
+			}
+			break;
+		case s_findeq:
+			if ('=' == *p)
+			{
+				state = s_findval;
+			}
+			break;
+		case s_findval:
+			if ('"' == *p && (q = strchr(p + 1, '"')))
+			{
+				if (map)
+				{
+					*p = *q = '\0';
+					map[num].value = p + 1;
+					p = q;
+				}
+				state = s_findnext;
+			}
+			else if (ISALNUM(*p))
+			{
+				if (map)
+					map[num].value = p;
+				state = s_findnext;
+			}
+			break;
+		case s_findnext:
+			if (!ISALNUM(*p))
+			{
+				state = s_findkey;
+				num++;
+			}
+			break;
+		}
+		if (!ISALNUM(*p) && map)
+			*p = '\0';
+	}
+	num++;
+	if (map)
+	{
+		map[num].index = NULL;
+		map[num].value = NULL;
+	}
+	return num;
+}
+
+/* like string_to_array, but malloc's data */
+size_t
+string_to_arrayp(char * value, char ***array)
+{
+	size_t	sz;
+	char	**p;
+
+	/* free old data if !NULL */
+	if (*array)
+		for (p = *array; *p; p++)
+			free(*p);
+
+	p = *array;
+	sz = string_to_array(value, NULL);
+	realloc(p, sz);
+	sz = string_to_array(value, p);
+	return sz;
+}
+
+/* Convert whitespace/comma-seperated string into array */
+size_t
+string_to_array(char *value, char **array)
+{
+	size_t	num;
+	char	*p, *prev = NULL, *next = value;
+
+	while ((prev = strsep(&next, ", \t")))
+		if (*prev)
+		{
+			if (array)
+				array[num] = strdup(prev);
+			num++;
+		}
+
+	num++;
+	if (array)
+		array[num] = NULL;
+	return num;
 }
 
 uid_t

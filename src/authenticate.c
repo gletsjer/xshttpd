@@ -16,20 +16,22 @@
 #include	"ssl.h"
 #include	"authenticate.h"
 #include	"ldap.h"
+#include	"extra.h"
 #ifdef		HAVE_CRYPT_H
 #include	<crypt.h>
 #endif		/* HAVE_CRYPT_H */
 
 char		authentication[MYBUFSIZ];
-unsigned long int	secret;
+static unsigned long int	secret;
+static const int	rfc2617_digest = 1;
 
 static int	get_crypted_password(const char *, const char *, char **, char **);
 static int	check_basic_auth(const char *authfile, const struct ldap_auth *);
 #ifdef		HAVE_MD5
 static int	check_digest_auth(const char *authfile);
-static char	*get_auth_argument(const char *key, char *line, size_t len);
+static char	* get_auth_argument(const char *key, struct mapping *authreq);
 static void	fresh_nonce(char *nonce);
-static int	valid_nonce(char *nonce);
+static int	valid_nonce(const char *nonce);
 #endif		/* HAVE_MD5 */
 
 /* returns malloc()ed data! */
@@ -140,69 +142,76 @@ check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 
 #ifdef		HAVE_MD5
 static char *
-get_auth_argument(const char *key, char *line, size_t len)
+get_auth_argument(const char *key, struct mapping *authreq)
 {
-	char	*p, *q;
-	char	substr[MYBUFSIZ];
+	int		i;
 
-	snprintf(substr, MYBUFSIZ, "%s=%c", key, '"');
+	for (i = 0; authreq[i].index; i++)
+		if (!strcasecmp(key, authreq[i].index))
+			return authreq[i].value;
 
-	if ((p = memmem(line, len, key, strlen(key))) &&
-			(q = strchr(p += strlen(substr), '"')))
-		*q = '\0';
-	else
-		return NULL;
-
-	return p;
+	return NULL;
 }
 
 static int
 check_digest_auth(const char *authfile)
 {
-	char		*user, *passwd, *realm, *nonce, *uri, *response,
-			*a2, *digplain,
+	char		*user, *passwd, *realm, *nonce, *cnonce, *uri, *response,
+			*a2, *digplain, *qop, *nc,
 			*ha1, ha2[MD5_DIGEST_STRING_LENGTH],
 			digest[MD5_DIGEST_STRING_LENGTH],
 			line[LINEBUFSIZE];
-	size_t		len;
+	size_t		len, rsz;
+	struct		mapping *authreq;
 
 	/* digest auth, rfc 2069 */
-	len = strlcpy(line, authentication, LINEBUFSIZE);
+	len = strlcpy(line, authentication + strlen("Digest "), LINEBUFSIZE);
 	if (len > LINEBUFSIZE)
 		len = LINEBUFSIZE;
 
-	user	= get_auth_argument("username",	line, len);
-	realm	= get_auth_argument("realm",	line, len);
-	nonce	= get_auth_argument("nonce",	line, len);
-	uri	= get_auth_argument("uri",	line, len);
-	response= get_auth_argument("response",	line, len);
+	rsz = eqstring_to_array(line, NULL);
+	authreq = (struct mapping *)malloc(rsz * sizeof (struct mapping *));
+	rsz = eqstring_to_array(line, authreq);
+
+	user	= get_auth_argument("username",	authreq);
+	realm	= get_auth_argument("realm",	authreq);
+	nonce	= get_auth_argument("nonce",	authreq);
+	cnonce	= get_auth_argument("cnonce",	authreq);
+	uri	= get_auth_argument("uri",	authreq);
+	response= get_auth_argument("response",	authreq);
+	qop	= get_auth_argument("qop",	authreq);
+	nc	= get_auth_argument("nc",	authreq);
 
 	if (!user || !realm || !nonce || !uri || !response)
 		return 1; /* fail */
 	if (!get_crypted_password(authfile, user, &passwd, &ha1) || !passwd)
-	{
 		return 1; /* not found */
-	}
 
+	free(passwd);
 	if (!ha1)
-	{
-		free(passwd);
 		return 1;
-	}
 
 	/* obtain h(a1) from file */
 	if (strlen(ha1) > MD5_DIGEST_STRING_LENGTH)
+	{
+		free(ha1);
 		return 1; /* no valid hash */
+	}
 
 	/* calculate h(a2) */
 	len = asprintf(&a2, "%s:%s", getenv("REQUEST_METHOD"), uri);
-	MD5Data((const unsigned char *)a2, len, ha2);
+	MD5Data((unsigned char *)a2, len, ha2);
 	free(a2);
 
 	/* calculate digest from h(a1) and h(a2) */
-	len = asprintf(&digplain, "%s:%s:%s", ha1, nonce, ha2);
-	MD5Data((const unsigned char *)digplain, len, digest);
+	if (!qop)
+		len = asprintf(&digplain, "%s:%s:%s", ha1, nonce, ha2);
+	else
+		len = asprintf(&digplain, "%s:%s:%s:%s:%s:%s",
+			ha1, nonce, nc, cnonce, qop, ha2);
+	MD5Data((unsigned char *)digplain, len, digest);
 	free(digplain);
+	free(ha1);
 
 	if (strcmp(response, digest))
 		return 1; /* no match */
@@ -277,6 +286,8 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 				fresh_nonce(nonce);
 				secprintf("WWW-authenticate: digest realm=\""
 					REALM "\" nonce=\"%s\"\r\n", nonce);
+				if (rfc2617_digest)
+					secprintf("\tqop=\"auth\"\r\n");
 			}
 			else
 #endif		/* HAVE_MD5 */
@@ -319,6 +330,8 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 			fresh_nonce(nonce);
 			secprintf("WWW-authenticate: digest realm=\""
 				REALM "\" nonce=\"%s\"\r\n", nonce);
+			if (rfc2617_digest)
+				secprintf("\tqop=\"auth\"\r\n");
 		}
 		else
 #endif		/* HAVE_MD5 */
@@ -349,18 +362,19 @@ fresh_nonce(char *nonce)
 
 	ip = getenv("REMOTE_ADDR");
 	len = asprintf(&buf, "%lx:%lu:%s", ts, secret, ip);
-	MD5Data((const unsigned char *)buf, len, bufhex);
+	MD5Data((unsigned char *)buf, len, bufhex);
 	free(buf);
 
 	snprintf(nonce, MAX_NONCE_LENGTH, "%lx:%s", ts, bufhex);
 }
 
 static int
-valid_nonce(char *nonce)
+valid_nonce(const char *nonce)
 {
+	const char	*ptr;
+	char	*buf;
 	long	ts;
 	time_t	tsnow;
-	char	*ip, *buf, *ptr;
 	char	bufhex[MD5_DIGEST_LENGTH];
 	size_t	len;
 
@@ -368,12 +382,11 @@ valid_nonce(char *nonce)
 		return 0;		/* invalid */
 	if (!(ptr = strchr(nonce, ':')))
 		return 0;
-	*ptr++ = '\0';
+	ptr++;
 	ts = strtol(nonce, NULL, 16);
-	ip = getenv("REMOTE_ADDR");
 
-	len = asprintf(&buf, "%lx:%lu:%s", ts, secret, ip);
-	MD5Data((const unsigned char *)buf, len, bufhex);
+	len = asprintf(&buf, "%lx:%lu:%s", ts, secret, getenv("REMOTE_ADDR"));
+	MD5Data((unsigned char *)buf, len, bufhex);
 	free(buf);
 
 	if (strcmp(ptr, bufhex))

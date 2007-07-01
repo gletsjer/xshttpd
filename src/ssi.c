@@ -36,6 +36,7 @@
 #include	<stdlib.h>
 #include	<string.h>
 
+#include	"htconfig.h"
 #include	"ssi.h"
 #include	"httpd.h"
 #include	"extra.h"
@@ -45,7 +46,6 @@
 #include	"xscounter.h"
 #include	"methods.h"
 #include	"decode.h"
-#include	"htconfig.h"
 
 typedef	enum
 {

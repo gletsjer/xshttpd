@@ -49,8 +49,8 @@
 #include	"ssi.h"
 #include	"ssl.h"
 #include	"cgi.h"
-#include	"extra.h"
 #include	"htconfig.h"
+#include	"extra.h"
 
 static	const	char	*skipspaces(const char *);
 static	void		time_is_up(int)	NORETURN;
