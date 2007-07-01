@@ -82,6 +82,7 @@ time_is_up(int sig)
 		(void) killpg(child, SIGKILL);
 	}
 	alarm_handler(sig);
+	exit(1);
 }
 
 static	int
