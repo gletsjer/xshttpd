@@ -404,10 +404,7 @@ secread(int fd, void *buf, size_t count)
 				usleep(200);
 			else if (errno == ECONNRESET ||
 				errno == EINTR)
-			{
-				warn("Read error");
 				break;
-			}
 			else
 			{
 				warn("Read error");
