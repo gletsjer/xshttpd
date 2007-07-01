@@ -303,17 +303,17 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			if (engine[strcspn(engine, meta)])
 			{
 				int		len, pos;
-				char	*buffer, *p;
+				char	*buffer, *pengine;
 
 				len = 2 + strlen(engine) + strlen(fullpath);
 				if ((buffer = (char *)malloc(len)))
 				{
 					/* optional %f indicates filename */
-					if ((p = strstr(engine, "%f")))
+					if ((pengine = strstr(engine, "%f")))
 					{
-						pos = p - engine;
+						pos = pengine - engine;
 						snprintf(buffer, len, "%*.*s%s%s", pos, pos,
-								engine, fullpath, p + 2);
+								engine, fullpath, pengine + 2);
 					}
 					else
 						snprintf(buffer, len, "%s %s", engine, fullpath);
