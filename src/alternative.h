@@ -3,7 +3,7 @@
 /* $Id: alternative.h,v 1.6 2007/04/07 21:34:50 johans Exp $ */
 
 #ifndef		ALTERNATIVE_H
-#define		ALTERNATIVE_H	1
+#define		ALTERNATIVE_H
 
 #include	"config.h"
 

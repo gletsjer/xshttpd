@@ -1,5 +1,8 @@
 /* Copyright (C) 2005 by Johan van Selst (johans@stack.nl) */
 
+#ifndef		DECODE_H
+#define		DECODE_H
+
 #include	"config.h"
 
 int	decode			(char *);
@@ -12,3 +15,4 @@ int	hex_encode	(const char *bin, size_t len, char *hex);
 int	hex_decode	(const char *hex, size_t len, char *bin);
 int	generate_ha1	(const char *user, const char *passwd, char *hash);
 
+#endif		/* DECODE_H */

@@ -1,11 +1,17 @@
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <pwd.h>
+/* Copyright (C) 2007 by Johan van Selst */
+
+#ifndef		HTCONFIG_H
+#define		HTCONFIG_H
+
+#include	"config.h"
+#include	<sys/types.h>
+#include	<sys/socket.h>
+#include	<pwd.h>
 
 #ifdef		HAVE_PCRE
-#include <pcre.h>
+#include	<pcre.h>
 #endif		/* HAVE_PCRE */
-#include "ssl.h"
+#include	"ssl.h"
 
 typedef	enum { log_none, log_traditional, log_combined, log_virtual }	logstyle_t;
 typedef enum { auth_none, auth_optional, auth_strict }	sslauth_t;
@@ -95,3 +101,4 @@ extern struct configuration
 	struct socket_config *	sockets;
 } config;
 
+#endif		/* HTCONFIG_H */

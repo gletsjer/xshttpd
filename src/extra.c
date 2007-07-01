@@ -192,7 +192,7 @@ size_t
 string_to_array(char *value, char **array)
 {
 	size_t	num;
-	char	*p, *prev = NULL, *next = value;
+	char	*prev = NULL, *next = value;
 
 	while ((prev = strsep(&next, ", \t")))
 		if (*prev)

@@ -1,3 +1,8 @@
+/* Copyright (C) 2007 by Johan van Selst */
+
+#ifndef		SSL_H
+#define		SSL_H
+
 #include	"config.h"
 #include	<stdio.h>
 
@@ -6,7 +11,7 @@
 #  define	OPENSSL_NO_MD5
 #  define	HEADER_MD5_H	/* trick older openssl */
 # endif		/* Not USE_OPENSSL_MD5 */
-#include <openssl/ssl.h>
+#include	<openssl/ssl.h>
 #endif		/* HANDLE_SSL */
 
 /* Wrapper functions are used even if SSL is not enabled */
@@ -22,3 +27,4 @@ size_t	secfwrite(const char *, size_t, size_t, FILE *);
 ssize_t	secputs(const char *);
 ssize_t	secprintf(const char *format, ...) PRINTF_LIKE(1, 2);
 
+#endif		/* SSL_H */

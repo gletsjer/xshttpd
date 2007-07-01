@@ -1,7 +1,12 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
+#ifndef		HTTPD_H
+#define		HTTPD_H
+
 /* Based on xs-httpd/2.3 */
+#include	"config.h"
 #include	<sys/types.h>
+#include	<sys/stat.h>
 
 #define		RWBUFSIZE	4096
 #define		MYBUFSIZ	1024
@@ -40,3 +45,4 @@ void	server_error		(const char *, const char *);
 void	logrequest		(const char *, off_t);
 void	setcurrenttime		(void);
 
+#endif		/* HTTPD_H */
