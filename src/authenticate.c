@@ -117,6 +117,7 @@ check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 		}
 #endif /* AUTH_LDAP */
 	}
+	passwd = NULL;
 	if (!get_crypted_password(authfile, search, &passwd, NULL) || !passwd)
 	{
 		free(line);
@@ -156,11 +157,12 @@ get_auth_argument(const char *key, struct mapping *authreq)
 static int
 check_digest_auth(const char *authfile)
 {
-	char		*user, *passwd, *realm, *nonce, *cnonce, *uri, *response,
-			*a2, *digplain, *qop, *nc,
-			*ha1, ha2[MD5_DIGEST_STRING_LENGTH],
-			digest[MD5_DIGEST_STRING_LENGTH],
-			line[LINEBUFSIZE];
+	char		line[LINEBUFSIZE],
+			ha2[MD5_DIGEST_STRING_LENGTH],
+			digest[MD5_DIGEST_STRING_LENGTH];
+	const char	*user, *realm, *nonce, *cnonce, *uri,
+			*response, *qop, *nc;
+	char		*passwd, *a2, *digplain, *ha1;
 	size_t		len, rsz;
 	struct		mapping *authreq;
 
@@ -184,6 +186,7 @@ check_digest_auth(const char *authfile)
 
 	if (!user || !realm || !nonce || !uri || !response)
 		return 1; /* fail */
+	passwd = ha1 = NULL;
 	if (!get_crypted_password(authfile, user, &passwd, &ha1) || !passwd)
 		return 1; /* not found */
 
@@ -231,7 +234,7 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 {
 	char		*p, line[LINEBUFSIZE], errmsg[10240],
 			nonce[MAX_NONCE_LENGTH];
-	int		i = 1, digest, rv;
+	int		i = 1, digest, rv = 0;
 	FILE		*af;
 
 	if (!authfile && !ldap)
@@ -281,14 +284,16 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 			if (digest)
 			{
 				fresh_nonce(nonce);
-				secprintf("WWW-authenticate: digest realm=\""
-					REALM "\" nonce=\"%s\"%s\r\n",
+				secprintf("WWW-Authenticate: digest realm=\""
+					REALM "\", nonce=\"%s\"%s\r\n",
 					nonce,
-					rfc2617_digest ? " qop=\"auth\"" : "");
+					rfc2617_digest
+					 ? ", qop=\"auth\", algorithm=md5"
+					 : "");
 			}
 			else
 #endif		/* HAVE_MD5 */
-				secputs("WWW-authenticate: basic realm=\""
+				secputs("WWW-Authenticate: basic realm=\""
 					REALM "\"\r\n");
 			secprintf("Content-length: %zu\r\n", strlen(errmsg));
 			stdheaders(1, 1, 1);
@@ -325,15 +330,17 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 		if (digest)
 		{
 			fresh_nonce(nonce);
-			secprintf("WWW-authenticate: digest realm=\""
-				REALM "\" nonce=\"%s\"%s%s\r\n",
+			secprintf("WWW-Authenticate: digest realm=\""
+				REALM "\", nonce=\"%s\"%s%s\r\n",
 				nonce,
-				rfc2617_digest ? " qop=\"auth\"" : "",
-				2 == rv ? " stale=true" : "");
+				rfc2617_digest
+				 ? ", qop=\"auth\", algorithm=md5"
+				 : "",
+				2 == rv ? ", stale=true" : "");
 		}
 		else
 #endif		/* HAVE_MD5 */
-			secputs("WWW-authenticate: basic realm=\""
+			secputs("WWW-Authenticate: basic realm=\""
 				REALM "\"\r\n");
 		secprintf("Content-length: %zu\r\n", strlen(errmsg));
 		stdheaders(1, 1, 1);

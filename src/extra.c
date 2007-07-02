@@ -194,6 +194,7 @@ string_to_array(char *value, char **array)
 	size_t	num;
 	char	*prev = NULL, *next = value;
 
+	num = 0;
 	while ((prev = strsep(&next, ", \t")))
 		if (*prev)
 		{
