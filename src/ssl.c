@@ -35,11 +35,11 @@ static SSL_CTX		*ssl_ctx;
 #include		<pcre.h>
 #endif		/* HAVE_PCRE */
 
-static int	netbufind, netbufsiz, readlinemode;
+static int	netbufind, netbufsiz;
 static char	netbuf[MYBUFSIZ];
 
 void
-setreadmode(int mode, int reset)
+initreadmode(int reset)
 {
 #ifdef		HANDLE_SSL
 	unsigned long readerror;
@@ -52,11 +52,13 @@ setreadmode(int mode, int reset)
 	}
 #ifdef		HANDLE_SSL
 	while ((readerror = ERR_get_error()))
+	{
 		warnx("SSL Error: %s", ERR_reason_error_string(readerror));
+		usleep(200);
+	}
 	if (cursock->ssl)
 		setenv("SSL_CIPHER", SSL_get_cipher(cursock->ssl), 1);
 #endif		/* HANDLE_SSL */
-	readlinemode = mode;
 }
 
 int
@@ -356,8 +358,8 @@ loadssl()
 }
 
 
-ssize_t
-secread(int fd, void *buf, size_t count)
+static ssize_t
+secread_internal(int fd, void *buf, size_t count)
 {
 	ssize_t	ret;
 
@@ -398,9 +400,9 @@ secread(int fd, void *buf, size_t count)
 	else
 #endif		/* HANDLE_SSL */
 	{
-		while (((ret = read(fd, buf, count)) < 0))
+		while ((ret = read(fd, buf, count)) < 0)
 		{
-			if (errno == EWOULDBLOCK)
+			if (errno == EAGAIN)
 				usleep(200);
 			else if (errno == ECONNRESET ||
 				errno == EINTR)
@@ -491,7 +493,7 @@ secwrite(const char *buf, size_t count)
 					message[i] += ret;
 					usleep(200);
 				}
-				else if (errno == EWOULDBLOCK || errno == EINTR)
+				else if (errno == EAGAIN)
 					usleep(200);
 				else
 					break;
@@ -527,6 +529,29 @@ secprintf(const char *format, ...)
 	return secwrite(buf, strlen(buf));
 }
 
+ssize_t
+secread(int rd, void *buf, size_t len)
+{
+	const long	inbuffer = netbufsiz - netbufind;
+
+	if (inbuffer > 0)
+	{
+		if ((long)len >= inbuffer)
+		{
+			memcpy(buf, &netbuf[netbufind], inbuffer);
+			netbufsiz = netbufind = 0;
+			return inbuffer;
+		}
+		else
+		{
+			memcpy(buf, &netbuf[netbufind], len);
+			netbufind += len;
+			return len;
+		}
+	}
+	return secread_internal(rd, buf, len);
+}
+
 int
 readline(int rd, char *buf, size_t len)
 {
@@ -539,32 +564,24 @@ readline(int rd, char *buf, size_t len)
 			return(ERR_LINE);
 		if (netbufind >= netbufsiz)
 		{
-			while ((netbufsiz = secread(rd, netbuf,
-				readlinemode ? MYBUFSIZ : 1)) <= 0)
-			{
-				if (netbufsiz < 0)
-				{
-					switch (errno)
-					{
-					case EAGAIN:
-						break;
-					case EINTR:
-					case ECONNRESET:
-						return(ERR_CLOSE);
-					default:
-						warn("[%s] httpd: readline() [%d]",
-							currenttime, rd);
-						return(ERR_QUIT);
-					}
-				}
-				mysleep(1);
-			}
+			/* empty buffer: read new data */
 			netbufind = 0;
+			if ((netbufsiz = secread_internal(rd, netbuf, MYBUFSIZ)) < 0)
+				switch (errno)
+				{
+				case EINTR:
+				case ECONNRESET:
+					return(ERR_CLOSE);
+				default:
+					return(ERR_QUIT);
+				}
+			else if (!netbufsiz)
+				/* no error, no data */
+				return(ERR_CLOSE);
 		}
 		ch = *(buf2++) = netbuf[netbufind++];
 	} while (ch != '\n');
 	*buf2 = 0;
 	return(ERR_NONE);
 }
-
 

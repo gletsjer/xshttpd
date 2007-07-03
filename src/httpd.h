@@ -19,9 +19,6 @@
 #define		ERR_LINE	3
 #define		ERR_CLOSE	4
 
-#define		READCHAR	0
-#define		READBLOCK	1
-
 #define		MINBYTESPERSEC	32
 
 #ifndef 	S_ISREG

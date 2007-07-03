@@ -1,6 +1,11 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.5 beta 13
+- Fix read/write (error) handling; deprecate readlinemode
+- Fix connection timeout when no data is exchanged yet
+- Fix authentication header parsing
+
 Changes since 3.5 beta 12
 - Allow shell redirect or command line options in Execute argument
 - Fix segfault in error message for non-existent user pages

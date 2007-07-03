@@ -45,7 +45,7 @@ dnl Checks for library functions.
 AC_FUNC_FORK
 AC_FUNC_MMAP
 AC_FUNC_SETVBUF_REVERSED
-AC_CHECK_FUNCS(setpriority setresgid setresuid setrlimit setsid sigemptyset uname)
+AC_CHECK_FUNCS(setpriority setresgid setresuid setrlimit setsid sigemptyset siginterrupt uname)
 
 dnl Checks for functions requiring additional libraries.
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)
@@ -185,7 +185,7 @@ XS_ARG_DEFAULT(warnings, DUMMY, no, [enable extra compiler warnings])
 # -Wformat-pre-promo is not standard
 if test x${enable_warnings} = xyes
 then
-	CFLAGS="${CFLAGS} -g -ggdb -O3 -fsigned-char -fshort-enums -funroll-loops -std=c99 -pedantic -trigraphs -pipe -Wall -W -Wpointer-arith -Wshadow -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wformat -Wformat-security -Wcomment -Wchar-subscripts -Wcast-align -Waggregate-return -Wnested-externs -Winline -Wundef -Wmissing-noreturn -Wmissing-format-attribute -Wpacked -Wpadded -Wunreachable-code"
+	CFLAGS="${CFLAGS} -g -ggdb -O2 -fsigned-char -fshort-enums -funroll-loops -std=c99 -pedantic -trigraphs -pipe -Wall -W -Wpointer-arith -Wshadow -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wformat -Wformat-security -Wcomment -Wchar-subscripts -Wcast-align -Waggregate-return -Wnested-externs -Winline -Wundef -Wmissing-noreturn -Wmissing-format-attribute -Wpacked -Wpadded -Wunreachable-code"
 fi
 
 XS_ARG_DEFAULT(ssp, DUMMY, no, [enable stack smashing protector])

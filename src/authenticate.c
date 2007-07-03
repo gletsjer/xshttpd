@@ -157,22 +157,24 @@ get_auth_argument(const char *key, struct mapping *authreq)
 static int
 check_digest_auth(const char *authfile)
 {
-	char		line[LINEBUFSIZE],
-			ha2[MD5_DIGEST_STRING_LENGTH],
+	char		ha2[MD5_DIGEST_STRING_LENGTH],
 			digest[MD5_DIGEST_STRING_LENGTH];
 	const char	*user, *realm, *nonce, *cnonce, *uri,
 			*response, *qop, *nc;
-	char		*passwd, *a2, *digplain, *ha1;
+	char		*line, *passwd, *a2, *digplain, *ha1;
 	size_t		len, rsz;
 	struct		mapping *authreq;
 
 	/* digest auth, rfc 2069 */
-	len = strlcpy(line, authentication + strlen("Digest "), LINEBUFSIZE);
-	if (len > LINEBUFSIZE)
-		len = LINEBUFSIZE;
+	if (strncmp(authentication, "Digest ", 7))
+		return 1; /* fail */
+	line = strdup(authentication + 7);
+	if (!line)
+		return 1;
+	len = strlen(line);
 
 	rsz = eqstring_to_array(line, NULL);
-	authreq = (struct mapping *)malloc(rsz * sizeof (struct mapping *));
+	authreq = (struct mapping *)malloc(rsz * sizeof (struct mapping));
 	rsz = eqstring_to_array(line, authreq);
 
 	user	= get_auth_argument("username",	authreq);
@@ -185,18 +187,28 @@ check_digest_auth(const char *authfile)
 	nc	= get_auth_argument("nc",	authreq);
 
 	if (!user || !realm || !nonce || !uri || !response)
+	{
+		free(line);
 		return 1; /* fail */
+	}
 	passwd = ha1 = NULL;
 	if (!get_crypted_password(authfile, user, &passwd, &ha1) || !passwd)
+	{
+		free(line);
 		return 1; /* not found */
+	}
 
 	free(passwd);
 	if (!ha1)
+	{
+		free(line);
 		return 1;
+	}
 
 	/* obtain h(a1) from file */
 	if (strlen(ha1) > MD5_DIGEST_STRING_LENGTH)
 	{
+		free(line);
 		free(ha1);
 		return 1; /* no valid hash */
 	}
@@ -217,13 +229,20 @@ check_digest_auth(const char *authfile)
 	free(ha1);
 
 	if (strcmp(response, digest))
+	{
+		free(line);
 		return 1; /* no match */
+	}
 
 	if (!valid_nonce(nonce))
+	{
+		free(line);
 		return 2; /* invalid nonce */
+	}
 
 	setenv("AUTH_TYPE", "Digest", 1);
 	setenv("REMOTE_USER", user, 1);
+	free(line);
 
 	return 0;
 }
@@ -360,13 +379,12 @@ initnonce()
 static void
 fresh_nonce(char *nonce)
 {
-	long	ts = (long)time(NULL);
-	char	*ip, *buf;
 	char	bufhex[MD5_DIGEST_STRING_LENGTH];
+	const long	ts = (long)time(NULL);
+	char	*buf;
 	size_t	len;
 
-	ip = getenv("REMOTE_ADDR");
-	len = asprintf(&buf, "%lx:%lu:%s", ts, secret, ip);
+	len = asprintf(&buf, "%lx:%lu:%s", ts, secret, getenv("REMOTE_ADDR"));
 	MD5Data((unsigned char *)buf, len, bufhex);
 	free(buf);
 
@@ -376,12 +394,11 @@ fresh_nonce(char *nonce)
 static int
 valid_nonce(const char *nonce)
 {
+	char	bufhex[MD5_DIGEST_LENGTH];
 	const char	*ptr;
 	char	*buf;
 	long	ts;
-	time_t	tsnow;
-	char	bufhex[MD5_DIGEST_LENGTH];
-	size_t	len;
+	int	len;
 
 	if (!nonce)
 		return 0;		/* invalid */
@@ -390,16 +407,16 @@ valid_nonce(const char *nonce)
 	ptr++;
 	ts = strtol(nonce, NULL, 16);
 
-	len = asprintf(&buf, "%lx:%lu:%s", ts, secret, getenv("REMOTE_ADDR"));
+	/* XXX: asprintf() seems buggy */
+	buf = malloc(100);
+	len = snprintf(buf, 100, "%lx:%lu:%s", ts, secret, getenv("REMOTE_ADDR"));
 	MD5Data((unsigned char *)buf, len, bufhex);
 	free(buf);
 
 	if (strcmp(ptr, bufhex))
 		return 0;
 
-	time((time_t *)&tsnow);
-
 	/* fresh for 1 hour */
-	return ts + 3600 > (long)tsnow;
+	return ts + 3600 > (long)time(NULL);
 }
 #endif		/* HAVE_MD5 */

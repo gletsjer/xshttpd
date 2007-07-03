@@ -19,7 +19,7 @@ int	initssl(void);
 void	ssl_environment(void);
 void	loadssl(void);
 void	endssl(void);
-void	setreadmode(int, int);
+void	initreadmode(int);
 ssize_t	secread(int, void *, size_t);
 size_t	secfread(void *, size_t, size_t, FILE *);
 ssize_t	secwrite(const char *, size_t);

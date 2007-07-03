@@ -286,17 +286,17 @@ senduncompressed(int fd)
 		/* send static content without mmap() */
 		{
 			char		buffer[RWBUFSIZE];
-			ssize_t		secreadtotal;
+			ssize_t		readtotal;
 			off_t		writetotal;
 
 			writetotal = 0;
 			/* alarm((size / MINBYTESPERSEC) + 20); */
 			alarm(0);
 			fflush(stdout);
-			while ((secreadtotal = secread(fd, buffer, RWBUFSIZE)) > 0)
+			while ((readtotal = read(fd, buffer, RWBUFSIZE)) > 0)
 			{
-				if ((written = secwrite(buffer, (size_t)secreadtotal))
-						!= secreadtotal)
+				if ((written = secwrite(buffer, (size_t)readtotal))
+						!= readtotal)
 				{
 					warn("[%s] httpd: Aborted for `%s' (No mmap) (%" PRId64
 							" of %" PRId64 " bytes sent)",

@@ -159,12 +159,14 @@ eqstring_to_array(char *string, struct mapping *map)
 		if (!ISALNUM(*p) && map)
 			*p = '\0';
 	}
-	num++;
+	if (state != s_findkey)
+		num++;
 	if (map)
 	{
 		map[num].index = NULL;
 		map[num].value = NULL;
 	}
+	num++;
 	return num;
 }
 

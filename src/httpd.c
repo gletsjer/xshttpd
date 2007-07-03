@@ -99,7 +99,7 @@ static char copyright[] =
 /* Global variables */
 
 int		headers, headonly, postonly, chunked, persistent;
-static	int	sd, reqs, mainhttpd = 1, in_progress = 0;
+static	int	sd, reqs, reqsc, mainhttpd = 1, in_progress = 0;
 gid_t		origegid;
 uid_t		origeuid;
 char		remotehost[NI_MAXHOST], remoteaddr[NI_MAXHOST],
@@ -867,18 +867,15 @@ open_logs(int sig)
 void
 alarm_handler(int sig)
 {
-	alarm(0); setcurrenttime();
-	/* don't show errors for request (responses) in progress
-	warnx("[%s] httpd: Send timed out for `%s'",
-		currenttime, remotehost[0] ? remotehost : "(none)");
-	 */
-	(void)sig;
+	alarm(0);
 	if (!in_progress)
 	{
 		fflush(stdout); fflush(stdin); fflush(stderr);
 		endssl();
+		persistent = 0;
 		return;
 	}
+	(void)sig;
 	exit(1);
 }
 
@@ -922,6 +919,9 @@ set_signals()
 	action.sa_handler = alarm_handler;
 	action.sa_flags = 0;
 	sigaction(SIGALRM, &action, NULL);
+#ifdef		HAVE_SIGINTERRUPT
+	siginterrupt(SIGALRM, 1);
+#endif		/* HAVE_SIGINTERRUPT */
 
 	action.sa_handler = term_handler;
 	action.sa_flags = 0;
@@ -1171,22 +1171,25 @@ process_request()
 	errno = 0;
 	chunked = 0;
 	persistent = 0;
-	setreadmode(READCHAR, 0);
+	initreadmode(0);
 	readerror = readline(0, line, sizeof(line));
 	switch (readerror)
 	{
 	case ERR_NONE:
 		break;
+	case ERR_LINE:
+		xserror("400 Request header line exceeded maximum length");
+		return;
 	case ERR_CLOSE:
+		/* connection close: terminate quietly */
 		return;
 	case ERR_QUIT:
 	default:
 		xserror("400 Unable to read begin of request line");
 		return;
-	case ERR_LINE:
-		xserror("400 Request header line exceeded maximum length");
-		return;
 	}
+	in_progress = 1;
+
 	url = line;
 	while (*url && (*url > ' '))
 		url++;
@@ -1204,7 +1207,6 @@ process_request()
 		temp++;
 	*temp = 0;
 
-	in_progress = 1;
 	alarm(180);
 	if (!strncasecmp(ver, "HTTP/", 5))
 	{
@@ -1824,10 +1826,12 @@ standalone_socket(int id)
 #endif		/* HAVE GETNAMEINFO */
 		if (initssl() < 0)
 			continue;
-		setproctitle("xs(%d): Connect from `%s'", count + 1, remotehost);
+		setproctitle("xs(%c%d): Connect from `%s'",
+			id, count + 1, remotehost);
 		setcurrenttime();
-		setreadmode(READCHAR, 1);
-		alarm(30);
+		initreadmode(1);
+		alarm(20);
+		reqsc = 1;
 		in_progress = 0;
 		if (message503[0])
 			secprintf("HTTP/1.1 503 Busy\r\n"
@@ -1844,6 +1848,9 @@ standalone_socket(int id)
 					chunked = 0;
 					secputs("0\r\n\r\n");
 				}
+				setproctitle("xs(%c%d): Awaiting request "
+					"#%d from `%s'",
+					id, count + 1, ++reqsc, remotehost);
 				in_progress = 0;
 			}
 			while (persistent && fflush(stdout) != EOF);

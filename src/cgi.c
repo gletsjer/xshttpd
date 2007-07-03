@@ -563,11 +563,11 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	else
 		for (;;)
 		{
-			int result = read(p[0], input, RWBUFSIZE);
+			int result = secread(p[0], input, RWBUFSIZE);
 
 			if (result < 0)
 			{
-				if (errno == EINTR || errno == EWOULDBLOCK)
+				if (errno == EAGAIN)
 				{
 					usleep(300);
 					continue;
