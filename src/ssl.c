@@ -374,27 +374,24 @@ secread_internal(int fd, void *buf, size_t count)
 		while ((ret = SSL_read(cursock->ssl, buf, count)) <= 0)
 		{
 			s_err = SSL_get_error(cursock->ssl, ret);
-			if (SSL_ERROR_WANT_WRITE == s_err)
+
+			switch (s_err)
 			{
+			case SSL_ERROR_WANT_WRITE:
 				usleep(200);
 				continue;
-			}
-			else if (SSL_ERROR_SYSCALL == s_err)
-			{
+			case SSL_ERROR_SYSCALL:
 				warn("SSL_read error");
 				break;
-			}
-			else if (SSL_ERROR_ZERO_RETURN == s_err)
-			{
+			case SSL_ERROR_ZERO_RETURN:
 				/* clean shutdown */
 				break;
-			}
-			else
-			{
+			default:
 				warnx("SSL_read error: %s",
 					ERR_error_string(s_err, NULL));
 				break;
 			}
+			break;
 		}
 	}
 	else
@@ -402,16 +399,20 @@ secread_internal(int fd, void *buf, size_t count)
 	{
 		while ((ret = read(fd, buf, count)) < 0)
 		{
-			if (errno == EAGAIN)
-				usleep(200);
-			else if (errno == ECONNRESET ||
-				errno == EINTR)
-				break;
-			else
+			switch (errno)
 			{
+			case EAGAIN:
+				usleep(200);
+				continue;
+			case ECONNRESET:
+			case EINTR:
+				/* clean reset/timeout */
+				break;
+			default:
 				warn("Read error");
 				break;
 			}
+			break;
 		}
 	}
 
@@ -462,24 +463,23 @@ secwrite(const char *buf, size_t count)
 
 			while ((ret = SSL_write(cursock->ssl, message[i], len[i])) <= 0)
 			{
+				/* SSL_write doesn't return w/ partial writes */
 				s_err = SSL_get_error(cursock->ssl, ret);
-				if (SSL_ERROR_WANT_WRITE == s_err)
+
+				switch (s_err)
 				{
+				case SSL_ERROR_WANT_WRITE:
 					usleep(200);
 					continue;
-				}
-				else if (SSL_ERROR_SYSCALL == s_err)
-				{
+				case SSL_ERROR_SYSCALL:
 					warn("SSL_write error");
 					break;
-				}
-				else
-				{
+				default:
 					warnx("SSL_write error: %s",
 						ERR_error_string(s_err, NULL));
 					break;
 				}
-				/* NOTREACHED */
+				break;
 			}
 		}
 		else
@@ -496,7 +496,10 @@ secwrite(const char *buf, size_t count)
 				else if (errno == EAGAIN)
 					usleep(200);
 				else
+				{
+					warn("Write error");
 					break;
+				}
 			}
 		}
 	}
