@@ -62,12 +62,6 @@
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
 #include	<ctype.h>
-#ifdef		HAVE_ALLOCA_H
-#include	<alloca.h>
-#endif		/* HAVE_ALLOCA_H */
-#ifdef		HAVE_VFORK_H
-#include	<vfork.h>
-#endif		/* HAVE_VFORK_H */
 #ifdef		HAVE_MEMORY_H
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
@@ -752,11 +746,7 @@ open_logs(int sig)
 						current->logaccess);
 				}
 			}
-#ifndef		SETVBUF_REVERSED
 			setvbuf(current->openaccess, NULL, _IOLBF, 0);
-#else		/* Not not SETVBUF_REVERSED */
-			setvbuf(current->openaccess, _IOLBF, NULL, 0);
-#endif		/* SETVBUF_REVERSED */
 		}
 
 		/* XXX: evil code duplication */
@@ -785,11 +775,7 @@ open_logs(int sig)
 						current->logreferer);
 				}
 			}
-#ifndef		SETVBUF_REVERSED
 			setvbuf(current->openreferer, NULL, _IOLBF, 0);
-#else		/* Not not SETVBUF_REVERSED */
-			setvbuf(current->openreferer, _IOLBF, NULL, 0);
-#endif		/* SETVBUF_REVERSED */
 		}
 
 		/* XXX: evil code duplication */
@@ -818,11 +804,7 @@ open_logs(int sig)
 						current->logerror);
 				}
 			}
-#ifndef		SETVBUF_REVERSED
 			setvbuf(current->openerror, NULL, _IOLBF, 0);
-#else		/* Not not SETVBUF_REVERSED */
-			setvbuf(current->openerror, _IOLBF, NULL, 0);
-#endif		/* SETVBUF_REVERSED */
 		}
 	}
 
@@ -1726,11 +1708,7 @@ standalone_socket(int id)
 	}
 
 	CHILD:
-#ifndef		SETVBUF_REVERSED
 	setvbuf(stdout, outputbuffer, _IOFBF, RWBUFSIZE);
-#else		/* Not not SETVBUF_REVERSED */
-	setvbuf(stdout, _IOFBF, outputbuffer, RWBUFSIZE);
-#endif		/* SETVBUF_REVERSED */
 	while (1)
 	{
 		struct	linger	sl;
@@ -1779,11 +1757,7 @@ standalone_socket(int id)
 		dup2(csd, 0); dup2(csd, 1);
 		close(csd);
 
-#ifndef		SETVBUF_REVERSED
 		setvbuf(stdin, NULL, _IONBF, 0);
-#else		/* Not not SETVBUF_REVERSED */
-		setvbuf(stdin, _IONBF, NULL, 0);
-#endif		/* SETVBUF_REVERSED */
 
 		strlcpy(remoteaddr, "0.0.0.0", NI_MAXHOST);
 #ifdef		HAVE_GETNAMEINFO

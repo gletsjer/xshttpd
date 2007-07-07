@@ -9,10 +9,8 @@ AC_CONFIG_HEADERS([config.h])
 
 dnl Checks for programs.
 AC_PROG_CC
-AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_RANLIB
-AC_PROG_LN_S
 AC_PATH_PROG(ppmtogif, ppmtogif, /bin/true)
 AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "${ppmtogif}",
 	[ppmtogif-like program used to create graphic counters])
@@ -28,8 +26,9 @@ libxs_ldlags="${LDLAGS}"
 dnl Checks for header files.
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
+AC_SYS_LARGEFILE
 
-AC_CHECK_HEADERS(alloca.h crypt.h err.h sys/exec.h getopt.h inttypes.h memory.h sys/mman.h sys/param.h sys/pstat.h sys/resource.h sys/select.h sys/syslimits.h sys/sysmips.h sys/sysnews.h sys/time.h time.h)
+AC_CHECK_HEADERS(crypt.h err.h sys/exec.h getopt.h inttypes.h memory.h sys/mman.h sys/param.h sys/pstat.h sys/resource.h sys/select.h sys/syslimits.h sys/sysmips.h sys/sysnews.h sys/time.h time.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -37,14 +36,13 @@ AC_HEADER_TIME
 AC_TYPE_UID_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
-AC_TYPE_SIGNAL
+AC_TYPE_SSIZE_T
+AC_TYPE_OFF_T
 AC_CHECK_TYPES(socklen_t,,, [#include <sys/types.h>
 #include <sys/socket.h>])
 
 dnl Checks for library functions.
-AC_FUNC_FORK
 AC_FUNC_MMAP
-AC_FUNC_SETVBUF_REVERSED
 AC_CHECK_FUNCS(closefrom setpriority setresgid setresuid setrlimit setsid sigemptyset siginterrupt uname)
 
 dnl Checks for functions requiring additional libraries.

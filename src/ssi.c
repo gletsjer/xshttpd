@@ -13,9 +13,6 @@
 #include	<sys/param.h>
 #endif		/* HAVE_SYS_PARAM_H */
 
-#ifdef		HAVE_VFORK_H
-#include	<vfork.h>
-#endif		/* HAVE_VFORK_H */
 #include	<stdio.h>
 #ifdef		HAVE_TIME_H
 #ifdef		TIME_WITH_SYS_TIME
@@ -23,9 +20,6 @@
 #endif		/* TIME_WITH_SYS_TIME */
 #endif		/* HAVE_TIME_H */
 #include	<unistd.h>
-#ifdef		HAVE_VFORK_H
-#include	<vfork.h>
-#endif		/* HAVE_VFORK_H */
 #include	<errno.h>
 #include	<signal.h>
 #include	<pwd.h>

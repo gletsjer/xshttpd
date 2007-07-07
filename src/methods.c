@@ -55,12 +55,6 @@
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
 #include	<ctype.h>
-#ifdef		HAVE_ALLOCA_H
-#include	<alloca.h>
-#endif		/* HAVE_ALLOCA_H */
-#ifdef		HAVE_VFORK_H
-#include	<vfork.h>
-#endif		/* HAVE_VFORK_H */
 #ifdef		HAVE_MEMORY_H
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */

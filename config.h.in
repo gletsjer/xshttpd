@@ -33,9 +33,6 @@
 /* Enable OpenSSL support */
 #undef HANDLE_SSL
 
-/* Define to 1 if you have the <alloca.h> header file. */
-#undef HAVE_ALLOCA_H
-
 /* Define to 1 if you have the `closefrom' function. */
 #undef HAVE_CLOSEFROM
 
@@ -65,9 +62,6 @@
 
 /* Define to 1 if you have the <err.h> header file. */
 #undef HAVE_ERR_H
-
-/* Define to 1 if you have the `fork' function. */
-#undef HAVE_FORK
 
 /* Define if you have the `getaddrinfo' function */
 #undef HAVE_GETADDRINFO
@@ -240,18 +234,6 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define to 1 if you have the `vfork' function. */
-#undef HAVE_VFORK
-
-/* Define to 1 if you have the <vfork.h> header file. */
-#undef HAVE_VFORK_H
-
-/* Define to 1 if `fork' works. */
-#undef HAVE_WORKING_FORK
-
-/* Define to 1 if `vfork' works. */
-#undef HAVE_WORKING_VFORK
-
 /* html directory */
 #undef HTML_DIR
 
@@ -297,19 +279,8 @@
 /* phexec directory with opt. trailing slash */
 #undef PHEXEC_DIRT
 
-/* Define to 1 if the C compiler supports function prototypes. */
-#undef PROTOTYPES
-
-/* Define as the return type of signal handlers (`int' or `void'). */
-#undef RETSIGTYPE
-
 /* Server version */
 #undef SERVER_IDENT
-
-/* Define to 1 if the `setvbuf' function takes the buffering type as its
-   second argument and the buffer pointer as the third, as on System V before
-   release 3. */
-#undef SETVBUF_REVERSED
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
@@ -320,14 +291,20 @@
 /* Define if you have openssl, but no MD5Data() */
 #undef USE_OPENSSL_MD5
 
-/* Define like PROTOTYPES; this can be used by system headers. */
-#undef __PROTOTYPES
+/* Number of bits in a file offset, on hosts where this is settable. */
+#undef _FILE_OFFSET_BITS
+
+/* Define for large files, on AIX-style hosts. */
+#undef _LARGE_FILES
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
 /* Define to `int' if <sys/types.h> doesn't define. */
 #undef gid_t
+
+/* Define to `long int' if <sys/types.h> does not define. */
+#undef off_t
 
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t
@@ -338,8 +315,8 @@
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
 
+/* Define to `int' if <sys/types.h> does not define. */
+#undef ssize_t
+
 /* Define to `int' if <sys/types.h> doesn't define. */
 #undef uid_t
-
-/* Define as `fork' if `vfork' does not work. */
-#undef vfork
