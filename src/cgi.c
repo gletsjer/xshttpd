@@ -244,8 +244,18 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 #endif		/* HAVE_SETSID */
 
+#ifdef		HAVE_CLOSEFROM
+		closefrom(3);
+#else		/* HAVE_CLOSEFROM */
+#ifdef		HAVE_SETRLIMIT
+		getrlimit(RLIMIT_NOFILE, &limits);
+		for (count = 3; count < limits.rlim_max; count++)
+			(void) close(count);
+#else		/* HAVE_SETRLIMIT */
 		for (count = 3; count < 1024; count++)
 			close(count);
+#endif		/* HAVE_SETRLIMIT */
+#endif		/* HAVE_CLOSEFROM */
 
 		/* euid should be set, now fix uid */
 		if (!origeuid)
