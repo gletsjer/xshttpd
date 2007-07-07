@@ -45,7 +45,7 @@ dnl Checks for library functions.
 AC_FUNC_FORK
 AC_FUNC_MMAP
 AC_FUNC_SETVBUF_REVERSED
-AC_CHECK_FUNCS(setpriority setresgid setresuid setrlimit setsid sigemptyset siginterrupt uname)
+AC_CHECK_FUNCS(closefrom setpriority setresgid setresuid setrlimit setsid sigemptyset siginterrupt uname)
 
 dnl Checks for functions requiring additional libraries.
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)
