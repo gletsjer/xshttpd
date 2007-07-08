@@ -172,7 +172,7 @@ eqstring_to_array(char *string, struct mapping *map)
 
 /* like string_to_array, but malloc's data */
 size_t
-string_to_arrayp(char * value, char ***array)
+string_to_arrayp(char *value, char ***array)
 {
 	size_t	sz;
 	char	**p;
@@ -182,10 +182,10 @@ string_to_arrayp(char * value, char ***array)
 		for (p = *array; *p; p++)
 			free(*p);
 
-	p = *array;
 	sz = string_to_array(value, NULL);
-	realloc(p, sz);
+	p = realloc(*array, sz);
 	sz = string_to_array(value, p);
+	*array = p;
 	return sz;
 }
 
@@ -193,10 +193,12 @@ string_to_arrayp(char * value, char ***array)
 size_t
 string_to_array(char *value, char **array)
 {
-	size_t	num;
-	char	*prev = NULL, *next = value;
+	size_t	num, len;
+	char	*prev = NULL, *next = value, *p;
 
 	num = 0;
+	len = strlen(value);
+
 	while ((prev = strsep(&next, ", \t")))
 		if (*prev)
 		{
@@ -208,6 +210,11 @@ string_to_array(char *value, char **array)
 	num++;
 	if (array)
 		array[num] = NULL;
+	else
+		/* restore orignal string */
+		for (p = value; p < value + len; p++)
+			if (!*p)
+				*p = ' ';
 	return num;
 }
 
