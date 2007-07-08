@@ -1,6 +1,11 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.5 beta 14
+- Fix config file parsing bug
+- Removing lingering sockets using sendfrom
+- Cleanup xschpass and enable digest password updates
+
 Changes since 3.5 beta 13
 - Fix read/write (error) handling; deprecate readlinemode
 - Fix connection timeout when no data is exchanged yet

@@ -24,7 +24,7 @@
 #define		REALM		"this page"
 #define		MAX_NONCE_LENGTH	60
 
-extern char	authentication[MYBUFSIZ];
+extern char	authentication[];
 
 void	initnonce	(void);
 int	check_auth	(const char *, const struct ldap_auth *);

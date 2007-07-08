@@ -13,10 +13,18 @@ they use to access a protected webdirectory with the
 xs\-httpd webserver. This allows users to set a password
 that is only known by themselves and not even by the person
 who controls the webdirectory and who set up the initial
-password. Accounts can not be added or removed through the
-webinterface - this can only be done by a person with local
-directory access through
+password.
+.Pp
+Accounts can not be added or removed through the webinterface -
+this can only be done by a person with local directory access
+through
 .Xr xspasswd 1 .
+Also the access type (basic or digest) can only be changed with
+.Xr xspasswd 1 ;
+if both basic and digest authentication are enabled for a user,
+then setting a new password using
+.Xr xschpass 1
+will update both passwords.
 .Sh EXAMPLES
 To change the password that is used to access the URL
 .Bd -literal -offset indent -compact
@@ -35,9 +43,3 @@ location:
 .Pp
 The project homepage:
 .Pa http://www.stack.nl/xs\-httpd/
-.Sh BUGS
-At the moment it is only possible to change a password when
-Basic Authentication is used exclusively for this user
-(that is, when passwords are stored encrypted on disk).
-The program will refuse to change a password when Digest
-Authentication is prefered.
