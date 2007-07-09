@@ -342,10 +342,6 @@ sendcompressed(int fd, const char *method)
 	pid_t		pid;
 	int		processed;
 	char	prefix[] = TEMPORARYPREFIX;
-	size_t		count;
-#ifdef		HAVE_SETRLIMIT
-	struct	rlimit		limits;
-#endif		/* HAVE_SETRLIMIT */
 
 	if (!(processed = mkstemp(prefix)))
 	{
@@ -375,19 +371,7 @@ sendcompressed(int fd, const char *method)
 #endif		/* HAVE_SETSID */
 		dup2(fd, 0); dup2(processed, 1);
 
-#ifdef		HAVE_CLOSEFROM
 		closefrom(3);
-#else		/* HAVE_CLOSEFROM */
-#ifdef		HAVE_SETRLIMIT
-		getrlimit(RLIMIT_NOFILE, &limits);
-		for (count = 3; count < limits.rlim_max; count++)
-			(void) close(count);
-#else		/* HAVE_SETRLIMIT */
-		for (count = 3; count < 1024; count++)
-			close(count);
-#endif		/* HAVE_SETRLIMIT */
-#endif		/* HAVE_CLOSEFROM */
-
 		(void) execl(method, method, NULL);
 		xserror("500 Cannot start conversion program");
 		err(1, "[%s] httpd: Cannot execl(`%s')", currenttime, method);

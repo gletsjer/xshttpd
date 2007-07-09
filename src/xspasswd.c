@@ -42,6 +42,9 @@ main(int argc, char **argv)
 			digest = 0;
 			break;
 		case 'd':
+#ifndef		HAVE_MD5
+			errx(1, "Digest authentication is not available");
+#endif		/* HAVE_MD5 */
 			digest = 1;
 			break;
 		case 'l':

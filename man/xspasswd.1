@@ -42,13 +42,14 @@ to store passwords for use with digest authentication (where
 more sensitive information is stored on disk, but only the
 checksum of user and password data is sent over the wire).
 However in this case password hashes are also stored to be
-able to handle basic authentication in case the client
-doesn't understand digest authentication.
+able to handle basic authentication fallback in case the
+client doesn't understand digest authentication.
 .Pp
 For optimal security it is suggested local data is never
 made accessible to other users of the system and that
-authentication is used over a secure channel (i.e. using
-https). In this case digest authentication does not add
+authentication details and sensitive content are
+transferred over a secure channel (i.e. using https).
+In this case digest authentication does not add
 any additional security.
 .Sh EXAMPLES
 Change your current directory to the directory that you wish
@@ -69,11 +70,20 @@ By running the program again, you can add as many usercodes
 and passwords as you wish. You can also use this program to
 change passwords. Just type an existing username when the
 program prompts you for a username. You do not have to enter
-the old password.
+the old password. Be aware that the locked status and digest
+hash may be lost if you don't specify
+.Fl l
+and
+.Fl d
+when changing a password, since the options default to
+.Fl u
+and
+.Fl b .
 .Sh DIAGNOSTICS
 .Ex -std xspasswd
 .Sh SEE ALSO
 .Xr httpd 1 ,
+.Xr xschpass 1 ,
 .Xr xsauth 5
 .Pp
 The project homepage:

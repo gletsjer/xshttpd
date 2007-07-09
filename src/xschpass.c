@@ -84,6 +84,7 @@ changepasswd(const char *param, int  cl)
 	FILE		*input, *output;
 	int		found;
 
+	umask(S_IRWXG | S_IRWXO);
 	filename[0] = '/';
 	strlcpy(filename + 1, param, XS_PATH_MAX - 64);
 	if (cl > (BUFSIZ - 64))
