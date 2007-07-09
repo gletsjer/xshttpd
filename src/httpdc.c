@@ -155,7 +155,10 @@ cmd_reload(const char *args)
 	if (kill(httpdpid, SIGHUP))
 		warn("kill()");
 	else
-		printf("Databases reloaded...\n");
+		printf("Databases reloaded...\n"
+			"Run 'httpdc restart' to ensure that "
+			"configuration changes take effect.\n");
+
 	(void)args;
 }
 
