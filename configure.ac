@@ -43,7 +43,7 @@ AC_CHECK_TYPES(socklen_t,,, [#include <sys/types.h>
 
 dnl Checks for library functions.
 AC_FUNC_MMAP
-AC_CHECK_FUNCS(closefrom setpriority setresgid setresuid setrlimit setsid sigemptyset siginterrupt uname)
+AC_CHECK_FUNCS(setpriority setresgid setresuid setrlimit setsid sigemptyset siginterrupt uname)
 
 dnl Checks for functions requiring additional libraries.
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)
@@ -57,7 +57,7 @@ XS_FUNC_IN_LIB(MD5Data, HAVE_MD5, md, libxs)
 AS_IF([test "$ac_cv_search_inet_aton" = no], [AC_LIBOBJ(inet_aton)])
 AC_CHECK_FUNC(asprintf,, [AC_LIBOBJ(snprintf)])
 AC_CHECK_FUNC(setegid,,   [AC_LIBOBJ(seteuid)])
-AC_REPLACE_FUNCS(err killpg memmem mkstemp setenv seteuid setgroups setproctitle strlcat strcasestr strerror strlcpy strptime strsep snprintf)
+AC_REPLACE_FUNCS(closefrom err killpg memmem mkstemp setenv seteuid setgroups setproctitle strlcat strcasestr strerror strlcpy strptime strsep snprintf)
 
 dnl Check in6_addr layout; must follow socket library check.
 AC_CHECK_TYPES(struct in6_addr,,, [#include <netinet/in.h>])
@@ -67,7 +67,7 @@ then
 		[#include <netinet/in.h>])
 	if test "$ac_cv_member_struct_in6_addr_s6_addr32" = no
 	then
-		AH_TEMPLATE(s6_addr32,, [in6_addr elements, 32-bit version])
+		AH_TEMPLATE(s6_addr32, [in6_addr elements, 32-bit version])
 		AC_CHECK_MEMBER([struct in6_addr._S6_un._S6_u32],
 			AC_DEFINE(s6_addr32, _S6_un._S6_u32),,
 			[#include <netinet/in.h>])

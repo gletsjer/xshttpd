@@ -37,6 +37,10 @@ extern	const int	sys_nerr;
 typedef	size_t	socklen_t;
 #endif		/* HAVE_SOCKLEN_T */
 
+#ifndef		HAVE_CLOSEFROM
+int	closefrom	(int);
+#endif		/* HAVE_CLOSEFROM */
+
 #ifndef		HAVE_ERR
 void	err		(int, const char *, ...) PRINTF_LIKE(2, 3) NORETURN;
 void	errx		(int, const char *, ...) PRINTF_LIKE(2, 3) NORETURN;
