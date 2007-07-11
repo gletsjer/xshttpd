@@ -493,7 +493,7 @@ secwrite(const char *buf, size_t count)
 					message[i] += ret;
 					usleep(200);
 				}
-				else if (errno == EAGAIN)
+				else if (errno == EAGAIN || errno == EINTR)
 					usleep(200);
 				else
 				{
