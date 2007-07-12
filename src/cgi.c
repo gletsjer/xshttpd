@@ -399,8 +399,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				goto END;
 			}
 			header = skipspaces(line);
-			if (first && !header[0])
-				continue;
 			if (!header[0])
 				break;
 			if (!showheader)
