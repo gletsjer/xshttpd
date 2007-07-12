@@ -584,7 +584,12 @@ readline(int rd, char *buf, size_t len)
 		}
 		ch = *(buf2++) = netbuf[netbufind++];
 	} while (ch != '\n');
-	*buf2 = 0;
+	*buf2 = '\0';
+	while (buf2-- > buf)
+		if (*buf2 <= ' ' && *buf2 > 0)
+			*buf2 = '\0';
+		else
+			break;
 	return(ERR_NONE);
 }
 

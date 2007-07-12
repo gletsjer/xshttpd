@@ -109,7 +109,7 @@ append(char *buffer, int prepend, const char *format, ...)
 void
 do_script(const char *path, const char *base, const char *file, const char *engine, int showheader)
 {
-	unsigned long		received, writetodo;
+	unsigned long		writetodo;
 	off_t			totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
 				request[MYBUFSIZ], *temp,
@@ -352,16 +352,15 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 #ifdef		HANDLE_SSL
 	if (ssl_post)
 	{
-		writetodo = atoi(getenv("CONTENT_LENGTH"));
+		writetodo = strtoul(getenv("CONTENT_LENGTH"), NULL, 10);
 		while (writetodo > 0)
 		{
 			int	offset;
 			int	result;
 
 			tobewritten = writetodo > RWBUFSIZE ? RWBUFSIZE : writetodo;
-			while (!(result = secread(0, inbuf, tobewritten)))
-				mysleep(1);
-			if ((result < 0))
+			result = secread(0, inbuf, tobewritten);
+			if (result < 0)
 				goto END;
 			tobewritten = result;
 			offset = 0;
@@ -383,6 +382,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	}
 #endif		/* HANDLE_SSL */
 	head[0] = '\0';
+	initreadmode(1);
 	if (!nph)
 	{
 		int	ctype = 0, status = 0, lastmod = 0, server = 0;
@@ -398,21 +398,16 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					secprintf("[Script did not end header]\n");
 				goto END;
 			}
-			received = strlen(line);
-			while ((received > 0) && (line[received - 1] < 32))
-				line[--received] = 0;
 			header = skipspaces(line);
+			if (first && !header[0])
+				continue;
 			if (!header[0])
 				break;
 			if (!showheader)
+				/* silently discard headers */
 				continue;
 			if (first)
-			{
-				if (!strchr(header, ':'))
-					/* assume user forgot to return headers */
-					break;
 				first = 0;
-			}
 
 			/* Look for status header */
 			if (!status)
@@ -535,11 +530,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					secprintf("[Script did not end header]\n");
 				goto END;
 			}
-			received = strlen(line);
 			if (showheader)
 				secputs(line);
-			while ((received > 0) && (line[received - 1] < 32))
-				line[--received] = 0;
 			if (!line[0])
 				break;
 		}
@@ -597,7 +589,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					temp += written;
 				}
 			}
-			totalwritten += received;
+			totalwritten += result;
 		}
 
 	if (!getenv("ERROR_CODE"))

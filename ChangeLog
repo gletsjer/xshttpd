@@ -3,6 +3,7 @@ is not complete. Refer to cvs comments for more information.
 
 Changes since 3.5 beta 15
 - Deal nicely with blocking write interrupts (don't abort write)
+- Fix POST data handling broken by recent readlinemode changes
 
 Changes since 3.5 beta 14
 - Fix config file parsing bug

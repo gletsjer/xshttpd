@@ -1206,7 +1206,7 @@ process_request()
 		setenv("SERVER_PROTOCOL", httpver, 1);
 		while (1)
 		{
-			char	*param, *end;
+			char	*param;
 			char	name[65+6], *ptr;
 
 			switch (readline(0, extra, sizeof(extra)))
@@ -1228,9 +1228,6 @@ process_request()
 			*(param++) = 0;
 			while ((*param == ' ') || (*param == 9))
 				param++;
-			end = param + strlen(param);
-			while ((end > param) && (*(end - 1) <= ' '))
-				*(--end) = 0;
 
 			if (!strcasecmp("Content-length", extra))
 				setenv("CONTENT_LENGTH", param, 1);
