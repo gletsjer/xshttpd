@@ -26,6 +26,11 @@ struct mapping
 {
 	char	*index, *value;
 };
+struct maplist
+{
+	size_t		size;
+	struct mapping	*elements;
+};
 
 extern struct virtual
 {

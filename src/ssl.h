@@ -14,14 +14,23 @@
 #include	<openssl/ssl.h>
 #endif		/* HANDLE_SSL */
 
+#include	"htconfig.h"
+/* forward declaration, defined in htconfig.h */
+struct	mapping;
+struct	maplist;
+
 /* Wrapper functions are used even if SSL is not enabled */
 int	initssl(void);
 void	ssl_environment(void);
 void	loadssl(void);
 void	endssl(void);
+
 void	initreadmode(int);
 ssize_t	secread(int, void *, size_t);
 size_t	secfread(void *, size_t, size_t, FILE *);
+ssize_t	readheaders(int, struct maplist *);
+void	freeheaders(struct maplist *);
+
 ssize_t	secwrite(const char *, size_t);
 size_t	secfwrite(const char *, size_t, size_t, FILE *);
 ssize_t	secputs(const char *);

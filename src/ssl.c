@@ -11,6 +11,7 @@
 #include	<sys/stat.h>
 #include	<errno.h>
 #include	<stdarg.h>
+#include	<ctype.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
@@ -591,5 +592,89 @@ readline(int rd, char *buf, size_t len)
 		else
 			break;
 	return(ERR_NONE);
+}
+
+ssize_t
+readheaders(int rd, struct maplist *headlist)
+{
+	size_t		len, sz;
+	char		input[LINEBUFSIZE];
+	char		*idx, *val, *value;
+
+	headlist->size = 0;
+	headlist->elements = NULL;
+	while (1)
+	{
+		switch (readline(rd, input, LINEBUFSIZE))
+		{
+		case ERR_NONE:
+			break;
+		case ERR_QUIT:
+		default:
+			freeheaders(headlist);
+			xserror("400 Unable to read request line");
+			return -1;
+		case ERR_LINE:
+			freeheaders(headlist);
+			xserror("400 Request header line exceeded maximum length");
+			return -1;
+		}
+
+		if (!input[0])
+			break;
+		if ((value = strchr(input, ':')))
+		{
+			*value++ = '\0';
+			while (*value && isspace(*value))
+				value++;
+			for (sz = 0; sz < headlist->size; sz++)
+			{
+				idx = headlist->elements[sz].index;
+				val = headlist->elements[sz].value;
+				if (!strcasecmp(idx, input))
+				{
+					len = strlen(val) + strlen(value) + 2;
+					val = realloc(val, len);
+					strcat(val, " ");
+					strcat(val, value);
+					headlist->elements[sz].value = val;
+					break;
+				}
+			}
+			if (sz == headlist->size)
+			{
+				headlist->elements = realloc(headlist->elements,
+						(sz + 1) * sizeof(struct mapping));
+				headlist->elements[sz].index = strdup(input);
+				headlist->elements[sz].value = strdup(value);
+				headlist->size++;
+			}
+		}
+		else if (!headlist->size)
+		{
+			headlist->elements = realloc(headlist->elements,
+					sizeof(struct mapping));
+			headlist->elements[0].index = strdup("Status");
+			headlist->elements[0].value = strdup(input);
+			headlist->size = 1;
+		}
+	}
+
+	return (ssize_t)headlist->size;
+}
+
+void
+freeheaders(struct maplist *headlist)
+{
+	size_t		sz;
+
+	for (sz = 0; sz < headlist->size; sz++)
+	{
+		free(headlist->elements[sz].index);
+		free(headlist->elements[sz].value);
+	}
+	free(headlist->elements);
+	headlist->size = 0;
+	headlist->elements = NULL;
 }
 
