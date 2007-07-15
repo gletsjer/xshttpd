@@ -1204,8 +1204,7 @@ process_request()
 			persistent = 1;
 		}
 		setenv("SERVER_PROTOCOL", httpver, 1);
-		if ((!strcasecmp(line, "OPTIONS") && !strcmp(url, "*")) ||
-			!strcasecmp(line, "TRACE"))
+		if (!strcasecmp(line, "TRACE"))
 		{
 			params = url;
 			goto METHOD;
