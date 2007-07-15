@@ -107,6 +107,8 @@ eqstring_to_array(char *string, struct mapping *map)
 	char		*p, *q;
 	enum { s_findkey, s_findeq, s_findval, s_findnext }	state;
 
+	if (!string)
+		return 0;
 	num = 0;
 	state = s_findkey;
 	for (p = string; *p; p++)
@@ -121,6 +123,7 @@ eqstring_to_array(char *string, struct mapping *map)
 					map[num].index = p;
 					map[num].value = NULL;
 				}
+				num++;
 				state = s_findeq;
 			}
 			break;
@@ -136,7 +139,7 @@ eqstring_to_array(char *string, struct mapping *map)
 				if (map)
 				{
 					*p = *q = '\0';
-					map[num].value = p + 1;
+					map[num-1].value = p + 1;
 					p = q;
 				}
 				state = s_findnext;
@@ -144,7 +147,7 @@ eqstring_to_array(char *string, struct mapping *map)
 			else if (ISALNUM(*p))
 			{
 				if (map)
-					map[num].value = p;
+					map[num-1].value = p;
 				state = s_findnext;
 			}
 			break;
@@ -152,21 +155,12 @@ eqstring_to_array(char *string, struct mapping *map)
 			if (!ISALNUM(*p))
 			{
 				state = s_findkey;
-				num++;
 			}
 			break;
 		}
 		if (!ISALNUM(*p) && map)
 			*p = '\0';
 	}
-	if (state != s_findkey)
-		num++;
-	if (map)
-	{
-		map[num].index = NULL;
-		map[num].value = NULL;
-	}
-	num++;
 	return num;
 }
 
