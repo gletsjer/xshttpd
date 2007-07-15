@@ -29,7 +29,6 @@ static int	get_crypted_password(const char *, const char *, char **, char **);
 static int	check_basic_auth(const char *authfile, const struct ldap_auth *);
 #ifdef		HAVE_MD5
 static int	check_digest_auth(const char *authfile);
-static char	* get_auth_argument(const char *key, struct mapping *authreq);
 static void	fresh_nonce(char *nonce);
 static int	valid_nonce(const char *nonce);
 #endif		/* HAVE_MD5 */
@@ -142,28 +141,17 @@ check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 }
 
 #ifdef		HAVE_MD5
-static char *
-get_auth_argument(const char *key, struct mapping *authreq)
-{
-	int		i;
-
-	for (i = 0; authreq[i].index; i++)
-		if (!strcasecmp(key, authreq[i].index))
-			return authreq[i].value;
-
-	return NULL;
-}
-
 static int
 check_digest_auth(const char *authfile)
 {
 	char		ha2[MD5_DIGEST_STRING_LENGTH],
 			digest[MD5_DIGEST_STRING_LENGTH];
+	struct		mapping		*authreq;
 	const char	*user, *realm, *nonce, *cnonce, *uri,
 			*response, *qop, *nc;
 	char		*line, *passwd, *a2, *digplain, *ha1;
-	size_t		len, rsz;
-	struct		mapping *authreq;
+	char		*idx, *val;
+	size_t		sz, fields, len;
 
 	/* digest auth, rfc 2069 */
 	if (strncmp(authentication, "Digest ", 7))
@@ -173,18 +161,36 @@ check_digest_auth(const char *authfile)
 		return 1;
 	len = strlen(line);
 
-	rsz = eqstring_to_array(line, NULL);
-	authreq = (struct mapping *)malloc(rsz * sizeof (struct mapping));
-	rsz = eqstring_to_array(line, authreq);
-
-	user	= get_auth_argument("username",	authreq);
-	realm	= get_auth_argument("realm",	authreq);
-	nonce	= get_auth_argument("nonce",	authreq);
-	cnonce	= get_auth_argument("cnonce",	authreq);
-	uri	= get_auth_argument("uri",	authreq);
-	response= get_auth_argument("response",	authreq);
-	qop	= get_auth_argument("qop",	authreq);
-	nc	= get_auth_argument("nc",	authreq);
+	/* grab element from line */
+	fields = eqstring_to_array(line, NULL);
+	if (!fields)
+		return 1;
+	authreq = (struct mapping *)malloc(fields * sizeof (struct mapping));
+	fields = eqstring_to_array(line, authreq);
+	user = realm = nonce = cnonce = uri = response = qop = nc = NULL;
+	for (sz = 0; sz < fields; sz++)
+	{
+		idx = authreq[sz].index;
+		val = authreq[sz].value;
+		if (!strcmp(idx, "username"))
+			user = val;
+		else if (!strcmp(idx, "realm"))
+			realm = val;
+		else if (!strcmp(idx, "nonce"))
+			nonce = val;
+		else if (!strcmp(idx, "cnonce"))
+			cnonce = val;
+		else if (!strcmp(idx, "uri"))
+			uri = val;
+		else if (!strcmp(idx, "response"))
+			response = val;
+		else if (!strcmp(idx, "qop"))
+			qop = val;
+		else if (!strcmp(idx, "nc"))
+			nc = val;
+		/* not interested in other keywords */
+	}
+	free(authreq);
 
 	if (!user || !realm || !nonce || !uri || !response)
 	{
