@@ -52,7 +52,6 @@
 #include	"htconfig.h"
 #include	"extra.h"
 
-static	const	char	*skipspaces(const char *);
 static	void		time_is_up(int)	NORETURN;
 static	int		append(char *, int, const char *format, ...)	PRINTF_LIKE(3,4);
 
@@ -63,14 +62,6 @@ extern	PerlInterpreter *my_perl;
 
 static pid_t			child;
 
-
-static const char *
-skipspaces(const char *string)
-{
-	while ((*string == ' ') || (*string == '\t'))
-		string++;
-	return(string);
-}
 
 static	void
 time_is_up(int sig)
@@ -115,7 +106,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				request[MYBUFSIZ], *temp,
 				input[RWBUFSIZE], line[LINEBUFSIZE],
 				head[HEADSIZE];
-	const	char		*argv1, *header;
+	const	char		*argv1;
 	int			p[2], nph, dossi, chldstat;
 	ssize_t			written;
 	unsigned	int	left;
@@ -385,116 +376,88 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	initreadmode(1);
 	if (!nph)
 	{
-		int	ctype = 0, status = 0, lastmod = 0, server = 0;
-		int first = 1;
+		struct maplist	http_headers;
+		int		ctype = 0, status = 0, lastmod = 0, server = 0;
+		size_t	sz;
+		char	*idx, *val;
 
-		for (;;)
-		{
-			if (readline(p[0], line, sizeof(line)) != ERR_NONE)
-			{
-				if (showheader)
-					xserror("503 Script did not end header");
-				else
-					secprintf("[Script did not end header]\n");
+		if (readheaders(p[0], &http_headers) < 0)
 				goto END;
-			}
-			header = skipspaces(line);
-			if (!header[0])
-				break;
-			if (!showheader)
-				/* silently discard headers */
-				continue;
-			if (first)
-				first = 0;
+		for (sz = 0; sz < http_headers.size; sz++)
+		{
+			idx = http_headers.elements[sz].index;
+			val = http_headers.elements[sz].value;
 
 			/* Look for status header */
 			if (!status)
 			{
-				if (!strncasecmp(header, "Status:", 7))
+				if (!strncasecmp(idx, "Status:", 7))
 				{
 					status = 1;
-					append(head, 1, "%s %s\r\n",
-						httpver, skipspaces(header + 7));
+					append(head, 1, "%s %s\r\n", httpver, val);
 					continue;
 				}
-				else if (!strncasecmp(header, "Location:", 9))
+				else if (!strncasecmp(idx, "Location:", 9))
 				{
 					status = 1;
 					append(head, 1, "%s 302 Moved\r\n", httpver);
 				}
 			}
 
-			if (!strncasecmp(header, "Location:", 9))
+			if (!strcasecmp(idx, "Location"))
 			{
-				char location[MYBUFSIZ];
-
-				strlcpy(location, skipspaces(header + 9), MYBUFSIZ);
-				switch(location[0])
+				if (!val || !*val)
+					/* skip */;
+				else if ('/' == val[0])
 				{
-				case '/':
 					if (!strcmp(cursock->port, "http"))
 						append(head, 0, "Location: http://%s%s\r\n",
-							current->hostname, location);
+							current->hostname, val);
 					else if (cursock->usessl && !strcmp(cursock->port, "https"))
 						append(head, 0, "Location: https://%s%s\r\n",
-							current->hostname, location);
+							current->hostname, val);
 					else if (cursock->usessl)
 						append(head, 0, "Location: https://%s:%s%s\r\n",
-							current->hostname, cursock->port, location);
+							current->hostname, cursock->port, val);
 					else
 						append(head, 0, "Location: http://%s:%s%s\r\n",
-							current->hostname, cursock->port, location);
-					break;
-				case 0:
-					break;
-				default:
-					append(head, 0, "Location: %s\r\n", location);
-					break;
+							current->hostname, cursock->port, val);
 				}
+				else
+					append(head, 0, "Location: %s\r\n", val);
 			}
-			else if (!strncasecmp(header, "Content-type:", 13))
+			else if (!strcasecmp(idx, "Content-type"))
 			{
 				ctype = 1;
-				append(head, 0, "Content-type: %s\r\n",
-					skipspaces(header + 13));
+				append(head, 0, "Content-type: %s\r\n", val);
 			}
-			else if (!strncasecmp(header, "Last-modified:", 14))
+			else if (!strcasecmp(idx, "Last-modified"))
 			{
-				append(head, 0, "Last-modified: %s\r\n",
-					skipspaces(header + 14));
+				append(head, 0, "Last-modified: %s\r\n", val);
 				lastmod = 1;
 			}
-			else if (!strncasecmp(header, "Cache-control:", 14))
+			else if (!strcasecmp(idx, "Cache-control"))
 			{
 				if (headers >= 11)
-					append(head, 0, "Cache-control: %s\r\n",
-						skipspaces(header + 14));
+					append(head, 0, "Cache-control: %s\r\n", val);
 				else
 					append(head, 0, "Pragma: no-cache\r\n");
 			}
-			else if (!strncasecmp(header, "Server:", 7))
+			else if (!strcasecmp(idx, "Server"))
 			{
 				/* Append value to SERVER_IDENT */
-				if (!strncasecmp(skipspaces(header + 7),
-					SERVER_IDENT, strlen(SERVER_IDENT)))
-				{
-					append(head, 0, "Server: %s\r\n",
-						skipspaces(header + 7));
-				}
+				if (!strncasecmp(val, SERVER_IDENT, strlen(SERVER_IDENT)))
+					append(head, 0, "Server: %s\r\n", val);
 				else
-				{
-					append(head, 0, "Server: %s %s\r\n",
-						SERVER_IDENT,
-						skipspaces(header + 7));
-				}
+					append(head, 0, "Server: %s %s\r\n", SERVER_IDENT, val);
 				server = 1;
 			}
-			else if (!strncasecmp(header, "Date:", 5))
+			else if (!strcasecmp(idx, "Date"))
 			{
 				/* Thank you, I do know how to tell time */
 			}
 			else
-				append(head, 0, "%s\r\n", header);
+				append(head, 0, "%s: %s\r\n", idx, val);
 		}
 		if (showheader)
 		{
@@ -515,6 +478,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			if (headers >= 11)
 				chunked = 1;
 		}
+		freeheaders(&http_headers);
 	}
 	else /* nph */
 	{

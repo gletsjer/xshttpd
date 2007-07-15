@@ -622,7 +622,20 @@ readheaders(int rd, struct maplist *headlist)
 
 		if (!input[0])
 			break;
-		if ((value = strchr(input, ':')))
+		if (isspace(input[0]))
+		{
+			value = input;
+			while (*value && isspace(*value))
+				value++;
+
+			val = headlist->elements[headlist->size-1].value;
+			len = strlen(val) + strlen(value) + 2;
+			val = realloc(val, len);
+			strcat(val, " ");
+			strcat(val, value);
+			headlist->elements[headlist->size-1].value = val;
+		}
+		else if ((value = strchr(input, ':')))
 		{
 			*value++ = '\0';
 			while (*value && isspace(*value))

@@ -1132,11 +1132,12 @@ logrequest(const char *request, off_t size)
 static	void
 process_request()
 {
-	char		line[LINEBUFSIZE], extra[LINEBUFSIZE], *temp, ch,
-			*params, *url, *ver, http_host[NI_MAXHOST],
-			http_host_long[NI_MAXHOST];
+	char		line[LINEBUFSIZE],
+			http_host[NI_MAXHOST], http_host_long[NI_MAXHOST],
+			*temp, ch, *params, *url, *ver;
+	struct maplist	http_headers;
 	int		readerror;
-	size_t		size;
+	size_t		sz, size;
 
 	headers = 11;
 	strlcpy(httpver, "HTTP/1.1", 16);
@@ -1209,38 +1210,21 @@ process_request()
 			params = url;
 			goto METHOD;
 		}
-		while (1)
+
+		if (readheaders(0, &http_headers) < 0)
+			return;
+		for (sz = 0; sz < http_headers.size; sz++)
 		{
-			char	*param;
-			char	name[65+6], *ptr;
+			char	*idx = http_headers.elements[sz].index;
+			char	*val = http_headers.elements[sz].value;
 
-			switch (readline(0, extra, sizeof(extra)))
+			if (!strcasecmp("Content-length", idx))
+				setenv("CONTENT_LENGTH", val, 1);
+			else if (!strcasecmp("Content-type", idx))
+				setenv("CONTENT_TYPE", val, 1);
+			else if (!strcasecmp("User-agent", idx))
 			{
-			case ERR_NONE:
-				break;
-			case ERR_QUIT:
-			default:
-				xserror("400 Unable to read request line");
-				return;
-			case ERR_LINE:
-				xserror("400 Request header line exceeded maximum length");
-				return;
-			}
-			if (extra[0] <= ' ')
-				break;
-			if (!(param = strchr(extra, ':')))
-				continue;
-			*(param++) = 0;
-			while ((*param == ' ') || (*param == 9))
-				param++;
-
-			if (!strcasecmp("Content-length", extra))
-				setenv("CONTENT_LENGTH", param, 1);
-			else if (!strcasecmp("Content-type", extra))
-				setenv("CONTENT_TYPE", param, 1);
-			else if (!strcasecmp("User-agent", extra))
-			{
-				strlcpy(browser, param, MYBUFSIZ);
+				strlcpy(browser, val, MYBUFSIZ);
 				setenv("USER_AGENT", browser, 1);
 				setenv("HTTP_USER_AGENT", browser, 1);
 				(void) strtok(browser, "/");
@@ -1251,32 +1235,35 @@ process_request()
 					*browser = toupper(*browser);
 				setenv("USER_AGENT_SHORT", browser, 1);
 			}
-			else if (!strcasecmp("Referer", extra))
+			else if (!strcasecmp("Referer", idx))
 			{
-				strlcpy(referer, param, MYBUFSIZ);
+				strlcpy(referer, val, MYBUFSIZ);
 				while (referer[0] &&
 					referer[strlen(referer) - 1] <= ' ')
 					referer[strlen(referer) - 1] = 0;
 				setenv("HTTP_REFERER", referer, 1);
 			}
-			else if (!strcasecmp("Authorization", extra))
+			else if (!strcasecmp("Authorization", idx))
 			{
-				strlcpy(authentication, param, MYBUFSIZ);
-				setenv("HTTP_AUTHORIZATION", param, 1);
+				strlcpy(authentication, val, MYBUFSIZ);
+				setenv("HTTP_AUTHORIZATION", val, 1);
 			}
-			else if (!strcasecmp("Connection", extra))
+			else if (!strcasecmp("Connection", idx))
 			{
-				if (strcasestr(param, "close"))
+				if (strcasestr(val, "close"))
 					persistent = 0;
-				setenv("HTTP_CONNECTION", param, 1);
+				setenv("HTTP_CONNECTION", val, 1);
 			}
-			else if (!strcasecmp("X-Forwarded-For", extra))
+			else if (!strcasecmp("X-Forwarded-For", idx))
 				/* People should use the HTTP/1.1 variant */
-				setenv("HTTP_CLIENT_IP", param, 1);
+				setenv("HTTP_CLIENT_IP", val, 1);
 			else
 			{
 				/* Blindly copy any other header value */
-				snprintf(name, sizeof(name), "HTTP_%s", extra);
+				char	name[65+6];
+				char	*ptr;
+
+				snprintf(name, sizeof(name), "HTTP_%s", idx);
 				for (ptr = name + 5; *ptr; ptr++)
 					if (*ptr >= 'A' && *ptr <= 'Z')
 						/* DO NOTHING */;
@@ -1287,9 +1274,10 @@ process_request()
 					else
 						break;
 				if (!*ptr)
-					setenv(name, param, 1);
+					setenv(name, val, 1);
 			}
 		}
+		freeheaders(&http_headers);
 	}
 	else if (!strncasecmp(ver, "HTCPCP/", 7))
 	{
