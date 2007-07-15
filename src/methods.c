@@ -1359,8 +1359,60 @@ do_options(const char *params)
 	secprintf("%s 200 OK\r\n", httpver);
 	stdheaders(0, 0, 0);
 	secputs("Content-length: 0\r\n"
-		"Allow: GET, HEAD, POST, OPTIONS\r\n"
+		"Allow: GET, HEAD, POST, OPTIONS, TRACE\r\n"
 		"\r\n");
+	(void)params;
+}
+
+void
+do_trace(const char *params)
+{
+	char	input[LINEBUFSIZE];
+	char	*output;
+	size_t	inlen, outlen, mlen;
+
+	mlen = LINEBUFSIZE;
+	output = malloc(mlen);
+	outlen = snprintf(output, mlen, "TRACE %s %s\r\n", params, httpver);
+	while (1)
+	{
+		/* client headers must always be read with readline() */
+		switch (readline(0, input, LINEBUFSIZE))
+		{
+		case ERR_NONE:
+			break;
+		case ERR_QUIT:
+		default:
+			free(output);
+			xserror("400 Unable to read request line");
+			return;
+		case ERR_LINE:
+			free(output);
+			xserror("400 Request header line exceeded maximum length");
+			return;
+		}
+		inlen = strlen(input);
+		if (outlen + inlen + 2 >= mlen)
+		{
+			mlen += RWBUFSIZE;
+			output = realloc(output, mlen);
+		}
+		strcpy(&output[outlen], input);
+		outlen += inlen;
+		strcpy(&output[outlen], "\r\n");
+		outlen += 2;
+		if (!input[0])
+			break;
+	}
+
+	secprintf("%s 200 OK\r\n", httpver);
+	stdheaders(0, 0, 0);
+	secprintf("Content-length: %zu\r\n", outlen);
+	secputs("Content-type: message/http\r\n\r\n");
+
+	secputs(output);
+
+	free(output);
 	(void)params;
 }
 

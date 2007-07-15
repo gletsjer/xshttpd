@@ -1204,6 +1204,12 @@ process_request()
 			persistent = 1;
 		}
 		setenv("SERVER_PROTOCOL", httpver, 1);
+		if ((!strcasecmp(line, "OPTIONS") && !strcmp(url, "*")) ||
+			!strcasecmp(line, "TRACE"))
+		{
+			params = url;
+			goto METHOD;
+		}
 		while (1)
 		{
 			char	*param;
@@ -1476,6 +1482,7 @@ process_request()
 	else if (!current)
 		current = config.system;
 
+METHOD:
 	setenv("REQUEST_METHOD", line, 1);
 	if (!strcasecmp("GET", line))
 		do_get(params);
@@ -1485,13 +1492,13 @@ process_request()
 		do_post(params);
 	else if (!strcasecmp("OPTIONS", line))
 		do_options(params);
+	else if (!strcasecmp("TRACE", line))
+		do_trace(params);
 	/*
 	else if (!strcasecmp("PUT", line))
 		do_put(params);
 	else if (!strcasecmp("DELETE", line))
 		do_delete(params);
-	else if (!strcasecmp("TRACE", line))
-		do_trace(params);
 	*/
 	else
 		xserror("400 Unknown method");
