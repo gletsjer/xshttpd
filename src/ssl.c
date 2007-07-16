@@ -624,6 +624,7 @@ readheaders(int rd, struct maplist *headlist)
 			break;
 		if (isspace(input[0]))
 		{
+			/* continue previous header */
 			value = input;
 			while (*value && isspace(*value))
 				value++;
@@ -642,22 +643,24 @@ readheaders(int rd, struct maplist *headlist)
 				value++;
 			for (sz = 0; sz < headlist->size; sz++)
 			{
+				/* append to earlier header */
 				idx = headlist->elements[sz].index;
 				val = headlist->elements[sz].value;
 				if (!strcasecmp(idx, input))
 				{
-					len = strlen(val) + strlen(value) + 2;
+					len = strlen(val) + strlen(value) + 3;
 					val = realloc(val, len);
-					strcat(val, " ");
+					strcat(val, ", ");
 					strcat(val, value);
 					headlist->elements[sz].value = val;
 					break;
 				}
 			}
+			/* add new header */
 			if (sz == headlist->size)
 			{
 				headlist->elements = realloc(headlist->elements,
-						(sz + 1) * sizeof(struct mapping));
+					(sz + 1) * sizeof(struct mapping));
 				headlist->elements[sz].index = strdup(input);
 				headlist->elements[sz].value = strdup(value);
 				headlist->size++;
@@ -665,6 +668,7 @@ readheaders(int rd, struct maplist *headlist)
 		}
 		else if (!headlist->size)
 		{
+			/* first 'status' line is special */
 			headlist->elements = realloc(headlist->elements,
 					sizeof(struct mapping));
 			headlist->elements[0].index = strdup("Status");
