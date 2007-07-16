@@ -1212,7 +1212,10 @@ process_request()
 		}
 
 		if (readheaders(0, &http_headers) < 0)
+		{
+			xserror("400 Unable to read request line");
 			return;
+		}
 		for (sz = 0; sz < http_headers.size; sz++)
 		{
 			char	*idx = http_headers.elements[sz].index;

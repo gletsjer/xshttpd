@@ -1374,6 +1374,11 @@ do_trace(const char *params)
 	size_t		i;
 
 	num = readheaders(0, &http_headers);
+	if (num < 0)
+	{
+		xserror("400 Unable to read request line");
+		return;
+	}
 	mlen = LINEBUFSIZE;
 	output = malloc(mlen);
 

@@ -612,11 +612,9 @@ readheaders(int rd, struct maplist *headlist)
 		case ERR_QUIT:
 		default:
 			freeheaders(headlist);
-			xserror("400 Unable to read request line");
 			return -1;
 		case ERR_LINE:
 			freeheaders(headlist);
-			xserror("400 Request header line exceeded maximum length");
 			return -1;
 		}
 

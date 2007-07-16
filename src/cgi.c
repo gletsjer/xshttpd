@@ -382,7 +382,10 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		char	*idx, *val;
 
 		if (readheaders(p[0], &http_headers) < 0)
-				goto END;
+		{
+			xserror("503 Script did not end header");
+			goto END;
+		}
 		for (sz = 0; sz < http_headers.size; sz++)
 		{
 			idx = http_headers.elements[sz].index;
