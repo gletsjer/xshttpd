@@ -394,13 +394,13 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			/* Look for status header */
 			if (!status)
 			{
-				if (!strncasecmp(idx, "Status:", 7))
+				if (!strcasecmp(idx, "Status"))
 				{
 					status = 1;
 					append(head, 1, "%s %s\r\n", httpver, val);
 					continue;
 				}
-				else if (!strncasecmp(idx, "Location:", 9))
+				else if (!strcasecmp(idx, "Location"))
 				{
 					status = 1;
 					append(head, 1, "%s 302 Moved\r\n", httpver);
