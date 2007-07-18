@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.5 beta 16
+- Fix CGI Status header parsing
+
 Changes since 3.5 beta 15
 - Deal nicely with blocking write interrupts (don't abort write)
 - Fix POST data handling broken by recent readlinemode changes
