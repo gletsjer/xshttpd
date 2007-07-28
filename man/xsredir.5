@@ -117,8 +117,32 @@ Note that forwarding unencrypted requests to a https location or
 encrypted requests to a plain-text http location may lead to a false
 sense of security. Use forwards with care.
 .El
+.Sh EXAMPLES
+A common way to show information from a database is to have a single
+CGI handle all requests while pretending every page has its own html
+file:
+.Bd -literal
+rewrite	/~johans/wiki/(.*)\\.html$	/~johans/cgi-bin/wiki.cgi?page=\\1
+.Ed
+.Pp
+To have all pages (except CGI binaries) temporarily served from
+another machine, use something like:
+.Bd -literal
+pass	cgi-bin
+redir	/~johans/(.*)	http://www.stack.nl:8080/~johans/\\1
+.Ed
+.Pp
+Instead of
+.Sy redir ,
+one might use
+.Sy forward
+here instead, if curl support is available.
+In that case the end-user will not be aware that information is retreived
+from another webserver. This is useful if the other server is only
+accessible from the internal network (e.g. a Tomcat server).
 .Sh SEE ALSO
 .Xr httpd 1 ,
+.Xr pcrepattern 3 ,
 .Xr xsconf 5
 .Pp
 The project homepage:
