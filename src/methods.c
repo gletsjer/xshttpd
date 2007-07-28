@@ -99,6 +99,7 @@ static int	v6masktonum		(int, struct in6_addr *);
 static void	senduncompressed	(int);
 static void	sendcompressed		(int, const char *);
 static char *	find_file		(const char *, const char *, const char *)	MALLOC_FUNC;
+static char *	mknewurl		(const char *, const char *, int);
 static int	check_file_redirect	(const char *, const char *);
 static int	check_allow_host	(const char *, char *);
 static int	check_noxs		(const char *);
@@ -1743,7 +1744,7 @@ getfiletype(int print)
 	return(0);
 }
 
-int
+static int
 check_file_redirect(const char *base, const char *filename)
 {
 	int	fd, size, permanent = 0;
@@ -1775,13 +1776,58 @@ check_file_redirect(const char *base, const char *filename)
 	return 0;
 }
 
-int
+static char    *
+mknewurl(const char *old, const char *new, int withproto)
+{
+	static char	result[XS_PATH_MAX];
+	char		*p;
+
+	result[0] = '\0';
+	if (!new)
+		return result;
+
+	if ((p = strstr(new, "://")))
+	{
+		if (withproto)
+			strlcpy(result, new, XS_PATH_MAX);
+		else if ((p = strchr(p + 3, '/')))
+			/* strip unused info */
+			strlcpy(result, p, XS_PATH_MAX);
+		else
+			strlcpy(result, "/", XS_PATH_MAX);
+		return result;
+	}
+	if (withproto)
+	{
+		/* add protocol and hostname */
+		if (cursock->usessl)
+			strlcpy(result, "https://", XS_PATH_MAX);
+		else
+			strlcpy(result, "http://", XS_PATH_MAX);
+		if ((p = getenv("HTTP_HOST")))
+			strlcat(result, p, XS_PATH_MAX);
+		else
+			strlcat(result, current->hostname, XS_PATH_MAX);
+	}
+	if (new[0] != '/')
+	{
+		/* add path */
+		if (strchr(old, '/'))
+			strlcat(result, old, XS_PATH_MAX);
+		p = strrchr(result, '/');
+		if (p && p[1])
+			p[1] = '\0';
+	}
+	strlcat(result, new, XS_PATH_MAX);
+	return result;
+}
+
+static int
 check_redirect(const char *cffile, const char *filename)
 {
-	int	size;
-	char	*p, *command, *subst,
+	char	*p, *command, *subst, *newloc,
 		*host, *orig, *repl,
-		line[XS_PATH_MAX], total[XS_PATH_MAX], request[XS_PATH_MAX];
+		line[XS_PATH_MAX], request[XS_PATH_MAX];
 	FILE	*fp;
 
 	if (!(fp = fopen(cffile, "r")))
@@ -1820,7 +1866,8 @@ check_redirect(const char *cffile, const char *filename)
 			if ((subst = pcre_subst(request, orig, repl)) &&
 					*subst)
 			{
-				redirect(subst, 'R' == command[0], 0);
+				newloc = mknewurl(request, subst, 1);
+				redirect(newloc, 'R' == command[0], 0);
 				free(subst);
 				fclose(fp);
 				return 1;
@@ -1835,7 +1882,8 @@ check_redirect(const char *cffile, const char *filename)
 			if ((subst = pcre_subst(request, orig, repl)) &&
 					*subst)
 			{
-				do_get(subst);
+				newloc = mknewurl(request, subst, 0);
+				do_get(newloc);
 				free(subst);
 				fclose(fp);
 				return 1;
@@ -1852,6 +1900,7 @@ check_redirect(const char *cffile, const char *filename)
 			if ((subst = pcre_subst(request, orig, repl)) &&
 					*subst)
 			{
+				newloc = mknewurl(request, subst, 1);
 				do_proxy(host, subst);
 				free(subst);
 				fclose(fp);
@@ -1860,12 +1909,8 @@ check_redirect(const char *cffile, const char *filename)
 		}
 		else /* no command: redir to url */
 		{
-			size = strlen(command);
-			if (size && '/' == command[size - 1])
-				command[size - 1] = '\0';
-			snprintf(total, XS_PATH_MAX, "%s/%s",
-				command, request);
-			redirect(total, 0, 1);
+			newloc = mknewurl(request, command, 1);
+			redirect(newloc, 0, 1);
 			fclose(fp);
 			return 1;
 		}
