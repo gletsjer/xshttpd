@@ -50,12 +50,21 @@ redirected.
 .Ss Regular Expression Matching
 If
 .Sy PCRE
-(perl-compatible regular expression) support is compiled in
+(perl-compatible regular expression) support is compiled in,
 then more flexible redirection rules can be written. The
 .Pa .redir
 file may contain multiple redirection commands. These
 commands may use several types: pass, redir, Redir, rewrite
 or forward.
+.Pp
+The expression that must be matched by the given PCRE is the
+full local request path (basically the URL without hostname,
+for example
+.Pa /~username/foo/bar.html ) .
+This expression is the same regardless of the location of the
+redir file (either in the user's webroot or the
+.Pa foo
+subdirectory).
 .Bl -tag -width Ds
 .It Sy pass Ar oldurl
 If the requested URL matches the
@@ -122,24 +131,25 @@ A common way to show information from a database is to have a single
 CGI handle all requests while pretending every page has its own html
 file:
 .Bd -literal
-rewrite	/~johans/wiki/(.*)\\.html$	/~johans/cgi-bin/wiki.cgi?page=\\1
+rewrite	/~user/wiki/(.*)\\.html$	/~user/cgi-bin/wiki.cgi?page=\\1
 .Ed
 .Pp
 To have all pages (except CGI binaries) temporarily served from
 another machine, use something like:
 .Bd -literal
 pass	cgi-bin
-redir	/~johans/(.*)	http://www.stack.nl:8080/~johans/\\1
+redir	^/~user/(.*)$	http://www.example.org:8080/~user/\\1
 .Ed
 .Pp
 Instead of
 .Sy redir ,
 one might use
 .Sy forward
-here instead, if curl support is available.
-In that case the end-user will not be aware that information is retreived
-from another webserver. This is useful if the other server is only
-accessible from the internal network (e.g. a Tomcat server).
+here instead.
+In that case the end-user will not be aware that information is
+retreived from another webserver. This is useful if the other server
+is only accessible from the internal network
+(e.g. a local Tomcat server).
 .Sh SEE ALSO
 .Xr httpd 1 ,
 .Xr pcrepattern 3 ,
