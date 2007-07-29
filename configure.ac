@@ -43,7 +43,7 @@ AC_CHECK_TYPES(socklen_t,,, [#include <sys/types.h>
 
 dnl Checks for library functions.
 AC_FUNC_MMAP
-AC_CHECK_FUNCS(setpriority setresgid setresuid setrlimit setsid sigemptyset siginterrupt uname)
+AC_CHECK_FUNCS(setpriority setresgid setresuid setrlimit setsid sigemptyset siginterrupt srandomdev uname)
 
 dnl Checks for functions requiring additional libraries.
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)

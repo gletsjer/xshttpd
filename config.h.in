@@ -150,6 +150,9 @@
 /* Define to 1 if the system has the type `socklen_t'. */
 #undef HAVE_SOCKLEN_T
 
+/* Define to 1 if you have the `srandomdev' function. */
+#undef HAVE_SRANDOMDEV
+
 /* Define if you have the `SSL_version' function */
 #undef HAVE_SSL
 

@@ -378,6 +378,9 @@ void
 initnonce()
 {
 	srandom((unsigned long)time(NULL));
+#ifdef		HAVE_SRANDOMDEV
+	srandomdev();
+#endif		/* HAVE_SRANDOMDEV */
 	secret = random();
 }
 
