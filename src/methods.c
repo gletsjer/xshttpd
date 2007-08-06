@@ -280,15 +280,19 @@ senduncompressed(int fd)
 #endif		/* HAVE_MMAP */
 		/* send static content without mmap() */
 		{
-			char		buffer[RWBUFSIZE];
+			char		*buffer;
 			ssize_t		readtotal;
 			off_t		writetotal;
 
+			if (size > 100 * RWBUFSIZE)
+				buffer = malloc(100 * RWBUFSIZE);
+			else
+				buffer = malloc(size);
 			writetotal = 0;
 			/* alarm((size / MINBYTESPERSEC) + 20); */
 			alarm(0);
 			fflush(stdout);
-			while ((readtotal = read(fd, buffer, RWBUFSIZE)) > 0)
+			while ((readtotal = read(fd, buffer, 100 * RWBUFSIZE)) > 0)
 			{
 				if ((written = secwrite(buffer, (size_t)readtotal))
 						!= readtotal)
@@ -304,6 +308,7 @@ senduncompressed(int fd)
 				writetotal += written;
 			}
 			size = writetotal;
+			free(buffer);
 			alarm(0);
 		}
 	}
