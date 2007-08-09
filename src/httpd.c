@@ -252,8 +252,11 @@ load_config()
 
 	if (*config_preprocessor)
 	{
-		snprintf(line, LINEBUFSIZE, "%s %s", config_preprocessor, config_path);
-		confd = popen(line, "r");
+		char	*preproccmd;
+
+		asprintf(&preproccmd, "%s %s", config_preprocessor, config_path);
+		confd = popen(preproccmd, "r");
+		free(preproccmd);
 	}
 	else
 		confd = fopen(config_path, "r");
@@ -930,7 +933,7 @@ void
 xserror(const char *message)
 {
 	const	char	*env;
-	char		errmsg[10240];
+	char		*errmsg = NULL;
 
 	alarm(180); setcurrenttime();
 	env = getenv("QUERY_STRING");
@@ -943,7 +946,7 @@ xserror(const char *message)
 		referer[0] ? referer : "(none)");
 	if (!headonly)
 	{
-		snprintf(errmsg, sizeof(errmsg),
+		asprintf(&errmsg,
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 			"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
 			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
@@ -963,6 +966,7 @@ xserror(const char *message)
 	}
 	if (!headonly)
 		secputs(errmsg);
+	free(errmsg);
 	fflush(stderr);
 }
 
@@ -970,13 +974,13 @@ void
 redirect(const char *redir, int permanent, int pass_env)
 {
 	const	char	*env = NULL;
-	char		errmsg[10240];
+	char		*errmsg = NULL;
 
 	if (pass_env)
 		env = getenv("QUERY_STRING");
 	if (!headonly)
 	{
-		snprintf(errmsg, sizeof(errmsg),
+		asprintf(&errmsg,
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 			"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
 			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
@@ -1000,6 +1004,7 @@ redirect(const char *redir, int permanent, int pass_env)
 		stdheaders(1, 1, 1);
 	}
 	secputs(errmsg);
+	free(errmsg);
 	fflush(stdout);
 }
 
@@ -1263,10 +1268,10 @@ process_request()
 			else
 			{
 				/* Blindly copy any other header value */
-				char	name[65+6];
 				char	*ptr;
+				char	*name;
 
-				snprintf(name, sizeof(name), "HTTP_%s", idx);
+				asprintf(&name, "HTTP_%s", idx);
 				for (ptr = name + 5; *ptr; ptr++)
 					if (*ptr >= 'A' && *ptr <= 'Z')
 						/* DO NOTHING */;
@@ -1278,6 +1283,7 @@ process_request()
 						break;
 				if (!*ptr)
 					setenv(name, val, 1);
+				free(name);
 			}
 		}
 		freeheaders(&http_headers);

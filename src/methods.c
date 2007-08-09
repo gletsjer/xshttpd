@@ -1423,16 +1423,16 @@ do_proxy(const char *proxy, const char *params)
 {
 #ifdef		HAVE_CURL
 	CURL	*handle = curl_easy_init();
-	char	request[MYBUFSIZ], *p;
+	char	*request, *p;
 
 	if ((p = strstr(proxy, ":443")) || (p = strstr(proxy, ":https")))
 	{
 		*p = '\0'; /* or libcurl will try host:https:443 */
-		snprintf(request, MYBUFSIZ, "https://%s%s", proxy, params);
+		asprintf(&request, "https://%s%s", proxy, params);
 		curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0);
 	}
 	else
-		snprintf(request, MYBUFSIZ, "http://%s%s", proxy, params);
+		asprintf(&request, "http://%s%s", proxy, params);
 	curl_easy_setopt(handle, CURLOPT_URL, request);
 	/* curl_easy_setopt(handle, CURLOPT_VERBOSE, 1); */
 	if (postonly)
@@ -1453,6 +1453,7 @@ do_proxy(const char *proxy, const char *params)
 		xserror("500 Internal forwarding error");
 	else
 		logrequest(params, 0);
+	free(request);
 #endif		/* HAVE_CURL */
 	(void)proxy;
 	(void)params;

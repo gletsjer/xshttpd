@@ -103,7 +103,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	unsigned long		writetodo;
 	off_t			totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
-				request[MYBUFSIZ], *temp,
+				*temp,
 				input[RWBUFSIZE], line[LINEBUFSIZE],
 				head[HEADSIZE];
 	const	char		*argv1;
@@ -559,16 +559,15 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 	if (!getenv("ERROR_CODE"))
 	{
-		char	*qs, *pi;
+		char	*request, *qs, *pi;
 
 		pi = getenv("PATH_INFO");
 		if ((qs = getenv("QUERY_STRING")))
-			snprintf(request, MYBUFSIZ, "%s%s?%s",
-				path, pi ? pi : "", qs);
+			asprintf(&request, "%s%s?%s", path, pi ? pi : "", qs);
 		else
-			snprintf(request, MYBUFSIZ, "%s%s",
-				path, pi ? pi : "");
+			asprintf(&request, "%s%s", path, pi ? pi : "");
 		logrequest(request, totalwritten);
+		free(request);
 	}
 	END:
 	fflush(stdout); close(p[0]); close(p[1]);

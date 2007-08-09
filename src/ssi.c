@@ -235,7 +235,6 @@ counter_versioncheck()
 static	int
 xsc_counter(countermode mode, const char *args, off_t *size)
 {
-	char			host[XS_PATH_MAX];
 	int			fd = -1, timer, total, x, y, z, comp, already = 0;
 	static	countstr	counter;
 	char			*p, filename[sizeof(counter.filename)];
@@ -346,11 +345,6 @@ reopen:
 	}
 	close(fd);
 ALREADY:
-	if (strcmp(cursock->port, "80"))
-		snprintf(host, sizeof(host), "http://%s:%s/",
-			current->hostname, cursock->port);
-	else
-		snprintf(host, sizeof(host), "http://%s/", current->hostname);
 	switch(mode)
 	{
 	case MODE_ALL:

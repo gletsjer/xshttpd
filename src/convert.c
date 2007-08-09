@@ -19,19 +19,23 @@ convertpath(const char *org)
 {
 	static	char		path[XS_PATH_MAX];
 	const	struct	passwd	*userinfo;
-	char			person[XS_USER_MAX];
+	char			*person;
 	char			*slash, *userpos;
 	int			len;
 
 	if (!strncmp(org, "/~", 2))
 	{
-		strlcpy(person, org + 2, XS_USER_MAX);
+		person = strdup(org + 2);
 		if ((slash = strchr(person, '/')))
 			*slash++ = '\0';
 		if ((slash = strchr(org + 2, '/')))
 			slash++;
 		if (!(userinfo = getpwnam(person)))
+		{
+			free(person);
 			return BITBUCKETNAME;
+		}
+		free(person);
 		/* transform_user_dir */
 		if ((userpos = strstr(config.users->htmldir, "%u")))
 		{
