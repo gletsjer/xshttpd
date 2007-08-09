@@ -687,10 +687,9 @@ static	void
 open_logs(int sig)
 {
 	FILE		*pidlog;
-	char		buffer[XS_PATH_MAX];
 	uid_t		savedeuid;
 	gid_t		savedegid;
-	int		tempfile;
+	int			tempfile;
 
 	if (sig)
 	{
@@ -708,8 +707,7 @@ open_logs(int sig)
 	}
 	if (mainhttpd)
 	{
-		snprintf(buffer, XS_PATH_MAX, "%s", calcpath(config.pidfile));
-		if ((pidlog = fopen(buffer, "w")))
+		if ((pidlog = fopen(calcpath(config.pidfile), "w")))
 		{
 			fprintf(pidlog, "%ld\n", (long)getpid());
 			fprintf(pidlog, "%s\n", startparams);
