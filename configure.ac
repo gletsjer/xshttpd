@@ -43,7 +43,7 @@ AC_CHECK_TYPES(socklen_t,,, [#include <sys/types.h>
 
 dnl Checks for library functions.
 AC_FUNC_MMAP
-AC_CHECK_FUNCS(setpriority setresgid setresuid setrlimit setsid sigemptyset siginterrupt srandomdev uname)
+AC_CHECK_FUNCS(setpriority setresgid setresuid setrlimit setsid sigemptyset siginterrupt uname)
 
 dnl Checks for functions requiring additional libraries.
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)
@@ -57,7 +57,7 @@ XS_FUNC_IN_LIB(MD5Data, HAVE_MD5, md, libxs)
 AS_IF([test "$ac_cv_search_inet_aton" = no], [AC_LIBOBJ(inet_aton)])
 AC_CHECK_FUNC(asprintf,, [AC_LIBOBJ(snprintf)])
 AC_CHECK_FUNC(setegid,,   [AC_LIBOBJ(seteuid)])
-AC_REPLACE_FUNCS(closefrom err killpg memmem mkstemp setenv seteuid setgroups setproctitle strlcat strcasestr strerror strlcpy strptime strsep snprintf)
+AC_REPLACE_FUNCS(closefrom err killpg memmem mkstemp setenv seteuid setgroups setproctitle srandomdev strlcat strcasestr strerror strlcpy strptime strsep snprintf)
 
 dnl Check in6_addr layout; must follow socket library check.
 AC_CHECK_TYPES(struct in6_addr,,, [#include <netinet/in.h>])

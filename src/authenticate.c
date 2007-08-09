@@ -377,10 +377,7 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 void
 initnonce()
 {
-	srandom((unsigned long)time(NULL));
-#ifdef		HAVE_SRANDOMDEV
 	srandomdev();
-#endif		/* HAVE_SRANDOMDEV */
 	secret = random();
 }
 

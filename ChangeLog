@@ -1,6 +1,11 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.5 beta 17
+- Increase chunk size for files >12Mb
+- Use srandomdev() where available
+- Make sure redir returns absolute URLs
+
 Changes since 3.5 beta 16
 - Fix CGI Status header parsing
 
