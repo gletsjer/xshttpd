@@ -1779,23 +1779,29 @@ standalone_socket(int id)
 #endif		/* HAVE_GETNAMEINFO */
 
 		strlcpy(remotehost, remoteaddr, NI_MAXHOST);
-#ifndef		HAVE_GETNAMEINFO
-#ifdef		HAVE_GETADDRINFO
-		/* This is especially for broken Linux distro's
-		 * that don't understand what getnameinfo() does
-		 * Let's abuse getaddrinfo() instead...
-		 */
-		hints.ai_family = PF_INET;
-		hints.ai_flags = AI_CANONNAME;
-		if (!getaddrinfo(remoteaddr, NULL, &hints, &res))
+		if (config.usednslookup)
 		{
-			strlcpy(remotehost, res->ai_canonname, NI_MAXHOST);
-			freeaddrinfo(res);
-		}
-#else		/* HAVE_GETADDRINFO */
-		/* Loooser! You will just have to use the IP-adres... */
-#endif		/* HAVE_GETADDRINFO */
+#ifdef		HAVE_GETNAMEINFO
+			getnameinfo((struct sockaddr *)&saddr, clen,
+				remotehost, NI_MAXHOST, NULL, 0, 0);
+#else		/* HAVE_GETNAMEINFO */
+# ifdef		HAVE_GETADDRINFO
+			/* This is especially for broken Linux distro's
+			 * that don't understand what getnameinfo() does
+			 * Let's abuse getaddrinfo() instead...
+			 */
+			hints.ai_family = PF_INET;
+			hints.ai_flags = AI_CANONNAME;
+			if (!getaddrinfo(remoteaddr, NULL, &hints, &res))
+			{
+				strlcpy(remotehost, res->ai_canonname, NI_MAXHOST);
+				freeaddrinfo(res);
+			}
+# else		/* HAVE_GETADDRINFO */
+			/* Loooser! You will just have to use the IP-adres... */
+# endif		/* HAVE_GETADDRINFO */
 #endif		/* HAVE GETNAMEINFO */
+		}
 		if (initssl() < 0)
 			continue;
 		setproctitle("xs(%c%d): Connect from `%s'",
