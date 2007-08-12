@@ -284,10 +284,7 @@ senduncompressed(int fd)
 			ssize_t		readtotal;
 			off_t		writetotal;
 
-			if (size > 100 * RWBUFSIZE)
-				buffer = malloc(100 * RWBUFSIZE);
-			else
-				buffer = malloc(size);
+			buffer = malloc(100 * RWBUFSIZE);
 			writetotal = 0;
 			/* alarm((size / MINBYTESPERSEC) + 20); */
 			alarm(0);
