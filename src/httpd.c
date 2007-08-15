@@ -869,10 +869,11 @@ core_handler(int sig)
 
 	alarm(0); setcurrenttime();
 	env = getenv("QUERY_STRING");
-	errx(1, "[%s] httpd(pid %ld): FATAL SIGNAL %d [from: `%s' req: `%s' params: `%s' referer: `%s']",
+	errx(1, "[%s] httpd(pid %ld): FATAL SIGNAL %d [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']",
 		currenttime, (long)getpid(), sig,
 		remotehost[0] ? remotehost : "(none)",
 		orig[0] ? orig : "(none)", env ? env : "(none)",
+		current ? current->hostname : config.system->hostname,
 		referer[0] ? referer : "(none)");
 }
 
@@ -940,7 +941,7 @@ xserror(const char *message)
 		currenttime, (long)getpid(), message,
 		remotehost[0] ? remotehost : "(none)",
 		orig[0] ? orig : "(none)", env ? env : "(none)",
-		getenv("HTTP_HOST"),
+		current ? current->hostname : config.system->hostname,
 		referer[0] ? referer : "(none)");
 	if (!headonly)
 	{
@@ -1055,10 +1056,11 @@ server_error(const char *readable, const char *cgi)
 		*temp = '\0';
 	setcurrenttime();
 	fprintf((current && current->openerror) ? current->openerror : stderr,
-		"[%s] httpd(pid %ld): %s [from: `%s' req: `%s' params: `%s' referer: `%s']\n",
+		"[%s] httpd(pid %ld): %s [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']\n",
 		currenttime, (long)getpid(), readable,
 		remotehost[0] ? remotehost : "(none)",
 		orig[0] ? orig : "(none)", env ? env : "(none)",
+		current ? current->hostname : config.system->hostname,
 		referer[0] ? referer : "(none)");
 	do_script(orig, cgipath, filename, NULL, 1);
 }
@@ -1717,10 +1719,11 @@ standalone_socket(int id)
 			const	char	*env;
 
 			env = getenv("QUERY_STRING");
-			errx(1, "[%s] httpd(pid %ld): MEMORY CORRUPTION [from: `%s' req: `%s' params: `%s' referer: `%s']",
+			errx(1, "[%s] httpd(pid %ld): MEMORY CORRUPTION [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']",
 				currenttime, (long)getpid(),
 				remotehost[0] ? remotehost : "(none)",
 				orig[0] ? orig : "(none)", env ? env : "(none)",
+				current ? current->hostname : config.system->hostname,
 				referer[0] ? referer : "(none)");
 		}
 
