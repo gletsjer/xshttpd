@@ -182,8 +182,8 @@ senduncompressed(int fd)
 		}
 		if ((env = getenv("IF_MODIFIED_SINCE")))
 		{
-			strptime(env, "%a, %d %b %Y %H:%M:%S", &reqtime);
-			if (!dynamic && (mktime(&reqtime) > modtime))
+			strptime(env, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
+			if (!dynamic && (mktime(&reqtime) >= modtime))
 			{
 				headonly = 1;
 				secprintf("%s 304 Not modified\r\n", httpver);
