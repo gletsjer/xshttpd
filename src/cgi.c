@@ -377,7 +377,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	if (!nph)
 	{
 		struct maplist	http_headers;
-		int		ctype = 0, status = 0, lastmod = 0, server = 0;
+		int		ctype = 0, status = 0, lastmod = 0, server = 0, pragma = 0;
 		size_t	sz;
 		char	*idx, *val;
 
@@ -443,8 +443,15 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			{
 				if (headers >= 11)
 					append(head, 0, "Cache-control: %s\r\n", val);
-				else
+				else if (!pragma)
 					append(head, 0, "Pragma: no-cache\r\n");
+				pragma = 1;
+			}
+			else if (!strcasecmp(idx, "Pragma"))
+			{
+				if (headers < 11 && !pragma)
+					append(head, 0, "Pragma: %s\r\n", val);
+				pragma = 1;
 			}
 			else if (!strcasecmp(idx, "Server"))
 			{
