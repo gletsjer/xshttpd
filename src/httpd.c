@@ -1480,6 +1480,7 @@ process_request()
 
 METHOD:
 	setenv("REQUEST_METHOD", line, 1);
+	setenv("REQUEST_URI", params, 1);
 	if (!strcasecmp("GET", line))
 		do_get(params);
 	else if (!strcasecmp("HEAD", line))
