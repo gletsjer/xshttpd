@@ -644,6 +644,8 @@ readheaders(int rd, struct maplist *headlist)
 				/* append to earlier header */
 				idx = headlist->elements[sz].index;
 				val = headlist->elements[sz].value;
+				if (!strcasecmp(idx, "set-cookie"))
+					continue;
 				if (!strcasecmp(idx, input))
 				{
 					len = strlen(val) + strlen(value) + 3;
