@@ -133,6 +133,11 @@ this can be
 .Sq Sy HEAD ,
 .Sq Sy POST ,
 etc.
+.It Ev REQUEST_URI
+The URI part of the original request. That is the URL without
+protocol and hostname/port specification (but including the
+.Ev QUERY_STRING
+parameters.
 .It Ev REDIRECT_STATUS
 The return status of the request. 
 This should always be 200 for normal CGI binaries.

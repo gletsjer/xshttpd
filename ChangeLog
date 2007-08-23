@@ -2,6 +2,10 @@ This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
 Changes since 3.5 beta 18
+- Fix time format in If-Modified-Since handling (caused 2hr offset)
+- Add REQUEST_URI environment variable
+- Avoid duplicated Pragma headers
+- Don't fold Set-Cookie headers
 - Include vhost name in error logging, by Ed Schouten
 
 Changes since 3.5 beta 17
