@@ -1,322 +1,443 @@
-.TH HTTPD 1 xs-httpd
-
-.SH NAME
-httpd \- WWW server conforming to HTTP/1.1
-
-.SH SYNOPSIS
-.ta 8n
-.B httpd
-.RI [ options ]
-
+.Dd March 26, 1996
+.Dt HTTPD 1
+.Os xs-httpd/3.5
+.Sh NAME
+.Nm httpd
+.Nd WWW server conforming to HTTP/1.1
+.Sh SYNOPSIS
+.Nm httpd
+.Op Fl v
+.Nm httpd
+.Op Fl c Ar configfile
+.Op Fl P Ar preprocessor
+.Op Fl m Ar message
+.Op Fl N
+.Op Fl p Ar port
+.Op Fl u Ar user
+.Op Fl g Ar group
+.Op Fl n Ar number
+.Op Fl d Ar directory
+.Op Fl a Ar address
+.Sh DESCRIPTION
 This manual describes the behaviour of @SERVER_IDENT@.
-
-.SH RUNNING THE SERVER
-Note that the server must run as \fIroot\fP in order to use a port number 
+.Pp
+Note that the server must run as root in order to use a port number 
 below or equal to 1024 (the default is 80).
 Also, to have users' CGI binaries executed under their own user ID,
 the webserver should be started with root privileges.
-.LP
+.Pp
 The server has a number of command line options. These are listed below,
 starting with the options that do not have an equivalent
 configuration file setting:
-.TP
-.B \-c configfile
-Uses the specified configuration file instead of the default
-\fIrootdir\fP/httpd.conf.
-.TP
-.B \-P preprocessor
+.Bl -tag -width Ds -compact
+.It Fl c Ar configfile
+Uses the specified configuration file instead of the default.
+The default location can be displayed using the
+.Fl v
+option.
+.It Fl P Ar preprocessor
 Run the preprocessor command to parse the global configuration file,
-for example \fIm4\fP or \fIcpp\fP.
-A fixed preprocessor program can also be set at compile-time.
-.TP
-.B \-m service\-message
+for example
+.Ql m4
+or
+.Ql cpp .
+A fixed preprocessor program can also be set at compile time.
+.It Fl m Ar service\-message
 If you give this option to the server, it will not function as it normally
 would. Instead of supplying documents, all it will do is display the
-\fBservice\-message\fP. This is very useful to at least give users an idea
-of what you are doing when the server is temporarily out of order.
-Remember that if you are supplying an entire
-sentence, then you have to enclose that sentence in quotes (").
-.TP
-.B \-N
+.Sy service\-message .
+This is very useful to at least give users an idea of what you are doing
+when the server is temporarily out of order. Remember that if you are
+supplying an entire sentence, then you have to enclose that sentence in
+quotes (").
+.It Fl N
 This option disables reading of the configuration file and writing of
 logfiles and pidfile. This can be useful for testing, non-superuser
 execution or in combination with the -m option.
-.TP
-.B \-v
+.It Fl v
 Shows the server version number and certain compile options.
 This does not launch a daemon but exits immediately.
-.LP
+.El
+.Pp
 Additional options may be specified on the command line or in the httpd.conf
 configuration file. Please use the more flexible configuration file for all
-standard settings, see \fBhttpd.conf(5)\fP for details.
-.TP
-.B \-p portnumber
-Uses port number
-.B portnumber
+standard settings, see
+.Xr httpd.conf 5
+for details.
+.Bl -tag -width Ds -compact
+.It Fl p Ar portnumber
+Listen for incoming HTTP requests on port
+.Sy portnumber
 instead of the default (the factory default is 80).
-.TP
-.B \-u username
-Runs the server under \fBusername\fP's user id
-instead of the default (the factory default is nobody).
-This may not be the superuser (root).
-.TP
-.B \-g groupname
-Runs the server under \fBgroupname\fP's group id
-instead of the default (the factory default is nogroup).
-.TP
-.B \-n number
-Uses \fBnumber\fP as the number of servers to
-start (the factory default is 20).
-.TP
-.B \-d rootdir
-Uses \fBrootdir\fP as the base directory for other
-directories like the logs directory, the htdocs
-directory and the cgi\-bin directory. The factory default
-is @configdir@.
-.TP
-.B \-a address
-Uses \fBaddress\fP as the internet address to listen
-on. This is very handy on "multi\-homing" server with multiple
-interfaces. Uses this option, you can place servers with different
+.It Fl u Ar username
+Runs the server under
+.Sy username Ns ' s
+user id instead of the default (the factory default is nobody).
+This option is only available when running as root and the selected
+user should be unprivileged (it can not be
+.Li root ) .
+.It Fl g Ar groupname
+Runs the server under
+.Sy groupname 's
+group id instead of the default
+.Li nogroup .
+.It Fl n Ar number
+Uses
+.Sy number
+as the number of servers to start (the factory default is 20).
+.It Fl d Ar rootdir
+Uses 
+.Sy rootdir
+as the base directory for other directories like the logs directory, the
+htdocs directory and the cgi\-bin directory. The factory default
+.Sy rootdir
+is
+.Pa @rootdir@/ .
+.It Fl a Ar address
+Uses
+.Sy address
+as the internet address to listen on. This is very handy on
+"multi\-homing" server with multiple interfaces.
+Uses this option, you can place servers with different
 functionality on different interfaces. This name is also used for
 redirecting requests back to this host. Therefore, you must use
 a "full" (complete with the host's name and the domain) internet
 address, otherwise remote hosts will not be able to resolve the name.
-
-.SH DESIGN
-XS-HTTPD has some important features that distinguishes it from other
+.El
+.Pp
+.Sh IMPLEMENTATION NOTES
+XS-httpd has some important features that distinguishes it from other
 well-know webservers. The following list highlights the main concepts:
-
-.SS Small and fast
+.Bl -tag -width 2m
+.It Sy \(hy Small and fast
 The webserver was designed to be small and fast. Although it should be
 fully standards-compliant, it does lack some of the more elaborate
 features that other servers offer. 
-.LP
+.Pp
 An imortant design choice is to run with pre-forked processes: which
 means it doesn't start up a new client process for every connection to
 the webserver. This has advantages and disadvantages, but in general
 leads to a faster response and less overhead.
-
-.SS Multi-user environment
+.It Sy \(hy Multi-user environment
 The server can be used on a multi-user system where every user has their
 own website(s). The webpages will be retreived under the user's uid, so
 there is no need to make documents with sensitive data (such as database
 passwords) readable to other users on the same server.
-.LP
+.Pp
 CGI scripts, server-side include controls (SSI) and server-side
 interpreters (PHP, Python) will run with full user privileges as well.
 This gives the users a lot of flexibility to organise their own webspace
 and also limits the effect of problems with a user's scripts to their
-own environment.
-
-.SS Full user control
+own environment. See
+.Xr httpd_cgi 7
+and
+.Xr httpd_ssi 7
+for detailed descriptions.
+.It Sy \(hy Full user control
 It should be possible for skilled users to exercise a great deal of
 control over their own webspace. The ability to run CGI binaries in any
 language or choose local interpreters and mime-types for any document is
 an important aspect of this.
-.LP
+.Pp
 But users can also limit access to (part of) their webspace to certain
 visitors using (built-in) HTTP authentication with freely choosen
 usernames and passwords. Users can choose for Basic or Digest
 authentication, or even configure access using SSL client-certificates,
 or blocking/allowing certain IP ranges.
-.LP
+.Pp
 Ofcourse the amount of control a user actually has can be limited by the
 webserver administrator. It is for instance possible to set resource
 limits on user scripts, or even disable the feature completely in the
 global configuration file.
-
-.SH FEATURES
-
-.SS Automatic decompression
+.El
+.Ss Automatic decompression
 One of the nice features of the WWW server is automatic decompression.
-This feature is dealt with in the file called \fBcompress.methods\fP.
-.LP
+This feature is dealt with in the file called
+.Pa compress.methods .
+.Pp
 This file lists the possible compression types that are understood by the
 WWW server. It works very simply: if somebody asks for (for example)
-\fBindex.html\fP, and this file does not exist, but
-\fBindex.html.gz\fP does exist, then \fBindex.html\fP will be
-`generated' out of \fBindex.html.gz\fP using the method
-specified with \fB.gz\fP. Note that this process does not actually
-create \fBindex.html\fP in that same directory. It creates a file
-in the temporary directory, which is removed immediately after usage.
-.LP
+.Pa index.html ,
+and this file does not exist, but
+.Pa index.html.gz
+does exist, then
+.Pa ndex.html
+will be `generated' out of
+.Pa index.html.gz
+using the method specified with
+.Sy .gz .
+Note that this process does not actually create
+.Pa index.html
+in that same directory. It creates a file in the temporary directory,
+which is removed immediately after usage.
+.Pp
 In the case that the browsers accepts certain document encodigings (gzip
 is quite common) and the document is stored on disk in an acceptable
 format, then the server won't even bother to decompress the document
 himself, but will send it to the client compressed as it is, so that the
 browser will extract it itself before presenting the document to the
 user.
-.LP
-If somebody asks directly for \fBindex.html.gz\fP, he will get it
-in the compressed format. This way, nice things like the following can
-be done:
-.LP
-\fBGet <A HREF="xshttpd.tar">the uncompressed
-tar</A>, or get the <A HREF="xshttpd.tar.gz">the compressed tar</A>.\fP
-.LP
+.Pp
+If somebody asks directly for
+.Pa index.html.gz ,
+he will get it in the compressed format. This way, nice things like the
+following can be done:
+.Bd -literal -offset indent -compact
+Get <A HREF="xshttpd.tar">the uncompressed tar</A>,
+or get the <A HREF="xshttpd.tar.gz">the compressed tar</A>.
+.Ed
+.Pp
 The user only has to have the compressed version, because if somebody
 asks for the uncompressed version, the server will uncompress it on the
 fly for that user.
-.LP
+.Pp
 Note that only one compression type per file is possible. Of course, you
 can make frontends for types that require multiple filters. In that case,
 it can be helpful to know that the list is traversed from top to bottom.
-
-.SS Authentication
-This server supports the \fIbasic\fP authentication protocol. This
-means that users can protect their pages with a username/password
-combination. Other servers can do this as well, but they lack one thing:
-the "protected" files have to be world\-readable. Because our server
-retrieves pages under users' own UID, this problem is avoided.
-.LP
+.Ss Authentication
+This server supports the
+.Sy basic
+and
+.Sy digest
+HTTP authentication protocols. This means that users can protect their
+pages with a username/password combination. Other servers can do this as
+well, but they lack one thing: the
+.Qq protected
+files often have to be world\-readable. Because our server
+retrieves pages under users' own uid, this problem is avoided.
+.Pp
 Basic authentication does not provide (password) encryption. If you are
 worried about other parties intercepting your communications, you should
-configure \fBSSL\fP (as documented below).
+configure
+.Sy SSL
+(as explained below).
 More information about setting up authentication paswords can be found
-in the manual pages of \fBxspasswd(1)\fP and \fBxsauth(5)\fP.
-.LP
+in the manual pages of
+.Xr xspasswd 1
+and
+.Xr xsauth 5 .
+.Pp
 Authentication can also be handled using SSL client certificates.
-However this requires the user to deal with SSL_* environment variables
-in an CGI environment. See the description of the available CGI
-variables below for more information.
-
-.SS Secure Sockets Layer
+However this requires the user to deal with
+.Ev SSL_*
+environment variables in an CGI environment. See the description of the
+available CGI variables in
+.Xr httpd_cgi 7 .
+.Ss Secure Sockets Layer
 The webserver supports secure https connections as well as normal http.
 However if you want to do both, you will need to run seperate instances,
-one with \fBUseSSL\fP (or the command line option -s) set and one without.
-.LP
-To use SSL you will need an x509 certificate (\fIcert.pem\fP) and the
-corresponding private key (\fIkey.pem\fP). If you don't have
-certificates -or a certificiate authority to give these to you- then you
-can create the required files yourself using \fBopenssl\fP.
-.LP
-The two \fI*.pem\fP files are usually stored in the httpd config directory
-(by default \fI@configdir@\fP).
-You can use other filenames for the certificate and private key by
-setting the parameters \fBSSLCertificate\fP and \fBSSLPrivateKey\fP
+one with
+.Sy UseSSL
+(or the command line option
+.Fl s )
+set and one without.
+.Pp
+To use SSL you will need an x509 certificate
+.Pa ( cert.pem )
+and the corresponding private key
+.Pa ( key.pem ) .
+If you don't have certificates -or a certificiate authority to give
+these to you- then you can create the required files yourself using
+.Xr openssl 1 .
+.Pp
+The two
+.Pa *.pem
+files are usually stored in the httpd config directory. You can use
+other filenames for the certificate and private key by setting the
+parameters
+.Sy SSLCertificate
+and
+.Sy SSLPrivateKey
 in the configuration file.
-.LP
+.Pp
 An example SSL-Makefile that can help you generate the certificate,
 can be found in the httpd source distribution.
-
-.SS Server support for common tasks
+.Ss Built-in support for common tasks
 XS-httpd configuration files, server-side includes and several
 additional programs make certain tedious tasks a lot simpler for the
 common user. Examples are:
-.IP \(bu 4
+.Bl -bullet
+.It
 Pagecounters served using server-side includes: daily or total
 pageviews can be included in text or in graphical fonts.
-.IP \(bu 4
+.It
 Easy configuration of headers that describe the content: the
 mime-type, character set and language of documents can be set per file,
 file extension or directory tree by the user.
-.IP \(bu 4
+.It
 Allow user-settable redirects (HTTP 301, 302 code), server-side
 filename rewriting rules or proxying to have the server retreive
 contents from another backend server.
-
-
-.SH USER CONFIGURATION FILES
-There are several files that this WWW server considers special.
-These files start with a dot (hidden) and contain special instructions
-for the webserver that apply to a sigle file or all files in a directory
-(and underlying subdirectories).
-.TP
-.B .xsconf
+.El
+.Sh ENVIRONMENT
+All environment variables which were set when the program was started
+will be ignored. These are not available to CGI scripts or other child
+processes. See
+.Xr httpd_cgi 7
+for the variables that will be available within the httpd environment.
+.Sh FILES
+The global configuration file is
+.Pa httpd.conf :
+this should be configured by the site administrator before starting
+the webserver. All available settings are explained in
+.Xr httpd.conf 5 .
+.Pp
+There are several files that this WWW server considers special when
+they appear in the HTML documents directories. These files start with a
+dot (hidden) and contain special instructions for the webserver that
+apply to a sigle file or all files in a directory (and underlying
+subdirectories).
+.Bl -tag -width Ds
+.It .xsconf
 This file provides a generic interface to set a lot of the options
 mentioned below, specifically for a certain file or group of files.
 It allows you to set file-specific mimetype, character set, passwords
-and other access restrictions. See \fBxsconf(5)\fP for full details.
-.TP
-.B .noxs
+and other access restrictions. See
+.Xr xsconf 5
+for full details.
+.It .noxs
 If this file exists in a certain directory, that entire
 directory is considered closed. If somebody attempts to
 retrieve a file from that directory, he will get a
-\fIPermission denied\fP notice. This is useful for
-users and system administrators: users can use it when
-they are updating the directory and system administrators
-can use it to easily shut down a group of pages.
-This applies to subdirectories as well.
-.IP
+.Ql Permission denied
+notice. This is useful for users and system administrators: users can
+use it when they are updating the directory and system administrators
+can use it to easily shut down a group of pages. This applies to
+subdirectories as well.
+.Pp
 It is possible to allow access to this directory for a limited
 number of hosts. You can list the IP-addresses to which access
 should be granted in this file (one address per line). This works
 for IPv4 as well as IPv6 addresses. Or you can use CIDR notation to
 allow an entire subnet. So including "131.155.140.0/23" will unblock
 131.155.140.0 - 131.155.141.255.
-.TP
-.B .xsuid
+.It .xsuid
 If this file exists in a certain directory, all files in that
 directory will be retrieved as (by default) nobody/nogroup
 instead of under your own UID. This can be useful if you want
 a file permission of say 600 to mean: do not allow retrieval
 (by default, the file is retrieved under your own UID, so the
 daemon could have still read those files).
-.TP
-.B .redir
+.It .redir
 If this file is present in a certain directory, and a file
 is requested from that directory, then a redirection message
-will be sent to the remote user's browser. See \fBxsredir(5)\fP
+will be sent to the remote user's browser. See
+.Xr xsredir 5
 for the format of this file.
-.TP
-.B *.redir
+.It *.redir
 If a (regular) file is requested and a file exists with the same
-name but with \fB.redir\fP appended to it, then the client will be
-redirected to the URL that is mentioned in this *.redir file.
-.TP
-.B *.Redir
-The same as \fB*.redir\fP, however instead of a temporary
-redirection (302) a permanent redirection (301) will be sent.
-.TP
-.B .charset
+name but with
+.Pl .redir appended to it, then the client will be redirected to the URL
+that is mentioned in this *.redir file.
+.It *.Redir
+The same as 
+.Ql *.redir ,
+however instead of a temporary redirection (302) a permanent redirection
+(301) will be sent.
+.It .charset
 If this file is present in a certain directory, then all files
 requested from that directory will get an extra HTTP header which
 indicates the character set used, as specified by the contents
 of the .charset file. Usefull settings are e.g. UTF-8, ISO-8859-1,
 KOI8-R.
-.TP
-.B *.charset
+.It *.charset
 Sets the character set for a specific file (see *.redir).
-.TP
-.B .mimetypes
+.It .mimetypes
 This file lets a user override the contents of the global
-\fImime.types\fP file. The syntax of this file is exactly the
-same as that for the global configuration file, but it applies
-(recursively) to the local subdirectories.
-.TP
-.B .xsauth
+.Pa mime.types
+file. The syntax of this file is exactly the same as that for the global
+configuration file, but it applies (recursively) to the local
+subdirectories.
+.It .xsauth
 If this file exists, all files in that directory and
 subdirectories are protected by usercode/password
-combinations. See \fBxsauth(5)\fP for more details about this.
-.TP
-.B .xsscripts
+combinations. See
+.Xr xsauth 5
+for more details about this.
+.It .xsscripts
 This file lets a user override the contents of the global
-\fIscript.methods\fP file. The syntax of this file is exactly the
-same as that for the global configuration file and it applies
-(recursively) to the local subdirectories. See \fBxsscripts(5)\fP
+.Pa script.methods
+fP file. The syntax of this file is exactly the same as that for the
+global configuration file and it applies (recursively) to the local
+subdirectories. See
+.Xr xsscripts 5
 for more information.
-
-.SH ACKNOWLEDGEMENTS
-I thank all the members at MCGV Stack who are actively involved in the
-entire WWW happening.
-
-.SH "SEE ALSO"
-http://www.stack.nl/xs\-httpd/
-.br
-xspasswd(1), imagemap(1), clearxs(1), readxs(1), gfxcount(1), xsindex(1),
-httpdc(1), httpd.conf(5), xsauth(5), xsconf(5), xsredir(5), xsscripts(5),
-httpd_cgi(7), httpd_ssi(7)
-
-.SH COPYRIGHT
-All the programs in the XS\-HTTPD package are copyright \(co 1995\(en2007
-by Sven Berkvens and Johan van Selst, except the imagemapper.
-
-.SH AUTHOR
+.El
+.Sh DIAGNOSTICS
+The
+.Sy httpd
+returns status 0 when it starts succesfully and the daemon will continue
+to run in the background. If any fatal error occurs, additional
+information should be available in the logfile
+.Pa logs/error_log .
+.Sh SEE ALSO
+.Xr httpdc 1 ,
+.Xr xspasswd 1 ,
+.Xr xsindex 1 ,
+.Xr readxs 1 ,
+.Xr clearxs 1 ,
+.Xr imagemap 1 ,
+.Xr gfxcount 1 ,
+.Xr xschpass 1 ,
+.Xr httpd.conf 5 ,
+.Xr xsauth 5 ,
+.Xr xsconf 5 ,
+.Xr xsredir 5 ,
+.Xr xsscripts 5 ,
+.Xr httpd_cgi 7 ,
+.Xr httpd_ssi 7
+.Pp
+The project homepage:
+.Pa http://www.stack.nl/xs\-httpd/
+.Sh STANDARDS
+.Bl -item -compact
+.It
+.Rs
+.%R RFC 1945
+.%T Hypertext Transfer Protocol -- HTTP/1.0
+.%D May 1996
+.Re
+.It
+.Rs
+.%R RFC 2616
+.%T Hypertext Transfer Protocol -- HTTP/1.1
+.%D June 1999
+.Re
+.It
+.Rs
+.%R RFC 2617
+.%T HTTP Authentication: Basic and Digest Access Authentication
+.%D June 1999
+.Re
+.It
+.Rs
+.%R RFC 2818
+.%T HTTP Over TLS
+.%D May 2000
+.It
+.Rs
+.%R RFC 2965
+.%T HTTP State Management Mechanism
+.%D October 2000
+.Re
+.It
+.Rs
+.%R RFC 3875
+.%T The Common Gateway Interface (CGI) Version 1.1
+.%D October 2004
+.Re
+.It
+.Rs
+.%R RFC 4346
+.%T The Transport Layer Security (TLS) Protocol Version 1.1
+.%D April 2006
+.Re
+.El
+.Sh AUTHORS
 The original author of this WWW server and its accompanying programs
 is Sven Berkvens, except the imagemapper which was taken from the NCSA
 distribution and cleaned up. The current maintainer is Johan van Selst.
-.LP
-New features have been added by other people at Stack. If you have
-problems with this version please contact the Stack maintainers
-(xs-httpd@stack.nl) about it and don't bother Sven.
+.Pp
+Please use the general contact address
+.Aq xs-httpd@stack.nl
+for queries.
