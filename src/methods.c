@@ -180,7 +180,7 @@ senduncompressed(int fd)
 				}
 			lseek(fd, (off_t)0, SEEK_SET);
 		}
-		if ((env = getenv("IF_MODIFIED_SINCE")))
+		if ((env = getenv("HTTP_IF_MODIFIED_SINCE")))
 		{
 			strptime(env, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
 			if (!dynamic && (mktime(&reqtime) >= modtime))
@@ -191,7 +191,7 @@ senduncompressed(int fd)
 			else
 				secprintf("%s 200 OK\r\n", httpver);
 		}
-		else if ((env = getenv("IF_UNMODIFIED_SINCE")))
+		else if ((env = getenv("HTTP_IF_UNMODIFIED_SINCE")))
 		{
 			strptime(env, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
 			if (dynamic || (mktime(&reqtime) > modtime))
