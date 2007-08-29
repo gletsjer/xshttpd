@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.5 beta 19
+- Change to BSD style license (2 clause version)
+
 Changes since 3.5 beta 18
 - Fix time format in If-Modified-Since handling (caused 2hr offset)
 - Add REQUEST_URI environment variable

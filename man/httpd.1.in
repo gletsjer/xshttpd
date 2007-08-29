@@ -105,7 +105,7 @@ a "full" (complete with the host's name and the domain) internet
 address, otherwise remote hosts will not be able to resolve the name.
 .El
 .Pp
-.Sh IMPLEMENTATION NOTES
+.Ss Server design
 XS-httpd has some important features that distinguishes it from other
 well-know webservers. The following list highlights the main concepts:
 .Bl -tag -width 2m
