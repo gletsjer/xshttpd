@@ -193,7 +193,7 @@ senduncompressed(int fd)
 		}
 		else if ((env = getenv("IF_UNMODIFIED_SINCE")))
 		{
-			strptime(env, "%a, %d %b %Y %H:%M:%S", &reqtime);
+			strptime(env, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
 			if (dynamic || (mktime(&reqtime) > modtime))
 			{
 				server_error("412 Precondition failed", "PRECONDITION_FAILED");
