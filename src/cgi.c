@@ -397,12 +397,14 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				if (!strcasecmp(idx, "Status"))
 				{
 					status = 1;
+					rstatus = atoi(val);
 					append(head, 1, "%s %s\r\n", httpver, val);
 					continue;
 				}
 				else if (!strcasecmp(idx, "Location"))
 				{
 					status = 1;
+					rstatus = 302;
 					append(head, 1, "%s 302 Moved\r\n", httpver);
 				}
 			}

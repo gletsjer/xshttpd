@@ -28,8 +28,7 @@
 extern	char	remotehost[], dateformat[], currentdir[],
 		currenttime[], httpver[], real_path[],
 		orig_filename[];
-extern	time_t	modtime;
-extern	int		headers, headonly, postonly, chunked, persistent;
+extern	int		headers, headonly, postonly, chunked, persistent, rstatus;
 extern	gid_t	origegid;
 extern	uid_t	origeuid;
 

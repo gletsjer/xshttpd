@@ -92,7 +92,7 @@ static char copyright[] =
 
 /* Global variables */
 
-int		headers, headonly, postonly, chunked, persistent;
+int		headers, headonly, postonly, chunked, persistent, rstatus;
 static	int	sd, reqs, reqsc, mainhttpd = 1, in_progress = 0;
 gid_t		origegid;
 uid_t		origeuid;
@@ -104,7 +104,6 @@ static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[RWBUFSIZE],
 		message503[MYBUFSIZ], orig[MYBUFSIZ],
 		config_path[XS_PATH_MAX], config_preprocessor[XS_PATH_MAX],
 		*startparams;
-time_t		modtime;
 struct virtual			*current;
 struct configuration	config;
 
@@ -321,6 +320,10 @@ load_config()
 						config.usessi = !strcasecmp("true", value);
 					else if (!strcasecmp("UseStrictHostname", key))
 						config.usestricthostname = !strcasecmp("true", value);
+					else if (!strcasecmp("UseCoreDump", key))
+						config.usecoredump = !strcasecmp("true", value);
+					else if (!strcasecmp("UseETag", key))
+						config.useetag = !strcasecmp("true", value);
 					else if (!strcasecmp("ScriptCpuLimit", key))
 						config.scriptcpulimit = atoi(value);
 					else if (!strcasecmp("ScriptTimeout", key))
@@ -915,17 +918,20 @@ set_signals()
 	action.sa_flags = 0;
 	sigaction(SIGINT, &action, NULL);
 
+	if (!config.usecoredump)
+	{
 #ifdef		SIGBUS
-	action.sa_handler = core_handler;
-	action.sa_flags = 0;
-	sigaction(SIGBUS, &action, NULL);
+		action.sa_handler = core_handler;
+		action.sa_flags = 0;
+		sigaction(SIGBUS, &action, NULL);
 #endif		/* SIGBUS */
 
 #ifdef		SIGSEGV
-	action.sa_handler = core_handler;
-	action.sa_flags = 0;
-	sigaction(SIGSEGV, &action, NULL);
+		action.sa_handler = core_handler;
+		action.sa_flags = 0;
+		sigaction(SIGSEGV, &action, NULL);
 #endif		/* SIGSEGV */
+	}
 }
 
 void
@@ -1002,6 +1008,7 @@ redirect(const char *redir, int permanent, int pass_env)
 		secprintf("Content-length: %zu\n", strlen(errmsg));
 		stdheaders(1, 1, 1);
 	}
+	rstatus = permanent ? 301 : 302;
 	secputs(errmsg);
 	free(errmsg);
 	fflush(stdout);
@@ -1100,10 +1107,11 @@ logrequest(const char *request, off_t size)
 		FILE	*rlog = current->openreferer
 			? current->openreferer
 			: config.system->openreferer;
-		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" 200 %" PRId64 "\n",
+		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" %03d %" PRId64 "\n",
 			remotehost,
 			buffer,
 			getenv("REQUEST_METHOD"), dynrequest, httpver,
+			rstatus,
 			size > 0 ? (int64_t)size : (int64_t)0);
 		if (rlog &&
 			(!current->thisdomain || !strcasestr(referer, current->thisdomain)))
@@ -1111,21 +1119,23 @@ logrequest(const char *request, off_t size)
 	}
 	else if (current->logstyle == log_virtual)
 		/* this is combined format + virtual hostname */
-		fprintf(alog, "%s %s - - [%s +0000] \"%s %s %s\" 200 %" PRId64
+		fprintf(alog, "%s %s - - [%s +0000] \"%s %s %s\" %03d %" PRId64
 				" \"%s\" \"%s\"\n",
 			current ? current->hostname : config.system->hostname,
 			remotehost,
 			buffer,
 			getenv("REQUEST_METHOD"), dynrequest, httpver,
+			rstatus,
 			size > 0 ? (int64_t)size : (int64_t)0,
 			referer,
 			dynagent);
 	else /* logstyle = combined */
-		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" 200 %" PRId64
+		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" %03d %" PRId64
 				" \"%s\" \"%s\"\n",
 			remotehost,
 			buffer,
 			getenv("REQUEST_METHOD"), dynrequest, httpver,
+			rstatus,
 			size > 0 ? (int64_t)size : (int64_t)0,
 			referer,
 			dynagent);
@@ -1156,6 +1166,7 @@ process_request()
 
 	http_host[0] = '\0';
 
+	rstatus = 200;
 	errno = 0;
 	chunked = 0;
 	persistent = 0;

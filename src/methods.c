@@ -139,6 +139,38 @@ static	size_t	curl_readlen;
 PerlInterpreter *	my_perl = NULL;
 #endif		/* HAVE_PERL */
 
+static char *
+make_etag(struct stat *sb)
+{
+#define	ETAG_LEN	(sizeof(time_t) + sizeof(ino_t) + sizeof(off_t))
+#define	ETAG_SLEN	(2 * ETAG_LEN + 3)
+	static char	etag[ETAG_SLEN];
+	char		binbuf[ETAG_LEN], *p = binbuf;
+	time_t		modtime;
+
+	if (!sb || !config.useetag)
+	{
+		etag[0] = '\0';
+		return NULL;
+	}
+
+	/* etag = inode . modtime . size
+	 * Warning: this value is system dependent,
+	 * check struct sizes, definitions, endianness
+	 */
+	modtime = sb->st_mtime;
+	memcpy(p, &sb->st_ino, sizeof(ino_t));
+	p += sizeof(ino_t);
+	memcpy(p, &modtime, sizeof(time_t));
+	p += sizeof(modtime);
+	memcpy(p, &sb->st_size, sizeof(off_t));
+	/* prepend id */
+	memcpy(etag, SERVER_IDENT, 2);
+	hex_encode(binbuf, ETAG_LEN, etag + 2);
+
+	return etag;
+}
+
 static void
 senduncompressed(int fd)
 {
@@ -147,7 +179,6 @@ senduncompressed(int fd)
 	ssize_t		written;
 	off_t		size;
 	char		modified[32];
-	struct tm	reqtime;
 
 	alarm(180);
 	if ((size = lseek(fd, 0, SEEK_END)) == -1)
@@ -164,7 +195,22 @@ senduncompressed(int fd)
 	}
 	if (headers)
 	{
-		char *env;
+		char		*env;
+		struct stat	statbuf;
+		time_t		modtime;
+		struct tm	reqtime;
+		char		*etag;
+
+		if (!fstat(fd, &statbuf))
+		{
+			modtime = statbuf.st_mtime;
+			etag = make_etag(&statbuf);
+		}
+		else
+		{
+			modtime = 0;
+			etag = NULL;
+		}
 
 		/* This is extra overhead, overhead, overhead! */
 		if (config.usessi && getfiletype(0))
@@ -180,23 +226,62 @@ senduncompressed(int fd)
 				}
 			lseek(fd, (off_t)0, SEEK_SET);
 		}
+		if (etag &&
+			((env = getenv("HTTP_IF_MATCH")) ||
+			 (env = getenv("HTTP_IF_NONE_MATCH"))))
+		{
+			size_t	i, sz;
+			char	**list = NULL;
+			int	abort_wo_match = !!getenv("HTTP_IF_MATCH");
+
+			sz = string_to_arrayp(env, &list);
+			for (i = 0; i < sz; i++)
+			{
+				if (!list[i] || list[i][0])
+					continue;
+				if (!strcmp(list[i], etag))
+					break;
+				else if (!strcmp(list[i], "*"))
+					break;
+			}
+			free(list);
+			if ((abort_wo_match && (i >= sz)) ||
+				(!abort_wo_match && (i < sz)))
+			{
+				/* exit with error
+				 * unless If-None-Match && method == GET
+				 */
+				if (abort_wo_match ||
+					strcmp(getenv("REQUEST_METHOD"), "GET"))
+				{
+					server_error("412 Precondition failed",
+						"PRECONDITION_FAILED");
+					close(fd);
+					return;
+				}
+			}
+		}
 		if ((env = getenv("HTTP_IF_MODIFIED_SINCE")))
 		{
 			strptime(env, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
 			if (!dynamic && (mktime(&reqtime) >= modtime))
 			{
 				headonly = 1;
+				rstatus = 304;
 				secprintf("%s 304 Not modified\r\n", httpver);
 			}
 			else
+			{
 				secprintf("%s 200 OK\r\n", httpver);
+			}
 		}
 		else if ((env = getenv("HTTP_IF_UNMODIFIED_SINCE")))
 		{
 			strptime(env, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
-			if (dynamic || (mktime(&reqtime) > modtime))
+			if (dynamic || (mktime(&reqtime) >= modtime))
 			{
-				server_error("412 Precondition failed", "PRECONDITION_FAILED");
+				server_error("412 Precondition failed",
+					"PRECONDITION_FAILED");
 				close(fd);
 				return;
 			}
@@ -224,6 +309,9 @@ senduncompressed(int fd)
 				"%a, %d %b %Y %H:%M:%S GMT", gmtime(&modtime));
 			secprintf("Last-modified: %s\r\n", modified);
 		}
+
+		if (etag)
+			secprintf("ETag: %s\r\n", etag);
 
 		if (*encoding)
 			secprintf("Content-encoding: %s\r\n", encoding);
@@ -1174,7 +1262,6 @@ do_get(char *params)
 		return;
 	}
 
-	modtime = statbuf.st_mtime;
 	if ((fd = open(total, O_RDONLY, 0)) < 0)
 	{
 		server_error("403 File permissions deny access", "NOT_AVAILABLE");

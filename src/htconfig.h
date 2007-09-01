@@ -97,6 +97,8 @@ extern struct configuration
 	unsigned	usestricthostname: 1;
 	unsigned	useacceptfilter: 1;
 	unsigned	usessi: 1;
+	unsigned	usecoredump: 1;
+	unsigned	useetag: 1;
 	char *		virtualhostdir;
 	char *		defaultcharset;
 	char *		scriptpath;
