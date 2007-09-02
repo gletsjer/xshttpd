@@ -201,7 +201,6 @@ string_to_array(char *value, char **array)
 			num++;
 		}
 
-	num++;
 	if (array)
 		array[num] = NULL;
 	else
