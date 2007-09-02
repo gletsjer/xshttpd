@@ -675,11 +675,15 @@ dir_last_mod(int argc, char **argv, off_t *size)
 		if ((path = getenv("ORIG_PATH_TRANSLATED")) &&
 				!stat(path, &statbuf))
 			thetime = localtime(&statbuf.st_mtime);
-		if ((path = getenv("PATH_TRANSLATED")) &&
+		if ((path = getenv("SCRIPT_FILENAME")) &&
 				!stat(path, &statbuf))
 			thetime = localtime(&statbuf.st_mtime);
 		else
-			thetime = localtime(0);
+		{
+			time_t	now;
+			time(&now);
+			thetime = localtime(&now);
+		}
 	}
 
 	strftime(buffer, MYBUFSIZ - 1, dateformat, thetime);

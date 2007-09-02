@@ -1114,10 +1114,15 @@ do_get(char *params)
 
 	if ((!*file) && (wasdir) && current->indexfiles)
 	{
+		char	*newpath;
+
 		setenv("PWD", currentdir, 1);
 		filename = current->indexfiles[0];
 		strlcat(real_path, filename, XS_PATH_MAX);
-		setenv("SCRIPT_FILENAME", convertpath(real_path), 1);
+		strlcat(currentdir, filename, XS_PATH_MAX);
+		asprintf(&newpath, "%s%s", base, real_path);
+		setenv("SCRIPT_FILENAME", newpath, 1);
+		free(newpath);
 	}
 	else
 		filename = file;
