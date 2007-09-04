@@ -222,6 +222,7 @@ senduncompressed(int fd)
 				if (strstr(input, "<!--#"))
 				{
 					dynamic = 1;
+					etag = NULL;
 					break;
 				}
 			lseek(fd, (off_t)0, SEEK_SET);
