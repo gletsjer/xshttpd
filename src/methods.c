@@ -201,17 +201,6 @@ senduncompressed(int fd)
 		struct tm	reqtime;
 		char		*etag;
 
-		if (!fstat(fd, &statbuf))
-		{
-			modtime = statbuf.st_mtime;
-			etag = make_etag(&statbuf);
-		}
-		else
-		{
-			modtime = 0;
-			etag = NULL;
-		}
-
 		/* This is extra overhead, overhead, overhead! */
 		if (config.usessi && getfiletype(0))
 		{
@@ -222,11 +211,22 @@ senduncompressed(int fd)
 				if (strstr(input, "<!--#"))
 				{
 					dynamic = 1;
-					etag = NULL;
 					break;
 				}
 			lseek(fd, (off_t)0, SEEK_SET);
 		}
+
+		if (!dynamic && !fstat(fd, &statbuf))
+		{
+			modtime = statbuf.st_mtime;
+			etag = make_etag(&statbuf);
+		}
+		else
+		{
+			modtime = 0;
+			etag = NULL;
+		}
+
 		if (etag &&
 			((env = getenv("HTTP_IF_MATCH")) ||
 			 (env = getenv("HTTP_IF_NONE_MATCH"))))
