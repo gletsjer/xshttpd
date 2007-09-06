@@ -168,6 +168,11 @@ make_etag(struct stat *sb)
 	memcpy(etag, SERVER_IDENT, 2);
 	hex_encode(binbuf, ETAG_LEN, etag + 2);
 
+	/* strip trailing zeros (on little endian systems) */
+	p = etag + 2 + 2 * ETAG_LEN;
+	while ('0' == *--p && '0' == *--p)
+		*p = '\0';
+
 	return etag;
 }
 

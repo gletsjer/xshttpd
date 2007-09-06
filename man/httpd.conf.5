@@ -160,6 +160,25 @@ queued data. Both mechanisms can effectively reduce the
 workload of the webserver, especially when you are
 experiencing bogus connects. Only enable this option if your
 system has indeed such a system.
+.It Sy UseETag Ar boolean
+If this option is enabled, entity tags will be used for static
+documents (anything that is not a CGI binary or contains
+server-side include directives). Browsers and webproxies can
+use this tag to determine if their cached entries are still
+up-to-date. Entity tag information is based on the file
+properties (such as size and modification time) rather than
+the file contents. Therefor it's fast to determine, but not
+perfect.
+.It Sy UseCoreDump Ar boolean
+This option is used for debugging only and disabled by default.
+If enabled, then coredumps may be generated when the program
+triggers a segmentation fault, illegal instruction, bus error
+or similar fatal error condition. Whether the core image is indeed
+created will depend on other factors as well: write access for
+the actual uid in the working directory (often
+.Pa / ) ,
+available diskspace and system preferences about the desirability
+of uid-shifting programs dumping their state on disk.
 .It Sy Priority Ar level
 The system priority that the daemon will be running at. A
 lower priority causes more favorable scheduling. The default
