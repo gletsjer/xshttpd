@@ -12,11 +12,8 @@ httpd_LDFLAGS = @httpd_ldflags@ @libxs_ldflags@
 libxs_a_SOURCES = decode.c extra.c path.c xscrypt.c
 libxs_a_CFLAGS = @libxs_cflags@
 
-xspasswd_LDFLAGS = @libxs_ldflags@
-xschpass_LDFLAGS = @libxs_ldflags@
-
 # default for all *_PROGRAMS
-LDADD = libxs.a ../libcompat/libcompat.a
+LDADD = libxs.a ../libcompat/libcompat.a @libxs_ldflags@
 DEFAULT_INCLUDES =
 
 EXTRA_DIST = alternative.h authenticate.h cgi.h config.h confpatch.h \
