@@ -524,24 +524,13 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		totalwritten = ttw;
 	}
 	else
-		for (;;)
-		{
-			int result = secread(p[0], input, RWBUFSIZE);
+	{
+		int	result;
 
-			if (result < 0)
-			{
-				if (errno == EAGAIN)
-				{
-					usleep(300);
-					continue;
-				}
-				secprintf("[read() error from CGI: %s]", strerror(errno));
-				break;
-			}
-			else if (!result)
-				break;
-			/* result > 0 */
-			writetodo = result; temp = input;
+		while ((result = secread(p[0], input, RWBUFSIZE)) > 0)
+		{
+			writetodo = result;
+			temp = input;
 			while (writetodo > 0)
 			{
 				written = secwrite(temp, writetodo);
@@ -565,6 +554,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			}
 			totalwritten += result;
 		}
+	}
 
 	if (!getenv("ERROR_CODE"))
 	{
