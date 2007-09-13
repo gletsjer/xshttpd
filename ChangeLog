@@ -1,6 +1,10 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.5 beta 21
+- Remove misplaced CGI error message
+- Log CGI errors to the vhost specific error_log
+
 Changes since 3.5 beta 20
 - Fix If-(Un)modified-Since header parsing
 - Add UseCoreDump and UseETag configuration options

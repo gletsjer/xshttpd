@@ -10,3 +10,5 @@
 - Allow multiple AuthFile directives in .xsconf
 
 - User configurable decompress options
+
+- Authentication for POST only

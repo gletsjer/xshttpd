@@ -1489,6 +1489,10 @@ process_request()
 	else if (!current)
 		current = config.system;
 
+	/* always set stderr to the appropriate logfile */
+	if (current->openerror)
+		dup2(fileno(current->openerror), 2);
+
 METHOD:
 	setenv("REQUEST_METHOD", line, 1);
 	setenv("REQUEST_URI", params, 1);
