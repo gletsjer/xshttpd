@@ -1851,6 +1851,9 @@ check_file_redirect(const char *base, const char *filename)
 	int	fd, size, permanent = 0;
 	char	*p, *subst, total[XS_PATH_MAX];
 
+	if (!filename || !*filename)
+		return 0;
+
 	/* Check for *.redir instructions */
 	snprintf(total, XS_PATH_MAX, "%s%s.redir", base, filename);
 	if ((fd = open(total, O_RDONLY, 0)) < 0)
