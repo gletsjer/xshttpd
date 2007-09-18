@@ -4,7 +4,7 @@ noinst_PROGRAMS = reformatxs xscat
 noinst_LIBRARIES = libxs.a
 AM_CPPFLAGS = -DHTTPD_ROOT=\"$(rootdir)\"
 
-httpd_SOURCES = httpd.c authenticate.c cgi.c convert.c fcgi.c \
+httpd_SOURCES = httpd.c authenticate.c cgi.c convert.c \
 	ldap.c methods.c path.c pcre.c ssi.c ssl.c
 httpd_CFLAGS = @httpd_cflags@ -DBUILD_HTTPD
 httpd_LDFLAGS = @httpd_ldflags@ @libxs_ldflags@
@@ -22,7 +22,7 @@ EXTRA_DIST = alternative.h authenticate.h cgi.h config.h confpatch.h \
 	ldap.h methods.h path.h pcre.h \
 	ssi.h ssl.h xscounter.h xscrypt.h
 
-EXTRA_DIST += digcalc.c ldap.c
+EXTRA_DIST += digcalc.c fcgi.c
 
 cscope:
 	@cscope -bqv
