@@ -369,6 +369,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			writetodo -= tobewritten;
 		}
 
+		postread = 1;
 		close(q[1]);
 	}
 #endif		/* HANDLE_SSL */

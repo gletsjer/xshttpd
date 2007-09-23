@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.5 beta 22
+- Flush POST data buffer when CGI did not read it
+
 Changes since 3.5 beta 21
 - Fix library linking order for strict linkers
 - Remove misplaced CGI error message

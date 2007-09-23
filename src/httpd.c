@@ -92,7 +92,7 @@ static char copyright[] =
 
 /* Global variables */
 
-int		headers, headonly, postonly, chunked, persistent, rstatus;
+int		headers, headonly, postonly, postread, chunked, persistent, rstatus;
 static	int	sd, reqs, reqsc, mainhttpd = 1, in_progress = 0;
 gid_t		origegid;
 uid_t		origeuid;

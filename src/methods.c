@@ -1445,8 +1445,19 @@ do_get(char *params)
 void
 do_post(char *params)
 {
-	postonly = 1;
+	postonly = 1;	/* const: this is a post */
+	postread = 0;	/* var: modified when data buffer is read */
 	do_get(params);
+
+	/* flush data buffer if posting was never read */
+	if (!postread && getenv("CONTENT_LENGTH"))
+	{
+		size_t	rlen = strtoul(getenv("CONTENT_LENGTH"), NULL, 10);
+		char	*rbuf = malloc(rlen + 1);
+
+		secread(0, rbuf, rlen);
+		free(rbuf);
+	}
 }
 
 void
