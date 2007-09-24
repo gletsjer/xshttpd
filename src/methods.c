@@ -58,13 +58,6 @@
 #ifdef		HAVE_MEMORY_H
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
-#ifdef		HAVE_PERL
-#include	<EXTERN.h>
-#include	<perl.h>
-#endif		/* HAVE_PERL */
-#ifdef		HAVE_PYTHON
-#include	<python2.5/Python.h>
-#endif		/* HAVE_PYTHON */
 #ifdef		HAVE_CURL
 #include	<curl/curl.h>
 #endif		/* HAVE_CURL */
@@ -135,9 +128,6 @@ static	char	charset[XS_PATH_MAX], mimetype[XS_PATH_MAX],
 #ifdef		HAVE_CURL
 static	size_t	curl_readlen;
 #endif		/* HAVE_CURL */
-#ifdef		HAVE_PERL
-PerlInterpreter *	my_perl = NULL;
-#endif		/* HAVE_PERL */
 
 static char *
 make_etag(struct stat *sb)
@@ -1766,37 +1756,6 @@ loadscripttypes(char *orgbase, char *base)
 	free(path);
 	fclose(methods);
 }
-
-#ifdef		HAVE_PERL
-void
-loadperl()
-{
-	char *path, *embedding[] = { NULL, NULL };
-	int exitstatus = 0;
-
-	if (!(my_perl = perl_alloc()))
-		err(1, "No memory!");
-	perl_construct(my_perl);
-
-	/* perl_parse() doesn't like const arguments: pass dynamic */
-	path = strdup(HTTPD_ROOT "/persistent.pl");
-	embedding[0] = embedding[1] = path;
-	exitstatus = perl_parse(my_perl, NULL, 2, embedding, NULL);
-	free(path);
-	if (!exitstatus)
-		exitstatus = perl_run(my_perl);
-	else
-		err(1, "No perl!");
-}
-#endif		/* HAVE_PERL */
-
-#ifdef		HAVE_PYTHON
-void
-loadpython()
-{
-	Py_InitializeEx(0);
-}
-#endif		/* HAVE_PYTHON */
 
 static int
 getfiletype(int print)
