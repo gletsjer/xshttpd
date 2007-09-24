@@ -120,6 +120,8 @@ static	ftypes	*ftype = NULL, *lftype = NULL;
 static	ctypes	*ctype = NULL;
 static	ctypes	*itype = NULL, *litype = NULL, *ditype = NULL;
 static	ctypes	**isearches[] = { &litype, &itype, &ditype };
+
+static	int	dynamic = 0;
 static	char	charset[XS_PATH_MAX], mimetype[XS_PATH_MAX],
 		scripttype[XS_PATH_MAX],
 		language[XS_PATH_MAX], encoding[XS_PATH_MAX],
@@ -167,16 +169,157 @@ make_etag(struct stat *sb)
 }
 
 static void
+sendheaders(int fd, off_t size)
+{
+	char		*env, *etag;
+	struct stat	statbuf;
+	time_t		modtime;
+	struct tm	reqtime;
+	char		modified[32];
+
+	dynamic = 0;
+
+	/* This is extra overhead, overhead, overhead! */
+	if (config.usessi && getfiletype(0))
+	{
+		char input[RWBUFSIZE];
+
+		/* fgets is better: read() may split HTML tags! */
+		while (read(fd, input, RWBUFSIZE))
+			if (strstr(input, "<!--#"))
+			{
+				dynamic = 1;
+				break;
+			}
+		lseek(fd, (off_t)0, SEEK_SET);
+	}
+
+	if (!dynamic && !fstat(fd, &statbuf))
+	{
+		modtime = statbuf.st_mtime;
+		etag = make_etag(&statbuf);
+	}
+	else
+	{
+		modtime = 0;
+		etag = NULL;
+	}
+
+	if (etag &&
+		((env = getenv("HTTP_IF_MATCH")) ||
+		 (env = getenv("HTTP_IF_NONE_MATCH"))))
+	{
+		size_t	i, sz;
+		char	**list = NULL;
+		int	abort_wo_match = !!getenv("HTTP_IF_MATCH");
+
+		sz = string_to_arrayp(env, &list);
+		for (i = 0; i < sz; i++)
+		{
+			if (!list[i] || list[i][0])
+				continue;
+			if (!strcmp(list[i], etag))
+				break;
+			else if (!strcmp(list[i], "*"))
+				break;
+		}
+		free(list);
+		if ((abort_wo_match && (i >= sz)) ||
+			(!abort_wo_match && (i < sz)))
+		{
+			/* exit with error
+			 * unless If-None-Match && method == GET
+			 */
+			if (abort_wo_match ||
+				strcmp(getenv("REQUEST_METHOD"), "GET"))
+			{
+				server_error("412 Precondition failed",
+					"PRECONDITION_FAILED");
+				close(fd);
+				return;
+			}
+		}
+	}
+	if ((env = getenv("HTTP_IF_MODIFIED_SINCE")))
+	{
+		strptime(env, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
+		if (!dynamic && (mktime(&reqtime) >= modtime))
+		{
+			headonly = 1;
+			rstatus = 304;
+			secprintf("%s 304 Not modified\r\n", httpver);
+		}
+		else
+		{
+			secprintf("%s 200 OK\r\n", httpver);
+		}
+	}
+	else if ((env = getenv("HTTP_IF_UNMODIFIED_SINCE")))
+	{
+		strptime(env, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
+		if (dynamic || (mktime(&reqtime) >= modtime))
+		{
+			server_error("412 Precondition failed",
+				"PRECONDITION_FAILED");
+			close(fd);
+			return;
+		}
+		else
+			secprintf("%s 200 OK\r\n", httpver);
+	}
+	else
+		secprintf("%s 200 OK\r\n", httpver);
+	stdheaders(0, 0, 0);
+	getfiletype(1);
+	if (dynamic)
+	{
+		if (headers >= 11)
+		{
+			secprintf("Cache-control: no-cache\r\n");
+			secputs("Transfer-encoding: chunked\r\n");
+		}
+		else
+			secprintf("Pragma: no-cache\r\n");
+	}
+	else
+	{
+		secprintf("Content-length: %" PRId64 "\r\n", (int64_t)size);
+		strftime(modified, sizeof(modified),
+			"%a, %d %b %Y %H:%M:%S GMT", gmtime(&modtime));
+		secprintf("Last-modified: %s\r\n", modified);
+	}
+
+	if (etag)
+		secprintf("ETag: %s\r\n", etag);
+
+	if (*encoding)
+		secprintf("Content-encoding: %s\r\n", encoding);
+
+	if (*language)
+		secprintf("Content-language: %s\r\n", language);
+
+	if (*p3pref && *p3pcp)
+		secprintf("P3P: policyref=\"%s\", CP=\"%s\"\r\n",
+			p3pref, p3pcp);
+	else if (*p3pref)
+		secprintf("P3P: policy-ref=\"%s\"\r\n", p3pref);
+	else if (*p3pcp)
+		secprintf("P3P: CP=\"%s\"\r\n", p3pcp);
+
+	secprintf("\r\n");
+}
+
+static void
 senduncompressed(int fd)
 {
 	int		errval;
-	int		dynamic = 0;
 	ssize_t		written;
 	off_t		size;
-	char		modified[32];
 
 	alarm(180);
-	if ((size = lseek(fd, 0, SEEK_END)) == -1)
+
+	size = lseek(fd, 0, SEEK_END);
+	if (-1 == size)
 	{
 		xserror("500 Cannot lseek() to end of file");
 		close(fd);
@@ -189,142 +332,7 @@ senduncompressed(int fd)
 		return;
 	}
 	if (headers)
-	{
-		char		*env;
-		struct stat	statbuf;
-		time_t		modtime;
-		struct tm	reqtime;
-		char		*etag;
-
-		/* This is extra overhead, overhead, overhead! */
-		if (config.usessi && getfiletype(0))
-		{
-			char input[RWBUFSIZE];
-
-			/* fgets is better: read() may split HTML tags! */
-			while (read(fd, input, RWBUFSIZE))
-				if (strstr(input, "<!--#"))
-				{
-					dynamic = 1;
-					break;
-				}
-			lseek(fd, (off_t)0, SEEK_SET);
-		}
-
-		if (!dynamic && !fstat(fd, &statbuf))
-		{
-			modtime = statbuf.st_mtime;
-			etag = make_etag(&statbuf);
-		}
-		else
-		{
-			modtime = 0;
-			etag = NULL;
-		}
-
-		if (etag &&
-			((env = getenv("HTTP_IF_MATCH")) ||
-			 (env = getenv("HTTP_IF_NONE_MATCH"))))
-		{
-			size_t	i, sz;
-			char	**list = NULL;
-			int	abort_wo_match = !!getenv("HTTP_IF_MATCH");
-
-			sz = string_to_arrayp(env, &list);
-			for (i = 0; i < sz; i++)
-			{
-				if (!list[i] || list[i][0])
-					continue;
-				if (!strcmp(list[i], etag))
-					break;
-				else if (!strcmp(list[i], "*"))
-					break;
-			}
-			free(list);
-			if ((abort_wo_match && (i >= sz)) ||
-				(!abort_wo_match && (i < sz)))
-			{
-				/* exit with error
-				 * unless If-None-Match && method == GET
-				 */
-				if (abort_wo_match ||
-					strcmp(getenv("REQUEST_METHOD"), "GET"))
-				{
-					server_error("412 Precondition failed",
-						"PRECONDITION_FAILED");
-					close(fd);
-					return;
-				}
-			}
-		}
-		if ((env = getenv("HTTP_IF_MODIFIED_SINCE")))
-		{
-			strptime(env, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
-			if (!dynamic && (mktime(&reqtime) >= modtime))
-			{
-				headonly = 1;
-				rstatus = 304;
-				secprintf("%s 304 Not modified\r\n", httpver);
-			}
-			else
-			{
-				secprintf("%s 200 OK\r\n", httpver);
-			}
-		}
-		else if ((env = getenv("HTTP_IF_UNMODIFIED_SINCE")))
-		{
-			strptime(env, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
-			if (dynamic || (mktime(&reqtime) >= modtime))
-			{
-				server_error("412 Precondition failed",
-					"PRECONDITION_FAILED");
-				close(fd);
-				return;
-			}
-			else
-				secprintf("%s 200 OK\r\n", httpver);
-		}
-		else
-			secprintf("%s 200 OK\r\n", httpver);
-		stdheaders(0, 0, 0);
-		getfiletype(1);
-		if (dynamic)
-		{
-			if (headers >= 11)
-			{
-				secprintf("Cache-control: no-cache\r\n");
-				secputs("Transfer-encoding: chunked\r\n");
-			}
-			else
-				secprintf("Pragma: no-cache\r\n");
-		}
-		else
-		{
-			secprintf("Content-length: %" PRId64 "\r\n", (int64_t)size);
-			strftime(modified, sizeof(modified),
-				"%a, %d %b %Y %H:%M:%S GMT", gmtime(&modtime));
-			secprintf("Last-modified: %s\r\n", modified);
-		}
-
-		if (etag)
-			secprintf("ETag: %s\r\n", etag);
-
-		if (*encoding)
-			secprintf("Content-encoding: %s\r\n", encoding);
-
-		if (*language)
-			secprintf("Content-language: %s\r\n", language);
-
-		if (*p3pref && *p3pcp)
-			secprintf("P3P: policyref=\"%s\", CP=\"%s\"\r\n",
-				p3pref, p3pcp);
-		else if (*p3pref)
-			secprintf("P3P: policy-ref=\"%s\"\r\n", p3pref);
-		else if (*p3pcp)
-			secprintf("P3P: CP=\"%s\"\r\n", p3pcp);
-
-		secprintf("\r\n");
-	}
+		sendheaders(fd, size);
 
 	if (headonly)
 		goto DONE;
