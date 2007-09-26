@@ -30,14 +30,9 @@
 #include	<inttypes.h>
 #endif		/* HAVE_INTTYPES_H */
 
-#include	<netinet/in.h>
-
-#include	<arpa/inet.h>
-
 #include	<fcntl.h>
 #include	<stdio.h>
 #include	<errno.h>
-#include	<netdb.h>
 #ifdef		HAVE_TIME_H
 #ifdef		TIME_WITH_SYS_TIME
 #include	<time.h>
@@ -61,15 +56,6 @@
 #ifdef		HAVE_CURL
 #include	<curl/curl.h>
 #endif		/* HAVE_CURL */
-#ifdef		HAVE_STRUCT_IN6_ADDR
-# ifndef	IN6_ARE_MASKED_ADDR_EQUAL
-#  define IN6_ARE_MASKED_ADDR_EQUAL(d, a, m)      (       \
-	(((d)->s6_addr32[0] ^ (a)->s6_addr32[0]) & (m)->s6_addr32[0]) == 0 && \
-	(((d)->s6_addr32[1] ^ (a)->s6_addr32[1]) & (m)->s6_addr32[1]) == 0 && \
-	(((d)->s6_addr32[2] ^ (a)->s6_addr32[2]) & (m)->s6_addr32[2]) == 0 && \
-	(((d)->s6_addr32[3] ^ (a)->s6_addr32[3]) & (m)->s6_addr32[3]) == 0 )
-# endif		/* IN6_ARE_MASKED_ADDR_EQUAL */
-#endif		/* HAVE_STRUCT_IN6_ADDR */
 
 #include	"httpd.h"
 #include	"htconfig.h"
@@ -84,20 +70,12 @@
 #include	"path.h"
 #include	"pcre.h"
 #include	"authenticate.h"
+#include	"xsfiles.h"
 
 static int	getfiletype		(int);
-#ifdef		HAVE_STRUCT_IN6_ADDR
-static int	v6masktonum		(int, struct in6_addr *);
-#endif		/* HAVE_STRUCT_IN6_ADDR */
 static void	senduncompressed	(int);
 static void	sendcompressed		(int, const char *);
 static char *	find_file		(const char *, const char *, const char *)	MALLOC_FUNC;
-static char *	mknewurl		(const char *, const char *, int);
-static int	check_file_redirect	(const char *, const char *);
-static int	check_allow_host	(const char *, char *);
-static int	check_noxs		(const char *);
-static int	check_redirect		(const char *, const char *);
-static int	check_location		(const char *, const char *);
 #ifdef		HAVE_CURL
 static size_t	curl_readhack		(void *, size_t, size_t, FILE *);
 #endif		/* HAVE_CURL */
@@ -121,12 +99,8 @@ static	ctypes	*ctype = NULL;
 static	ctypes	*itype = NULL, *litype = NULL, *ditype = NULL;
 static	ctypes	**isearches[] = { &litype, &itype, &ditype };
 
+static	cf_values		cfvalues;
 static	int	dynamic = 0;
-static	char	charset[XS_PATH_MAX], mimetype[XS_PATH_MAX],
-		scripttype[XS_PATH_MAX],
-		language[XS_PATH_MAX], encoding[XS_PATH_MAX],
-		indexfile[XS_PATH_MAX],
-		p3pref[XS_PATH_MAX], p3pcp[XS_PATH_MAX];
 #ifdef		HAVE_CURL
 static	size_t	curl_readlen;
 #endif		/* HAVE_CURL */
@@ -292,19 +266,19 @@ sendheaders(int fd, off_t size)
 	if (etag)
 		secprintf("ETag: %s\r\n", etag);
 
-	if (*encoding)
-		secprintf("Content-encoding: %s\r\n", encoding);
+	if (cfvalues.encoding)
+		secprintf("Content-encoding: %s\r\n", cfvalues.encoding);
 
-	if (*language)
-		secprintf("Content-language: %s\r\n", language);
+	if (cfvalues.language)
+		secprintf("Content-language: %s\r\n", cfvalues.language);
 
-	if (*p3pref && *p3pcp)
+	if (cfvalues.p3pref && cfvalues.p3pcp)
 		secprintf("P3P: policyref=\"%s\", CP=\"%s\"\r\n",
-			p3pref, p3pcp);
-	else if (*p3pref)
-		secprintf("P3P: policy-ref=\"%s\"\r\n", p3pref);
-	else if (*p3pcp)
-		secprintf("P3P: CP=\"%s\"\r\n", p3pcp);
+			cfvalues.p3pref, cfvalues.p3pcp);
+	else if (cfvalues.p3pref)
+		secprintf("P3P: policy-ref=\"%s\"\r\n", cfvalues.p3pref);
+	else if (cfvalues.p3pcp)
+		secprintf("P3P: CP=\"%s\"\r\n", cfvalues.p3pcp);
 
 	secprintf("\r\n");
 }
@@ -490,326 +464,6 @@ sendcompressed(int fd, const char *method)
 		}
 	}
 	senduncompressed(processed);
-}
-
-#ifdef		HAVE_STRUCT_IN6_ADDR
-static	int
-v6masktonum(int mask, struct in6_addr *addr6)
-{
-	int		x, y, z;
-
-	for (x = 0; x < 4; x++)
-		addr6->s6_addr32[x] = 0;
-
-	y = 0;
-	z = 0;
-	for (x = 0; x < mask; x++)
-	{
-		addr6->s6_addr[y] |= (1 << (7 - z));
-		z++;
-		if (z == 8)
-		{
-			z = 0;
-			y++;
-		}
-	}
-
-	return 0;
-}
-#endif		/* HAVE_STRUCT_IN6_ADDR */
-
-static int
-check_allow_host(const char *hostname, char *pattern)
-{
-	char	*slash;
-
-	/* return 1 if pattern matches - i.e. access granted */
-	if (!hostname || !pattern || !*hostname || !*pattern)
-		return 0;
-	
-	/* substring match */
-	if (!strncmp(hostname, pattern, strlen(pattern)))
-		return 1;
-
-	/* allow host if remote_addr matches CIDR subnet in file */
-	if ((slash = strchr(pattern, '/')) &&
-		strchr(hostname, '.') &&
-		strchr(pattern, '.'))
-	{
-		struct	in_addr		allow, remote;
-		unsigned int		subnet;
-
-		*slash = '\0';
-		if ((subnet = atoi(slash + 1)) > 32)
-			subnet = 32;
-		inet_aton(hostname, &remote);
-		inet_aton(pattern, &allow);
-
-#define	IPMASK(addr, sub) (addr.s_addr & htonl(~((1 << (32 - subnet)) - 1)))
-		if (IPMASK(remote, subnet) == IPMASK(allow, subnet))
-			return 1;
-	}
-#ifdef		HAVE_STRUCT_IN6_ADDR
-	if ((slash = strchr(pattern, '/')) &&
-		strchr(pattern, ':') &&
-		strchr(hostname, ':'))
-	{
-		struct	in6_addr	allow, remote, mask;
-		unsigned int		subnet;
-
-		*slash = '\0';
-		if ((subnet = atoi(slash + 1)) > 128)
-			subnet = 128;
-		inet_pton(AF_INET6, hostname, &remote);
-		inet_pton(AF_INET6, pattern, &allow);
-		v6masktonum(subnet, &mask);
-		if (IN6_ARE_MASKED_ADDR_EQUAL(&remote, &allow, &mask))
-			return 1;
-	}
-#endif		/* HAVE_STRUCT_IN6_ADDR */
-
-	/* allow any host if the local port matches :port in .noxs */
-#ifdef		HAVE_GETADDRINFO
-	if (':' == pattern[0])
-	{
-		int cport = atoi(hostname + 1);
-		int lport = atoi(getenv("SERVER_PORT"));
-		struct	addrinfo	hints, *res;
-
-		memset(&hints, 0, sizeof(hints));
-		hints.ai_family = PF_UNSPEC;
-		hints.ai_socktype = SOCK_STREAM;
-
-		if (!cport && !getaddrinfo(NULL, pattern + 1, &hints, &res))
-		{
-			cport = htons(res->ai_family == AF_INET6
-				? ((struct sockaddr_in6 *)res->ai_addr)->sin6_port
-				: ((struct sockaddr_in *)res->ai_addr)->sin_port);
-			freeaddrinfo(res);
-		}
-		if (lport && cport == lport)
-			return 1; /* access granted */
-	}
-#endif		/* HAVE_GETADDRINFO */
-	return 0;
-}
-
-static int
-check_noxs(const char *cffile)
-{
-	char	*remoteaddr;
-	char	allowhost[256];
-	FILE	*rfile;
-
-	if (!(rfile = fopen(cffile, "r")))
-	{
-		server_error("403 Authentication file is not available",
-			"NOT_AVAILABLE");
-		return 1; /* access denied */
-	}
-
-	if (!(remoteaddr = getenv("REMOTE_ADDR")))
-	{
-		server_error("403 File is not available", "NOT_AVAILABLE");
-		return 1; /* access denied */
-	}
-
-	while (fgets(allowhost, 256, rfile))
-	{
-		if (strlen(allowhost) &&
-			allowhost[strlen(allowhost) - 1] == '\n')
-		    allowhost[strlen(allowhost) - 1] = '\0';
-
-		if (!allowhost[0] || '#' == allowhost[0])
-			continue;
-
-		if (check_allow_host(remoteaddr, allowhost))
-		{
-			fclose(rfile);
-			return 0; /* access granted */
-		}
-	}
-
-	fclose(rfile);
-	server_error("403 File is not available", "NOT_AVAILABLE");
-	return 1;
-}
-
-static int
-check_location(const char *cffile, const char *filename)
-{
-	char	line[LINEBUFSIZE];
-	char    *p, *name, *value;
-	int	state = 0;
-	int	restrictcheck = 0, restrictallow = 0;
-	int	sslcheck = 0, sslallow = 0;
-	int	sslchecki = 0, sslallowi = 0;
-	FILE    *fp;
-	struct ldap_auth	ldap;
-
-	memset(&ldap, 0, sizeof(ldap));
-
-	if (!(fp = fopen(cffile, "r")))
-	{
-		server_error("403 Authentication file is not available",
-			"NOT_AVAILABLE");
-		return 1; /* access denied */
-	}
-
-	while (fgets(line, LINEBUFSIZE, fp))
-	{
-		p = line;
-		while ((name = strsep(&p, " \t\r\n")) && !*name)
-			/* continue */;
-
-		/* skip comments and blank lines */
-		if (!name || !*name || '#' == *name)
-			continue;
-
-		/* try to isolate a [url] section */
-		if ('[' == name[0])
-		{
-			for (p = ++name; *p && *p != ']'; p++)
-				/* skip */;
-			if (!*p)
-				/* [ without ]; skip it */
-				continue;
-			*p = '\0';
-
-			/* try simple matching */
-			state = !strcmp(name, "*") ||
-				fnmatch(name, filename, 0) != FNM_NOMATCH;
-			continue;
-		}
-
-		/* ignore anything else if no match */
-		if (!state)
-			continue;
-
-		while ((value = strsep(&p, " \t\r\n")) && !*value)
-			/* continue */;
-
-		if (!value)
-			continue;
-
-		/* AuthFilename => $file does .xsauth-type authentication */
-		if (!strcasecmp(name, "AuthFilename") ||
-			!strcasecmp(name, "AuthFile"))
-		{
-			/* return if authentication fails
-			 * process other directives on success
-			 */
-			if (check_auth(value, NULL))
-			{
-				/* a 401 response has been sent */
-				fclose(fp);
-				return 1;
-			}
-		}
-		else if (!strcasecmp(name, "Restrict"))
-		{
-			const char	*remoteaddr = getenv("REMOTE_ADDR");
-
-			restrictcheck = 1;
-			if (remoteaddr && *value)
-				restrictallow |= check_allow_host(remoteaddr, value);
-		}
-		else if (!strcasecmp(name, "MimeType"))
-			strlcpy(mimetype, value, XS_PATH_MAX);
-		else if (!strcasecmp(name, "Execute"))
-			strlcpy(scripttype, value, XS_PATH_MAX);
-		else if (!strcasecmp(name, "Charset"))
-			strlcpy(charset, value, XS_PATH_MAX);
-		else if (!strcasecmp(name, "Language"))
-			strlcpy(language, value, XS_PATH_MAX);
-		else if (!strcasecmp(name, "IndexFile"))
-			strlcpy(indexfile, value, XS_PATH_MAX);
-		else if (!strcasecmp(name, "p3pReference"))
-			strlcpy(p3pref, value, XS_PATH_MAX);
-		else if (!strcasecmp(name, "p3pCompactPolicy"))
-			strlcpy(p3pcp, value, XS_PATH_MAX);
-		else if (!strcasecmp(name, "ScriptTimeout"))
-			config.scripttimeout = atoi(value);
-
-		/* ldap options */
-		else if (!strcasecmp(name, "LdapHost"))
-		{
-			if (ldap.uri)
-				free(ldap.uri);
-			ldap.uri = malloc(8 + strlen(value));
-			sprintf(ldap.uri, "ldap://%s", value);
-		}
-		else if (!strcasecmp(name, "LdapURI"))
-		{
-			if (ldap.uri)
-				free(ldap.uri);
-			ldap.uri = strdup(value);
-		}
-		else if (!strcasecmp(name, "LdapAttr"))
-		{
-			if (ldap.attr)
-				free(ldap.attr);
-			ldap.attr = strdup(value);
-		}
-		else if (!strcasecmp(name, "LdapDN"))
-		{
-			if (ldap.dn)
-				free(ldap.dn);
-			ldap.dn = strdup(value);
-		}
-		else if (!strcasecmp(name, "LdapVersion"))
-			ldap.version = atoi(value);
-		else if (!strcasecmp(name, "LdapGroups"))
-		{
-			if (ldap.groups)
-				free(ldap.groups);
-			ldap.groups = strdup(value);
-		}
-
-		/* SSL client cert options */
-		else if (!strcasecmp(name, "SSLSubjectMatch"))
-		{
-			int	smatch;
-			char	*subject = getenv("SSL_CLIENT_S_DN");
-
-			sslcheck = 1;
-			smatch = subject ? pcre_match(subject, value) : -1;
-			if (smatch < 0)
-				sslallow = 0;
-			else
-				sslallow |= smatch;
-		}
-		else if (!strcasecmp(name, "SSLIssuerMatch"))
-		{
-			int	smatch;
-			char	*issuer = getenv("SSL_CLIENT_I_DN");
-
-			sslcheck = 1;
-			smatch = issuer ? pcre_match(issuer, value) : -1;
-			if (smatch < 0)
-				sslallow = 0;
-			else
-				sslallow |= smatch;
-		}
-
-		/* ... and much more ... */
-	}
-
-	fclose(fp);
-	if ((restrictcheck && !restrictallow) ||
-		(sslcheck && !sslallow) ||
-		(sslchecki && !sslallowi))
-	{
-		server_error("403 File is not available", "NOT_AVAILABLE");
-		return 1;
-	}
-	if (ldap.dn && !check_auth(NULL, &ldap))
-	{
-		/* a 401 response has been sent */
-		return 1;
-	}
-
-	return 0;
 }
 
 static	char	*
@@ -1169,9 +823,7 @@ do_get(char *params)
 #endif
 	}
 
-	mimetype[0] = scripttype[0] = '\0';
-	charset[0] = encoding[0] = language[0] = indexfile[0] = '\0';
-	p3pref[0] = p3pcp[0] = '\0';
+	memset(&cfvalues, 0, sizeof(cfvalues));
 
 	/* Check user directives */
 	/* These should all send there own error messages when appropriate */
@@ -1185,7 +837,7 @@ do_get(char *params)
 			check_redirect(xsfile, real_path))
 		return;
 	if ((xsfile = find_file(orgbase, base, CONFIG_FILE)) &&
-			check_location(xsfile, filename))
+			check_xsconf(xsfile, filename, &cfvalues))
 		return;
 
 	/* Check file permissions */
@@ -1194,6 +846,7 @@ do_get(char *params)
 		userinfo && statbuf.st_uid && (statbuf.st_uid != geteuid()))
 	{
 		server_error("403 Invalid owner of symlink", "NOT_AVAILABLE");
+		free_xsconf(&cfvalues);
 		return;
 	}
 	if (stat(total, &statbuf))
@@ -1222,11 +875,13 @@ do_get(char *params)
 		else if (!S_ISDIR(statbuf.st_mode))
 		{
 			server_error("403 Not a regular filename", "NOT_AVAILABLE");
+			free_xsconf(&cfvalues);
 			return;
 		}
 		else if (!strcmp(filename, INDEX_HTML))
 		{
 			server_error("403 The index may not be a directory", "NOT_AVAILABLE");
+			free_xsconf(&cfvalues);
 			return;
 		}
 		if (wasdir)
@@ -1260,6 +915,7 @@ do_get(char *params)
 				question ? question : "");
 
 			redirect(total, 1, 0);
+			free_xsconf(&cfvalues);
 			return;
 		}
 	}
@@ -1268,48 +924,55 @@ do_get(char *params)
 		(statbuf.st_mode & S_IXUSR))
 	{
 		server_error("403 File permissions deny access", "NOT_AVAILABLE");
+		free_xsconf(&cfvalues);
 		return;
 	}
 
 	if ((fd = open(total, O_RDONLY, 0)) < 0)
 	{
 		server_error("403 File permissions deny access", "NOT_AVAILABLE");
+		free_xsconf(&cfvalues);
 		return;
 	}
 	strlcpy(orig_filename, filename, XS_PATH_MAX);
 
 	/* Check for *.charset preferences */
-	snprintf(total, XS_PATH_MAX, "%s%s.charset", base, filename);
-	if ((charfile = fopen(total, "r")) ||
-		((xsfile = find_file(orgbase, base, ".charset")) &&
-		 (charfile = fopen(xsfile, "r"))))
+	if (!cfvalues.charset)
 	{
-		if (!fread(charset, 1, XS_PATH_MAX, charfile))
-			charset[0] = '\0';
-		else
-			charset[XS_PATH_MAX-1] = '\0';
-		if ((temp = strchr(charset, '\n')))
-			temp[0] = '\0';
-		fclose(charfile);
-	}
+		char	lcharset[XS_PATH_MAX];
 
+		snprintf(total, XS_PATH_MAX, "%s%s.charset", base, filename);
+		if ((charfile = fopen(total, "r")) ||
+			((xsfile = find_file(orgbase, base, ".charset")) &&
+			 (charfile = fopen(xsfile, "r"))))
+		{
+			if (fread(lcharset, 1, XS_PATH_MAX, charfile))
+			{
+				lcharset[XS_PATH_MAX-1] = '\0';
+				if ((temp = strchr(lcharset, '\n')))
+					temp[0] = '\0';
+				cfvalues.charset = strdup(lcharset);
+			}
+			fclose(charfile);
+		}
+	}
 
 	/* check for local file type */
 	loadfiletypes(orgbase, base);
 
 	/* check litype for local and itype for global settings */
-	if (config.uselocalscript && !*scripttype)
+	if (config.uselocalscript && !cfvalues.scripttype)
 		loadscripttypes(orgbase, base);
 	for (i = 0; i < 3 && script >= 0; i++)
 	{
 	for (isearch = *isearches[i]; isearch; isearch = isearch->next)
 	{
 		if (!*isearch->ext ||
-			*scripttype ||
+			cfvalues.scripttype ||
 			((temp = strstr(filename, isearch->ext)) &&
 			 strlen(temp) == strlen(isearch->ext)))
 		{
-			const char	*prog = *scripttype ? scripttype : isearch->prog;
+			const char	*prog = cfvalues.scripttype ? cfvalues.scripttype : isearch->prog;
 
 			if (!strcmp(prog, "internal:404"))
 				server_error("404 Requested URL not found", "NOT_FOUND");
@@ -1335,6 +998,7 @@ do_get(char *params)
 				close(fd);
 				do_script(params, base, filename, prog, headers);
 			}
+			free_xsconf(&cfvalues);
 			return;
 		}
 	}
@@ -1349,6 +1013,7 @@ do_get(char *params)
 		{
 			close(fd);
 			do_script(params, base, file, NULL, headers);
+			free_xsconf(&cfvalues);
 			return;
 		}
 	}
@@ -1358,6 +1023,7 @@ do_get(char *params)
 		server_error("405 Method not allowed", "METHOD_NOT_ALLOWED");
 		setenv("HTTP_ALLOW", "GET, HEAD", 1);
 		close(fd);
+		free_xsconf(&cfvalues);
 		return;
 	}
 
@@ -1367,7 +1033,7 @@ do_get(char *params)
 			(temp = getenv("HTTP_ACCEPT_ENCODING")) &&
 			strstr(temp, csearch->name))
 		{
-			strlcpy(encoding, csearch->name, sizeof(encoding));
+			cfvalues.encoding = strdup(csearch->name);
 			senduncompressed(fd);
 		}
 		else
@@ -1375,6 +1041,7 @@ do_get(char *params)
 	}
 	else
 		senduncompressed(fd);
+	free_xsconf(&cfvalues);
 	return;
 
 	NOTFOUND:
@@ -1382,12 +1049,11 @@ do_get(char *params)
 		*temp = '\0';
 
 	/* find next possible index file */
-	if (*indexfile && (temp = strrchr(real_path, '/')))
+	if (cfvalues.indexfile && (temp = strrchr(real_path, '/')))
 	{
 		*++temp = '\0';
-		strlcat(real_path, indexfile, XS_PATH_MAX);
+		strlcat(real_path, cfvalues.indexfile, XS_PATH_MAX);
 		filename = temp;
-		indexfile[0] = '\0';
 	}
 	else if (current->indexfiles)
 	{
@@ -1419,12 +1085,14 @@ do_get(char *params)
 		{
 			/* no more retries */
 			server_error("404 Requested URL not found", "NOT_FOUND");
+			free_xsconf(&cfvalues);
 			return;
 		}
 	}
 	else
 	{
 		server_error("404 Requested URL not found", "NOT_FOUND");
+		free_xsconf(&cfvalues);
 		return;
 	}
 
@@ -1776,19 +1444,22 @@ getfiletype(int print)
 
 	flist[0] = lftype; flist[1] = ftype;
 
-	if (*mimetype || !(ext = strrchr(orig_filename, '.')) || !(*(++ext)))
+	if (cfvalues.mimetype || !(ext = strrchr(orig_filename, '.')) || !(*(++ext)))
 	{
 		if (print)
 		{
-			if (*charset)
+			if (cfvalues.charset)
 				secprintf("Content-type: %s; charset=%s\r\n",
-						*mimetype ? mimetype : "application/octet-stream",
-						charset);
+						cfvalues.mimetype ? cfvalues.mimetype : "application/octet-stream",
+						cfvalues.charset);
 			else
 				secprintf("Content-type: %s\r\n",
-						*mimetype ? mimetype : "application/octet-stream");
+						cfvalues.mimetype ? cfvalues.mimetype : "application/octet-stream");
 		}
-		return !strcasecmp(mimetype, "text/html");
+		if (cfvalues.mimetype)
+			return !strcasecmp(cfvalues.mimetype, "text/html");
+		else
+			return 0;
 	}
 	for (count = 0; ext[count] && (count < 16); count++)
 		extension[count] =
@@ -1802,10 +1473,10 @@ getfiletype(int print)
 				continue;
 			if (print)
 			{
-				if (*charset)
+				if (cfvalues.charset)
 					secprintf("Content-type: %s; "
 							"charset=%s\r\n",
-						search->name, charset);
+						search->name, cfvalues.charset);
 				else if (!strncmp(search->name, "text/", 5))
 					secprintf("Content-type: %s; "
 							"charset=%s\r\n",
@@ -1825,180 +1496,3 @@ getfiletype(int print)
 	return(0);
 }
 
-static int
-check_file_redirect(const char *base, const char *filename)
-{
-	int	fd, size, permanent = 0;
-	char	*p, *subst, total[XS_PATH_MAX];
-
-	if (!filename || !*filename)
-		return 0;
-
-	/* Check for *.redir instructions */
-	snprintf(total, XS_PATH_MAX, "%s%s.redir", base, filename);
-	if ((fd = open(total, O_RDONLY, 0)) < 0)
-	{
-		snprintf(total, XS_PATH_MAX, "%s%s.Redir", base, filename);
-		if ((fd = open(total, O_RDONLY, 0)) >= 0)
-			permanent = 1;
-	}
-	if (fd >= 0)
-	{
-		if ((size = read(fd, total, XS_PATH_MAX)) <= 0)
-		{
-			xserror("500 Redirection filename error");
-			close(fd);
-			return 1;
-		}
-		total[size] = 0;
-		p = total;
-		subst = strsep(&p, " \t\r\n");
-		redirect(subst, permanent, 1);
-		close(fd);
-		return 1;
-	}
-	return 0;
-}
-
-static char    *
-mknewurl(const char *old, const char *new, int withproto)
-{
-	static char	result[XS_PATH_MAX];
-	char		*p;
-
-	result[0] = '\0';
-	if (!new)
-		return result;
-
-	if ((p = strstr(new, "://")))
-	{
-		if (withproto)
-			strlcpy(result, new, XS_PATH_MAX);
-		else if ((p = strchr(p + 3, '/')))
-			/* strip unused info */
-			strlcpy(result, p, XS_PATH_MAX);
-		else
-			strlcpy(result, "/", XS_PATH_MAX);
-		return result;
-	}
-	if (withproto)
-	{
-		/* add protocol and hostname */
-		if (cursock->usessl)
-			strlcpy(result, "https://", XS_PATH_MAX);
-		else
-			strlcpy(result, "http://", XS_PATH_MAX);
-		if ((p = getenv("HTTP_HOST")))
-			strlcat(result, p, XS_PATH_MAX);
-		else
-			strlcat(result, current->hostname, XS_PATH_MAX);
-	}
-	if (new[0] != '/')
-	{
-		/* add path */
-		if (strchr(old, '/'))
-			strlcat(result, old, XS_PATH_MAX);
-		p = strrchr(result, '/');
-		if (p && p[1])
-			p[1] = '\0';
-	}
-	strlcat(result, new, XS_PATH_MAX);
-	return result;
-}
-
-static int
-check_redirect(const char *cffile, const char *filename)
-{
-	char	*p, *command, *subst, *newloc,
-		*host, *orig, *repl,
-		line[XS_PATH_MAX], request[XS_PATH_MAX];
-	FILE	*fp;
-
-	if (!(fp = fopen(cffile, "r")))
-		/* no redir */
-		return 0;
-
-	strlcpy(request, filename, XS_PATH_MAX);
-
-	while (fgets(line, XS_PATH_MAX, fp))
-	{
-		p = line;
-		while ((command = strsep(&p, " \t\r\n")) && !*command)
-			/* continue */;
-
-		/* skip comments and blank lines */
-		if (!command || !*command || '#' == *command)
-			continue;
-
-		/* use pcre matching */
-		if (!strcasecmp(command, "pass"))
-		{
-			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
-				/* continue */;
-			if (pcre_match(request, orig) > 0)
-			{
-				fclose(fp);
-				return 0;
-			}
-		}
-		else if (!strcasecmp(command, "redir"))
-		{
-			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
-				/* continue */;
-			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
-				/* continue */;
-			if ((subst = pcre_subst(request, orig, repl)) &&
-					*subst)
-			{
-				newloc = mknewurl(request, subst, 1);
-				redirect(newloc, 'R' == command[0], 0);
-				free(subst);
-				fclose(fp);
-				return 1;
-			}
-		}
-		else if (!strcasecmp(command, "rewrite"))
-		{
-			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
-				/* continue */;
-			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
-				/* continue */;
-			if ((subst = pcre_subst(request, orig, repl)) &&
-					*subst)
-			{
-				newloc = mknewurl(request, subst, 0);
-				do_get(newloc);
-				free(subst);
-				fclose(fp);
-				return 1;
-			}
-		}
-		else if (!strcasecmp(command, "forward"))
-		{
-			while ((host = strsep(&p, " \t\r\n")) && !*host)
-				/* continue */;
-			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
-				/* continue */;
-			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
-				/* continue */;
-			if ((subst = pcre_subst(request, orig, repl)) &&
-					*subst)
-			{
-				newloc = mknewurl(request, subst, 1);
-				do_proxy(host, subst);
-				free(subst);
-				fclose(fp);
-				return 1;
-			}
-		}
-		else /* no command: redir to url */
-		{
-			newloc = mknewurl(request, command, 1);
-			redirect(newloc, 0, 1);
-			fclose(fp);
-			return 1;
-		}
-	}
-	fclose(fp);
-	return 0;
-}
