@@ -482,14 +482,17 @@ xserror(const char *message)
 	if (headers)
 	{
 		secprintf("%s %s\r\n", httpver, message);
-		secprintf("Content-length: %zu\r\n", strlen(errmsg));
+		secprintf("Content-length: %zu\r\n",
+			errmsg ? strlen(errmsg) : 0);
 		if ((env = getenv("HTTP_ALLOW")))
 			secprintf("Allow: %s\r\n", env);
 		stdheaders(1, 1, 1);
 	}
 	if (!headonly)
+	{
 		secputs(errmsg);
-	free(errmsg);
+		free(errmsg);
+	}
 	fflush(stderr);
 }
 
