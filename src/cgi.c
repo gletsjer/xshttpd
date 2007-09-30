@@ -488,7 +488,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				append(head, 0, "Transfer-encoding: chunked\r\n");
 			append(head, 0, "Date: %s\r\n", currenttime);
 			secprintf("%s\r\n", head);
-			if (headers >= 11)
+			/* 304 pages don't even get an empty body */
+			if (rstatus != 304 && headers >= 11)
 				chunked = 1;
 		}
 		freeheaders(&http_headers);
