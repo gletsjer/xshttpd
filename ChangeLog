@@ -3,6 +3,9 @@ is not complete. Refer to cvs comments for more information.
 
 Changes since 3.5 beta 22
 - Flush POST data buffer when CGI did not read it
+- Move configuration file handling functions to seperated files
+- Don't send (zero length) body when CGI produces 304 status
+- Fix timeout handling during blocking SSL_read
 
 Changes since 3.5 beta 21
 - Fix library linking order for strict linkers
