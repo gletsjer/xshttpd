@@ -177,7 +177,8 @@ endssl()
 #ifdef		HANDLE_SSL
 	if (cursock->usessl && cursock->ssl)
 	{
-		SSL_shutdown(cursock->ssl);
+		if (!SSL_shutdown(cursock->ssl))
+			SSL_shutdown(cursock->ssl);
 		SSL_free(cursock->ssl);
 		cursock->ssl = NULL;
 	}
@@ -362,15 +363,13 @@ loadssl()
 static ssize_t
 secread_internal(int fd, void *buf, size_t count)
 {
-	ssize_t	ret;
-
 	if (!count)
 		return 0;
 
 #ifdef		HANDLE_SSL
 	if (cursock->ssl && fd == 0)
 	{
-		int	s_err;
+		int	ret, s_err;
 
 		while ((ret = SSL_read(cursock->ssl, buf, count)) <= 0)
 		{
@@ -378,7 +377,8 @@ secread_internal(int fd, void *buf, size_t count)
 
 			switch (s_err)
 			{
-			case SSL_ERROR_WANT_WRITE:
+			case SSL_ERROR_NONE:
+			case SSL_ERROR_WANT_READ:
 				usleep(200);
 				continue;
 			case SSL_ERROR_SYSCALL:
@@ -394,10 +394,13 @@ secread_internal(int fd, void *buf, size_t count)
 			}
 			break;
 		}
+		return ret;
 	}
 	else
 #endif		/* HANDLE_SSL */
 	{
+		ssize_t	ret;
+
 		while ((ret = read(fd, buf, count)) < 0)
 		{
 			switch (errno)
@@ -415,9 +418,9 @@ secread_internal(int fd, void *buf, size_t count)
 			}
 			break;
 		}
+		return ret;
 	}
-
-	return ret;
+	/* NOTREACHED */
 }
 
 size_t
