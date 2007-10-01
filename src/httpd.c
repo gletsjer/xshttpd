@@ -530,8 +530,11 @@ redirect(const char *redir, int permanent, int pass_env)
 		stdheaders(1, 1, 1);
 	}
 	rstatus = permanent ? 301 : 302;
-	secputs(errmsg);
-	free(errmsg);
+	if (!headonly)
+	{
+		secputs(errmsg);
+		free(errmsg);
+	}
 	fflush(stdout);
 }
 
