@@ -376,6 +376,8 @@ alarm_handler(int sig)
 	{
 		fflush(stdout); fflush(stdin); fflush(stderr);
 		endssl();
+		close(0);
+		close(1);
 		persistent = 0;
 		return;
 	}
@@ -424,9 +426,6 @@ set_signals()
 	action.sa_handler = alarm_handler;
 	action.sa_flags = 0;
 	sigaction(SIGALRM, &action, NULL);
-#ifdef		HAVE_SIGINTERRUPT
-	siginterrupt(SIGALRM, 1);
-#endif		/* HAVE_SIGINTERRUPT */
 
 	action.sa_handler = term_handler;
 	action.sa_flags = 0;
