@@ -1378,6 +1378,7 @@ standalone_socket(int id)
 		alarm(0);
 		endssl();
 		fflush(stdout); fflush(stdin); fflush(stderr);
+		close(csd);
 	}
 	/* NOTREACHED */
 }
