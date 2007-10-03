@@ -525,7 +525,7 @@ redirect(const char *redir, int permanent, int pass_env)
 		else
 			secprintf("%s %s moved\r\nLocation: %s\r\n", httpver,
 				permanent ? "301 Permanently" : "302 Temporarily", redir);
-		secprintf("Content-length: %zu\n", strlen(errmsg));
+		secprintf("Content-length: %zu\n", errmsg ? strlen(errmsg) : 0);
 		stdheaders(1, 1, 1);
 	}
 	rstatus = permanent ? 301 : 302;
