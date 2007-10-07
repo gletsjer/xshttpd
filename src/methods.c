@@ -72,6 +72,10 @@
 #include	"authenticate.h"
 #include	"xsfiles.h"
 
+#ifdef		HAVE_MD5
+MD5_CTX		*md5context;
+#endif		/* HAVE_MD5 */
+
 static int	getfiletype		(int);
 static void	senduncompressed	(int);
 static void	sendcompressed		(int, const char *);
@@ -104,6 +108,7 @@ static	int	dynamic = 0;
 #ifdef		HAVE_CURL
 static	size_t	curl_readlen;
 #endif		/* HAVE_CURL */
+static	char	orig_pathname[XS_PATH_MAX];
 
 static char *
 make_etag(struct stat *sb)
@@ -257,13 +262,31 @@ sendheaders(int fd, off_t size)
 		{
 			secprintf("Cache-control: no-cache\r\n");
 			secputs("Transfer-encoding: chunked\r\n");
+			if (config.usecontentmd5 && trailers)
+				secprintf("Trailer: Content-MD5\r\n");
 		}
 		else
 			secprintf("Pragma: no-cache\r\n");
 	}
 	else
 	{
+#ifdef		HAVE_MD5
+		char	digest[MD5_DIGEST_LENGTH];
+		char	hex_digest[MD5_DIGEST_STRING_LENGTH];
+		char	base64_data[MD5_DIGEST_B64_LENGTH];
+#endif		/* HAVE_MD5 */
+
 		secprintf("Content-length: %" PRId64 "\r\n", (int64_t)size);
+#ifdef		HAVE_MD5
+		if (config.usecontentmd5)
+		{
+			MD5File(orig_pathname, hex_digest);
+			hex_decode(hex_digest, MD5_DIGEST_STRING_LENGTH-1, digest);
+			base64_encode(digest, MD5_DIGEST_LENGTH, base64_data);
+			secprintf("Content-MD5: %s\r\n", base64_data);
+		}
+#endif		/* HAVE_MD5 */
+
 		strftime(modified, sizeof(modified),
 			"%a, %d %b %Y %H:%M:%S GMT", gmtime(&modtime));
 		secprintf("Last-modified: %s\r\n", modified);
@@ -386,7 +409,16 @@ senduncompressed(int fd)
 		off_t		usize = 0;
 
 		if (headers >= 11)
+		{
 			chunked = 1;
+#ifdef		HAVE_MD5
+			if (config.usecontentmd5 && trailers)
+			{
+				md5context = malloc(sizeof(MD5_CTX));
+				MD5Init(md5context);
+			}
+#endif		/* HAVE_MD5 */
+		}
 		alarm((size / MINBYTESPERSEC) + 60);
 		errval = sendwithdirectives(fd, &usize);
 		if (usize)
@@ -941,6 +973,7 @@ do_get(char *params)
 		return;
 	}
 	strlcpy(orig_filename, filename, XS_PATH_MAX);
+	strlcpy(orig_pathname, total, XS_PATH_MAX);
 
 	/* Check for *.charset preferences */
 	if (!cfvalues.charset)

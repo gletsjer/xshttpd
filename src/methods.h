@@ -3,6 +3,11 @@
 #ifndef		METHODS_H
 #define		METHODS_H
 
+#ifdef		HAVE_MD5
+# include	<md5.h>
+extern	MD5_CTX	*md5context;
+#endif		/* HAVE_MD5 */
+
 void	loadcompresstypes	(void);
 void	loadscripttypes		(char *, char *);
 void	loadfiletypes		(char *, char *);

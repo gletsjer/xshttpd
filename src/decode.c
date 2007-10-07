@@ -222,14 +222,65 @@ hex_decode(const char *hex, size_t len, char *bin)
 		if (j <= '9')
 			bin[i / 2] = (j - '0') << 4;
 		else
-			bin[i / 2] = (j - 'a') << 4;
+			bin[i / 2] = (j - 'a' + 10) << 4;
 		j = hex[i + 1];
 		if (j <= '9')
 			bin[i / 2] |= (j - '0');
 		else
-			bin[i / 2] |= (j - 'a');
+			bin[i / 2] |= (j - 'a' + 10);
 	}
 	return 0;
+}
+
+/* sizeof(bin) >= (len * 4 + 2) / 3 + 1 */
+int
+base64_encode(const char *msg, size_t len, char *bin)
+{
+        static const char digits[64] =
+            { 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O',
+              'P','Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d',
+              'e','f','g','h','i','j','k','l','m','n','o','p','q','r','s',
+              't','u','v','w','x','y','z','0','1','2','3','4','5','6','7',
+              '8','9','+','/' };
+        int bits;
+        char *d;
+
+        /* 3 bytes becomes 4 chars, but round up and allow for trailing NUL */
+        d = bin;
+
+        /* Convert each group of 3 bytes into 4 characters. */
+        while (len >= 3) {
+                bits = (((int)msg[0] << 16) & 0xff0000)
+                    | (((int)msg[1] << 8) & 0xff00)
+                    | (((int)msg[2]) & 0x00ff);
+                msg += 3;
+                len -= 3;
+                *d++ = digits[(bits >> 18) & 0x3f];
+                *d++ = digits[(bits >> 12) & 0x3f];
+                *d++ = digits[(bits >> 6) & 0x3f];
+                *d++ = digits[(bits) & 0x3f];
+        }
+        /* Handle final group of 1 byte (2 chars) or 2 bytes (3 chars). */
+        switch (len) {
+        case 0: break;
+        case 1:
+                bits = (((int)msg[0] << 16) & 0xff0000);
+                *d++ = digits[(bits >> 18) & 0x3f];
+                *d++ = digits[(bits >> 12) & 0x3f];
+		*d++ = '=';
+                break;
+        case 2:
+                bits = (((int)msg[0] << 16) & 0xff0000)
+                    | (((int)msg[1] << 8) & 0xff00);
+                *d++ = digits[(bits >> 18) & 0x3f];
+                *d++ = digits[(bits >> 12) & 0x3f];
+                *d++ = digits[(bits >> 6) & 0x3f];
+                break;
+        }
+        /* Add trailing NUL character so output is a valid C string. */
+        *d++ = '=';
+        *d++ = '\0';
+        return (d-bin);
 }
 
 #ifdef		HAVE_MD5
@@ -248,5 +299,4 @@ generate_ha1(const char *user, const char *passwd, char *ha1)
 	return 0;
 }
 #endif		/* HAVE_MD5 */
-
 

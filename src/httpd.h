@@ -23,12 +23,12 @@
 
 #ifndef 	S_ISREG
 #define		S_ISREG(m)      (((m)&(S_IFMT)) == (S_IFREG))
-#endif
+#endif		/* S_ISREG */
 
 extern	char	remotehost[], dateformat[], currentdir[],
 		currenttime[], httpver[], real_path[],
 		orig_filename[];
-extern	int		headers, headonly, postonly, postread, chunked, persistent, rstatus;
+extern	int		headers, headonly, postonly, postread, chunked, persistent, trailers, rstatus;
 extern	gid_t	origegid;
 extern	uid_t	origeuid;
 

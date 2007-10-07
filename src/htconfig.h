@@ -99,6 +99,7 @@ extern struct configuration
 	unsigned	usessi: 1;
 	unsigned	usecoredump: 1;
 	unsigned	useetag: 1;
+	unsigned	usecontentmd5: 1;
 	char *		virtualhostdir;
 	char *		defaultcharset;
 	char *		scriptpath;

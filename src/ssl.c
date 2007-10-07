@@ -20,6 +20,9 @@
 #include	<openssl/rand.h>
 #include	<openssl/err.h>
 #include	<openssl/conf.h>
+
+#include	<openssl/bio.h>
+#include	<openssl/evp.h>
 #endif		/* HANDLE_SSL */
 
 #include	"htconfig.h"
@@ -27,6 +30,7 @@
 #include	"path.h"
 #include	"ssl.h"
 #include	"extra.h"
+#include	"methods.h"
 
 #ifdef		HANDLE_SSL
 static SSL_CTX		*ssl_ctx;
@@ -457,6 +461,11 @@ secwrite(const char *buf, size_t count)
 		len[2] = count;
 		message[2] = buf;
 	}
+
+#ifdef		HAVE_MD5
+	if (md5context)
+		MD5Update(md5context, (const unsigned char *)buf, count);
+#endif		/* HAVE_MD5 */
 
 	for (; i < 3; i++)
 	{

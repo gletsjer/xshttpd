@@ -93,7 +93,7 @@ static char copyright[] =
 
 /* Global variables */
 
-int		headers, headonly, postonly, postread, chunked, persistent, rstatus;
+int		headers, headonly, postonly, postread, chunked, persistent, trailers, rstatus;
 static	int	sd, reqs, reqsc, mainhttpd = 1, in_progress = 0;
 gid_t		origegid;
 uid_t		origeuid;
@@ -693,6 +693,9 @@ process_request()
 	errno = 0;
 	chunked = 0;
 	persistent = 0;
+	trailers = 0;
+	md5context = 0;
+
 	initreadmode(0);
 	readerror = readline(0, line, sizeof(line));
 	switch (readerror)
@@ -795,6 +798,12 @@ process_request()
 				if (strcasestr(val, "close"))
 					persistent = 0;
 				setenv("HTTP_CONNECTION", val, 1);
+			}
+			else if (!strcasecmp("TE", idx))
+			{
+				if (strcasestr(val, "trailers"))
+					trailers = 1;
+				setenv("HTTP_TE", val, 1);
 			}
 			else if (!strcasecmp("X-Forwarded-For", idx))
 				/* People should use the HTTP/1.1 variant */
@@ -1366,7 +1375,20 @@ standalone_socket(int id)
 				if (chunked)
 				{
 					chunked = 0;
-					secputs("0\r\n\r\n");
+#ifdef		HAVE_MD5
+					if (md5context)
+					{
+						char   digest[MD5_DIGEST_LENGTH];
+						char           base64_data[MD5_DIGEST_B64_LENGTH];
+
+						MD5Final((unsigned char *)digest, md5context);
+						base64_encode(digest, MD5_DIGEST_LENGTH, base64_data);
+						secprintf("0\r\nContent-MD5: %s\r\n\r\n", base64_data);
+						free(md5context);
+					}
+					else
+#endif		/* HAVE_MD5 */
+						secputs("0\r\n\r\n");
 				}
 				setproctitle("xs(%c%d): Awaiting request "
 					"#%d from `%s'",
