@@ -25,6 +25,9 @@
 #include	"extra.h"
 #include	"httpd.h"
 
+static size_t	internal_xstring_to_arrayp(char *, char ***, size_t (*)(char *, char **));
+static size_t	internal_xstring_to_arraypn(char *, char ***, size_t (*)(char *, char **));
+
 int
 mysleep(int seconds)
 {
@@ -165,25 +168,59 @@ eqstring_to_array(char *string, struct mapping *map)
 }
 
 /* like string_to_array, but malloc's data */
-size_t
-string_to_arrayp(char *value, char ***array)
+static size_t
+internal_xstring_to_arrayp(char *value, char ***array, size_t (*xstring_to_array)(char *, char **))
 {
 	size_t	sz;
 	char	**p;
 
-	/* free old data if !NULL */
-	if (*array)
-		for (p = *array; *p; p++)
-			free(*p);
-
-	sz = string_to_array(value, NULL);
+	sz = xstring_to_array(value, NULL);
 	p = realloc(*array, sz);
-	sz = string_to_array(value, p);
+	sz = xstring_to_array(value, p);
 	*array = p;
 	return sz;
 }
 
-/* Convert whitespace/comma-seperated string into array */
+static size_t
+internal_xstring_to_arraypn(char *value, char ***array, size_t (*xstring_to_array)(char *, char **))
+{
+	size_t	sz;
+	char	**p;
+
+	sz = internal_xstring_to_arrayp(value, array, xstring_to_array);
+	if (!sz)
+		return sz;
+
+	p = realloc(*array, sz + 1);
+	p[sz] = NULL;
+	return sz;
+}
+
+size_t
+string_to_arrayp(char *value, char ***array)
+{
+	return internal_xstring_to_arrayp(value, array, &string_to_array);
+}
+
+size_t
+qstring_to_arrayp(char *value, char ***array)
+{
+	return internal_xstring_to_arrayp(value, array, &qstring_to_array);
+}
+
+size_t
+string_to_arraypn(char *value, char ***array)
+{
+	return internal_xstring_to_arraypn(value, array, &string_to_array);
+}
+
+size_t
+qstring_to_arraypn(char *value, char ***array)
+{
+	return internal_xstring_to_arraypn(value, array, &qstring_to_array);
+}
+
+/* Convert whitespace/comma-seperated string into array (config) */
 size_t
 string_to_array(char *value, char **array)
 {
@@ -196,42 +233,96 @@ string_to_array(char *value, char **array)
 	while ((prev = strsep(&next, ", \t")))
 		if (*prev)
 		{
-			/* check for acceptable quality value */
-			if ((p = strstr(prev, ";q=")))
-			{
-				*p = '\0';
-				if ('0' == p[3])
-				{
-					int	i, val = 0;
-
-					/* optional dot */
-					if ('.' == p[4])
-						for (i = 5; i < 8; i++)
-							if (isdigit(p[i]) &&
-								p[i] != '0')
-								val = 1;
-					/* q=0 -> ignore entry */
-					if (!val)
-					{
-						*p = ';';
-						continue;
-					}
-				}
-			}
 			if (array)
 				array[num] = strdup(prev);
-			if (p)
-				*p = ';';
 			num++;
 		}
 
-	if (array)
-		array[num] = NULL;
-	else
-		/* restore orignal string */
+	/* restore orignal string */
+	for (p = value; p < value + len; p++)
+		if (!*p)
+			*p = ' ';
+	return num;
+}
+
+/* Convert comma seperated http header into array */
+size_t
+qstring_to_array(char *value, char **array)
+{
+	size_t			num = 0;
+	const size_t	len = strlen(value);
+
+	char	*prev = NULL, *next = value;
+
+	while ((prev = strsep(&next, ",")))
+		if (*prev)
+		{
+			const size_t	slen = strlen(prev);
+
+			int		first = 1;
+			char	*sprev = NULL, *snext = prev;
+			char	*term = NULL;
+
+			while ((sprev = strsep(&snext, ";")))
+				if (*sprev)
+				{
+					size_t	vlen;
+					char	*p = sprev, *q;
+
+					/* strip leading/trailing whitespace */
+					for (p = sprev; isspace(*p); p++)
+						/* DO NOTHING */;
+					for (q = p + strlen(p) - 1; isspace(*q); q--)
+						/* DO NOTHING */;
+
+					if (q < p)
+						continue;
+
+					vlen = q - p + 1;
+
+					/* store first (main) term w/o arguments */
+					if (first)
+					{
+						first = 0;
+						if (array)
+						{
+							term = malloc(vlen + 1);
+							strlcpy(term, p, vlen + 1);
+						}
+						num++;
+						continue;
+					}
+
+					/* q=0 means term should be ignored */
+					if (!strncasecmp(p, "q=0.000", vlen))
+					{
+						num--;
+						if (array)
+							free(term);
+						term = NULL;
+					}
+				}
+
+			if (term)
+				array[num - 1] = term;
+			/* restore orignal string */
+			{
+				char	*p;
+
+				for (p = prev; p < prev + slen; p++)
+					if (!*p)
+						*p = ';';
+			}
+		}
+
+	/* restore orignal string */
+	{
+		char	*p;
+
 		for (p = value; p < value + len; p++)
 			if (!*p)
-				*p = ' ';
+				*p = ',';
+	}
 	return num;
 }
 

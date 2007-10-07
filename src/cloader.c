@@ -273,9 +273,9 @@ load_config()
 				else if (!strcasecmp("Hostname", key))
 					current->hostname = strdup(value);
 				else if (!strcasecmp("HostAlias", key))
-					string_to_arrayp(value, &current->aliases);
+					string_to_arraypn(value, &current->aliases);
 				else if (!strcasecmp("PathInfoScripts", key))
-					string_to_arrayp(value, &current->uidscripts);
+					string_to_arraypn(value, &current->uidscripts);
 				else if (!strcasecmp("HtmlDir", key))
 					current->htmldir = strdup(value);
 				else if (!strcasecmp("ExecDir", key))
@@ -291,7 +291,7 @@ load_config()
 				else if (!strcasecmp("LogRefererIgnoreDomain", key))
 					current->thisdomain = strdup(value);
 				else if (!strcasecmp("IndexFiles", key))
-					string_to_arrayp(value, &current->indexfiles);
+					string_to_arraypn(value, &current->indexfiles);
 				else if (!strcasecmp("LogStyle", key))
 					if (!strcasecmp("common", value) ||
 							!strcasecmp("traditional", value))

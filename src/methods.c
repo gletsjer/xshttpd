@@ -183,11 +183,11 @@ sendheaders(int fd, off_t size)
 		((env = getenv("HTTP_IF_MATCH")) ||
 		 (env = getenv("HTTP_IF_NONE_MATCH"))))
 	{
-		size_t	i, sz;
+		size_t	i, m, sz;
 		char	**list = NULL;
 		int	abort_wo_match = !!getenv("HTTP_IF_MATCH");
 
-		sz = string_to_arrayp(env, &list);
+		sz = qstring_to_arrayp(env, &list);
 		for (i = 0; i < sz; i++)
 		{
 			if (!list[i] || list[i][0])
@@ -197,9 +197,15 @@ sendheaders(int fd, off_t size)
 			else if (!strcmp(list[i], "*"))
 				break;
 		}
-		free(list);
-		if ((abort_wo_match && (i >= sz)) ||
-			(!abort_wo_match && (i < sz)))
+		m = i;
+		if (list)
+		{
+			for (i = 0; i < sz; i++)
+				free(list[i]);
+			free(list);
+		}
+		if ((abort_wo_match && (m >= sz)) ||
+			(!abort_wo_match && (m < sz)))
 		{
 			/* exit with error
 			 * unless If-None-Match && method == GET
