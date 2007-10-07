@@ -305,7 +305,7 @@ senduncompressed(int fd)
 		close(fd);
 		return;
 	}
-	if (headers)
+	if (headers >= 10)
 		sendheaders(fd, size);
 
 	if (headonly)
@@ -984,7 +984,7 @@ do_get(char *params)
 			else if (!strcmp(prog, "internal:exec"))
 			{
 				close(fd);
-				do_script(params, base, filename, NULL, headers);
+				do_script(params, base, filename, NULL);
 			}
 #if		0	/* not production ready */
 			else if (!strcmp(prog, "internal:fcgi"))
@@ -996,7 +996,7 @@ do_get(char *params)
 			else
 			{
 				close(fd);
-				do_script(params, base, filename, prog, headers);
+				do_script(params, base, filename, prog);
 			}
 			free_xsconf(&cfvalues);
 			return;
@@ -1012,7 +1012,7 @@ do_get(char *params)
 			(*cgi && !strncmp(cgi, current->execdir, size) && cgi[size] == '/'))
 		{
 			close(fd);
-			do_script(params, base, file, NULL, headers);
+			do_script(params, base, file, NULL);
 			free_xsconf(&cfvalues);
 			return;
 		}

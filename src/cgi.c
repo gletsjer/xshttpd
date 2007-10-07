@@ -98,7 +98,7 @@ append(char *buffer, int prepend, const char *format, ...)
 }
 
 void
-do_script(const char *path, const char *base, const char *file, const char *engine, int showheader)
+do_script(const char *path, const char *base, const char *file, const char *engine)
 {
 	unsigned long		writetodo;
 	off_t			totalwritten;
@@ -159,10 +159,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		if (pipe(p))
 		{
 			snprintf(errmsg, MYBUFSIZ, "500 pipe() failed: %s", strerror(errno));
-			if (showheader)
-				xserror(errmsg);
-			else
-				secprintf("[%s]\n", errmsg);
+			xserror(errmsg);
 			goto END;
 		}
 	}
@@ -177,14 +174,16 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		{
 			snprintf(errmsg, MYBUFSIZ, "500 pipe() failed: %s",
 				strerror(errno));
-			if (showheader)
-				xserror(errmsg);
-			else
-				secprintf("[%s]\n", errmsg);
+			xserror(errmsg);
 			goto END;
 		}
 		if (expect && strcasestr(expect, "100-continue"))
 			secprintf("%s 100 Continue\r\n\r\n", httpver);
+		else if (expect)
+		{
+			xserror("417 Expectation failed");
+			goto END;
+		}
 	}
 #endif		/* HANDLE_SSL */
 
@@ -192,10 +191,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	{
 	case -1:
 		snprintf(errmsg, MYBUFSIZ, "500 fork() failed: %s", strerror(errno));
-		if (showheader)
-			xserror(errmsg);
-		else
-			secprintf("[%s]\n", errmsg);
+		xserror(errmsg);
 		goto END;
 	case 0:
 #ifdef		HAVE_SETRLIMIT
@@ -472,7 +468,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			else
 				append(head, 0, "%s: %s\r\n", idx, val);
 		}
-		if (showheader)
+		if (headers >= 10)
 		{
 			if (!status)
 				append(head, 1, "%s 200 OK\r\n", httpver);
@@ -500,13 +496,10 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		{
 			if (readline(p[0], line, sizeof(line)) != ERR_NONE)
 			{
-				if (showheader)
-					xserror("503 Script did not end header");
-				else
-					secprintf("[Script did not end header]\n");
+				xserror("503 Script did not end header");
 				goto END;
 			}
-			if (showheader)
+			if (headers >= 10)
 				secputs(line);
 			if (!line[0])
 				break;

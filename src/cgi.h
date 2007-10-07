@@ -3,6 +3,6 @@
 #ifndef		CGI_H
 #define		CGI_H
 
-void	do_script		(const char *, const char *, const char *, const char *, int);
+void	do_script		(const char *, const char *, const char *, const char *);
 
 #endif		/* CGI_H */

@@ -1,6 +1,10 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.5 beta 23
+- Fix bug in HTTP/0.9 redirection
+- Don't send headers with HTTP/0.9 error messages
+
 Changes since 3.5 beta 22
 - Flush POST data buffer when CGI did not read it
 - Move configuration file handling functions to seperated files

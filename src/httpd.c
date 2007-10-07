@@ -592,7 +592,7 @@ server_error(const char *readable, const char *cgi)
 		orig[0] ? orig : "(none)", env ? env : "(none)",
 		current ? current->hostname : config.system->hostname,
 		referer[0] ? referer : "(none)");
-	do_script(orig, cgipath, filename, NULL, 1);
+	do_script(orig, cgipath, filename, NULL);
 }
 
 void
