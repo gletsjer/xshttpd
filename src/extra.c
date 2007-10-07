@@ -196,8 +196,32 @@ string_to_array(char *value, char **array)
 	while ((prev = strsep(&next, ", \t")))
 		if (*prev)
 		{
+			/* check for acceptable quality value */
+			if ((p = strstr(prev, ";q=")))
+			{
+				*p = '\0';
+				if ('0' == p[3])
+				{
+					int	i, val = 0;
+
+					/* optional dot */
+					if ('.' == p[4])
+						for (i = 5; i < 8; i++)
+							if (isdigit(p[i]) &&
+								p[i] != '0')
+								val = 1;
+					/* q=0 -> ignore entry */
+					if (!val)
+					{
+						*p = ';';
+						continue;
+					}
+				}
+			}
 			if (array)
 				array[num] = strdup(prev);
+			if (p)
+				*p = ';';
 			num++;
 		}
 
