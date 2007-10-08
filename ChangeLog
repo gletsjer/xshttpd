@@ -6,7 +6,8 @@ Changes since 3.5 beta 23
 - Don't send headers with HTTP/0.9 error messages
 - Ignore fields with qvalue 0 in HTTP header lists
 - Rewrite list parsing routines (now filters q-values)
-- Implement Content-MD5 header (also for chunked transfers)
+- Implement support for header trailers with chunked transfers
+- Implement Content-MD5 support (using libmd)
 
 Changes since 3.5 beta 22
 - Flush POST data buffer when CGI did not read it

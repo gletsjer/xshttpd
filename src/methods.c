@@ -72,9 +72,9 @@
 #include	"authenticate.h"
 #include	"xsfiles.h"
 
-#ifdef		HAVE_MD5
+#ifdef		HAVE_LIBMD
 MD5_CTX		*md5context;
-#endif		/* HAVE_MD5 */
+#endif		/* HAVE_LIBMD */
 
 static int	getfiletype		(int);
 static void	senduncompressed	(int);
@@ -270,14 +270,14 @@ sendheaders(int fd, off_t size)
 	}
 	else
 	{
-#ifdef		HAVE_MD5
+#ifdef		HAVE_LIBMD
 		char	digest[MD5_DIGEST_LENGTH];
 		char	hex_digest[MD5_DIGEST_STRING_LENGTH];
 		char	base64_data[MD5_DIGEST_B64_LENGTH];
 #endif		/* HAVE_MD5 */
 
 		secprintf("Content-length: %" PRId64 "\r\n", (int64_t)size);
-#ifdef		HAVE_MD5
+#ifdef		HAVE_LIBMD
 		if (config.usecontentmd5)
 		{
 			MD5File(orig_pathname, hex_digest);
@@ -411,13 +411,13 @@ senduncompressed(int fd)
 		if (headers >= 11)
 		{
 			chunked = 1;
-#ifdef		HAVE_MD5
+#ifdef		HAVE_LIBMD
 			if (config.usecontentmd5 && trailers)
 			{
 				md5context = malloc(sizeof(MD5_CTX));
 				MD5Init(md5context);
 			}
-#endif		/* HAVE_MD5 */
+#endif		/* HAVE_LIBMD */
 		}
 		alarm((size / MINBYTESPERSEC) + 60);
 		errval = sendwithdirectives(fd, &usize);

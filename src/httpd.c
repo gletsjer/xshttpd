@@ -694,7 +694,9 @@ process_request()
 	chunked = 0;
 	persistent = 0;
 	trailers = 0;
-	md5context = 0;
+#ifdef		HAVE_LIBMD
+	md5context = NULL;
+#endif		/* HAVE_LIBMD */
 
 	initreadmode(0);
 	readerror = readline(0, line, sizeof(line));
@@ -1375,7 +1377,7 @@ standalone_socket(int id)
 				if (chunked)
 				{
 					chunked = 0;
-#ifdef		HAVE_MD5
+#ifdef		HAVE_LIBMD
 					if (md5context)
 					{
 						char   digest[MD5_DIGEST_LENGTH];
@@ -1387,7 +1389,7 @@ standalone_socket(int id)
 						free(md5context);
 					}
 					else
-#endif		/* HAVE_MD5 */
+#endif		/* HAVE_LIBMD */
 						secputs("0\r\n\r\n");
 				}
 				setproctitle("xs(%c%d): Awaiting request "

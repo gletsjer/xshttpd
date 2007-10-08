@@ -20,9 +20,6 @@
 #include	<openssl/rand.h>
 #include	<openssl/err.h>
 #include	<openssl/conf.h>
-
-#include	<openssl/bio.h>
-#include	<openssl/evp.h>
 #endif		/* HANDLE_SSL */
 
 #include	"htconfig.h"
@@ -462,10 +459,10 @@ secwrite(const char *buf, size_t count)
 		message[2] = buf;
 	}
 
-#ifdef		HAVE_MD5
+#ifdef		HAVE_LIBMD
 	if (md5context)
 		MD5Update(md5context, (const unsigned char *)buf, count);
-#endif		/* HAVE_MD5 */
+#endif		/* HAVE_LIBMD */
 
 	for (; i < 3; i++)
 	{

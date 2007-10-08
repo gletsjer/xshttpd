@@ -10,5 +10,6 @@
 - Allow multiple AuthFile directives in .xsconf
 
 - User configurable decompress options
+- More intelligent http header (qvalue) parsing => sorted mapping
 
 - Authentication for POST only

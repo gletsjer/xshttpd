@@ -88,6 +88,9 @@
 #undef HAVE_KILLPG
 
 /* Define if you have the `MD5Data' function */
+#undef HAVE_LIBMD
+
+/* MD5 function is available (libmd or openssl) */
 #undef HAVE_MD5
 
 /* Define to 1 if you have the `memmem' function. */
