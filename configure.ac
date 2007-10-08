@@ -53,7 +53,7 @@ XS_FUNC_IN_LIB(getaddrinfo, HAVE_GETADDRINFO, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(getnameinfo, HAVE_GETNAMEINFO, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
 XS_FUNC_IN_LIB(MD5Data, HAVE_LIBMD, md, libxs)
-if test -n "$ac_cv_search_MD5Data"
+if test "$ac_cv_search_MD5Data" != no
 then
 	AC_DEFINE(HAVE_MD5, [], [MD5 function is available (libmd or openssl)])
 fi

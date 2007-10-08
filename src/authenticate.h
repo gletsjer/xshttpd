@@ -21,7 +21,7 @@
 # define	MD5_DIGEST_STRING_LENGTH	(2 * MD5_DIGEST_LENGTH + 1)
 #endif		/* MD5_DIGEST_STRING_LENGTH */
 #ifndef		MD5_DIGEST_B64_LENGTH
-# define	MD5_DIGEST_B64_LENGTH		26
+# define	MD5_DIGEST_B64_LENGTH		23
 #endif		/* MD5_DIGEST_B64_LENGTH */
 
 #define		REALM		"this page"
