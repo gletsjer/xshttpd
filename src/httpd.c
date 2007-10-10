@@ -1539,11 +1539,11 @@ main(int argc, char **argv)
 #else		/* HAVE_CRYPT */
 				"-CRYPT "
 #endif		/* HAVE_CRYPT */
-#ifdef		HAVE_MD5
-				"+MD5 "
-#else		/* HAVE_MD5 */
-				"-MD5 "
-#endif		/* HAVE_MD5 */
+#ifdef		HAVE_LIBMD
+ 				"+MD "
+#else		/* HAVE_LIBMD */
+				"-MD "
+#endif		/* HAVE_LIBMD */
 #ifdef		HAVE_PCRE
 				"+PCRE "
 #else		/* HAVE_PCRE */

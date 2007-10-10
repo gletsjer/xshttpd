@@ -179,6 +179,16 @@ the actual uid in the working directory (often
 .Pa / ) ,
 available diskspace and system preferences about the desirability
 of uid-shifting programs dumping their state on disk.
+.It Sy UseContentMD5 Ar boolean
+HTTP supports checksums to validate content integrity. At the moment
+only MD5 checksums are supported in HTTP/1.1. If this option is
+enabled (it's disabled by default), then all data will include a
+.Sy Content-MD5
+header, containing the base64 encoded md5-checksum of the content.
+For dynamically generated data (CGI of SSI chunked transfers)
+the md5 checksum will be added to the trailers
+(headers following content).
+This option is only available on systems with libmd.
 .It Sy Priority Ar level
 The system priority that the daemon will be running at. A
 lower priority causes more favorable scheduling. The default

@@ -4,9 +4,8 @@ is not complete. Refer to cvs comments for more information.
 Changes since 3.5 beta 23
 - Fix bug in HTTP/0.9 redirection
 - Don't send headers with HTTP/0.9 error messages
-- Ignore fields with qvalue 0 in HTTP header lists
 - Rewrite list parsing routines (now filters q-values)
-- Implement support for header trailers with chunked transfers
+- Implement support for HTTP trailers with chunked transfers
 - Implement Content-MD5 support (using libmd)
 
 Changes since 3.5 beta 22
