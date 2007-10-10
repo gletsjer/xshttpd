@@ -12,6 +12,8 @@ httpd_LDFLAGS = @httpd_ldflags@ @libxs_ldflags@
 libxs_a_SOURCES = decode.c extra.c path.c xscrypt.c
 libxs_a_CFLAGS = @libxs_cflags@
 
+httpdc_CPPFLAGS = $(AM_CPPFLAGS) -DBINDIR=\"$(bindir)\"
+
 # default for all *_PROGRAMS
 LDADD = libxs.a ../libcompat/libcompat.a @libxs_ldflags@
 DEFAULT_INCLUDES =

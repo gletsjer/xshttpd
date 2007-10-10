@@ -27,7 +27,7 @@ typedef	struct
 	const	char	*help;
 } command;
 
-static	pid_t	httpdpid;
+static	pid_t	httpdpid;	/* a value of 0 denotes no running httpd */
 static	char	startparams[BUFSIZ];
 char		rootdir[XS_PATH_MAX];
 
@@ -38,6 +38,7 @@ static	void	cmd_help	(const char *);
 static	void	cmd_status	(const char *);
 static	void	cmd_kill	(const char *);
 static	void	cmd_stop	(const char *);
+static	void	cmd_start	(const char *);
 static	void	cmd_reload	(const char *);
 static	void	cmd_restart	(const char *);
 static	void	cmd_version	(const char *);
@@ -45,17 +46,18 @@ static	void	control		(const char *);
 
 static	command	commands[]=
 {
-	{ "?",		cmd_help,	"Display this help text",	},
+	{ "?",		cmd_help,	"Display this help text"	},
 	{ "help",	cmd_help,	"Display this help text"	},
 	{ "status",	cmd_status,	"Display httpd status"		},
-	{ "stop",	cmd_stop,	"Terminate the httpd"		},
-	{ "kill",	cmd_kill,	"Forcefully terminate the httpd"	},
+	{ "start",	cmd_restart,	"Start httpd"			},
+	{ "restart",	cmd_restart,	"Restart httpd"			},
 	{ "reload",	cmd_reload,	"Reload all httpd databases"	},
-	{ "restart",	cmd_restart,	"Restart httpd with previous command lines arguments"	},
+	{ "stop",	cmd_stop,	"Terminate the httpd"		},
+	{ "kill",	cmd_kill,	"Forcefully terminate the httpd"},
 	{ "version",	cmd_version,	"Show httpdc version string"	},
 	{ "quit",	NULL,		"Quit the control program"	},
 	{ "exit",	NULL,		"Quit the control program"	},
-	{ NULL,		NULL,		NULL				}
+	{ NULL,		NULL,		NULL				},
 };
 
 static	void
@@ -71,22 +73,29 @@ cmd_help(const char *args)
 static	void
 cmd_status(const char *args)
 {
+	if (!httpdpid)
+		return;
+
 	if (kill(httpdpid, 0))
 	{
 		if (errno == ESRCH)
-			printf("Main HTTPD does not seem to be running\n");
+			warnx("Main HTTPD does not seem to be running");
 		else
 			warn("kill()");
-	} else
+	}
+	else
 		printf("Main HTTPD seems to be running\n");
+
 	if (killpg(httpdpid, 0))
 	{
 		if (errno == ESRCH)
-			printf("HTTPD process group does not seem to be running\n");
+			warnx("HTTPD process group does not seem to be running\n");
 		else
 			warn("killpg()");
-	} else
+	}
+	else
 		printf("HTTPD process group seems to be running\n");
+
 	printf("Main HTTPD PID: %ld\n", (long)httpdpid);
 	printf("Last used command line: %s\n", startparams);
 	(void)args;
@@ -95,8 +104,11 @@ cmd_status(const char *args)
 static	void
 cmd_stop(const char *args)
 {
+	if (!httpdpid)
+		return;
+
 	if (kill(httpdpid, SIGTERM))
-		warn("stop");
+		warn("kill()");
 	else
 		printf("Main HTTPD terminated, children will die too.\n");
 	(void)args;
@@ -105,17 +117,22 @@ cmd_stop(const char *args)
 static	void
 cmd_kill(const char *args)
 {
-	int timeout;
+	int	timeout;
+
+	if (!httpdpid)
+		return;
 
 	timeout = 600;
 	printf("Killing HTTPD processes... ");
 	while (!killpg(httpdpid, SIGKILL) && (timeout > 0))
 	{
-		printf("%c\b", (char)*("/-\\|" + (timeout & 3)));
-		fflush(stdout); sleep(1); timeout--;
+		printf("%c\b", "/-\\|"[timeout & 3]);
+		fflush(stdout);
+		sleep(1);
+		timeout--;
 	}
 	if (!killpg(httpdpid, 0))
-		printf("The children would not die within %d seconds!\n", timeout);
+		warnx("The children would not die within %d seconds!", timeout);
 	else
 		printf("All children have been killed.\n");
 	(void)args;
@@ -124,25 +141,48 @@ cmd_kill(const char *args)
 static	void
 cmd_restart(const char *args)
 {
-	int		timeout;
+	int		timeout = 600;
+
+	if (!httpdpid ||
+		(kill(httpdpid, 0) && errno == ESRCH))
+	{
+		/* server not running: goto start */
+		cmd_start(args);
+		return;
+	}
 
 	if (kill(httpdpid, SIGTERM))
-		warn("kill");
+		warn("kill()");
 	printf("Main HTTPD killed, children will die automatically.\n");
 	printf("Waiting for children to die... ");
-	timeout = 600;
+
 	while (!killpg(httpdpid, 0) && (timeout > 0))
 	{
 		printf("%c\b", (char)*("/-\\|" + (timeout & 3)));
-		fflush(stdout); sleep(1); timeout--;
+		fflush(stdout);
+		sleep(1);
+		timeout--;
 	}
+
 	if (!killpg(httpdpid, 0))
 	{
-		printf("The children would not die within %d seconds!\n", timeout);
+		warnx("The children would not die within %d seconds!\n",
+			timeout);
 		return;
 	}
 	printf("Children are dead!\n");
-	printf("Restarting httpd... "); fflush(stdout);
+	cmd_start(args);
+}
+
+static	void
+cmd_start(const char *args)
+{
+	if (!httpdpid)
+		printf("Starting with default options... ");
+	else
+		printf("Restarting httpd... ");
+
+	fflush(stdout);
 	system(startparams);
 	printf("Done!\n");
 	printf("Executed: %s\n", startparams);
@@ -152,12 +192,15 @@ cmd_restart(const char *args)
 static	void
 cmd_reload(const char *args)
 {
+	if (!httpdpid)
+		return;
+
 	if (kill(httpdpid, SIGHUP))
 		warn("kill()");
 	else
 		printf("Databases reloaded...\n"
 			"Run 'httpdc restart' to ensure that "
-			"configuration changes take effect.\n");
+			"all configuration changes take effect.\n");
 
 	(void)args;
 }
@@ -229,8 +272,8 @@ getpidfilename(char **pidfilename)
 static	void
 loadpidfile(const char *pidfilename)
 {
-	char		buffer[BUFSIZ], pidname[XS_PATH_MAX];
-	FILE		*pidfile;
+	char	buffer[BUFSIZ], pidname[XS_PATH_MAX];
+	FILE	*pidfile;
 
 	strlcpy(pidname,
 		pidfilename == NULL ? calcpath(PID_PATH) : pidfilename,
@@ -241,13 +284,18 @@ loadpidfile(const char *pidfilename)
 			errx(1, "PID line in `%s' is corrupt\n", pidname);
 		else
 		{
-			httpdpid = (pid_t)atol(buffer);
+			httpdpid = (pid_t) atol(buffer);
 			if (!fgets(startparams, BUFSIZ, pidfile))
 				errx(1, "Arguments line in `%s' is corrupt\n",
-					pidname);
+				     pidname);
 		}
-	} else
-		err(1, "fopen(%s)", pidname);
+	}
+	else
+	{
+		warn("fopen(`%s')", pidname);
+		httpdpid = 0;
+		strlcpy(startparams, BINDIR "/httpd", BUFSIZ);
+	}
 }
 
 int
@@ -279,7 +327,7 @@ main(int argc, char **argv)
 	{
 		loadpidfile(pidfilename);
 		control(argv[optind]);
-		exit(0);
+		return 0;
 	}
 
 	for (;;)
