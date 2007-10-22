@@ -247,9 +247,8 @@ main(int argc, char **argv)
 		if (buffer[0] && (buffer[strlen(buffer) - 1] < ' '))
 			buffer[strlen(buffer) - 1] = 0;
 		if (!strcmp(buffer, ".") || !strcmp(buffer, INDEX_HTML) ||
-			!strcmp(buffer, ".xsuid") ||
-			!strcmp(buffer, NOXS_FILE) ||
-			!strcmp(buffer, AUTH_FILE))
+			!strncmp(buffer, ".xs", 3) ||
+			!strcmp(buffer, NOXS_FILE))
 			continue;
 		if ((strlen(buffer) >= 6) &&
 			(!strcmp(buffer + strlen(buffer) - 6, ".redir")))
