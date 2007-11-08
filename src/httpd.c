@@ -1411,8 +1411,7 @@ static	void
 setup_environment()
 {
 	/* start with empty environment */
-	environ = (char **)realloc(environ, sizeof(char *));
-	*environ = NULL;
+	environ = NULL;
 
 	setenv("SERVER_SOFTWARE", SERVER_IDENT, 1);
 	setenv("SERVER_NAME", config.system->hostname, 1);
@@ -1617,7 +1616,7 @@ main(int argc, char **argv)
 	initproctitle(argc, argv);
 #endif		/* HAVE_SETPROCTITLE */
 	initnonce();
-	environ = (char **)malloc(sizeof(char *));
+	environ = NULL;
 	standalone_main();
 	/* NOTREACHED */
 	(void)copyright;

@@ -10,6 +10,7 @@
 #include	<unistd.h>
 
 static	char	*findenv		 (const char *, int *);
+static	char	**menviron = NULL;
 
 char	*
 getenv(const char *name)
@@ -49,6 +50,11 @@ setenv(const char *name, const char *value, int rewrite)
 	char		*c;
 	int		l_value, offset;
 
+	if (menviron && menviron != environ)
+	{
+		free(menviron);
+		menviron = NULL;
+	}
 	if (*value == '=')
 		value++;
 	l_value = strlen(value);
@@ -68,13 +74,13 @@ setenv(const char *name, const char *value, int rewrite)
 		int		cnt;
 		char		**p;
 
-		for (p = environ, cnt = 0; *p; p++, cnt++)
+		for (p = menviron, cnt = 0; *p; p++, cnt++)
 			/* NOTHING HERE */;
 		if (alloced)
 		{
-			environ = (char **)realloc((char *)environ,
+			menviron = (char **)realloc((char *)menviron,
 			    (size_t)(sizeof(char *) * (cnt + 2)));
-			if (!environ)
+			if (!menviron)
 				return(-1);
 		}
 		else
@@ -83,21 +89,22 @@ setenv(const char *name, const char *value, int rewrite)
 			p = (char **)malloc((size_t)(sizeof(char *) * (cnt+2)));
 			if (!p)
 				return(-1);
-			bcopy((char *)p, (char *)environ, cnt * sizeof(char *));
-			environ = p;
+			bcopy((char *)p, (char *)menviron, cnt * sizeof(char *));
+			menviron = p;
 		}
-		environ[cnt + 1] = NULL;
+		menviron[cnt + 1] = NULL;
 		offset = cnt;
 	}
 	for (c = (char *)name; *c && (*c != '='); c++)
 		/* NOTHING HERE */;
-	if (!(environ[offset] =
+	if (!(menviron[offset] =
 		(char *)malloc((size_t)((int)(c - name) + l_value + 2))))
 		return(-1);
-	for (c = environ[offset]; ((*c = *(name++))) && (*c != '='); c++)
+	for (c = menviron[offset]; ((*c = *(name++))) && (*c != '='); c++)
 		/* NOTHING HERE */;
 	for (*(c++) = '='; (*(c++) = *(value++)); )
 		/* NOTHING HERE */;
+	environ = menviron;
 	return (0);
 }
 
