@@ -84,10 +84,6 @@
 #include	"authenticate.h"
 #include	"ldap.h"
 
-#ifndef		PRIO_MAX
-#define		PRIO_MAX	20
-#endif
-
 static char copyright[] =
 "$Id: httpd.c,v 1.273 2007/04/10 12:50:14 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
 

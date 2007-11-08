@@ -70,6 +70,10 @@
 #include	"extra.h"
 #include	"path.h"
 
+#ifndef		PRIO_MAX
+#define		PRIO_MAX	20
+#endif
+
 char			config_path[XS_PATH_MAX];
 char			config_preprocessor[XS_PATH_MAX];
 
@@ -222,7 +226,9 @@ load_config()
 					else if (!strcasecmp("ListenFamily", key))
 						lsock->family =
 							!strcasecmp("IPv4", value) ? PF_INET :
+#ifdef		PF_INET6
 							!strcasecmp("IPv6", value) ? PF_INET6 :
+#endif		/* PF_INET6 */
 							PF_UNSPEC;
 					else if (!strcasecmp("SocketName", key))
 						lsock->socketname = strdup(value);
