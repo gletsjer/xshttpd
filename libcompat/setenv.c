@@ -8,6 +8,7 @@
 #include	<stdlib.h>
 #include	<stdio.h>
 #include	<unistd.h>
+#include	<string.h>
 
 static	char	*findenv		 (const char *, int *);
 static	char	**menviron = NULL;
@@ -46,9 +47,10 @@ findenv(const char *name, int *offset)
 int
 setenv(const char *name, const char *value, int rewrite)
 {
-	static	int	alloced = 0;
 	char		*c;
-	int		l_value, offset;
+	const char	*cc;
+	int		offset;
+	size_t		l_value;
 
 	if (menviron && menviron != environ)
 	{
@@ -68,37 +70,28 @@ setenv(const char *name, const char *value, int rewrite)
 				/* NOTHING HERE */;
 			return(0);
 		}
+		free(menviron[offset]);
 	}
 	else
 	{
 		int		cnt;
 		char		**p;
 
-		for (p = menviron, cnt = 0; *p; p++, cnt++)
-			/* NOTHING HERE */;
-		if (alloced)
-		{
-			menviron = (char **)realloc((char *)menviron,
-			    (size_t)(sizeof(char *) * (cnt + 2)));
-			if (!menviron)
-				return(-1);
-		}
-		else
-		{
-			alloced = 1;
-			p = (char **)malloc((size_t)(sizeof(char *) * (cnt+2)));
-			if (!p)
-				return(-1);
-			bcopy((char *)p, (char *)menviron, cnt * sizeof(char *));
-			menviron = p;
-		}
+		cnt = 0;
+		if (menviron)
+			for (p = menviron; *p; p++)
+				cnt++;
+		menviron = (char **)realloc(menviron,
+		    (size_t)(sizeof(char *) * (cnt + 2)));
+		if (!menviron)
+			return(-1);
 		menviron[cnt + 1] = NULL;
 		offset = cnt;
 	}
-	for (c = (char *)name; *c && (*c != '='); c++)
+	for (cc = name; *cc && (*cc != '='); cc++)
 		/* NOTHING HERE */;
 	if (!(menviron[offset] =
-		(char *)malloc((size_t)((int)(c - name) + l_value + 2))))
+		(char *)malloc((size_t)((int)(cc - name) + l_value + 2))))
 		return(-1);
 	for (c = menviron[offset]; ((*c = *(name++))) && (*c != '='); c++)
 		/* NOTHING HERE */;
@@ -108,7 +101,7 @@ setenv(const char *name, const char *value, int rewrite)
 	return (0);
 }
 
-void
+int
 unsetenv(const char *name)
 {
 	char		**p;
@@ -119,4 +112,5 @@ unsetenv(const char *name)
 		for (p = environ + offset; (*p = p[1]) ; p++)
 			/* NOTHING HERE */;
 	}
+	return (0);
 }
