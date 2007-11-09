@@ -4,6 +4,7 @@ is not complete. Refer to cvs comments for more information.
 Changes since 3.5 beta 24
 - Start webserver with httpdc start/restart even when not running yet,
   based on a patch by Ariane
+- Fix list parsing and allocation
 
 Changes since 3.5 beta 23
 - Fix bug in HTTP/0.9 redirection

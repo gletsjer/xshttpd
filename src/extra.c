@@ -175,7 +175,7 @@ internal_xstring_to_arrayp(char *value, char ***array, size_t (*xstring_to_array
 	char	**p;
 
 	sz = xstring_to_array(value, NULL);
-	p = realloc(*array, sz);
+	p = realloc(*array, sz * sizeof(char **));
 	sz = xstring_to_array(value, p);
 	*array = p;
 	return sz;
@@ -191,8 +191,9 @@ internal_xstring_to_arraypn(char *value, char ***array, size_t (*xstring_to_arra
 	if (!sz)
 		return sz;
 
-	p = realloc(*array, sz + 1);
+	p = realloc(*array, (sz + 1) * sizeof(char **));
 	p[sz] = NULL;
+	*array = p;
 	return sz;
 }
 
