@@ -721,9 +721,15 @@ dir_run_cgi(int argc, char **argv, off_t *size)
 		free(querystring);
 	}
 	if (getenv("ORIG_PATH_INFO"))
+	{
 		setenv("PATH_INFO", getenv("ORIG_PATH_INFO"), 1);
+		unsetenv("ORIG_PATH_INFO");
+	}
 	if (getenv("ORIG_PATH_TRANSLATED"))
+	{
 		setenv("PATH_TRANSLATED", getenv("ORIG_PATH_TRANSLATED"), 1);
+		unsetenv("ORIG_PATH_TRANSLATED");
+	}
 	(void)size;
 	return(ERR_NONE);
 }
