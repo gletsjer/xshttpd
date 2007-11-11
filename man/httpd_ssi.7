@@ -15,15 +15,14 @@ server side includes. Server side includes (SSIs) are
 to the server to do something. These may be embedded in HTML
 documents.
 .Pp
-The format of such a directive is as follows:
-.D1 <!--# Ns Nm name Oo Ar argument ... Oc Ns -->
+The general format of such a directive is as follows:
+.D1 <!--# Ns Nm name Cm opt Ns = Ns Ar arg Oo Cm opt Ns = Ns Ar arg Cm ... Oc Ns -->
 .Nm name
-is the name of the directive. You may specify
-.Ar arguments
-to the directive if needed or wanted, seperated from the directive's
-name by
-.Em one
-space.
+is the name of the directive. Options may sometimes be omitted.
+Option and argument pairs should be seperated each other 
+nd from the command name by a single space.
+If the argument contains spaces or other special characters
+(such as the equals sign), it must be contained in double quotes (").
 Note also that a directive must start and end on the same line.
 You may have other things on that line, including other directives.
 .Pp
@@ -141,7 +140,7 @@ encodes any non alphanumeric characters with their
 .Ql %xx
 equivalent.
 .Pp
-.It <!--# Ns Nm include Ar file Ns -->
+.It <!--# Ns Nm include file Ns = Ns Ar file Ns -->
 .It <!--# Ns Nm include-file Ar file Ns -->
 This directive allows you to include
 .Ar file 
@@ -160,6 +159,23 @@ a virtual path relative to the user's html directory
 .Pa ( /~username/file.html )
 or a relative path
 .Pa ( file.html ) .
+.Pp
+.It <!--# Ns Nm include binary Ns = Ns Ar file Ns -->
+.It <!--# Ns Nm include virtual Ns = Ns Ar file Ns -->
+By default included files are handled as if they are standard
+HTML documents. This means these are interpreted as text and
+SSI directives inside these files will be parsed as well.
+Special handling can be selected using the
+.Cm binary
+or
+.Cm virtual
+argument.
+.Pp
+Binary files are copied directly: without SSI handling or
+other special (text) parsing taking place.
+Virtual files are handled as if these were seperate webserver
+(GET) requests: full parsing is done and it is even possible
+to call CGI binaries which will be interpreted as well this way.
 .Pp
 .It <!--# Ns Nm last-mod Oo Ar file Oc Ns -->
 .It <!--# Ns Nm last-modified Oo Ar file Oc Ns -->
@@ -185,6 +201,16 @@ appriopriately.
 See
 .Xr httpd_cgi 7
 for more details on CGI's.
+.Pp
+The CGI pathname must be given in URL syntax, the same way as
+the local part of a full URL. The path may not be omitted:
+.D1 <!--# Ns Cm run-cgi Pa /~username/cgi-bin/file Ns -->
+The arguments will be made available through the
+.Ev QUERY_STRING
+environment variable. For example
+.D1 <!--# Ns Cm run-cgi Qo Pa /~username/cgi-bin/file?foo=bar&foo=baz Qc Ns -->
+Quotes are important here to guarantee proper parsing.
+Without these the path might be interpreted as a command, value pair.
 .Pp
 .It <!--# Ns Nm set Ar varname Ns Cm = Ns Ar value\
  Oo Ar varname Ns Cm = Ns Ar value ...  Oc Ns -->

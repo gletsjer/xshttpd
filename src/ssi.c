@@ -611,7 +611,7 @@ dir_date(int argc, char **argv, off_t *size)
 static	int
 dir_include_file(int argc, char **argv, off_t *size)
 {
-	int		i, fd, ret;
+	int		i, fd, ret, ssi;
 	const	char	*path = NULL;
 
 	if ((numincludes++) > MAXINCLUDES)
@@ -625,14 +625,19 @@ dir_include_file(int argc, char **argv, off_t *size)
 		return(ERR_CONT);
 	}
 
+	ssi = 1;
 	for (i = 0; i < argc; i += 2)
 		if (!strcmp(argv[i], "virtual"))
-		{
 			/* run as script */
 			return dir_run_cgi(1, &argv[i + 1], size);
-		}
 		else if (!strcmp(argv[i], "file"))
 			path = argv[i + 1];
+		else if (!strcmp(argv[i], "binary"))
+		{
+			path = argv[i + 1];
+			ssi = 0;
+		}
+
 	if (!path)
 		path = argv[0];
 
@@ -645,7 +650,20 @@ dir_include_file(int argc, char **argv, off_t *size)
 			path, strerror(errno));
 		return(ERR_CONT);
 	}
-	ret = sendwithdirectives_internal(fd, size);
+	if (ssi)
+		ret = sendwithdirectives_internal(fd, size);
+	else /* dump content directly */
+	{
+		ssize_t	rlen;
+		char	buffer[RWBUFSIZE];
+
+		while ((rlen = read(fd, buffer, RWBUFSIZE)) > 0)
+		{
+			secwrite(buffer, (size_t)rlen);
+			*size += rlen;
+		}
+		ret = 0;
+	}
 	numincludes--;
 	close(fd);
 	return(ret);
@@ -737,7 +755,7 @@ dir_exec(int argc, char **argv, off_t *size)
 static	int
 dir_run_cgi(int argc, char **argv, off_t *size)
 {
-	char	*querystring, *qs, *cl;
+	char	*querystring, *qs;
 	int	oldhead;
 
 	if ((qs = getenv("QUERY_STRING")))
@@ -755,8 +773,6 @@ dir_run_cgi(int argc, char **argv, off_t *size)
 	do_get(argv[0]);
 	headers = oldhead;
 
-	if ((cl = getenv("CONTENT_LENGTH")))
-		size += strtoul(cl, NULL, 10);
 	/* used to do something like this - which is way more efficient
 	 *
 	do_script(here, "", "", NULL, 0);
