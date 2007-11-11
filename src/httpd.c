@@ -100,6 +100,9 @@ char		remotehost[NI_MAXHOST], remoteaddr[NI_MAXHOST],
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[RWBUFSIZE],
 		message503[MYBUFSIZ], orig[MYBUFSIZ],
 		*startparams;
+#define CLEANENV do { \
+	environ = malloc(sizeof(char *));\
+	*environ = NULL; } while (0)
 
 /* Prototypes */
 
@@ -1406,7 +1409,7 @@ static	void
 setup_environment()
 {
 	/* start with empty environment */
-	environ = NULL;
+	CLEANENV;
 
 	setenv("SERVER_SOFTWARE", SERVER_IDENT, 1);
 	setenv("SERVER_NAME", config.system->hostname, 1);
@@ -1611,7 +1614,7 @@ main(int argc, char **argv)
 	initproctitle(argc, argv);
 #endif		/* HAVE_SETPROCTITLE */
 	initnonce();
-	environ = NULL;
+	CLEANENV;
 	standalone_main();
 	/* NOTREACHED */
 	(void)copyright;
