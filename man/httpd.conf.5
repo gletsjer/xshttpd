@@ -189,6 +189,15 @@ For dynamically generated data (CGI of SSI chunked transfers)
 the md5 checksum will be added to the trailers
 (headers following content).
 This option is only available on systems with libmd.
+.It Sy UsePut Ar boolean
+Allow users to handle HTTP PUT and DELETE requests with local
+CGI scripts. This is disabled by default.
+The actual handles must be set locally with the
+.Sy PutScript
+and/or
+.Sy DeleteScript
+configuration directives as explained in
+.Xr xsconf 5 .
 .It Sy Priority Ar level
 The system priority that the daemon will be running at. A
 lower priority causes more favorable scheduling. The default

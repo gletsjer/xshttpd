@@ -104,6 +104,26 @@ as the index and add a
 .Li [*.py]
 block that sets Python as a local interpreter for all *.py
 files.
+.It Sy PutScript
+Full pathname of the CGI program that should handle HTTP
+.Sy PUT
+requests for files in this directory. See
+.Xr httpd_cgi 7
+for dealing with CGI scripts.
+Note that PUT requests require special status codes.
+Only available when
+.Sy UsePut
+is enabled in the global server configuration.
+.It Sy DeleteScript
+Full pathname of the CGI program that should handle HTTP
+.Sy DELETE
+requests for files in this directory. See
+.Xr httpd_cgi 7
+for dealing with CGI scripts.
+Note that DELETE requests require special status codes.
+Only available when
+.Sy UsePut
+is enabled in the global server configuration.
 .It Sy ScriptTimeout
 Override the default timeout that is used to restrict the
 execution time of all CGI scripts (wall time in minutes).

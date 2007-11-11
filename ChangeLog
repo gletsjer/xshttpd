@@ -5,6 +5,9 @@ Changes since 3.5 beta 24
 - Start webserver with httpdc start/restart even when not running yet,
   based on a patch by Ariane
 - Fix list parsing and allocation
+- Include virtual can now run CGIs as well
+- Include binary to include unparsed content
+- Implement HTTP PUT and DELETE support (experimental)
 
 Changes since 3.5 beta 23
 - Fix bug in HTTP/0.9 redirection

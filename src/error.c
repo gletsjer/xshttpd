@@ -30,6 +30,7 @@ static	void	bad_request		(void);
 static	void	unknown_method		(void);
 static	void	unauthorized		(void);
 static	void	precondition_failed	(void);
+static	void	entity_too_large	(void);
 static	void	local_no_page		(void);
 static	void	local_invalid_link	(void);
 static	void	local_no_pay		(void);
@@ -248,8 +249,16 @@ static	void
 precondition_failed()
 {
 	printf("<p>You have asked for a certain precondition which is\n");
-	printf("not met by the requested data. So this data will not be");
+	printf("not met by the requested data. So this data will not be ");
 	printf("shown.</p>\n");
+}
+
+static	void
+entity_too_large()
+{
+	printf("<p>The server is refusing to process a request because ");
+	printf("the request entity is larger than the server ");
+	printf("is willing or able to process.</p>\n");
 }
 
 static	void
@@ -357,6 +366,8 @@ main(int argc, char **argv)
 		unauthorized();
 	else if (!strcmp(error_code, "PRECONDITION_FAILED"))
 		precondition_failed();
+	else if (!strcmp(error_code, "ENTITY_TOO_LARGE"))
+		entity_too_large();
 	else if (!strcmp(error_code, "LOCAL_NO_PAGE"))
 		local_no_page();
 	else if (!strcmp(error_code, "LOCAL_INVALID_LINK"))

@@ -531,7 +531,7 @@ find_file(const char *orgbase, const char *base, const char *file)
 void
 do_get(char *params)
 {
-	char			*temp, *file, *cgi, *question,
+	char			*temp, *file, *cgi, *question, *method,
 				base[XS_PATH_MAX], orgbase[XS_PATH_MAX],
 				total[XS_PATH_MAX], temppath[XS_PATH_MAX];
 	const	char		*filename, *http_host;
@@ -878,6 +878,33 @@ do_get(char *params)
 			check_xsconf(xsfile, filename, &cfvalues))
 		return;
 
+	/* PUT and DELETE are handled by CGI scripts */
+	method = getenv("REQUEST_METHOD");
+	if (!strcasecmp(method, "PUT") || !strcasecmp(method, "DELETE"))
+	{
+		const char	*path;
+
+		if ((path = getenv("REQUEST_URI")))
+		{
+			setenv("PATH_INFO", path, 1);
+			setenv("PATH_TRANSLATED", convertpath(path), 1);
+		}
+		if (cfvalues.putscript)
+		{
+			if (!strcasecmp(method, "PUT"))
+				do_script(params, base, file, cfvalues.putscript);
+			else
+				do_script(params, base, file, cfvalues.delscript);
+		}
+		else
+		{
+			setenv("HTTP_ALLOW", "GET, HEAD, POST", 1);
+			server_error("405 Method not allowed", "METHOD_NOT_ALLOWED");
+		}
+		free_xsconf(&cfvalues);
+		return;
+	}
+
 	/* Check file permissions */
 	snprintf(total, XS_PATH_MAX, "%s%s", base, filename);
 	if (!lstat(total, &statbuf) && S_ISLNK(statbuf.st_mode) &&
@@ -1059,8 +1086,8 @@ do_get(char *params)
 
 	if (postonly)
 	{
-		server_error("405 Method not allowed", "METHOD_NOT_ALLOWED");
 		setenv("HTTP_ALLOW", "GET, HEAD", 1);
+		server_error("405 Method not allowed", "METHOD_NOT_ALLOWED");
 		close(fd);
 		free_xsconf(&cfvalues);
 		return;
@@ -1150,19 +1177,53 @@ do_get(char *params)
 void
 do_post(char *params)
 {
+	const	char	*cl = getenv("CONTENT_LENGTH");
+
 	postonly = 1;	/* const: this is a post */
 	postread = 0;	/* var: modified when data buffer is read */
 	do_get(params);
 
 	/* flush data buffer if posting was never read */
-	if (!postread && getenv("CONTENT_LENGTH"))
+	if (!postread && cl)
 	{
-		size_t	rlen = strtoul(getenv("CONTENT_LENGTH"), NULL, 10);
-		char	*rbuf = malloc(rlen + 1);
-
+		size_t	rlen;
+		char	*rbuf;
+			
+		rlen = strtoul(cl, NULL, 10);
+		if (ERANGE == errno)
+		{
+			server_error("413 Request Entity Too Large",
+				"ENTITY_TOO_LARGE");
+			return;
+		}
+		rbuf = malloc(rlen + 1);
 		secread(0, rbuf, rlen);
 		free(rbuf);
 	}
+}
+
+void
+do_put(char *params)
+{
+	if (!config.useput)
+	{
+		server_error("405 Method not allowed", "METHOD_NOT_ALLOWED");
+		setenv("HTTP_ALLOW", "GET, HEAD, POST", 1);
+		return;
+	}
+	do_post(params);
+}
+
+void
+do_delete(char *params)
+{
+	if (!config.useput)
+	{
+		server_error("405 Method not allowed", "METHOD_NOT_ALLOWED");
+		setenv("HTTP_ALLOW", "GET, HEAD, POST", 1);
+		return;
+	}
+	do_get(params);
 }
 
 void
@@ -1178,7 +1239,7 @@ do_options(const char *params)
 	secprintf("%s 200 OK\r\n", httpver);
 	stdheaders(0, 0, 0);
 	secputs("Content-length: 0\r\n"
-		"Allow: GET, HEAD, POST, OPTIONS, TRACE\r\n"
+		"Allow: GET, HEAD, POST, PUT, DELETE, OPTIONS, TRACE\r\n"
 		"\r\n");
 	(void)params;
 }

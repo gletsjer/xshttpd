@@ -166,7 +166,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 #ifdef		HANDLE_SSL
 	q[0] = q[1] = -1;
-	if ((ssl_post = !strcasecmp("POST", getenv("REQUEST_METHOD"))))
+	ssl_post = postonly;
+	if (ssl_post)
 	{
 		char	*expect = getenv("HTTP_EXPECT");
 
@@ -210,8 +211,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 #ifdef		HANDLE_SSL
 		/* Posting via SSL takes a lot of extra work */
-		if (ssl_post)
-			dup2(q[0], 0);
+		if (ssl_post) dup2(q[0], 0);
 #endif		/* HANDLE_SSL */
 
 #ifdef		HAVE_SETSID

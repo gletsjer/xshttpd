@@ -701,7 +701,7 @@ process_request()
 	case ERR_NONE:
 		break;
 	case ERR_LINE:
-		xserror("400 Request header line exceeded maximum length");
+		xserror("414 Request-URI Too Long");
 		return;
 	case ERR_CLOSE:
 		/* connection close: terminate quietly */
@@ -845,7 +845,8 @@ process_request()
 
 	if (!getenv("CONTENT_LENGTH"))
 	{
-		if (headers >= 11 && !strcasecmp("POST", line))
+		if (headers >= 11 &&
+			(!strcasecmp("POST", line) || !strcasecmp("PUT", line)))
 		{
 			xserror("411 Length Required");
 			return;
@@ -1036,12 +1037,10 @@ METHOD:
 		do_options(params);
 	else if (!strcasecmp("TRACE", line))
 		do_trace(params);
-	/*
 	else if (!strcasecmp("PUT", line))
 		do_put(params);
 	else if (!strcasecmp("DELETE", line))
 		do_delete(params);
-	*/
 	else
 		xserror("400 Unknown method");
 }

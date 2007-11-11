@@ -456,6 +456,10 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 			cfvalues->p3pref = strdup(value);
 		else if (!strcasecmp(name, "p3pCompactPolicy"))
 			cfvalues->p3pcp = strdup(value);
+		else if (!strcasecmp(name, "DeleteScript"))
+			cfvalues->delscript = strdup(value);
+		else if (!strcasecmp(name, "PutScript"))
+			cfvalues->putscript = strdup(value);
 		else if (!strcasecmp(name, "ScriptTimeout"))
 			config.scripttimeout = atoi(value);
 
@@ -559,5 +563,7 @@ free_xsconf(cf_values *cfvalues)
 		free(cfvalues->p3pref);
 	if (cfvalues->p3pcp)
 		free(cfvalues->p3pcp);
+	if (cfvalues->putscript)
+		free(cfvalues->putscript);
 	return 0;
 }

@@ -202,6 +202,8 @@ load_config()
 						config.useetag = !strcasecmp("true", value);
 					else if (!strcasecmp("UseContentMD5", key))
 						config.usecontentmd5 = !strcasecmp("true", value);
+					else if (!strcasecmp("UsePut", key))
+						config.useput = !strcasecmp("true", value);
 					else if (!strcasecmp("ScriptCpuLimit", key))
 						config.scriptcpulimit = atoi(value);
 					else if (!strcasecmp("ScriptTimeout", key))
