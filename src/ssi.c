@@ -30,6 +30,9 @@
 #include	<stdlib.h>
 #include	<string.h>
 
+#include	<sys/wait.h>
+#include	<sys/resource.h>
+
 #include	"htconfig.h"
 #include	"ssi.h"
 #include	"httpd.h"
@@ -63,6 +66,7 @@ static	int	dir_count_month_gfx	(int, char **, off_t *);
 static	int	dir_count_reset		(int, char **, off_t *);
 static	int	dir_date		(int, char **, off_t *);
 static	int	dir_date_format		(int, char **, off_t *);
+static	int	dir_exec		(int, char **, off_t *);
 static	int	dir_include_file	(int, char **, off_t *);
 static	int	dir_last_mod		(int, char **, off_t *);
 static	int	dir_run_cgi		(int, char **, off_t *);
@@ -607,7 +611,7 @@ dir_date(int argc, char **argv, off_t *size)
 static	int
 dir_include_file(int argc, char **argv, off_t *size)
 {
-	int		i, fd, ret, virtual;
+	int		i, fd, ret;
 	const	char	*path = NULL;
 
 	if ((numincludes++) > MAXINCLUDES)
@@ -621,19 +625,18 @@ dir_include_file(int argc, char **argv, off_t *size)
 		return(ERR_CONT);
 	}
 
-	virtual = 0;
 	for (i = 0; i < argc; i += 2)
 		if (!strcmp(argv[i], "virtual"))
 		{
-			virtual = 1;
-			path = argv[i + 1];
+			/* run as script */
+			return dir_run_cgi(1, &argv[i + 1], size);
 		}
 		else if (!strcmp(argv[i], "file"))
 			path = argv[i + 1];
 	if (!path)
 		path = argv[0];
 
-	if (virtual || '/' != path[0] || '~' == path[1])
+	if ('/' != path[0] || '~' == path[1])
 		path = convertpath(path);
 	fd = open(path, O_RDONLY, 0);
 	if (fd < 0)
@@ -645,10 +648,6 @@ dir_include_file(int argc, char **argv, off_t *size)
 	ret = sendwithdirectives_internal(fd, size);
 	numincludes--;
 	close(fd);
-	if (getenv("ORIG_PATH_INFO"))
-		setenv("PATH_INFO", getenv("ORIG_PATH_INFO"), 1);
-	if (getenv("ORIG_PATH_TRANSLATED"))
-		setenv("PATH_TRANSLATED", getenv("ORIG_PATH_TRANSLATED"), 1);
 	return(ret);
 }
 
@@ -692,9 +691,53 @@ dir_last_mod(int argc, char **argv, off_t *size)
 }
 
 static	int
+dir_exec(int argc, char **argv, off_t *size)
+{
+	pid_t	child;
+	int	status;
+
+	if (!argc)
+	{
+		*size += secputs("[No parameter for exec]\n");
+		return(ERR_CONT);
+	}
+
+	if (!strcmp(argv[0], "cgi"))
+	{
+		*size += secputs("[exec cgi not supported: use run-cgi]\n");
+		return(ERR_CONT);
+	}
+	else if (!strcmp(argv[0], "cmd"))
+		/* do nothing */;
+	else
+	{
+		*size += secputs("[exec invalid argument: use exec cmd=..]\n");
+		return(ERR_CONT);
+	}
+
+	switch ((child = vfork()))
+	{
+	case 0:
+		setenv("PATH", config.scriptpath, 1);
+		/* XXX: This needs proper privilege handling,
+		 * like run-cgi (rather do_script) offers!
+		execl("/bin/sh", "sh", "-c", argv[1], NULL);
+		 */
+		*size += secputs("[exec not implemented]\n");
+		exit(1);
+	case -1:
+		*size += secprintf("[Execute failed: %s\n", strerror(errno));
+		return(ERR_CONT);
+	default:
+		waitpid(child, &status, 0);
+	}
+	return(ERR_NONE);
+}
+
+static	int
 dir_run_cgi(int argc, char **argv, off_t *size)
 {
-	char	*querystring, *qs;
+	char	*querystring, *qs, *cl;
 	int	oldhead;
 
 	if ((qs = getenv("QUERY_STRING")))
@@ -711,6 +754,9 @@ dir_run_cgi(int argc, char **argv, off_t *size)
 	headers = 0;
 	do_get(argv[0]);
 	headers = oldhead;
+
+	if ((cl = getenv("CONTENT_LENGTH")))
+		size += strtoul(cl, NULL, 10);
 	/* used to do something like this - which is way more efficient
 	 *
 	do_script(here, "", "", NULL, 0);
@@ -980,6 +1026,7 @@ static	directivestype	directives[] =
 	{ "count-reset",	dir_count_reset,	0	},
 	{ "date",		dir_date,		1	},
 	{ "date-format",	dir_date_format,	1	},
+	{ "exec",		dir_exec,		1	},
 	{ "include",		dir_include_file,	1	},
 	{ "include-file",	dir_include_file,	1	},
 	{ "last-modified",	dir_last_mod,		1	},
@@ -1128,7 +1175,7 @@ sendwithdirectives_internal(int fd, off_t *size)
 					alarm(0); fclose(parse);
 					return(ERR_QUIT);
 				}
-				*size += strlen(line);
+				*size += strlen(line) + 1;
 			}
 		}
 		else
