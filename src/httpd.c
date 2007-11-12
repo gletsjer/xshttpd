@@ -848,8 +848,11 @@ process_request()
 
 	if (!getenv("CONTENT_LENGTH"))
 	{
+		const char	*te = getenv("HTTP_TRANSFER_ENCODING");
+
 		if (headers >= 11 &&
-			(!strcasecmp("POST", line) || !strcasecmp("PUT", line)))
+			(!strcasecmp("POST", line) || !strcasecmp("PUT", line)) &&
+			(!te || strcasecmp(te, "chunked")))
 		{
 			xserror("411 Length Required");
 			return;

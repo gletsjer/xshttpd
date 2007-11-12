@@ -211,7 +211,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 #ifdef		HANDLE_SSL
 		/* Posting via SSL takes a lot of extra work */
-		if (ssl_post) dup2(q[0], 0);
+		if (ssl_post)
+			dup2(q[0], 0);
 #endif		/* HANDLE_SSL */
 
 #ifdef		HAVE_SETSID
@@ -337,7 +338,59 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	}
 
 #ifdef		HANDLE_SSL
-	if (ssl_post)
+	const char	*te = getenv("HTTP_TRANSFER_ENCODING");
+	if (ssl_post && te && !strcasecmp(te, "chunked"))
+	{
+		size_t          chunksz;
+		const size_t	buflen = 20;
+		char            buffer[buflen];
+		int             result;
+		char		*cbuf;
+
+		chunksz = 0;
+		cbuf = NULL;
+
+		while (1)
+		{
+			result = readline(0, buffer, buflen);
+			if (result != ERR_NONE)
+			{
+				if (cbuf)
+					free(cbuf);
+				goto END;
+			}
+			buffer[buflen-1] = '\0';
+
+			chunksz = (size_t)strtoul(buffer, NULL, 16);
+			if (!chunksz)
+			{
+				/* end of data marker */
+				/* now read \r\n */
+				secread(0, buffer, 2);
+				break;
+			}
+			/* two bytes extra for trailing \r\n */
+			cbuf = realloc(cbuf, chunksz + 2);
+			if (!cbuf)
+				goto END;
+			if (secread(0, cbuf, chunksz + 2) < 0)
+				goto END;
+
+			result = write(q[1], cbuf, chunksz);
+			if ((result < 0) && (errno != EINTR))
+			{
+				warn("[Connection closed (fd = %d, todo = %zu]",
+					q[1], chunksz);
+				goto END;
+			}
+		}
+
+		if (cbuf)
+			free(cbuf);
+		postread = 1;
+		close(q[1]);
+	}
+	else if (ssl_post)
 	{
 		writetodo = strtoul(getenv("CONTENT_LENGTH"), NULL, 10);
 		while (writetodo > 0)
