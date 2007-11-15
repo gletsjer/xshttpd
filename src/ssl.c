@@ -29,9 +29,6 @@
 #include	"extra.h"
 #include	"methods.h"
 
-#ifdef		HANDLE_SSL
-static SSL_CTX		*ssl_ctx;
-#endif		/* HANDLE_SSL */
 #ifdef		HAVE_PCRE
 #include		"pcre.h"
 #include		<pcre.h>
@@ -39,6 +36,8 @@ static SSL_CTX		*ssl_ctx;
 
 static int	netbufind, netbufsiz;
 static char	netbuf[MYBUFSIZ];
+
+static int	pem_passwd_cb(char *buf, int size, int rwflag, void *userdata);
 
 void
 initreadmode(int reset)
@@ -70,7 +69,7 @@ initssl()
 	if (!cursock->usessl)
 		return 0;
 
-	cursock->ssl = SSL_new(ssl_ctx);
+	cursock->ssl = SSL_new(cursock->ssl_ctx);
 	SSL_set_rfd(cursock->ssl, 0);
 	SSL_set_wfd(cursock->ssl, 1);
 	/* enable reusable keys */
@@ -229,21 +228,39 @@ sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 }
 #endif		/* HANDLE_SSL */
 
+static int
+pem_passwd_cb(char *buf, int size, int rwflag, void *userdata)
+{
+	char	*passphrase;
+
+	printf("Protected SSL key '%s' requires a passphrase.\n",
+		(char *)userdata);
+	if (!(passphrase = getpass("Passphrase: ")))
+		return 0;
+	strlcpy(buf, passphrase, size);
+	memset(passphrase, '\0', strlen(passphrase));
+
+	(void) rwflag;
+	(void) userdata;
+	return strlen(buf);
+}
+
 void
-loadssl()
+loadssl(struct socket_config *lsock)
 {
 #ifdef		HANDLE_SSL
+	SSL_CTX		*ssl_ctx;
 	SSL_METHOD	*method = NULL;
-	BIO			*bio = NULL;
+	BIO		*bio = NULL;
 	struct stat	sb;
 
-	if (!cursock->usessl)
+	if (!lsock->usessl)
 		return;
 
-	if (!cursock->sslcertificate)
-		cursock->sslcertificate = strdup(CERT_FILE);
-	if (!cursock->sslprivatekey)
-		cursock->sslprivatekey = strdup(KEY_FILE);
+	if (!lsock->sslcertificate)
+		lsock->sslcertificate = strdup(CERT_FILE);
+	if (!lsock->sslprivatekey)
+		lsock->sslprivatekey = strdup(KEY_FILE);
 	SSL_load_error_strings();
 	OPENSSL_config(NULL);
 	SSL_library_init();
@@ -254,32 +271,35 @@ loadssl()
 	if (!(ssl_ctx = SSL_CTX_new(method)))
 		err(1, "Cannot init SSL context: %s",
 			ERR_reason_error_string(ERR_get_error()));
+	lsock->ssl_ctx = ssl_ctx;
+	SSL_CTX_set_default_passwd_cb(ssl_ctx, pem_passwd_cb);
+	SSL_CTX_set_default_passwd_cb_userdata(ssl_ctx, lsock->sslprivatekey);
 	if (!SSL_CTX_use_certificate_file(ssl_ctx,
-			calcpath(cursock->sslcertificate),
+			calcpath(lsock->sslcertificate),
 			SSL_FILETYPE_PEM))
 		errx(1, "Cannot load SSL cert %s: %s", 
-			calcpath(cursock->sslcertificate),
+			calcpath(lsock->sslcertificate),
 			ERR_reason_error_string(ERR_get_error()));
 	if (!SSL_CTX_use_PrivateKey_file(ssl_ctx,
-			calcpath(cursock->sslprivatekey),
+			calcpath(lsock->sslprivatekey),
 			SSL_FILETYPE_PEM))
 		errx(1, "Cannot load SSL key %s: %s", 
-			calcpath(cursock->sslprivatekey),
+			calcpath(lsock->sslprivatekey),
 			ERR_reason_error_string(ERR_get_error()));
 	if (!SSL_CTX_check_private_key(ssl_ctx))
 		errx(1, "Cannot check private SSL %s %s: %s",
-			calcpath(cursock->sslcertificate),
-			calcpath(cursock->sslprivatekey),
+			calcpath(lsock->sslcertificate),
+			calcpath(lsock->sslprivatekey),
 			ERR_reason_error_string(ERR_get_error()));
-	if (!cursock->sslcafile && !cursock->sslcapath)
+	if (!lsock->sslcafile && !lsock->sslcapath)
 		/* TODO: throw an error */
-		cursock->sslauth = auth_none;
+		lsock->sslauth = auth_none;
 	else if (!SSL_CTX_load_verify_locations(ssl_ctx,
-			cursock->sslcafile ? calcpath(cursock->sslcafile) : NULL,
-			cursock->sslcapath ? calcpath(cursock->sslcapath) : NULL))
+			lsock->sslcafile ? calcpath(lsock->sslcafile) : NULL,
+			lsock->sslcapath ? calcpath(lsock->sslcapath) : NULL))
 		errx(1, "Cannot load SSL CAfile %s and CApath %s: %s", 
-			cursock->sslcafile ? calcpath(cursock->sslcafile) : "",
-			cursock->sslcapath ? calcpath(cursock->sslcapath) : "",
+			lsock->sslcafile ? calcpath(lsock->sslcafile) : "",
+			lsock->sslcapath ? calcpath(lsock->sslcapath) : "",
 			ERR_reason_error_string(ERR_get_error()));
 
 	/* load randomness */
@@ -291,7 +311,7 @@ loadssl()
 	}
 
 	/* read dh parameters from private keyfile */
-	bio = BIO_new_file(calcpath(cursock->sslprivatekey), "r");
+	bio = BIO_new_file(calcpath(lsock->sslprivatekey), "r");
 	if (bio)
 	{
 		DSA		*dsa;
@@ -308,7 +328,7 @@ loadssl()
 		if (!dh)
 		{
 			BIO_free(bio);
-			bio = BIO_new_file(calcpath(cursock->sslcertificate), "r");
+			bio = BIO_new_file(calcpath(lsock->sslcertificate), "r");
 			if (bio)
 				dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
 			if (!dh && (dsa = PEM_read_bio_DSAparams(bio, NULL, NULL, NULL)))
@@ -343,7 +363,7 @@ loadssl()
 #endif		/* OPENSSL_EC_NAMED_CURVE */
 	(void) SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2);
 
-	switch (cursock->sslauth)
+	switch (lsock->sslauth)
 	{
 	default:
 	case auth_none:

@@ -464,7 +464,9 @@ load_config()
 			lsock->instances = HTTPD_NUMBER;
 		if (lsock->usessl)
 		{
-#ifndef		HANDLE_SSL
+#ifdef		HANDLE_SSL
+			loadssl(lsock);
+#else		/* HANDLE_SSL */
 			/* Sanity check */
 			errx(1, "SSL support configured but not compiled in");
 #endif		/* HANDLE_SSL */

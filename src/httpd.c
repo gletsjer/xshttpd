@@ -1196,9 +1196,6 @@ standalone_socket(int id)
 #endif		/* SO_ACCEPTFILTER */
 	}
 
-	if (cursock->usessl)
-		loadssl();
-
 #ifdef		HAVE_SETRLIMIT
 # ifdef		RLIMIT_NPROC
 	limit.rlim_max = limit.rlim_cur = RLIM_INFINITY;

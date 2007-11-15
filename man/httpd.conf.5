@@ -285,8 +285,10 @@ This defaults to
 .Sy SystemRoot Ns Pa /key.pem
 - but may be contained in the same file as the
 .Sy SSLCertificate
-file. Note that this key should not be protected with a
-secret passphrase.
+file. Note that this key may be protected with a secret passphrase.
+In that case the server will prompt for this passphrase when started.
+Do not use passphrase protection when you expect the server to start
+up automatically.
 .It Sy SSLAuthentication Xo
 .Brq Cm none Ns No | Ns Cm optional Ns No | Ns Cm strict
 .Xc

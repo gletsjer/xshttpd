@@ -18,11 +18,12 @@
 /* forward declaration, defined in htconfig.h */
 struct	mapping;
 struct	maplist;
+struct	socket_config;
 
 /* Wrapper functions are used even if SSL is not enabled */
 int	initssl(void);
 void	ssl_environment(void);
-void	loadssl(void);
+void	loadssl(struct socket_config *);
 void	endssl(void);
 
 void	initreadmode(int);

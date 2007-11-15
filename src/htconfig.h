@@ -76,7 +76,8 @@ struct socket_config
 	pcre *		sslpcreidn;
 #endif		/* HAVE_PCRE */
 #ifdef		HANDLE_SSL
-	SSL		*ssl;
+	SSL_CTX		*ssl_ctx;	/* per socket */
+	SSL		*ssl;		/* per instance */
 #endif		/* HANDLE_SSL */
 	struct socket_config *	next;
 } *cursock;
