@@ -252,6 +252,22 @@ in the configuration file.
 .Pp
 An example SSL-Makefile that can help you generate the certificate,
 can be found in the httpd source distribution.
+.Ss Additional HTTP/1.1 features
+Several new features were derived from the RFC 2616 standard:
+.Bl -bullet -compact
+.It
+Persistent connections (multiple get/post requests per connection)
+.It
+Additional http methods (OPTIONS, PUT, DELETE and TRACE)
+.It
+Chunked transfers (both for input and output)
+.It
+Content trailers (additional headers following end of data)
+.It
+Conditional requests (If-*, Accept-*)
+.It
+Content entity tags (ETag) and digests (MD5 checksum)
+.El
 .Ss Built-in support for common tasks
 XS-httpd configuration files, server-side includes and several
 additional programs make certain tedious tasks a lot simpler for the
