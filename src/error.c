@@ -30,6 +30,7 @@ static	void	bad_request		(void);
 static	void	unknown_method		(void);
 static	void	unauthorized		(void);
 static	void	precondition_failed	(void);
+static	void	not_acceptable		(void);
 static	void	entity_too_large	(void);
 static	void	local_no_page		(void);
 static	void	local_invalid_link	(void);
@@ -248,9 +249,17 @@ unauthorized()
 static	void
 precondition_failed()
 {
-	printf("<p>You have asked for a certain precondition which is\n");
-	printf("not met by the requested data. So this data will not be ");
-	printf("shown.</p>\n");
+	printf("<p>You have asked for a certain precondition which is ");
+	printf("not met by the requested data.\n");
+	printf("So this data will not be shown.</p>\n");
+}
+
+static	void
+not_acceptable()
+{
+	printf("<p>The requested data is not available in any of the ");
+	printf("formats you deem acceptable.\n");
+	printf("So this data will not be shown.</p>\n");
 }
 
 static	void
@@ -366,6 +375,8 @@ main(int argc, char **argv)
 		unauthorized();
 	else if (!strcmp(error_code, "PRECONDITION_FAILED"))
 		precondition_failed();
+	else if (!strcmp(error_code, "NOT_ACCEPTABLE"))
+		not_acceptable();
 	else if (!strcmp(error_code, "ENTITY_TOO_LARGE"))
 		entity_too_large();
 	else if (!strcmp(error_code, "LOCAL_NO_PAGE"))

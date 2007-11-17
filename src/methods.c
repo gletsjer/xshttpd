@@ -77,6 +77,7 @@ MD5_CTX		*md5context;
 #endif		/* HAVE_LIBMD */
 
 static int	getfiletype		(int);
+static int	sendheaders		(int, off_t);
 static void	senduncompressed	(int);
 static void	sendcompressed		(int, const char *);
 static char *	find_file		(const char *, const char *, const char *)	MALLOC_FUNC;
@@ -147,7 +148,7 @@ make_etag(struct stat *sb)
 	return etag;
 }
 
-static void
+static int
 sendheaders(int fd, off_t size)
 {
 	char		*env, *etag;
@@ -220,8 +221,7 @@ sendheaders(int fd, off_t size)
 			{
 				server_error("412 Precondition failed",
 					"PRECONDITION_FAILED");
-				close(fd);
-				return;
+				return -1;
 			}
 		}
 	}
@@ -234,10 +234,6 @@ sendheaders(int fd, off_t size)
 			rstatus = 304;
 			secprintf("%s 304 Not modified\r\n", httpver);
 		}
-		else
-		{
-			secprintf("%s 200 OK\r\n", httpver);
-		}
 	}
 	else if ((env = getenv("HTTP_IF_UNMODIFIED_SINCE")))
 	{
@@ -246,16 +242,75 @@ sendheaders(int fd, off_t size)
 		{
 			server_error("412 Precondition failed",
 				"PRECONDITION_FAILED");
-			close(fd);
-			return;
+			return -1;
 		}
-		else
-			secprintf("%s 200 OK\r\n", httpver);
 	}
-	else
-		secprintf("%s 200 OK\r\n", httpver);
-	stdheaders(0, 0, 0);
+	/* set mimetype and charset */
 	getfiletype(1);
+	if (getenv("HTTP_ACCEPT"))
+	{
+		size_t		i, acsz, len;
+		char		*ac = getenv("HTTP_ACCEPT");
+		char 		**acceptlist = NULL;
+
+		acsz = qstring_to_array(ac, NULL);
+		acceptlist = malloc(acsz * sizeof(char *));
+		acsz = qstring_to_array(ac, acceptlist);
+
+		for (i = 0; i < acsz; i++)
+		{
+			if (!strcmp(acceptlist[i], "*/*"))
+				break;
+			else if (!strcasecmp(acceptlist[i], cfvalues.mimetype))
+				break;
+
+			/* check for partial match */
+			len = strlen(acceptlist[i]);
+			if (!strcmp(&acceptlist[i][len - 2], "/*") &&
+				!strncasecmp(acceptlist[i], cfvalues.mimetype,
+					len - 1))
+				break;
+		}
+		free(acceptlist);
+		if (i >= acsz)
+		{
+			server_error("406 Not acceptable", "NOT_ACCEPTABLE");
+			return -1;
+		}
+	}
+	if (getenv("HTTP_ACCEPT_CHARSET") && cfvalues.charset)
+	{
+		size_t		i, acsz;
+		char		*ac = getenv("HTTP_ACCEPT_CHARSET");
+		char 		**acceptlist = NULL;
+
+		acsz = qstring_to_array(ac, NULL);
+		acceptlist = malloc(acsz * sizeof(char *));
+		acsz = qstring_to_array(ac, acceptlist);
+
+		for (i = 0; i < acsz; i++)
+			if (!strcmp(acceptlist[i], "*"))
+				break;
+			else if (!strcasecmp(acceptlist[i], cfvalues.charset))
+				break;
+		free(acceptlist);
+		if (i >= acsz)
+		{
+			server_error("406 Charset not acceptable",
+				"NOT_ACCEPTABLE");
+			return -1;
+		}
+	}
+
+	/* All preconditions satisfied */
+	secprintf("%s 200 OK\r\n", httpver);
+	stdheaders(0, 0, 0);
+	if (cfvalues.charset)
+		secprintf("Content-type: %s; charset=%s\r\n",
+			cfvalues.mimetype, cfvalues.charset);
+	else
+		secprintf("Content-type: %s\r\n", cfvalues.mimetype);
+
 	if (dynamic)
 	{
 		if (headers >= 11)
@@ -310,6 +365,7 @@ sendheaders(int fd, off_t size)
 		secprintf("P3P: CP=\"%s\"\r\n", cfvalues.p3pcp);
 
 	secprintf("\r\n");
+	return 0;
 }
 
 static void
@@ -335,7 +391,13 @@ senduncompressed(int fd)
 		return;
 	}
 	if (headers >= 10)
-		sendheaders(fd, size);
+	{
+		if (sendheaders(fd, size))
+		{
+			close(fd);
+			return;
+		}
+	}
 
 	if (headonly)
 		goto DONE;
@@ -1546,20 +1608,13 @@ getfiletype(int print)
 
 	if (cfvalues.mimetype || !(ext = strrchr(orig_filename, '.')) || !(*(++ext)))
 	{
-		if (print)
+		if (!cfvalues.mimetype)
 		{
-			if (cfvalues.charset)
-				secprintf("Content-type: %s; charset=%s\r\n",
-						cfvalues.mimetype ? cfvalues.mimetype : "application/octet-stream",
-						cfvalues.charset);
-			else
-				secprintf("Content-type: %s\r\n",
-						cfvalues.mimetype ? cfvalues.mimetype : "application/octet-stream");
-		}
-		if (cfvalues.mimetype)
-			return !strcasecmp(cfvalues.mimetype, "text/html");
-		else
+			cfvalues.mimetype = strdup("application/octet-stream");
 			return 0;
+		}
+		else
+			return !strcasecmp(cfvalues.mimetype, "text/html");
 	}
 	for (count = 0; ext[count] && (count < 16); count++)
 		extension[count] =
@@ -1573,26 +1628,29 @@ getfiletype(int print)
 				continue;
 			if (print)
 			{
-				if (cfvalues.charset)
-					secprintf("Content-type: %s; "
-							"charset=%s\r\n",
-						search->name, cfvalues.charset);
-				else if (!strncmp(search->name, "text/", 5))
-					secprintf("Content-type: %s; "
-							"charset=%s\r\n",
-						search->name,
+				size_t	len = strlen(search->name) + 1;
+
+				cfvalues.mimetype =
+					realloc(cfvalues.mimetype, len);
+				strlcpy(cfvalues.mimetype, search->name, len);
+
+				if (!cfvalues.charset &&
+					!strncmp(cfvalues.mimetype, "text/", 5))
+				{
+					/* only force default charset for
+					 * textfiles
+					 */
+					cfvalues.charset = strdup(
 						config.defaultcharset
 						? config.defaultcharset
 						: "us-ascii");
-				else
-					secprintf("Content-type: %s\r\n",
-						search->name);
+				}
 			}
 			return !strcasecmp(search->name, "text/html");
 		}
 	}
 	if (print)
-		secprintf("Content-type: application/octet-stream\r\n");
-	return(0);
+		cfvalues.mimetype = strdup("application/octet-stream");
+	return 0;
 }
 
