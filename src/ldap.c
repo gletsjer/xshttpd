@@ -160,9 +160,6 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 	int	ok = 1, version = 3;
 	struct	berval	cred;
 
-	cred.bv_val = pass;
-	cred.bv_len = strlen(pass);
-
 	if ((!strlen (ldap->uri)) || (!strlen(ldap->dn)) || (!strlen (ldap->attr)))
 		/* LDAP config is incomplete */
 		return(1);
@@ -172,6 +169,10 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 	if (ldap->version)
 		version = ldap->version;
 	ldap_set_option (ld, LDAP_OPT_PROTOCOL_VERSION, &version);
+
+	/* copy password to rw variable */
+	cred.bv_len = strlen(pass);
+	cred.bv_val = cred.bv_len ? strdup(pass) : NULL;
 
 	/*
 	 * This search may look confusing. Basically, we do a search for the
@@ -224,6 +225,8 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 	}
 
 leave:
+	if (cred.bv_len)
+		free(cred.bv_val);
 	if (dn)
 		ldap_memfree (dn);
 	if (res)

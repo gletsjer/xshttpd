@@ -103,10 +103,10 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	unsigned long		writetodo;
 	off_t			totalwritten;
 	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
-				*temp,
 				input[RWBUFSIZE], line[LINEBUFSIZE],
-				head[HEADSIZE];
-	const	char		*argv1;
+				head[HEADSIZE],
+				*temp;
+	char			*argv1;
 	int			p[2], nph, dossi, chldstat;
 	ssize_t			written;
 	unsigned	int	left;
@@ -342,8 +342,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	if (ssl_post && te && !strcasecmp(te, "chunked"))
 	{
 		size_t          chunksz;
-		const size_t	buflen = 20;
-		char            buffer[buflen];
+		char            buffer[20];
+		const size_t	buflen = sizeof buffer;
 		int             result;
 		char		*cbuf;
 
