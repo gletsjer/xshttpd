@@ -1,5 +1,4 @@
-/* Copyright (C) 2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: reformatxs.c,v 1.7 2006/12/17 13:29:44 johans Exp $ */
+/* Copyright (C) 2006-2007 by Johan van Selst (johans@stack.nl) */
 
 /* tidy up xs counter file and convert to latest version */
 

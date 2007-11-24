@@ -1,5 +1,4 @@
 /* Copyright (C) 1998-2007 by Johan van Selst (johans@stack.nl) */
-/* $Id$ */
 
 #include	"config.h"
 

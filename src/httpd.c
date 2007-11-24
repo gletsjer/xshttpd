@@ -1,6 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: httpd.c,v 1.273 2007/04/10 12:50:14 johans Exp $ */
+/* Copyright (C) 1998-2007 by Johan van Selst (johans@stack.nl) */
 
 #include	"config.h"
 
@@ -84,8 +83,7 @@
 #include	"authenticate.h"
 #include	"ldap.h"
 
-static char copyright[] =
-"$Id: httpd.c,v 1.273 2007/04/10 12:50:14 johans Exp $ Copyright 1995-2005 Sven Berkvens, Johan van Selst";
+static char copyright[] = "Copyright 1995-2007 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 

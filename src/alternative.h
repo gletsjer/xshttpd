@@ -1,6 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: alternative.h,v 1.6 2007/04/07 21:34:50 johans Exp $ */
 
 #ifndef		ALTERNATIVE_H
 #define		ALTERNATIVE_H

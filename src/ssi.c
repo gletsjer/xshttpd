@@ -1,6 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2007 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssi.c,v 1.70 2007/04/07 21:34:51 johans Exp $ */
 
 #include	"config.h"
 

@@ -1,6 +1,5 @@
 /* Copyright (C) 2005 by Rink Springer (rink@stack.nl) */
-/* Copyright (C) 2005-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: ldap.c,v 1.11 2007/04/07 21:51:45 johans Exp $ */
+/* Copyright (C) 2005-2007 by Johan van Selst (johans@stack.nl) */
 
 #include	"config.h"
 

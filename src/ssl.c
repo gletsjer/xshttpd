@@ -1,5 +1,4 @@
-/* Copyright (C) 2003-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: ssl.c,v 1.43 2007/03/16 21:53:52 johans Exp $ */
+/* Copyright (C) 2003-2007 by Johan van Selst (johans@stack.nl) */
 
 #include	"config.h"
 

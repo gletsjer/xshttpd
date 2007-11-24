@@ -1,6 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: err.c,v 1.10 2006/12/17 13:29:43 johans Exp $ */
 
 #include	"config.h"
 

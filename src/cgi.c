@@ -1,6 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: cgi.c,v 1.138 2007/04/07 21:34:50 johans Exp $ */
+/* Copyright (C) 1998-2007 by Johan van Selst (johans@stack.nl) */
 
 #include	"config.h"
 

@@ -1,6 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: path.c,v 1.12 2006/12/06 20:56:53 johans Exp $ */
+/* Copyright (C) 1998-2007 by Johan van Selst (johans@stack.nl) */
 
 #include	"config.h"
 #include	<string.h>

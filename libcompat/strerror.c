@@ -1,6 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 /* Copyright (C) 1998-2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: strerror.c,v 1.1 2006/12/17 13:29:44 johans Exp $ */
 
 #include	"config.h"
 

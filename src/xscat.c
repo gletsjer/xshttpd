@@ -1,5 +1,4 @@
-/* Copyright (C) 2006 by Johan van Selst (johans@stack.nl) */
-/* $Id: xscat.c,v 1.4 2007/03/14 23:21:04 johans Exp $ */
+/* Copyright (C) 2006-2007 by Johan van Selst (johans@stack.nl) */
 
 /* show detailed information from the xs counter datafile */
 
