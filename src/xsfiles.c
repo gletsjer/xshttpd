@@ -16,12 +16,14 @@
 #include	<stdlib.h>
 #include	<stdarg.h>
 #include	<string.h>
+#include	<ctype.h>
 #include	<unistd.h>
 #include	<fnmatch.h>
 
 #include	"httpd.h"
 #include	"htconfig.h"
 #include	"methods.h"
+#include	"extra.h"
 #include	"ldap.h"
 #include	"pcre.h"
 #include	"authenticate.h"
@@ -367,7 +369,7 @@ int
 check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 {
 	char	line[LINEBUFSIZE];
-	char    *p, *name, *value;
+	char    *p, *name, *value, *authfile;
 	int	state = 0;
 	int	restrictcheck = 0, restrictallow = 0;
 	int	sslcheck = 0, sslallow = 0;
@@ -375,6 +377,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 	FILE    *fp;
 	struct ldap_auth	ldap;
 
+	authfile = NULL;
 	memset(&ldap, 0, sizeof(ldap));
 
 	if (!(fp = fopen(cffile, "r")))
@@ -414,25 +417,36 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 		if (!state)
 			continue;
 
-		while ((value = strsep(&p, " \t\r\n")) && !*value)
-			/* continue */;
+		/* strip leading/trailing whitespace from value */
+		while (isspace(*++p))
+			/* do nothing */;
+		value = p;
+		if ((p = strchr(value, '#')))
+			*p = '\0';
+		else
+			p = strchr(value, '\0');
+		while (isspace(*--p))
+			*p = '\0';
 
-		if (!value)
+		if (!value || !*value)
 			continue;
 
 		/* AuthFilename => $file does .xsauth-type authentication */
 		if (!strcasecmp(name, "AuthFilename") ||
 			!strcasecmp(name, "AuthFile"))
 		{
-			/* return if authentication fails
-			 * process other directives on success
-			 */
-			if (check_auth(value, NULL))
+			authfile = NULL;
+			if (value[0] != '/')
 			{
-				/* a 401 response has been sent */
-				fclose(fp);
-				return 1;
+				char	*slash = strrchr(cffile, '/');
+
+				if (slash)
+					asprintf(&authfile, "%.*s/%s",
+						(int)(slash - cffile),
+						cffile, value);
 			}
+			if (!authfile)
+				authfile = strdup(value);
 		}
 		else if (!strcasecmp(name, "Restrict"))
 		{
@@ -535,11 +549,18 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 		server_error("403 File is not available", "NOT_AVAILABLE");
 		return 1;
 	}
-	if (ldap.dn && !check_auth(NULL, &ldap))
+	/* return err if authentication fails */
+	if (authfile && check_auth(authfile, NULL))
 	{
+		free(authfile);
 		/* a 401 response has been sent */
 		return 1;
 	}
+	if (authfile)
+		free(authfile);
+	if (ldap.dn && check_auth(NULL, &ldap))
+		/* a 401 response has been sent */
+		return 1;
 
 	return 0;
 }
