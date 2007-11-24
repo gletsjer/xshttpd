@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.5 beta 26
+- Add -f filename option to xspasswd
+
 Changes since 3.5 beta 25
 - Implement chunked requests (post and put) - also persistent
 - Prompt for a passphrase when reading protected SSL key

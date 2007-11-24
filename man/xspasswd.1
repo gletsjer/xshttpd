@@ -8,6 +8,7 @@
 .Nm xspasswd
 .Op Fl b | Fl d
 .Op Fl l | Fl u
+.Op Fl f Ar filename
 .Op Ar username
 .Sh DESCRIPTION
 .Ql xspasswd
@@ -21,8 +22,12 @@ is present in the directory in which a file is going to be
 retrieved, then the remote user will be asked for a usercode
 and password before the file is allowed to be retrieved.
 This program manages the
-.Pa xsauth
-file.
+.Pa .xsauth
+file. Using the
+.Fl f
+flag an alternative filename can be used; however these files
+are not automatically recognised by the server as authentication
+files.
 .Pp
 The program accepts the mutually exclusive arguments
 .Fl l

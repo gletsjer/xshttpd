@@ -27,14 +27,15 @@
 int
 main(int argc, char **argv)
 {
-	char		*pwd, *username, *passone,
+	char		*pwd, *username, *passone, *filename,
 			*total, line[BUFSIZ], *newfile;
 	const	char	*password;
 	int		found, option, passwdlock = 0, digest = 0;
 	FILE		*authinp, *authout;
 
 	umask(S_IRWXG | S_IRWXO);
-	while ((option = getopt(argc, argv, "bdhlu")) != EOF)
+	filename = NULL;
+	while ((option = getopt(argc, argv, "bdf:hlu")) != EOF)
 	{
 		switch (option)
 		{
@@ -47,6 +48,9 @@ main(int argc, char **argv)
 #endif		/* HAVE_MD5 */
 			digest = 1;
 			break;
+		case 'f':
+			filename = optarg;
+			break;
 		case 'l':
 			passwdlock = 1;
 			break;
@@ -54,13 +58,16 @@ main(int argc, char **argv)
 			passwdlock = 0;
 			break;
 		default:
-			errx(1, "Usage: xspasswd [-b|-d] [-l|-u] [user]");
+			errx(1, "Usage: xspasswd [-b|-d] [-l|-u] "
+				"[-f filename] [user]");
 		}
 	}
 	argc -= optind;
 	argv += optind;
 
-	printf("The information will be stored in %s\n\n", AUTH_FILE);
+	if (!filename)
+		filename = strdup(AUTH_FILE);
+	printf("The information will be stored in %s\n\n", filename);
 	if (argc > 1)
 		errx(1, "Usage: xspasswd [-b|-d] [-l|-u] [user]");
 	else if (argc)
@@ -104,8 +111,8 @@ main(int argc, char **argv)
 			(passwdlock ? 'L' : 'U'), username, pwd);
 	free(passone);
 
-	authinp = fopen(AUTH_FILE, "r");
-	asprintf(&newfile, "%s.new", AUTH_FILE);
+	authinp = fopen(filename, "r");
+	asprintf(&newfile, "%s.new", filename);
 	if (!(authout = fopen(newfile, "w")))
 		err(1, "fopen(`%s', `w')", newfile);
 	found = 0;
@@ -131,8 +138,8 @@ main(int argc, char **argv)
 	if (authinp)
 		fclose(authinp);
 	fclose(authout);
-	if (rename(newfile, AUTH_FILE))
-		err(1, "Cannot rename(`%s', `%s')", newfile, AUTH_FILE);
+	if (rename(newfile, filename))
+		err(1, "Cannot rename(`%s', `%s')", newfile, filename);
 	free(newfile);
 	return 0;
 }
