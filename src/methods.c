@@ -65,7 +65,6 @@
 #include	"ssl.h"
 #include	"extra.h"
 #include	"cgi.h"
-#include	"fcgi.h"
 #include	"path.h"
 #include	"pcre.h"
 #include	"authenticate.h"
@@ -252,10 +251,7 @@ sendheaders(int fd, off_t size)
 		char		*ac = getenv("HTTP_ACCEPT");
 		char 		**acceptlist = NULL;
 
-		acsz = qstring_to_array(ac, NULL);
-		acceptlist = malloc(acsz * sizeof(char *));
-		acsz = qstring_to_array(ac, acceptlist);
-
+		acsz = qstring_to_arrayp(ac, &acceptlist);
 		for (i = 0; i < acsz; i++)
 		{
 			if (!strcmp(acceptlist[i], "*/*"))
@@ -270,11 +266,15 @@ sendheaders(int fd, off_t size)
 					len - 1))
 				break;
 		}
-		free(acceptlist);
-		if (i >= acsz)
+		if (acceptlist)
 		{
-			server_error("406 Not acceptable", "NOT_ACCEPTABLE");
-			return -1;
+			free(acceptlist);
+			if (i >= acsz)
+			{
+				server_error("406 Not acceptable",
+					"NOT_ACCEPTABLE");
+				return -1;
+			}
 		}
 	}
 	if (getenv("HTTP_ACCEPT_CHARSET") && cfvalues.charset)
@@ -283,21 +283,21 @@ sendheaders(int fd, off_t size)
 		char		*ac = getenv("HTTP_ACCEPT_CHARSET");
 		char 		**acceptlist = NULL;
 
-		acsz = qstring_to_array(ac, NULL);
-		acceptlist = malloc(acsz * sizeof(char *));
-		acsz = qstring_to_array(ac, acceptlist);
-
+		acsz = qstring_to_arrayp(ac, &acceptlist);
 		for (i = 0; i < acsz; i++)
 			if (!strcmp(acceptlist[i], "*"))
 				break;
 			else if (!strcasecmp(acceptlist[i], cfvalues.charset))
 				break;
-		free(acceptlist);
-		if (i >= acsz)
+		if (acceptlist)
 		{
-			server_error("406 Charset not acceptable",
-				"NOT_ACCEPTABLE");
-			return -1;
+			free(acceptlist);
+			if (i >= acsz)
+			{
+				server_error("406 Charset not acceptable",
+					"NOT_ACCEPTABLE");
+				return -1;
+			}
 		}
 	}
 

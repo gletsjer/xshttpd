@@ -110,6 +110,7 @@ load_config()
 	/* Set simple defaults - others follow the parsing */
 	config.usednslookup = 1;
 	config.usessi = 1;
+	config.useput = 1;
 	config.execasuser = 1;
 	config.scriptcpulimit = 2;
 	config.scripttimeout = 6;
@@ -247,18 +248,18 @@ load_config()
 					{
 						lsock->usessl = 1;
 						lsock->sslcertificate =
-							strdup(value);
+							strdup(calcpath(value));
 					}
 					else if (!strcasecmp("SSLPrivateKey", key))
 					{
 						lsock->usessl = 1;
 						lsock->sslprivatekey =
-							strdup(value);
+							strdup(calcpath(value));
 					}
 					else if (!strcasecmp("SSLCAfile", key))
-						lsock->sslcafile = strdup(value);
+						lsock->sslcafile = strdup(calcpath(value));
 					else if (!strcasecmp("SSLCApath", key))
-						lsock->sslcapath = strdup(value);
+						lsock->sslcapath = strdup(calcpath(value));
 					else if (!strcasecmp("SSLMatchSDN", key))
 						lsock->sslmatchsdn = strdup(value);
 					else if (!strcasecmp("SSLMatchIDN", key))
@@ -291,6 +292,8 @@ load_config()
 					current->execdir = strdup(value);
 				else if (!strcasecmp("PhExecDir", key))
 					current->phexecdir = strdup(value);
+				else if (!strcasecmp("IconDir", key))
+					current->icondir = strdup(calcpath(value));
 				else if (!strcasecmp("LogAccess", key))
 					current->logaccess = strdup(value);
 				else if (!strcasecmp("LogError", key))

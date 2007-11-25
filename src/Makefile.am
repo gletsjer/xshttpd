@@ -19,12 +19,9 @@ LDADD = libxs.a ../libcompat/libcompat.a @libxs_ldflags@
 DEFAULT_INCLUDES =
 
 EXTRA_DIST = alternative.h authenticate.h cgi.h cloader.h config.h \
-	confpatch.h confuser.h convert.h decode.h digcalc.h extra.h \
-	fcgi.h fcgi_api.h htconfig.h httpd.h \
-	ldap.h methods.h path.h pcre.h \
+	confpatch.h confuser.h convert.h decode.h extra.h \
+	htconfig.h httpd.h ldap.h methods.h path.h pcre.h \
 	ssi.h ssl.h xsfiles.h xscounter.h xscrypt.h
-
-EXTRA_DIST += digcalc.c fcgi.c
 
 cscope:
 	@cscope -bqv

@@ -47,52 +47,55 @@ value in the configuration file should always be entered as
 or
 .Ql false .
 .Pp
+The overview below includes default values listed in angle brackets,
+however these defaults may be different on your system, depending
+on compile time selections and detected system features.
+Any command line options will override settings in your configuration
+file.
+.Pp
 .Ss Global Options
 The following options can be set in the global section:
 .Bl -tag -width Ds
-.It Sy SystemRoot Ar directory
+.It Sy SystemRoot Ar directory Aq /usr/local/lib/httpd
 The main httpd directory which contains all the data subdirectories
 (like
 .Pa htdocs , cgi-bin , logs ,
 \&...).
-.It Sy PidFile Ar filename
+.It Sy PidFile Ar filename Aq /var/run/httpd.pid
 The file to store the current pid and the last startup
 command line. This will be used by
 .Xr httpdc 1
 for restarting and other maintainance commands.
-.It Sy UserId Ar username
+.It Sy UserId Ar username Aq nobody
 The username or numeric uid that will be used to process all
 requests. This must not be the
 .Ql root
 superuser, however
 .Ql nobody
-(default) or
+or
 .Ql http
 are good candidates.
-.It Sy GroupId Ar groupname
+.It Sy GroupId Ar groupname Aq nogroup
 The groupname or numeric gid that will be used to process
 all requests.
-.It Sy ExecAsUser Ar boolean
+.It Sy ExecAsUser Ar boolean Aq true
 If enabled then filenames and CGI's in a user directory will
-be read and executed with the permissions of that user. This
-is enabled by default.
-.It Sy DefaultCharset Ar charset
+be read and executed with the permissions of that user.
+.It Sy DefaultCharset Ar charset Aq us-ascii
 The chacterset in which text documents will be displayed by
-deafult. If this is not specified, then
-.Ql US-ASCII
-will be used. This can be overridden locally by
+deafult. This can be overridden locally by
 .Pa .charset
 files. The
 .Pa .charset
 file should contain one line which specifies the character
 set that is used for all text files in that directory (and
 any subdirectories).
-.It Sy UseVirtualUid Ar boolean
+.It Sy UseVirtualUid Ar boolean Aq false
 If enabled, files in virtual host directories will be
 retreived with the permissions of the owner over the virtual
 host rootdir. This can be useful if different users maintain
 different sites.
-.It Sy VirtualHostDir Ar directory
+.It Sy VirtualHostDir Ar directory Ao . Ac
 When virtual hosts are enabled, the server also supports
 .Qq automatic
 detection of virtual hostnames - that is without specific
@@ -104,12 +107,8 @@ hostname, then this subdirectory will be used as the HTML
 root directory for the virtual host data. The
 .Ar directory
 may be an absolute path or relative to
-.Sy SystemRoot
-- if the setting is omited then the value of
-.Sy VirtualHostDir
-will be the same as
 .Sy SystemRoot .
-.It Sy UseServerSideInclude Ar boolean
+.It Sy UseServerSideInclude Ar boolean Aq true
 By default all HTML files will be parsed for server-side
 include directives. The output of CGI scripts with the
 filename prefix
@@ -118,7 +117,7 @@ will also be checked for server-side includes. However if
 this setting is turned off, SSI directives will be ignored
 and files are not checked (which may slightly increase
 performance of the webserver).
-.It Sy UseLocalScript Ar boolean
+.It Sy UseLocalScript Ar boolean Aq false
 If enabled all directories will be checked for the presence
 of a
 .Pa .xsscripts
@@ -129,7 +128,7 @@ use the exact same syntax as the global
 file, see
 .Xr httpd 1
 for details.
-.It Sy UseDnsLookup Ar boolean
+.It Sy UseDnsLookup Ar boolean Aq true
 By default the IP addresses of incoming connections are
 resolved through DNS and logged with hostname information.
 You can disable this features by setting
@@ -139,7 +138,7 @@ to
 Note that this will also make the environment variable
 .Ev REMOTE_HOST
 useless.
-.It Sy UseStrictHostname Ar boolean
+.It Sy UseStrictHostname Ar boolean Aq false
 Setting this option will disable the use of
 .Sy VirtualHostDir
 and the fallback default site: only if the requested host
@@ -149,7 +148,7 @@ or
 .Sy HostAlias
 entry, will the request be accepted and any content
 displayed.
-.It Sy UseAcceptFilter Ar boolean
+.It Sy UseAcceptFilter Ar boolean Aq false
 Some systems offer kernel support to delay an
 .Xr accept 2
 call until (appropriate) data has actually arrived on the
@@ -160,7 +159,7 @@ queued data. Both mechanisms can effectively reduce the
 workload of the webserver, especially when you are
 experiencing bogus connects. Only enable this option if your
 system has indeed such a system.
-.It Sy UseETag Ar boolean
+.It Sy UseETag Ar boolean Aq false
 If this option is enabled, entity tags will be used for static
 documents (anything that is not a CGI binary or contains
 server-side include directives). Browsers and webproxies can
@@ -169,7 +168,7 @@ up-to-date. Entity tag information is based on the file
 properties (such as size and modification time) rather than
 the file contents. Therefor it's fast to determine, but not
 perfect.
-.It Sy UseCoreDump Ar boolean
+.It Sy UseCoreDump Ar boolean Aq false
 This option is used for debugging only and disabled by default.
 If enabled, then coredumps may be generated when the program
 triggers a segmentation fault, illegal instruction, bus error
@@ -179,7 +178,7 @@ the actual uid in the working directory (often
 .Pa / ) ,
 available diskspace and system preferences about the desirability
 of uid-shifting programs dumping their state on disk.
-.It Sy UseContentMD5 Ar boolean
+.It Sy UseContentMD5 Ar boolean Aq false
 HTTP supports checksums to validate content integrity. At the moment
 only MD5 checksums are supported in HTTP/1.1. If this option is
 enabled (it's disabled by default), then all data will include a
@@ -189,20 +188,19 @@ For dynamically generated data (CGI of SSI chunked transfers)
 the md5 checksum will be added to the trailers
 (headers following content).
 This option is only available on systems with libmd.
-.It Sy UsePut Ar boolean
+.It Sy UsePut Ar boolean Aq true
 Allow users to handle HTTP PUT and DELETE requests with local
-CGI scripts. This is disabled by default.
+CGI scripts.
 The actual handles must be set locally with the
 .Sy PutScript
 and/or
 .Sy DeleteScript
 configuration directives as explained in
 .Xr xsconf 5 .
-.It Sy Priority Ar level
+.It Sy Priority Ar level Aq 0
 The system priority that the daemon will be running at. A
-lower priority causes more favorable scheduling. The default
-priority is 0.
-.It Sy ScriptPriority Ar level
+lower priority causes more favorable scheduling.
+.It Sy ScriptPriority Ar level Aq 20
 The CPU priority that user CGI scripts will be running at. A
 lower priority causes more favorable scheduling. The default
 value is
@@ -210,16 +208,16 @@ value is
 which may cause scripts to respond quite slowly, but at
 least your other processes won't be suffering too much from
 broken scripts.
-.It Sy ScriptTimeout Ar minutes
+.It Sy ScriptTimeout Ar minutes Aq 6
 The time a CGI script is allowed to run before it will be
 considered runaway and killed by the server. The time should
-be specified in minutes (default is 6). Note that several
-browsers will kill a connection even earlier than this.
-.It Sy ScriptCpuLimit Ar minutes
+be specified in minutes. Note that several browsers will
+kill a connection even earlier than this.
+.It Sy ScriptCpuLimit Ar minutes Aq 2
 The amount of CPU time a CGI script is allowed to use before
 it will be considered runaway and killed by the server. The
-time should be specified in minutes (default is 2).
-.It Sy ScriptEnvPath Ar path
+time should be specified in minutes.
+.It Sy ScriptEnvPath Ar path Aq /bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin
 The
 .Ev PATH
 environment variable that should be presented to CGI
@@ -265,9 +263,9 @@ section, but instead use the settings from the
 .Sy Virtual
 section(s) with a matching
 .Sy HostName .
-.It Sy Instances Ar number
+.It Sy Instances Ar number Aq 20
 The number of parallell services to run.
-.It Sy UseSSL Ar boolean
+.It Sy UseSSL Ar boolean Aq false
 If enabled, use SSL instead of plain text. This can only be
 used if SSL support is enabled at compile time. If this
 option is set then the https (443) port will be used by
@@ -275,15 +273,13 @@ default, instead of http (80). This option is disabled by
 default. Note that you may include both blocks with and
 without
 .Sy UseSSL .
-.It Sy SSLCertificate Ar filename
+.It Sy SSLCertificate Ar filename Aq conf/cert.pem
 The location of the x509 certificate to be used for SSL
-connections. This defaults to
-.Sy SystemRoot Ns Pa /cert.pem .
-.It Sy SSLPrivateKey Ar filename
+connections. This may be an absolute path or relative to
+.Sy SystemRoot .
+.It Sy SSLPrivateKey Ar filename Aq conf/key.pem
 The location of the x509 certificate's key to be used for SSL connections.
-This defaults to
-.Sy SystemRoot Ns Pa /key.pem
-- but may be contained in the same file as the
+This may be contained in the same file as the
 .Sy SSLCertificate
 file. Note that this key may be protected with a secret passphrase.
 In that case the server will prompt for this passphrase when started.
@@ -329,10 +325,15 @@ used for validation of client certificates. This is unset by
 default; although an example
 .Pa caroot.pem
 file is included in the distribution.
+This may be an absolute path or a path relative to
+.Sy SystemRoot .
 .It Sy SSLCApath Ar directory
 The location of the list of files containing x509 root
 certificates to be used for validation of client certs. This
-is unset by default. Both
+is unset by default.
+This may be an absolute path or a path relative to
+.Sy SystemRoot .
+Both
 .Sy SSLCAfile
 and
 .Sy SSLCAfile
@@ -406,25 +407,24 @@ user's login. There is no need to use this for the home
 directory (as the path given is relative to the homedir),
 but one might want to do something like
 .Pa /data/www/%u/ .
-.It Sy ExecDir Ar directory
+.It Sy ExecDir Ar directory Aq cgi-bin
 The
 .Ar directory
 containing the CGI scripts. This is the directory as it is
 specified in the URL, which is not necessary the same as the
-directory on disk (default:
-.Pa cgi-bin ) .
-.It Sy PhExecDir Ar directory
+directory on disk.
+.It Sy PhExecDir Ar directory Aq cgi-bin
 Physical CGI directory: this is the subdirectory where
 scripts are stored on disk. However if you do not use the
 same value as
 .Sy ExecDir ,
-it is easy to get confused (default:
-.Pa cgi-bin ) .
-.It Sy IconDir Ar directory
+it is easy to get confused.
+.It Sy IconDir Ar directory Aq icons
 Location where the icons used by
 .Xr xsindex 1
-are to be stored on disk. This defaults to
-.Sy SystemRoot Ns Pa /icons .
+are to be stored on disk.
+This may be an absolute path or a path relative to
+.Sy SystemRoot .
 .It Sy LogAccess Ar filename
 Logfile to use for normal HTTP requests (answered with a
 .Li 2xx

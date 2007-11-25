@@ -79,7 +79,6 @@
 #include	"ssl.h"
 #include	"path.h"
 #include	"convert.h"
-#include	"fcgi.h"
 #include	"authenticate.h"
 #include	"ldap.h"
 
