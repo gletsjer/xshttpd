@@ -114,6 +114,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	int			q[2];
 	int			ssl_post = 0;
 	size_t		tobewritten;
+	const char	*te = getenv("HTTP_TRANSFER_ENCODING");
 #endif		/* HANDLE_SSL */
 #ifdef		HAVE_SETRLIMIT
 	struct	rlimit		limits;
@@ -337,7 +338,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	}
 
 #ifdef		HANDLE_SSL
-	const char	*te = getenv("HTTP_TRANSFER_ENCODING");
 	if (ssl_post && te && !strcasecmp(te, "chunked"))
 	{
 		size_t          chunksz;

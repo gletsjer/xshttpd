@@ -8,6 +8,9 @@
 #include	<string.h>
 #include	<ctype.h>
 #include	<unistd.h>
+#ifdef		HAVE_CRYPT_H
+#include	<crypt.h>
+#endif		/* HAVE_CRYPT_H */
 
 #include	"htconfig.h"
 #include	"httpd.h"
@@ -16,9 +19,6 @@
 #include	"authenticate.h"
 #include	"ldap.h"
 #include	"extra.h"
-#ifdef		HAVE_CRYPT_H
-#include	<crypt.h>
-#endif		/* HAVE_CRYPT_H */
 
 char		authentication[MYBUFSIZ];
 static unsigned long int	secret;

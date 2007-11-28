@@ -26,7 +26,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 /* $FreeBSD: src/lib/libc/string/memmem.c,v 1.1.2.1 2005/08/29 18:46:39 andre Exp $ */
 
 #include <string.h>
