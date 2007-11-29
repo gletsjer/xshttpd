@@ -38,7 +38,7 @@ AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 AC_TYPE_OFF_T
-AC_CHECK_TYPES(socklen_t,,, [#include <sys/types.h>
+AC_CHECK_TYPES([socklen_t, sa_family_t],,, [#include <sys/types.h>
 #include <sys/socket.h>])
 
 dnl Checks for library functions.

@@ -33,8 +33,11 @@ extern	const int	sys_nerr;
 #endif          /* HAVE_DECL_SYS_ERRLIST */
 
 #ifndef		HAVE_SOCKLEN_T
-typedef	size_t	socklen_t;
+typedef	size_t		socklen_t;
 #endif		/* HAVE_SOCKLEN_T */
+#ifndef		HAVE_SA_FAMILY_T
+typedef unsigned char	sa_family_t;
+#endif		/* HAVE_SA_FAMILY_T */
 
 #ifndef		HAVE_CLOSEFROM
 int	closefrom	(int);

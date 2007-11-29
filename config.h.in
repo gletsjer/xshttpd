@@ -111,6 +111,9 @@
 /* Define this to use perl cgi environment */
 #undef HAVE_PERL
 
+/* Define to 1 if the system has the type `sa_family_t'. */
+#undef HAVE_SA_FAMILY_T
+
 /* Define to 1 if you have the `setenv' function. */
 #undef HAVE_SETENV
 
