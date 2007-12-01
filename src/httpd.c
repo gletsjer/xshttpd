@@ -324,6 +324,35 @@ open_logs(int sig)
 			}
 			setvbuf(current->openerror, NULL, _IOLBF, 0);
 		}
+
+		/* XXX: evil code duplication */
+		if (current->logscript)
+		{
+			/* error */
+			if ('|' != current->logscript[0])
+			{
+				if (current->openscript)
+					fclose(current->openscript);
+				if (!(current->openscript =
+					fopen(calcpath(current->logscript), "a")))
+				{
+					err(1, "fopen(`%s' [append])",
+						current->logscript);
+				}
+			}
+			else /* use pipe */
+			{
+				if (current->openscript)
+					pclose(current->openscript);
+				if (!(current->openscript =
+					popen(current->logscript + 1, "w")))
+				{
+					err(1, "popen(`%s' [write])",
+						current->logscript);
+				}
+			}
+			setvbuf(current->openscript, NULL, _IOLBF, 0);
+		}
 	}
 
 	fflush(stderr);
@@ -1597,6 +1626,7 @@ main(int argc, char **argv)
 			config.system->logaccess =
 			config.system->logreferer =
 			config.system->logerror =
+			config.system->logscript =
 			strdup("/dev/null");
 	if (config.sockets)
 		SET_OPTION(opt_port,  config.sockets[0].port);

@@ -42,6 +42,7 @@ extern struct virtual
 	char *		logaccess;
 	char *		logerror;
 	char *		logreferer;
+	char *		logscript;
 	char *		thisdomain;
 	char **		indexfiles;
 	char **		aliases;
@@ -52,6 +53,7 @@ extern struct virtual
 	FILE *		openaccess;
 	FILE *		openreferer;
 	FILE *		openerror;
+	FILE *		openscript;
 	logstyle_t	logstyle;
 	struct virtual *	next;
 } *current;

@@ -106,9 +106,10 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				head[HEADSIZE],
 				*temp;
 	char			*argv1;
-	int			p[2], nph, dossi, chldstat;
+	int			p[2], r[2], nph, dossi, chldstat, printerr;
 	ssize_t			written;
 	unsigned	int	left;
+	FILE			*logfile;
 #ifdef		HANDLE_SSL
 	char			inbuf[RWBUFSIZE];
 	int			q[2];
@@ -188,6 +189,19 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	}
 #endif		/* HANDLE_SSL */
 
+	r[0] = r[1] = -1;
+	if (pipe(r))
+	{
+		snprintf(errmsg, MYBUFSIZ, "500 pipe() failed: %s",
+			strerror(errno));
+		xserror(errmsg);
+		goto END;
+	}
+
+	logfile = current->openscript ? current->openscript
+		: config.system->openscript ? config.system->openscript
+		: stderr;
+
 	switch(child = fork())
 	{
 	case -1:
@@ -208,6 +222,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 #endif		/* HAVE_SETRLIMIT */
 
 		dup2(p[1], 1);
+		dup2(r[1], 2);
 
 #ifdef		HANDLE_SSL
 		/* Posting via SSL takes a lot of extra work */
@@ -312,24 +327,17 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 		else
 			(void) execl(fullpath, file, argv1, NULL);
+		/* print error */
+		fprintf(stderr, "execl(`%s') failed: %s\n",
+			engine ? engine : fullpath, strerror(errno));
+		close(2);
 		/* no need to give local path info to the visitor */
-		if (nph)
-		{
-			snprintf(errmsg, MYBUFSIZ, "500 execl(): %s",
-				/* fullpath, */ strerror(errno));
-			xserror(errmsg);
-		}
-		else
-		{
-			secprintf("Content-type: text/plain\r\n\r\n");
-			secprintf("[execl() failed: %s]",
-				strerror(errno));
-			warn("[%s] execl(`%s') failed",
-				currenttime, engine ? engine : fullpath);
-		}
+		snprintf(errmsg, MYBUFSIZ, "500 execl(): %s", strerror(errno));
+		xserror(errmsg);
 		exit(1);
 	default:
 		close(p[1]);
+		close(r[1]);
 #ifdef		HANDLE_SSL
 		if (ssl_post)
 			close(q[0]);
@@ -421,6 +429,32 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		close(q[1]);
 	}
 #endif		/* HANDLE_SSL */
+
+	/* handle stderr */
+	printerr = 0;
+	for (;;)
+	{
+		if (readline(r[0], line, sizeof(line)) != ERR_NONE)
+			break;
+
+		if (!printerr)
+		{
+			setcurrenttime();
+			fprintf(logfile, "%% [%s] %s %s %s\n%% 200 %s\n"
+				"%%stderr\n",
+				currenttime,
+				getenv("REQUEST_METHOD"),
+				getenv("REQUEST_URI"),
+				getenv("SERVER_PROTOCOL"),
+				fullpath);
+			printerr = 1;
+		}
+		if ('%' == line[0])
+			fprintf(logfile, "%% %s\n", line);
+		else
+			fprintf(logfile, "%s\n", line);
+	}
+
 	head[0] = '\0';
 	initreadmode(1);
 	if (!nph)
@@ -432,6 +466,19 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 		if (readheaders(p[0], &http_headers) < 0)
 		{
+			/* Script header read error */
+			if (!printerr)
+			{
+				setcurrenttime();
+				fprintf(logfile, "%% [%s] %s %s %s\n%% 503 %s\n",
+					currenttime,
+					getenv("REQUEST_METHOD"),
+					getenv("REQUEST_URI"),
+					getenv("SERVER_PROTOCOL"),
+					fullpath);
+			}
+			fprintf(logfile, "%%%%error\n"
+				"503 Script did not end header\n");
 			xserror("503 Script did not end header");
 			goto END;
 		}
@@ -617,7 +664,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	}
 	END:
 	fflush(stdout); close(p[0]); close(p[1]);
-	fflush(stderr);
+	fflush(stderr); close(r[0]); close(r[1]);
 #ifdef		HANDLE_SSL
 	if (ssl_post)
 	{

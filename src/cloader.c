@@ -298,6 +298,8 @@ load_config()
 					current->logaccess = strdup(value);
 				else if (!strcasecmp("LogError", key))
 					current->logerror = strdup(value);
+				else if (!strcasecmp("LogScript", key))
+					current->logscript = strdup(value);
 				else if (!strcasecmp("LogReferer", key))
 					current->logreferer = strdup(value);
 				else if (!strcasecmp("LogRefererIgnoreDomain", key))
@@ -505,6 +507,8 @@ load_config()
 		config.system->logaccess = strdup(BITBUCKETNAME);
 	if (!config.system->logerror)
 		config.system->logerror = strdup(BITBUCKETNAME);
+	if (!config.system->logscript)
+		config.system->logscript = strdup(BITBUCKETNAME);
 	if (!config.system->logreferer)
 		config.system->logreferer = strdup(BITBUCKETNAME);
 	if (!config.system->logstyle)
