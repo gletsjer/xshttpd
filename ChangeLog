@@ -5,7 +5,7 @@ Changes since 3.5 beta 26
 - Add -f filename option to xspasswd
 - Change default of UsePut to true; document default settings
 - Minor portability improvements
-- Minor changes to server error messages (more standard)
+- Minor changes in server error messages (standard format)
 - Add LogScript to log CGI script error messages
 
 Changes since 3.5 beta 25
