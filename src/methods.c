@@ -217,7 +217,7 @@ sendheaders(int fd, off_t size)
 			if (abort_wo_match ||
 				strcmp(getenv("REQUEST_METHOD"), "GET"))
 			{
-				server_error("412 Precondition failed",
+				server_error(412, "Precondition failed",
 					"PRECONDITION_FAILED");
 				return -1;
 			}
@@ -238,7 +238,7 @@ sendheaders(int fd, off_t size)
 		strptime(env, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
 		if (dynamic || (mktime(&reqtime) >= modtime))
 		{
-			server_error("412 Precondition failed",
+			server_error(412, "Precondition failed",
 				"PRECONDITION_FAILED");
 			return -1;
 		}
@@ -271,7 +271,7 @@ sendheaders(int fd, off_t size)
 			free(acceptlist);
 			if (i >= acsz)
 			{
-				server_error("406 Not acceptable",
+				server_error(406, "Not acceptable",
 					"NOT_ACCEPTABLE");
 				return -1;
 			}
@@ -294,7 +294,7 @@ sendheaders(int fd, off_t size)
 			free(acceptlist);
 			if (i >= acsz)
 			{
-				server_error("406 Charset not acceptable",
+				server_error(406, "Charset not acceptable",
 					"NOT_ACCEPTABLE");
 				return -1;
 			}
@@ -379,13 +379,13 @@ senduncompressed(int fd)
 	size = lseek(fd, 0, SEEK_END);
 	if (-1 == size)
 	{
-		xserror("500 Cannot lseek() to end of file");
+		xserror(500, "Cannot lseek() to end of file");
 		close(fd);
 		return;
 	}
 	if (lseek(fd, 0, SEEK_SET))
 	{
-		xserror("500 Cannot lseek() to beginning of file");
+		xserror(500, "Cannot lseek() to beginning of file");
 		close(fd);
 		return;
 	}
@@ -419,13 +419,11 @@ senduncompressed(int fd)
 			if ((size_t)(written = secwrite(buffer, msize)) != msize)
 			{
 				if (written != -1)
-					warn("[%s] httpd: Aborted for `%s' (%zu of %zu bytes sent)",
-						currenttime,
+					xserror(599, "Aborted for `%s' (%zu of %zu bytes sent)",
 						remotehost[0] ? remotehost : "(none)",
 						written, msize);
 				else
-					warn("[%s] httpd: Aborted for `%s'",
-						currenttime,
+					xserror(599, "Aborted for `%s'",
 						remotehost[0] ? remotehost : "(none)");
 			}
 			(void) munmap(buffer, msize);
@@ -450,9 +448,8 @@ senduncompressed(int fd)
 				if ((written = secwrite(buffer, (size_t)readtotal))
 						!= readtotal)
 				{
-					warn("[%s] httpd: Aborted for `%s' (No mmap) (%" PRId64
+					xserror(599, "Aborted for `%s' (No mmap) (%" PRId64
 							" of %" PRId64 " bytes sent)",
-						currenttime,
 						remotehost[0] ? remotehost : "(none)",
 						(int64_t)writetotal + written, size);
 					size = writetotal;
@@ -488,8 +485,7 @@ senduncompressed(int fd)
 		switch(errval)
 		{
 		case ERR_QUIT:
-			warnx("[%s] httpd: Aborted for `%s' (ERR_QUIT)",
-				currenttime,
+			xserror(599, "Aborted for `%s' (ERR_QUIT)",
 				remotehost[0] ? remotehost : "(none)");
 			break;
 		case ERR_CONT:
@@ -513,27 +509,27 @@ sendcompressed(int fd, const char *method)
 
 	if (!(processed = mkstemp(prefix)))
 	{
-		xserror("500 Unable to open temporary file");
+		xserror(500, "Unable to open temporary file");
 		err(1, "[%s] httpd: Cannot create temporary file", currenttime);
 	}
 	remove(prefix);
 	switch(pid = fork())
 	{
 	case -1:
-		warn("[%s] httpd: Cannot fork()", currenttime);
-		xserror("500 Cannot fork() in sendcompressed()");
+		warn("fork()");
+		xserror(500, "Cannot fork() in sendcompressed()");
 		close(fd); close(processed); return;
 	case 0:
 #ifdef		HAVE_SETSID
 		if (setsid() == -1)
 		{
-			xserror("500 setsid() failed");
+			xserror(500, "Process group error");
 			exit(1);
 		}
 #else		/* Not HAVE_SETSID */
 		if (setpgrp(getpid(), 0) == -1)
 		{
-			xserror("500 setpgrp() failed");
+			xserror(500, "Process group error)");
 			exit(1);
 		}
 #endif		/* HAVE_SETSID */
@@ -541,8 +537,8 @@ sendcompressed(int fd, const char *method)
 
 		closefrom(3);
 		(void) execl(method, method, NULL);
-		xserror("500 Cannot start conversion program");
-		err(1, "[%s] httpd: Cannot execl(`%s')", currenttime, method);
+		xserror(500, "Cannot start conversion program");
+		exit(1);
 	default:
 		close(fd);
 		if (!kill(pid, 0) && mysleep(180))
@@ -551,14 +547,14 @@ sendcompressed(int fd, const char *method)
 			killpg(pid, SIGTERM);
 			mysleep(3);
 			killpg(pid, SIGKILL);
-			xserror("500 Conversion program timed out");
+			xserror(500, "Conversion program timed out");
 			return;
 		}
 		if (!kill(pid, 0))
 		{
 			close(processed);
 			killpg(pid, SIGKILL);
-			xserror("500 Interrupted during conversion");
+			xserror(500, "Interrupted during conversion");
 			return;
 		}
 	}
@@ -645,13 +641,13 @@ do_get(char *params)
 		userinfo = getpwnam(params + 2);
 		if (!userinfo)
 		{
-			server_error("404 User is unknown", "USER_UNKNOWN");
+			server_error(404, "User is unknown", "USER_UNKNOWN");
 			return;
 		}
 		strlcpy(base, convertpath(params), XS_PATH_MAX);
 		if (!*base)
 		{
-			server_error("404 User is unknown", "USER_UNKNOWN");
+			server_error(404, "User is unknown", "USER_UNKNOWN");
 			return;
 		}
 		if (!origeuid)
@@ -662,7 +658,7 @@ do_get(char *params)
 		}
 		if (!geteuid())
 		{
-			xserror("500 Effective UID is not valid");
+			xserror(500, "Effective UID is not valid");
 			return;
 		}
 		if (temp)
@@ -702,7 +698,7 @@ do_get(char *params)
 				}
 				if (!(geteuid()))
 				{
-					xserror("500 Effective UID is not valid");
+					xserror(500, "Effective UID is not valid");
 					return;
 				}
 			}
@@ -735,7 +731,7 @@ do_get(char *params)
 		}
 		if (!geteuid())
 		{
-			xserror("500 Effective UID is not valid");
+			xserror(500, "Effective UID is not valid");
 			return;
 		}
 		if ((userinfo = getpwuid(geteuid())))
@@ -770,12 +766,12 @@ do_get(char *params)
 		wasdir = 0;
 	if (strstr(file, "/.."))
 	{
-		server_error("403 Invalid path specified", "NOT_AVAILABLE");
+		server_error(403, "Invalid path specified", "NOT_AVAILABLE");
 		return;
 	}
 	else if (strstr(file, "/.xs") || strstr(file, "/.noxs") || strstr(file, ".redir") || strstr(file, ".Redir") || strstr(file, ".charset") || strstr(file, ".snapshot"))
 	{
-		server_error("404 Requested URL not found", "NOT_FOUND");
+		server_error(404, "Requested URL not found", "NOT_FOUND");
 		return;
 	}
 
@@ -898,26 +894,26 @@ do_get(char *params)
 		}
 		if (!geteuid())
 		{
-			xserror("500 Effective UID is not valid");
+			xserror(500, "Effective UID is not valid");
 			return;
 		}
 	}
 	/* Check for directory permissions */
 	if (stat(base, &statbuf))
 	{
-		warn("stat(%s) failed", base);
-		server_error("404 Requested URL not found", "NOT_FOUND");
+		warn("stat(`%s')", base);
+		server_error(404, "Requested URL not found", "NOT_FOUND");
 		return;
 	}
 	if (userinfo && (statbuf.st_mode & S_IWGRP) && (statbuf.st_mode & S_IWOTH))
 	{
-		server_error("403 Directory permissions deny access", "NOT_AVAILABLE");
+		server_error(403, "Directory permissions deny access", "NOT_AVAILABLE");
 		return;
 	}
 	if (userinfo && statbuf.st_uid && (statbuf.st_uid != geteuid()))
 	{
 #if 0
-		xserror("403 Invalid owner of user directory");
+		xserror(403, "Invalid owner of user directory");
 		return;
 #endif
 	}
@@ -960,7 +956,7 @@ do_get(char *params)
 		else
 		{
 			setenv("HTTP_ALLOW", "GET, HEAD, POST", 1);
-			server_error("405 Method not allowed", "METHOD_NOT_ALLOWED");
+			server_error(405, "Method not allowed", "METHOD_NOT_ALLOWED");
 		}
 		free_xsconf(&cfvalues);
 		return;
@@ -971,7 +967,7 @@ do_get(char *params)
 	if (!lstat(total, &statbuf) && S_ISLNK(statbuf.st_mode) &&
 		userinfo && statbuf.st_uid && (statbuf.st_uid != geteuid()))
 	{
-		server_error("403 Invalid owner of symlink", "NOT_AVAILABLE");
+		server_error(403, "Invalid owner of symlink", "NOT_AVAILABLE");
 		free_xsconf(&cfvalues);
 		return;
 	}
@@ -1000,13 +996,13 @@ do_get(char *params)
 		}
 		else if (!S_ISDIR(statbuf.st_mode))
 		{
-			server_error("403 Not a regular filename", "NOT_AVAILABLE");
+			server_error(403, "Not a regular filename", "NOT_AVAILABLE");
 			free_xsconf(&cfvalues);
 			return;
 		}
 		else if (!strcmp(filename, INDEX_HTML))
 		{
-			server_error("403 The index may not be a directory", "NOT_AVAILABLE");
+			server_error(403, "The index may not be a directory", "NOT_AVAILABLE");
 			free_xsconf(&cfvalues);
 			return;
 		}
@@ -1049,14 +1045,14 @@ do_get(char *params)
 		(statbuf.st_mode & (S_IWGRP | S_IWOTH)) &&
 		(statbuf.st_mode & S_IXUSR))
 	{
-		server_error("403 File permissions deny access", "NOT_AVAILABLE");
+		server_error(403, "File permissions deny access", "NOT_AVAILABLE");
 		free_xsconf(&cfvalues);
 		return;
 	}
 
 	if ((fd = open(total, O_RDONLY, 0)) < 0)
 	{
-		server_error("403 File permissions deny access", "NOT_AVAILABLE");
+		server_error(403, "File permissions deny access", "NOT_AVAILABLE");
 		free_xsconf(&cfvalues);
 		return;
 	}
@@ -1102,7 +1098,7 @@ do_get(char *params)
 			const char	*prog = cfvalues.scripttype ? cfvalues.scripttype : isearch->prog;
 
 			if (!strcmp(prog, "internal:404"))
-				server_error("404 Requested URL not found", "NOT_FOUND");
+				server_error(404, "Requested URL not found", "NOT_FOUND");
 			else if (!strcmp(prog, "internal:text"))
 			{
 				script = -1;
@@ -1148,7 +1144,7 @@ do_get(char *params)
 	if (postonly)
 	{
 		setenv("HTTP_ALLOW", "GET, HEAD", 1);
-		server_error("405 Method not allowed", "METHOD_NOT_ALLOWED");
+		server_error(405, "Method not allowed", "METHOD_NOT_ALLOWED");
 		close(fd);
 		free_xsconf(&cfvalues);
 		return;
@@ -1211,14 +1207,14 @@ do_get(char *params)
 		if (!idx)
 		{
 			/* no more retries */
-			server_error("404 Requested URL not found", "NOT_FOUND");
+			server_error(404, "Requested URL not found", "NOT_FOUND");
 			free_xsconf(&cfvalues);
 			return;
 		}
 	}
 	else
 	{
-		server_error("404 Requested URL not found", "NOT_FOUND");
+		server_error(404, "Requested URL not found", "NOT_FOUND");
 		free_xsconf(&cfvalues);
 		return;
 	}
@@ -1253,7 +1249,7 @@ do_post(char *params)
 		rlen = strtoul(cl, NULL, 10);
 		if (ERANGE == errno)
 		{
-			server_error("413 Request Entity Too Large",
+			server_error(413, "Request Entity Too Large",
 				"ENTITY_TOO_LARGE");
 			return;
 		}
@@ -1268,7 +1264,7 @@ do_put(char *params)
 {
 	if (!config.useput)
 	{
-		server_error("405 Method not allowed", "METHOD_NOT_ALLOWED");
+		server_error(405, "Method not allowed", "METHOD_NOT_ALLOWED");
 		setenv("HTTP_ALLOW", "GET, HEAD, POST", 1);
 		return;
 	}
@@ -1280,7 +1276,7 @@ do_delete(char *params)
 {
 	if (!config.useput)
 	{
-		server_error("405 Method not allowed", "METHOD_NOT_ALLOWED");
+		server_error(405, "Method not allowed", "METHOD_NOT_ALLOWED");
 		setenv("HTTP_ALLOW", "GET, HEAD, POST", 1);
 		return;
 	}
@@ -1317,7 +1313,7 @@ do_trace(const char *params)
 	num = readheaders(0, &http_headers);
 	if (num < 0)
 	{
-		xserror("400 Unable to read request line");
+		xserror(400, "Unable to read request line");
 		return;
 	}
 	mlen = LINEBUFSIZE;
@@ -1385,7 +1381,7 @@ do_proxy(const char *proxy, const char *params)
 	persistent = 0; headers = 10; /* force HTTP/1.0 */
 
 	if (curl_easy_perform(handle))
-		xserror("500 Internal forwarding error");
+		xserror(500, "Internal forwarding error");
 	else
 		logrequest(params, 0);
 	free(request);

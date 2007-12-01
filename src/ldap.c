@@ -91,7 +91,7 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
 
 	if (!(af = fopen(authfile, "r")))
 	{
-		server_error("403 Authentication file is not available",
+		server_error(403, "Authentication file is not available",
 			"NOT_AVAILABLE");
 		return 1;
 	}

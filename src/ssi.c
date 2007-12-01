@@ -1176,7 +1176,7 @@ sendwithdirectives_internal(int fd, off_t *size)
 	alarm(360);
 	if (!(parse = fdopen(fd, "r")))
 	{
-		warn("[%s] httpd: Could not fdopen (%d)", currenttime, fd);
+		warn("fdopen(`%d')", fd);
 		return(ERR_CONT);
 	}
 	while (fgets(line, LINEBUFSIZE, parse))

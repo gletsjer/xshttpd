@@ -189,7 +189,7 @@ term_handler(int sig)
 	if (mainhttpd)
 	{
 		setcurrenttime();
-		warnx("[%s] Received signal %d, shutting down...",
+		fprintf(stderr, "[%s] Received signal %d, shutting down...\n",
 			currenttime, sig);
 		fflush(stderr);
 		close(sd);
@@ -231,7 +231,7 @@ open_logs(int sig)
 			fclose(pidlog);
 		}
 		else
-			warn("cannot open pidfile %s", config.pidfile);
+			warn("fopen(`%s')", config.pidfile);
 		/* the master reloads, the children die */
 		signal(SIGHUP, SIG_IGN);
 		killpg(0, SIGHUP);
@@ -369,7 +369,7 @@ open_logs(int sig)
 	if (mainhttpd)
 	{
 		setcurrenttime();
-		warnx("[%s] httpd: Successful restart", currenttime);
+		fprintf(stderr, "[%s] Successful restart\n", currenttime);
 	}
 	loadfiletypes(NULL, NULL);
 	loadcompresstypes();
@@ -477,20 +477,35 @@ set_signals()
 }
 
 void
-xserror(const char *message)
+xserror(int code, const char *format, ...)
 {
 	const	char	*env;
 	char		*errmsg = NULL;
+	va_list		ap;
+	char		*message;
 
-	alarm(180); setcurrenttime();
+	alarm(180);
+	va_start(ap, format);
+	vasprintf(&message, format, ap);
+	va_end(ap);
+
+	/* log error */
+	setcurrenttime();
 	env = getenv("QUERY_STRING");
 	fprintf((current && current->openerror) ? current->openerror : stderr,
-		"[%s] httpd(pid %ld): %s [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']\n",
-		currenttime, (long)getpid(), message,
+		"[%s] httpd(pid %ld): %03d %s [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']\n",
+		currenttime, (long)getpid(), code, message,
 		remotehost[0] ? remotehost : "(none)",
 		orig[0] ? orig : "(none)", env ? env : "(none)",
 		current ? current->hostname : config.system->hostname,
 		referer[0] ? referer : "(none)");
+	fflush(stderr);
+
+	if (599 == code)
+		/* connection closed: don't send error */
+		return;
+
+	/* display error */
 	if (!headonly)
 	{
 		asprintf(&errmsg,
@@ -498,14 +513,14 @@ xserror(const char *message)
 			"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
 			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
 			"<html xmlns=\"http://www.w3.org/1999/xhtml\">\n\n"
-			"<head><title>%s</title></head>\n"
-			"<body><h1>%s</h1></body></html>\n",
-			message,
-			message);
+			"<head><title>%03d %s</title></head>\n"
+			"<body><h1>%03d %s</h1></body></html>\n",
+			code, message,
+			code, message);
 	}
 	if (headers)
 	{
-		secprintf("%s %s\r\n", httpver, message);
+		secprintf("%s %03d %s\r\n", httpver, code, message);
 		secprintf("Content-length: %zu\r\n",
 			errmsg ? strlen(errmsg) : 0);
 		if ((env = getenv("HTTP_ALLOW")))
@@ -517,7 +532,6 @@ xserror(const char *message)
 		secputs(errmsg);
 		free(errmsg);
 	}
-	fflush(stderr);
 }
 
 void
@@ -563,7 +577,7 @@ redirect(const char *redir, int permanent, int pass_env)
 }
 
 void
-server_error(const char *readable, const char *cgi)
+server_error(int code, const char *readable, const char *cgi)
 {
 	struct	stat		statbuf;
 	char				cgipath[XS_PATH_MAX],
@@ -574,7 +588,7 @@ server_error(const char *readable, const char *cgi)
 		current = config.system;
 	if (headonly || getenv("ERROR_CODE"))
 	{
-		xserror(readable);
+		xserror(code, "%s", readable);
 		return;
 	}
 	setenv("ERROR_CODE", cgi, 1);
@@ -603,7 +617,7 @@ server_error(const char *readable, const char *cgi)
 			calcpath(config.system->phexecdir), filename);
 		if (stat(cgipath, &statbuf))
 		{
-			xserror(readable);
+			xserror(code, "%s", readable);
 			return;
 		}
 	}
@@ -730,14 +744,14 @@ process_request()
 	case ERR_NONE:
 		break;
 	case ERR_LINE:
-		xserror("414 Request-URI Too Long");
+		xserror(414, "Request-URI Too Long");
 		return;
 	case ERR_CLOSE:
 		/* connection close: terminate quietly */
 		return;
 	case ERR_QUIT:
 	default:
-		xserror("400 Unable to read begin of request line");
+		xserror(400, "Unable to read begin of request line");
 		return;
 	}
 	in_progress = 1;
@@ -782,7 +796,7 @@ process_request()
 
 		if (readheaders(0, &http_headers) < 0)
 		{
-			xserror("400 Unable to read request line");
+			xserror(400, "Unable to read request line");
 			return;
 		}
 		for (sz = 0; sz < http_headers.size; sz++)
@@ -862,7 +876,7 @@ process_request()
 	{
 		headers = 10;
 		strlcpy(httpver, "HTCPCP/1.0", 16);
-		xserror("418 Duh... I'm a webserver Jim, not a coffeepot!");
+		xserror(418, "Duh... I'm a webserver Jim, not a coffeepot!");
 		return;
 	}
 	else
@@ -880,7 +894,7 @@ process_request()
 			(!strcasecmp("POST", line) || !strcasecmp("PUT", line)) &&
 			(!te || strcasecmp(te, "chunked")))
 		{
-			xserror("411 Length Required");
+			xserror(411, "Length Required");
 			return;
 		}
 		setenv("CONTENT_LENGTH", "0", 1);
@@ -896,7 +910,7 @@ process_request()
 	params = url;
 	if (decode(params))
 	{
-		xserror("500 Cannot process request");
+		xserror(500, "Cannot process request");
 		return;
 	}
 
@@ -916,7 +930,7 @@ process_request()
 	}
 	else if (params[0] != '/' && strcasecmp("OPTIONS", line))
 	{
-		xserror("400 Relative URL's are not supported");
+		xserror(400, "Relative URL's are not supported");
 		return;
 	}
 	/* SERVER_NAME may be overriden soon */
@@ -932,7 +946,7 @@ process_request()
 				*temp != ':' &&
 				*temp != '[' && *temp != ']')
 			{
-				xserror("400 Invalid Host Header");
+				xserror(400, "Invalid Host Header");
 				return;
 			}
 		if ((temp = strchr(http_host, ':')))
@@ -945,7 +959,7 @@ process_request()
 		{
 			if (strlen(http_host) >= NI_MAXHOST - 6)
 			{
-				xserror("400 Invalid Host Header");
+				xserror(400, "Invalid Host Header");
 				return;
 			}
 			strlcat(http_host, ":", NI_MAXHOST);
@@ -962,7 +976,7 @@ process_request()
 	}
 	else if (headers >= 11)
 	{
-		xserror("400 Missing Host Header");
+		xserror(400, "Missing Host Header");
 		return;
 	}
 
@@ -1043,7 +1057,7 @@ process_request()
 			}
 		if (!aliasp || !*aliasp)
 		{
-			xserror("400 Unknown Host");
+			xserror(400, "Unknown Host");
 			return;
 		}
 	}
@@ -1074,7 +1088,7 @@ METHOD:
 	else if (!strcasecmp("DELETE", line))
 		do_delete(params);
 	else
-		xserror("400 Unknown method");
+		xserror(400, "Unknown method");
 }
 
 static	void
@@ -1092,7 +1106,7 @@ standalone_main()
 		switch (fork())
 		{
 		case -1:
-			warn("fork() failed");
+			warn("fork()");
 			killpg(0, SIGTERM);
 			exit(1);
 		case 0:
@@ -1242,7 +1256,7 @@ standalone_socket(int id)
 		switch (pid = fork())
 		{
 		case -1:
-			warn("fork() failed");
+			warn("fork()");
 			killpg(0, SIGTERM);
 			exit(1);
 		case 0:
@@ -1268,8 +1282,7 @@ standalone_socket(int id)
 				switch(pid = fork())
 				{
 				case -1:
-					warn("[%s] httpd: fork() failed",
-						currenttime);
+					warn("fork()");
 					break;
 				case 0:
 					mainhttpd = 0;
@@ -1313,7 +1326,7 @@ standalone_socket(int id)
 		clen = sizeof(saddr);
 		if ((csd = accept(sd, (struct sockaddr *)&saddr, &clen)) < 0)
 		{
-			warn("accept() error %d", errno);
+			warn("accept()");
 			mysleep(1);
 			if (errno == EINTR)
 				child_handler(SIGCHLD);
@@ -1324,7 +1337,7 @@ standalone_socket(int id)
 		setproctitle("xs(%c%d): [Reqs: %06d] accept() gave me a connection...",
 			id, count + 1, reqs);
 		if (fcntl(csd, F_SETFL, 0))
-			warn("fcntl() in standalone_main");
+			warn("fcntl()");
 
 		sl.l_onoff = 1; sl.l_linger = 10;
 		setsockopt(csd, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl));
@@ -1610,7 +1623,7 @@ main(int argc, char **argv)
 
 #ifdef		HAVE_SETPRIORITY
 	if (setpriority(PRIO_PROCESS, (pid_t)0, config.priority))
-		warn("setpriority");
+		warn("setpriority()");
 #endif		/* HAVE_SETPRIORITY */
 
 	/* Explicity set these, overriding default or implicit setting */

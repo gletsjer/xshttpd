@@ -402,13 +402,13 @@ secread_internal(int fd, void *buf, size_t count)
 				usleep(200);
 				continue;
 			case SSL_ERROR_SYSCALL:
-				warn("SSL_read error");
+				warn("SSL_read()");
 				break;
 			case SSL_ERROR_ZERO_RETURN:
 				/* clean shutdown */
 				break;
 			default:
-				warnx("SSL_read error: %s",
+				warnx("SSL_read(): %s",
 					ERR_error_string(s_err, NULL));
 				break;
 			}
@@ -433,7 +433,7 @@ secread_internal(int fd, void *buf, size_t count)
 				/* clean reset/timeout */
 				break;
 			default:
-				warn("Read error");
+				warn("read()");
 				break;
 			}
 			break;
@@ -501,10 +501,10 @@ secwrite(const char *buf, size_t count)
 					usleep(200);
 					continue;
 				case SSL_ERROR_SYSCALL:
-					warn("SSL_write error");
+					warn("SSL_write()");
 					break;
 				default:
-					warnx("SSL_write error: %s",
+					warnx("SSL_write(): %s",
 						ERR_error_string(s_err, NULL));
 					break;
 				}
@@ -529,7 +529,7 @@ secwrite(const char *buf, size_t count)
 					break;
 				else
 				{
-					warn("Write error");
+					warn("write()");
 					break;
 				}
 			}

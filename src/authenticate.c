@@ -263,14 +263,14 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 
 	if (!authfile && !ldap)
 	{
-		server_error("403 Authentication information is not available",
+		server_error(403, "Authentication information is not available",
 			"NOT_AVAILABLE");
 		return 1;
 	}
 
 	if (authfile && !(af = fopen(authfile, "r")))
 	{
-		server_error("403 Authentication file is not available",
+		server_error(403, "Authentication file is not available",
 			"NOT_AVAILABLE");
 		return 1;
 	}

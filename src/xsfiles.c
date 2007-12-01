@@ -136,7 +136,7 @@ check_file_redirect(const char *base, const char *filename)
 	{
 		if ((size = read(fd, total, XS_PATH_MAX)) <= 0)
 		{
-			xserror("500 Redirection filename error");
+			xserror(500, "Redirection filename error");
 			close(fd);
 			return 1;
 		}
@@ -332,14 +332,14 @@ check_noxs(const char *cffile)
 
 	if (!(rfile = fopen(cffile, "r")))
 	{
-		server_error("403 Authentication file is not available",
+		server_error(403, "Authentication file is not available",
 			"NOT_AVAILABLE");
 		return 1; /* access denied */
 	}
 
 	if (!(remoteaddr = getenv("REMOTE_ADDR")))
 	{
-		server_error("403 File is not available", "NOT_AVAILABLE");
+		server_error(403, "File is not available", "NOT_AVAILABLE");
 		return 1; /* access denied */
 	}
 
@@ -360,7 +360,7 @@ check_noxs(const char *cffile)
 	}
 
 	fclose(rfile);
-	server_error("403 File is not available", "NOT_AVAILABLE");
+	server_error(403, "File is not available", "NOT_AVAILABLE");
 	return 1;
 }
 
@@ -381,7 +381,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 
 	if (!(fp = fopen(cffile, "r")))
 	{
-		server_error("403 Authentication file is not available",
+		server_error(403, "Authentication file is not available",
 			"NOT_AVAILABLE");
 		return 1; /* access denied */
 	}
@@ -545,7 +545,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 		(sslcheck && !sslallow) ||
 		(sslchecki && !sslallowi))
 	{
-		server_error("403 File is not available", "NOT_AVAILABLE");
+		server_error(403, "File is not available", "NOT_AVAILABLE");
 		return 1;
 	}
 	/* return err if authentication fails */

@@ -101,9 +101,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 {
 	unsigned long		writetodo;
 	off_t			totalwritten;
-	char			errmsg[MYBUFSIZ], fullpath[XS_PATH_MAX],
-				input[RWBUFSIZE], line[LINEBUFSIZE],
-				head[HEADSIZE],
+	char			fullpath[XS_PATH_MAX], input[RWBUFSIZE],
+				line[LINEBUFSIZE], head[HEADSIZE],
 				*temp;
 	char			*argv1;
 	int			p[2], r[2], nph, dossi, chldstat, printerr;
@@ -142,7 +141,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 	if (!engine && !stat(fullpath, &statbuf) && !(statbuf.st_mode & S_IXUSR))
 	{
-		server_error("403 File permissions deny access", "NOT_AVAILABLE");
+		server_error(403, "File permissions deny access", "NOT_AVAILABLE");
 		return;
 	}
 
@@ -159,8 +158,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	{
 		if (pipe(p))
 		{
-			snprintf(errmsg, MYBUFSIZ, "500 pipe() failed: %s", strerror(errno));
-			xserror(errmsg);
+			xserror(500, "pipe(): %s", strerror(errno));
 			goto END;
 		}
 	}
@@ -174,16 +172,14 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 		if (pipe(q))
 		{
-			snprintf(errmsg, MYBUFSIZ, "500 pipe() failed: %s",
-				strerror(errno));
-			xserror(errmsg);
+			xserror(500, "pipe(): %s", strerror(errno));
 			goto END;
 		}
 		if (expect && strcasestr(expect, "100-continue"))
 			secprintf("%s 100 Continue\r\n\r\n", httpver);
 		else if (expect)
 		{
-			xserror("417 Expectation failed");
+			xserror(417, "Expectation failed");
 			goto END;
 		}
 	}
@@ -192,9 +188,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	r[0] = r[1] = -1;
 	if (pipe(r))
 	{
-		snprintf(errmsg, MYBUFSIZ, "500 pipe() failed: %s",
-			strerror(errno));
-		xserror(errmsg);
+		xserror(500, "pipe(): %s", strerror(errno));
 		goto END;
 	}
 
@@ -205,8 +199,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	switch(child = fork())
 	{
 	case -1:
-		snprintf(errmsg, MYBUFSIZ, "500 fork() failed: %s", strerror(errno));
-		xserror(errmsg);
+		xserror(500, "fork(): %s", strerror(errno));
 		goto END;
 	case 0:
 #ifdef		HAVE_SETRLIMIT
@@ -273,7 +266,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 #ifdef		HAVE_SETPRIORITY
 		if (setpriority(PRIO_PROCESS, (pid_t)0, config.scriptpriority))
-			warn("setpriority");
+			warn("setpriority()");
 #endif		/* HAVE_SETPRIORITY */
 
 #ifdef		HAVE_PERL
@@ -332,8 +325,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			engine ? engine : fullpath, strerror(errno));
 		close(2);
 		/* no need to give local path info to the visitor */
-		snprintf(errmsg, MYBUFSIZ, "500 execl(): %s", strerror(errno));
-		xserror(errmsg);
+		xserror(500, "execl(): %s", strerror(errno));
 		exit(1);
 	default:
 		close(p[1]);
@@ -386,7 +378,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			result = write(q[1], cbuf, chunksz);
 			if ((result < 0) && (errno != EINTR))
 			{
-				warn("[Connection closed (fd = %d, todo = %zu]",
+				xserror(500, "Connection closed (fd = %d, todo = %zu",
 					q[1], chunksz);
 				goto END;
 			}
@@ -415,7 +407,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			{
 				if ((result < 0) && (errno != EINTR))
 				{
-					warn("[Connection closed (fd = %d, todo = %ld]",
+					xserror(500, "Connection closed (fd = %d, todo = %ld",
 						q[1], writetodo);
 					goto END;
 				}
@@ -479,7 +471,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			}
 			fprintf(logfile, "%%%%error\n"
 				"503 Script did not end header\n");
-			xserror("503 Script did not end header");
+			xserror(503, "Script did not end header");
 			goto END;
 		}
 		for (sz = 0; sz < http_headers.size; sz++)
@@ -595,7 +587,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		{
 			if (readline(p[0], line, sizeof(line)) != ERR_NONE)
 			{
-				xserror("503 Script did not end header");
+				xserror(503, "Script did not end header");
 				goto END;
 			}
 			if (headers >= 10)
