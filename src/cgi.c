@@ -192,9 +192,9 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		goto END;
 	}
 
-	logfile = current->openscript ? current->openscript
-		: config.system->openscript ? config.system->openscript
-		: stderr;
+	logfile = current->openscript
+		? current->openscript
+		: config.system->openscript;
 
 	switch(child = fork())
 	{
@@ -429,6 +429,9 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		if (readline(r[0], line, sizeof(line)) != ERR_NONE)
 			break;
 
+		if (!logfile)
+			continue;
+
 		if (!printerr)
 		{
 			setcurrenttime();
@@ -459,7 +462,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		if (readheaders(p[0], &http_headers) < 0)
 		{
 			/* Script header read error */
-			if (!printerr)
+			if (!printerr && logfile)
 			{
 				setcurrenttime();
 				fprintf(logfile, "%% [%s] %s %s %s\n%% 503 %s\n",
@@ -469,8 +472,9 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					getenv("SERVER_PROTOCOL"),
 					fullpath);
 			}
-			fprintf(logfile, "%%%%error\n"
-				"503 Script did not end header\n");
+			if (logfile)
+				fprintf(logfile, "%%%%error\n"
+					"503 Script did not end header\n");
 			xserror(503, "Script did not end header");
 			goto END;
 		}
