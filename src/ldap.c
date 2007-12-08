@@ -21,9 +21,8 @@ check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 	BerElement	*ber = NULL;
 	char		filter[MYBUFSIZ];
 	char		*a;
-	struct berval	**vals;
 	char		*attrs[] = { NULL, NULL };
-	int		result = 0, i;
+	int		result = 0;
 
 	attrs[0] = strdup("memberUid");
 
@@ -48,9 +47,13 @@ check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 	for (a = ldap_first_attribute (ld, e, &ber); a != NULL;
 	     a = ldap_next_attribute (ld, e, ber))
 	{
+		struct berval	**vals;
+
 		vals = ldap_get_values_len (ld, e, a);
 		if (vals != NULL)
 		{
+			int	i;
+
 			for (i = 0; vals[i]->bv_val != NULL; i++)
 			{
 				if (!strcasecmp (vals[i]->bv_val, user))
@@ -79,7 +82,6 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
 {
 	FILE	*af;
 	char	line[LINEBUFSIZE];
-	char	*ptr;
 	struct ldap_auth	ldap;
 
 	memset(&ldap, 0, sizeof(ldap));
@@ -104,6 +106,8 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
  	 */
 	while (fgets(line, LINEBUFSIZE, af))
 	{
+		char	*ptr;
+
 		/* kill newlines and such, they confuse ldap */
 		while ((ptr = strchr (line, '\r')) != NULL)
 			*ptr = 0;
@@ -149,10 +153,7 @@ int
 check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth *ldap)
 {
 	char	filter[MYBUFSIZ];
-	char	line[LINEBUFSIZE];
 	char	*dn = NULL;
-	char	*ptr;
-	char	*curoffs;
 	LDAP	*ld;
 	LDAPMessage	*res = NULL;
 	LDAPMessage	*e;
@@ -202,11 +203,15 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 	}
 	else
 	{
+		char	*curoffs;
+		char	line[LINEBUFSIZE];
+
 		curoffs = ldap->groups;
 		for (;;)
 		{
 			/* isolate a group on a ',' boundery */
-			ptr = strchr (curoffs, ',');
+			char	*ptr = strchr (curoffs, ',');
+
 			if (ptr == NULL)
 				ptr = strchr (curoffs, 0);
 			strlcpy (line, curoffs, (ptr - curoffs));

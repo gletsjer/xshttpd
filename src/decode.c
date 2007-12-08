@@ -30,7 +30,6 @@ decode(char *str)
 {
 	char		*posd, chr;
 	const	char	*poss;
-	unsigned int	top, bottom;
 
 	poss = posd = str;
 	while ((chr = *poss))
@@ -44,8 +43,11 @@ decode(char *str)
 			}
 			*(posd++) = chr;
 			poss++;
-		} else
+		}
+		else
 		{
+			unsigned int	top, bottom;
+
 			if (hexdigit((int)poss[1]) < 0 ||
 				hexdigit((int)poss[2]) < 0)
 			{
@@ -176,7 +178,8 @@ shellencode(const char *what)
 int
 hexdigit(int ch)
 {
-	const	char	*temp, *hexdigits = "0123456789ABCDEF";
+	const	char	*temp;
+	const	char	hexdigits[] = "0123456789ABCDEF";
 
 	if ((temp = strchr(hexdigits, islower(ch) ? toupper(ch) : ch)))
 		return (temp - hexdigits);

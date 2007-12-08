@@ -86,17 +86,9 @@ PerlInterpreter *	my_perl = NULL;
 void
 load_config()
 {
-	typedef enum	{ sub_none = 0, sub_socket, sub_system,
-				sub_virtual, sub_users } subtype_t;
-	subtype_t	subtype = sub_none;
 	FILE	*confd;
 	char	line[LINEBUFSIZE], thishostname[NI_MAXHOST];
-	char	*key, *value;
-	char	*comment, *end, *username = NULL, *groupname = NULL;
 	char	**defaultindexfiles;
-	struct passwd	*pwd;
-	struct group	*grp;
-	struct virtual	*last = NULL;
 	struct socket_config	*lsock;
 
 	/* default socket for backwards compatibility */
@@ -138,9 +130,16 @@ load_config()
 
 	if (confd)
 	{
-		/* skip this loop if there is no config file and use defaults below */
+		typedef enum	{ sub_none = 0, sub_socket, sub_system,
+					sub_virtual, sub_users } subtype_t;
+		subtype_t	subtype = sub_none;
+		struct virtual	*last = NULL;
+
+		/* parse config file */
 		while (fgets(line, LINEBUFSIZE, confd))
 		{
+			char	*key, *value, *comment, *end;
+
 			if ((comment = strchr(line, '#')))
 				*comment = 0;
 			end = line + strlen(line);
@@ -321,6 +320,7 @@ load_config()
 				{
 					if (!current->userid && !(current->userid = atoi(value)))
 					{
+						struct passwd	*pwd;
 						if (!(pwd = getpwnam(value)))
 							errx(1, "Invalid username: %s", value);
 						current->userid = pwd->pw_uid;
@@ -330,6 +330,7 @@ load_config()
 				{
 					if (!current->groupid && !(current->groupid = atoi(value)))
 					{
+						struct group	*grp;
 						if (!(grp = getgrnam(value)))
 							errx(1, "Invalid groupname: %s", value);
 						current->groupid = grp->gr_gid;
@@ -513,20 +514,22 @@ load_config()
 		config.system->logreferer = strdup(BITBUCKETNAME);
 	if (!config.system->logstyle)
 		config.system->logstyle = log_combined;
-	if (!username)
-		username = strdup(HTTPD_USERID);
-	if (!config.system->userid && !(config.system->userid = atoi(username)))
+	if (!config.system->userid &&
+		!(config.system->userid = atoi(HTTPD_USERID)))
 	{
-		if (!(pwd = getpwnam(username)))
-			errx(1, "Invalid username: %s", username);
+		struct passwd	*pwd;
+
+		if (!(pwd = getpwnam(HTTPD_USERID)))
+			errx(1, "Invalid username: %s", HTTPD_USERID);
 		config.system->userid = pwd->pw_uid;
 	}
-	if (!groupname)
-		groupname = strdup(HTTPD_GROUPID);
-	if (!config.system->groupid && !(config.system->groupid = atoi(groupname)))
+	if (!config.system->groupid &&
+		!(config.system->groupid = atoi(HTTPD_GROUPID)))
 	{
-		if (!(grp = getgrnam(groupname)))
-			errx(1, "Invalid groupname: %s", groupname);
+		struct group	*grp;
+
+		if (!(grp = getgrnam(HTTPD_GROUPID)))
+			errx(1, "Invalid groupname: %s", HTTPD_GROUPID);
 		config.system->groupid = grp->gr_gid;
 	}
 	if (!config.system->indexfiles)

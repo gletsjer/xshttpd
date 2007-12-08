@@ -102,7 +102,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	unsigned long		writetodo;
 	off_t			totalwritten;
 	char			fullpath[XS_PATH_MAX], input[RWBUFSIZE],
-				line[LINEBUFSIZE], head[HEADSIZE],
+				line[LINEBUFSIZE],
+				head[HEADSIZE],
 				*temp;
 	char			*argv1;
 	int			p[2], r[2], nph, dossi, chldstat, printerr;
@@ -116,9 +117,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	size_t		tobewritten;
 	const char	*te = getenv("HTTP_TRANSFER_ENCODING");
 #endif		/* HANDLE_SSL */
-#ifdef		HAVE_SETRLIMIT
-	struct	rlimit		limits;
-#endif		/* HAVE_SETRLIMIT */
 	struct	sigaction	action;
 	struct	stat		statbuf;
 
@@ -203,15 +201,18 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		goto END;
 	case 0:
 #ifdef		HAVE_SETRLIMIT
+		{
+			struct	rlimit		limits;
 #ifdef		RLIMIT_CPU
-		limits.rlim_cur = 60 * (rlim_t)config.scriptcpulimit;
-		limits.rlim_max = 10 + limits.rlim_cur;
-		setrlimit(RLIMIT_CPU, &limits);
+			limits.rlim_cur = 60 * (rlim_t)config.scriptcpulimit;
+			limits.rlim_max = 10 + limits.rlim_cur;
+			setrlimit(RLIMIT_CPU, &limits);
 #endif		/* RLIMIT_CPU */
 #ifdef		RLIMIT_CORE
-		limits.rlim_cur = limits.rlim_max = 0;
-		setrlimit(RLIMIT_CORE, &limits);
+			limits.rlim_cur = limits.rlim_max = 0;
+			setrlimit(RLIMIT_CORE, &limits);
 #endif		/* RLIMIT_CORE */
+		}
 #endif		/* HAVE_SETRLIMIT */
 
 		dup2(p[1], 1);

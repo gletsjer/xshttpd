@@ -38,9 +38,9 @@ static	const char	*mimefile;
 
 static	void	usage			(void) NORETURN;
 static	void	loadmime		(const char *);
-static	const	char	*encode		(const char *);
-static	const	char	*neatsize	(long);
-static	const	mime	*findmime	(const char *);
+static	const	char	*encode		(const char *) WARNUNUSED;
+static	const	char	*neatsize	(long) WARNUNUSED;
+static	const	mime	*findmime	(const char *) WARNUNUSED;
 
 static	void
 usage()

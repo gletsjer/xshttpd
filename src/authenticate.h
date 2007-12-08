@@ -30,6 +30,6 @@
 extern char	authentication[];
 
 void	initnonce	(void);
-int	check_auth	(const char *, const struct ldap_auth *);
+int	check_auth	(const char *, const struct ldap_auth *) WARNUNUSED;
 
 #endif		/* AUTHENTICATE_H */

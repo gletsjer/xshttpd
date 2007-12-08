@@ -203,10 +203,8 @@ term_handler(int sig)
 static	void
 open_logs(int sig)
 {
-	FILE		*pidlog;
 	uid_t		savedeuid;
 	gid_t		savedegid;
-	int			tempfile;
 
 	if (sig)
 	{
@@ -224,6 +222,8 @@ open_logs(int sig)
 	}
 	if (mainhttpd)
 	{
+		FILE		*pidlog;
+
 		if ((pidlog = fopen(calcpath(config.pidfile), "w")))
 		{
 			fprintf(pidlog, "%ld\n", (long)getpid());
@@ -357,14 +357,20 @@ open_logs(int sig)
 
 	fflush(stderr);
 	close(2);
-	tempfile = fileno(config.system->openerror);
-	if (tempfile != 2)
+
+	/* local block */
 	{
-		if (dup2(tempfile, 2) == -1)
-			err(1, "dup2() failed");
+		int		tempfile;
+
+		tempfile = fileno(config.system->openerror);
+		if (tempfile != 2)
+		{
+			if (dup2(tempfile, 2) == -1)
+				err(1, "dup2() failed");
+		}
+		else
+			config.system->openerror = stderr;
 	}
-	else
-		config.system->openerror = stderr;
 
 	if (mainhttpd)
 	{
@@ -580,8 +586,9 @@ void
 server_error(int code, const char *readable, const char *cgi)
 {
 	struct	stat		statbuf;
-	char				cgipath[XS_PATH_MAX],
-				*escaped, *temp, filename[] = "/error";
+	char			cgipath[XS_PATH_MAX],
+				*temp;
+	const	char		filename[] = "/error";
 	const	char		*env, *username;
 
 	if (!current)
@@ -595,8 +602,7 @@ server_error(int code, const char *readable, const char *cgi)
 	setenv("ERROR_READABLE", readable, 1);
 	setenv("ERROR_URL", orig, 1);
 	setenv("ERROR_URL_EXPANDED", convertpath(orig), 1);
-	escaped = escape(orig);
-	setenv("ERROR_URL_ESCAPED", escaped ? escaped : "", 1);
+	setenv("ERROR_URL_ESCAPED", orig[0] ? escape(orig) : "", 1);
 	env = getenv("QUERY_STRING");
 	/* Look for user-defined error script */
 	if (current == config.users && (username = getenv("USER")))
@@ -637,12 +643,10 @@ server_error(int code, const char *readable, const char *cgi)
 void
 logrequest(const char *request, off_t size)
 {
-	char		buffer[80], *dynrequest, *dynagent, *p;
-	time_t		theclock;
+	char		buffer[90], *dynrequest, *dynagent, *p;
 	FILE		*alog;
 
-	time(&theclock);
-	strftime(buffer, 80, "%d/%b/%Y:%H:%M:%S", localtime(&theclock));
+	strftime(buffer, 90, "%d/%b/%Y:%H:%M:%S +0000", localtimenow());
 
 	if (!current->openaccess)
 		if (!config.system->openaccess)
@@ -664,12 +668,16 @@ logrequest(const char *request, off_t size)
 		for (p = dynagent; *p; p++)
 			if ('\"' == *p)
 				*p = '\'';
-	if (current->logstyle == log_traditional)
+
+	switch (current->logstyle)
+	{
+	case log_traditional:
 	{
 		FILE	*rlog = current->openreferer
 			? current->openreferer
 			: config.system->openreferer;
-		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" %03d %" PRId64 "\n",
+
+		fprintf(alog, "%s - - [%s] \"%s %s %s\" %03d %" PRId64 "\n",
 			remotehost,
 			buffer,
 			getenv("REQUEST_METHOD"), dynrequest, httpver,
@@ -679,9 +687,10 @@ logrequest(const char *request, off_t size)
 			(!current->thisdomain || !strcasestr(referer, current->thisdomain)))
 			fprintf(rlog, "%s -> %s\n", referer, request);
 	}
-	else if (current->logstyle == log_virtual)
+		break;
+	case log_virtual:
 		/* this is combined format + virtual hostname */
-		fprintf(alog, "%s %s - - [%s +0000] \"%s %s %s\" %03d %" PRId64
+		fprintf(alog, "%s %s - - [%s] \"%s %s %s\" %03d %" PRId64
 				" \"%s\" \"%s\"\n",
 			current ? current->hostname : config.system->hostname,
 			remotehost,
@@ -691,8 +700,9 @@ logrequest(const char *request, off_t size)
 			size > 0 ? (int64_t)size : (int64_t)0,
 			referer,
 			dynagent);
-	else /* logstyle = combined */
-		fprintf(alog, "%s - - [%s +0000] \"%s %s %s\" %03d %" PRId64
+		break;
+	case log_combined:
+		fprintf(alog, "%s - - [%s] \"%s %s %s\" %03d %" PRId64
 				" \"%s\" \"%s\"\n",
 			remotehost,
 			buffer,
@@ -701,6 +711,10 @@ logrequest(const char *request, off_t size)
 			size > 0 ? (int64_t)size : (int64_t)0,
 			referer,
 			dynagent);
+		break;
+	case log_none:
+		break;
+	}
 
 	free(dynrequest);
 	free(dynagent);
@@ -713,8 +727,7 @@ process_request()
 			http_host[NI_MAXHOST], http_host_long[NI_MAXHOST],
 			*temp, ch, *params, *url, *ver;
 	struct maplist	http_headers;
-	int		readerror;
-	size_t		sz, size;
+	size_t		sz;
 
 	headers = 11;
 	strlcpy(httpver, "HTTP/1.1", 16);
@@ -738,8 +751,7 @@ process_request()
 #endif		/* HAVE_LIBMD */
 
 	initreadmode(0);
-	readerror = readline(0, line, sizeof(line));
-	switch (readerror)
+	switch (readline(0, line, sizeof(line)))
 	{
 	case ERR_NONE:
 		break;
@@ -915,9 +927,8 @@ process_request()
 	}
 
 	strlcpy(orig, params, MYBUFSIZ);
-	size = strlen(orig);
 
-	if (size < NI_MAXHOST &&
+	if (strlen(orig) < NI_MAXHOST &&
 		sscanf(params, "http://%[^/]%c", http_host, &ch) == 2 &&
 		ch == '/')
 	{
@@ -1006,6 +1017,7 @@ process_request()
 				else if (current->aliases)
 				{
 					char	**aliasp;
+
 					for (aliasp = current->aliases; *aliasp; aliasp++)
 						if (!strcasecmp(http_host_long, *aliasp) ||
 								!strcasecmp(http_host, *aliasp))
@@ -1035,6 +1047,7 @@ process_request()
 			else if (current->aliases)
 			{
 				char	**aliasp;
+
 				for (aliasp = current->aliases; *aliasp; aliasp++)
 					if (!strcasecmp(http_host_long, *aliasp) ||
 							!strcasecmp(http_host, *aliasp))
@@ -1049,6 +1062,7 @@ process_request()
 			strcasecmp(http_host, config.system->hostname))
 	{
 		char	**aliasp = NULL;
+
 		if ((aliasp = config.system->aliases))
 			for (; *aliasp; aliasp++)
 			{
@@ -1138,10 +1152,7 @@ standalone_socket(int id)
 #ifndef		HAVE_GETNAMEINFO
 	unsigned	long	laddr;
 #endif		/* HAVE_GETNAMEINFO */
-	pid_t			*childs, pid;
-#ifdef		HAVE_SETRLIMIT
-	struct	rlimit		limit;
-#endif		/* HAVE_SETRLIMIT */
+	pid_t			*childs;
 
 	setproctitle("xs(MAIN): Initializing deamons...");
 
@@ -1237,23 +1248,30 @@ standalone_socket(int id)
 	}
 
 #ifdef		HAVE_SETRLIMIT
+	{
+		struct	rlimit		limit;
+
 # ifdef		RLIMIT_NPROC
-	limit.rlim_max = limit.rlim_cur = RLIM_INFINITY;
-	setrlimit(RLIMIT_NPROC, &limit);
+		limit.rlim_max = limit.rlim_cur = RLIM_INFINITY;
+		setrlimit(RLIMIT_NPROC, &limit);
 # endif		/* RLIMIT_NPROC */
 # ifdef		RLIMIT_CPU
-	limit.rlim_max = limit.rlim_cur = RLIM_INFINITY;
-	setrlimit(RLIMIT_CPU, &limit);
+		limit.rlim_max = limit.rlim_cur = RLIM_INFINITY;
+		setrlimit(RLIMIT_CPU, &limit);
 # endif		/* RLIMIT_CPU */
+	}
 #endif		/* HAVE_SETRLIMIT */
 
-	set_signals(); reqs = 0;
+	set_signals();
+	reqs = 0;
 	if (!(childs = (pid_t *)malloc(sizeof(pid_t) * cursock->instances)))
 		err(1, "malloc() failed");
 
 	for (count = 0; count < cursock->instances; count++)
 	{
-		switch (pid = fork())
+		pid_t	pid = fork();
+
+		switch (pid)
 		{
 		case -1:
 			warn("fork()");
@@ -1278,8 +1296,10 @@ standalone_socket(int id)
 		{
 			if (kill(childs[count], 0))
 			{
+				pid_t	pid;
+
 				fflush(stdout);
-				switch(pid = fork())
+				switch (pid = fork())
 				{
 				case -1:
 					warn("fork()");
@@ -1472,11 +1492,6 @@ main(int argc, char **argv)
 	char *		longopt[6] = { NULL, NULL, NULL, NULL, NULL, NULL };
 	uid_t		uid = 0;
 	gid_t		gid = 0;
-#ifdef		HAVE_UNAME
-	struct utsname		utsname;
-#endif		/* HAVE_UNAME */
-	const struct passwd	*userinfo;
-	const struct group	*groupinfo;
 
 	origeuid = geteuid(); origegid = getegid();
 	memset(&config, 0, sizeof config);
@@ -1516,12 +1531,15 @@ main(int argc, char **argv)
 			longopt[opt_dir] = optarg;
 			break;
 		case 'g':	/* group */
+		{
+			const struct group	*groupinfo;
 			if ((gid = atoi(optarg)) > 0)
 				break;
 			if (!(groupinfo = getgrnam(optarg)))
 				errx(1, "Invalid group ID");
 			gid = groupinfo->gr_gid;
 			break;
+		}
 		case 'm':	/* message */
 			strlcpy(message503, optarg, MYBUFSIZ);
 			break;
@@ -1533,12 +1551,15 @@ main(int argc, char **argv)
 			longopt[opt_port] = optarg;
 			break;
 		case 'u':	/* user */
+		{
+			const struct passwd	*userinfo;
 			if ((uid = atoi(optarg)) > 0)
 				break;
 			if (!(userinfo = getpwnam(optarg)))
 				errx(1, "Invalid user ID");
 			uid = userinfo->pw_uid;
 			break;
+		}
 		case 'N':	/* nolog */
 			nolog = 1;
 			strlcpy(config_path, "/dev/null", XS_PATH_MAX);
@@ -1549,8 +1570,14 @@ main(int argc, char **argv)
 		case 'v':	/* version */
 			printf("%s", SERVER_IDENT);
 #ifdef		HAVE_UNAME
-			uname(&utsname);
-			printf(" %s/%s", utsname.sysname, utsname.release);
+			{
+				struct utsname		utsname;
+
+				uname(&utsname);
+				printf(" %s/%s",
+					utsname.sysname,
+					utsname.release);
+			}
 #endif		/* HAVE_UNAME */
 #ifdef		OPENSSL_VERSION_NUMBER
 			printf(" OpenSSL/%d.%d.%d",

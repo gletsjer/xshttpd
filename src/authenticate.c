@@ -24,12 +24,12 @@ char		authentication[MYBUFSIZ];
 static unsigned long int	secret;
 static const int	rfc2617_digest = 1;
 
-static int	get_crypted_password(const char *, const char *, char **, char **);
-static int	check_basic_auth(const char *authfile, const struct ldap_auth *);
+static int	get_crypted_password(const char *, const char *, char **, char **) WARNUNUSED;
+static int	check_basic_auth(const char *authfile, const struct ldap_auth *) WARNUNUSED;
 #ifdef		HAVE_MD5
-static int	check_digest_auth(const char *authfile);
-static void	fresh_nonce(char *nonce);
-static int	valid_nonce(const char *nonce);
+static int	check_digest_auth(const char *authfile) WARNUNUSED;
+static char 	*fresh_nonce(void) WARNUNUSED;
+static int	valid_nonce(const char *nonce)NONNULL WARNUNUSED;
 #endif		/* HAVE_MD5 */
 
 /* returns malloc()ed data! */
@@ -37,7 +37,6 @@ static int
 get_crypted_password(const char *authfile, const char *user, char **passwd, char **hash)
 {
 	char	line[LINEBUFSIZE];
-	char	*lpass, *lhash, *eol;
 	FILE	*af;
 
 	if (!(af = fopen(authfile, "r")))
@@ -50,6 +49,8 @@ get_crypted_password(const char *authfile, const char *user, char **passwd, char
 
 	while (fgets(line, LINEBUFSIZE, af))
 	{
+		char	*lpass, *lhash, *eol;
+
 		if (strncmp(line + 1, user, strlen(user)) ||
 				line[strlen(user)+1] != ':')
 			continue;
@@ -82,6 +83,7 @@ static int
 check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 {
 	char		*search, *line, *passwd, *find;
+	int		reject;
 
 	/* basic auth */
 	line = strdup(authentication);
@@ -122,21 +124,11 @@ check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 		return 1;
 	}
 
-	if (!strcmp(passwd, crypt(find, passwd)))
-	{
-		free(line);
-		free(passwd);
-		/* allow access */
-		return 0;
-	}
-	else
-	{
-		free(line);
-		free(passwd);
-		return 1;
-	}
-	/* NOTREACHED */
+	reject = !strcmp(passwd, crypt(find, passwd));
+	free(line);
+	free(passwd);
 	(void)ldap;
+	return reject;
 }
 
 #ifdef		HAVE_MD5
@@ -144,21 +136,21 @@ static int
 check_digest_auth(const char *authfile)
 {
 	char		ha2[MD5_DIGEST_STRING_LENGTH],
-			digest[MD5_DIGEST_STRING_LENGTH];
+			digest[MD5_DIGEST_STRING_LENGTH],
+			line[MYBUFSIZ];
 	struct		mapping		*authreq;
 	const char	*user, *realm, *nonce, *cnonce, *uri,
 			*response, *qop, *nc;
-	char		*line, *passwd, *a2, *digplain, *ha1;
+	char		*passwd, *a2, *digplain, *ha1;
 	char		*idx, *val;
 	size_t		sz, fields, len;
 
 	/* digest auth, rfc 2069 */
 	if (strncmp(authentication, "Digest ", 7))
 		return 1; /* fail */
-	line = strdup(authentication + 7);
-	if (!line)
+	strlcpy(line, authentication + 7, MYBUFSIZ);
+	if (!*line)
 		return 1;
-	len = strlen(line);
 
 	/* grab element from line */
 	fields = eqstring_to_array(line, NULL);
@@ -192,28 +184,18 @@ check_digest_auth(const char *authfile)
 	free(authreq);
 
 	if (!user || !realm || !nonce || !uri || !response)
-	{
-		free(line);
 		return 1; /* fail */
-	}
 	passwd = ha1 = NULL;
 	if (!get_crypted_password(authfile, user, &passwd, &ha1) || !passwd)
-	{
-		free(line);
 		return 1; /* not found */
-	}
 
 	free(passwd);
 	if (!ha1)
-	{
-		free(line);
 		return 1;
-	}
 
 	/* obtain h(a1) from file */
 	if (strlen(ha1) > MD5_DIGEST_STRING_LENGTH)
 	{
-		free(line);
 		free(ha1);
 		return 1; /* no valid hash */
 	}
@@ -234,21 +216,13 @@ check_digest_auth(const char *authfile)
 	free(ha1);
 
 	if (strcmp(response, digest))
-	{
-		free(line);
 		return 1; /* no match */
-	}
 
 	if (!valid_nonce(nonce))
-	{
-		free(line);
 		return 2; /* invalid nonce */
-	}
 
 	setenv("AUTH_TYPE", "Digest", 1);
 	setenv("REMOTE_USER", user, 1);
-	free(line);
-
 	return 0;
 }
 #endif		/* HAVE_MD5 */
@@ -256,9 +230,8 @@ check_digest_auth(const char *authfile)
 int
 check_auth(const char *authfile, const struct ldap_auth *ldap)
 {
-	char		*p, line[LINEBUFSIZE], errmsg[10240],
-			nonce[MAX_NONCE_LENGTH];
-	int		i = 1, digest, rv = 0;
+	char		*errmsg;
+	int		digest, rv = 0;
 	FILE		*af;
 
 	if (!authfile && !ldap)
@@ -277,6 +250,9 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 
 	if (authfile)
 	{
+		char		*p, line[LINEBUFSIZE];
+		int		i = 1;
+
 		if ((p = fgets(line, LINEBUFSIZE, af)))
 			for (i = 0; *p; p++)
 				if (':' == *p)
@@ -291,8 +267,7 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 		(strncasecmp(authentication, "Basic", 5) &&
 		 strncasecmp(authentication, "Digest", 6)))
 	{
-
-		snprintf(errmsg, sizeof(errmsg),
+		asprintf(&errmsg,
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 			"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
 			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
@@ -307,10 +282,9 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 #ifdef		HAVE_MD5
 			if (digest)
 			{
-				fresh_nonce(nonce);
 				secprintf("WWW-Authenticate: digest realm=\""
 					REALM "\", nonce=\"%s\"%s\r\n",
-					nonce,
+					fresh_nonce(),
 					rfc2617_digest
 					 ? ", qop=\"auth\", algorithm=md5"
 					 : "");
@@ -323,6 +297,7 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 			stdheaders(1, 1, 1);
 		}
 		secputs(errmsg);
+		free(errmsg);
 		return(1);
 	}
 #ifdef		HAVE_MD5
@@ -338,7 +313,7 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 			return 0;
 	}
 
-	snprintf(errmsg, sizeof(errmsg),
+	asprintf(&errmsg,
 		"\r\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 		"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
 		"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
@@ -353,10 +328,9 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 #ifdef		HAVE_MD5
 		if (digest)
 		{
-			fresh_nonce(nonce);
 			secprintf("WWW-Authenticate: digest realm=\""
 				REALM "\", nonce=\"%s\"%s%s\r\n",
-				nonce,
+				fresh_nonce(),
 				rfc2617_digest
 				 ? ", qop=\"auth\", algorithm=md5"
 				 : "",
@@ -370,6 +344,7 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 		stdheaders(1, 1, 1);
 	}
 	secputs(errmsg);
+	free(errmsg);
 	return(1);
 }
 
@@ -381,10 +356,11 @@ initnonce()
 }
 
 #ifdef		HAVE_MD5
-static void
-fresh_nonce(char *nonce)
+static char *
+fresh_nonce(void)
 {
-	char	bufhex[MD5_DIGEST_STRING_LENGTH];
+	static char	nonce[MAX_NONCE_LENGTH];
+	char		bufhex[MD5_DIGEST_STRING_LENGTH];
 	const long	ts = (long)time(NULL);
 	char	*buf;
 	size_t	len;
@@ -394,6 +370,7 @@ fresh_nonce(char *nonce)
 	free(buf);
 
 	snprintf(nonce, MAX_NONCE_LENGTH, "%lx:%s", ts, bufhex);
+	return nonce;
 }
 
 static int

@@ -15,12 +15,12 @@ typedef struct cf_values
 	char	*delscript;
 } cf_values;
 
-int	check_file_redirect	(const char *, const char *);
-int	check_redirect		(const char *, const char *);
-int	check_allow_host	(const char *, char *);
-int	check_noxs		(const char *);
-int	check_location		(const char *, const char *);
-int	check_xsconf		(const char *, const char *, cf_values *);
-int	free_xsconf		(cf_values *);
+int	check_file_redirect	(const char *, const char *) WARNUNUSED;
+int	check_redirect		(const char *, const char *) WARNUNUSED;
+int	check_allow_host	(const char *, char *) WARNUNUSED;
+int	check_noxs		(const char *) WARNUNUSED;
+int	check_location		(const char *, const char *) WARNUNUSED;
+int	check_xsconf		(const char *, const char *, cf_values *) WARNUNUSED;
+int	free_xsconf		(cf_values *) NONNULL;
 
 #endif		/* XSFILES_H */

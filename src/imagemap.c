@@ -30,11 +30,11 @@
 #define		X		0
 #define		Y		1
 
-static	int	isname			(int);
+static	int	isname			(int) WARNUNUSED;
 static	void	servererr		(const char *)	NORETURN;
-static	int	pointinpoly		(void);
-static	int	pointincircle		(void);
-static	int	pointinrect		(void);
+static	int	pointinpoly		(void) WARNUNUSED;
+static	int	pointincircle		(void) WARNUNUSED;
+static	int	pointinrect		(void) WARNUNUSED;
 static	void	sendmesg		(const char *)	NORETURN;
 
 static	double	testpoint[2], pointarray[MAXVERTS][2];

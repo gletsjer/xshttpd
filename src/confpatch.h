@@ -11,8 +11,12 @@
 #  define	PRINTF_LIKE(f, p)	__attribute__ ((format (printf, (f), (p))))\
 					__attribute__ ((__nonnull__ (f)))
 #  define	CONST_FUNC		__attribute__ ((const))
-#  define	MALLOC_FUNC		__attribute__ ((malloc))
+#  define	MALLOC_FUNC		__attribute__ ((malloc)) \
+ 					__attribute__ ((warn_unused_result))
 #  define	NORETURN		__attribute__ ((noreturn))
+#  define	NONNULL			__attribute__ ((nonnull))
+#  define	NONNULL1		__attribute__ ((nonnull (1)))
+#  define	WARNUNUSED		__attribute__ ((warn_unused_result))
 # else		/* __GNUC__ < 3 */
 #  define	PRINTF_LIKE(f, p)	__attribute__ ((format (printf, (f), (p))))
 #  define	CONST_FUNC		__attribute__ ((const))

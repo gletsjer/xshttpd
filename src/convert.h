@@ -3,6 +3,6 @@
 #ifndef		CONVERT_H
 #define		CONVERT_H
 
-const	char	*convertpath	(const char *);
+const	char	*convertpath	(const char *)	NONNULL WARNUNUSED;
 
 #endif		/* CONVERT_H */

@@ -5,16 +5,16 @@
 
 #include	"config.h"
 
-int	decode			(char *);
-void	uudecode		(char *);
-char	*escape			(const char *) MALLOC_FUNC;
-char	*urlencode		(const char *) MALLOC_FUNC;
-char	*shellencode		(const char *) MALLOC_FUNC;
-int	hexdigit		(int) CONST_FUNC;
-int	hex_encode	(const char *bin, size_t len, char *hex);
-int	hex_decode	(const char *hex, size_t len, char *bin);
-int base64_encode(const char *msg, size_t len, char *bin);
+int	decode		(char *) NONNULL;
+void	uudecode	(char *) NONNULL;
+char	*escape		(const char *) MALLOC_FUNC NONNULL;
+char	*urlencode	(const char *) MALLOC_FUNC NONNULL;
+char	*shellencode	(const char *) MALLOC_FUNC NONNULL;
+int	hexdigit	(int) CONST_FUNC NONNULL;
+int	hex_encode	(const char *bin, size_t len, char *hex) NONNULL;
+int	hex_decode	(const char *hex, size_t len, char *bin) NONNULL;
+int	base64_encode	(const char *msg, size_t len, char *bin) NONNULL;
 
-int	generate_ha1	(const char *user, const char *passwd, char *hash);
+int	generate_ha1	(const char *user, const char *passwd, char *hash) NONNULL;
 
 #endif		/* DECODE_H */

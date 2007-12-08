@@ -389,11 +389,11 @@ secread_internal(int fd, void *buf, size_t count)
 #ifdef		HANDLE_SSL
 	if (cursock->ssl && fd == 0)
 	{
-		int	ret, s_err;
+		int	ret;
 
 		while ((ret = SSL_read(cursock->ssl, buf, count)) <= 0)
 		{
-			s_err = SSL_get_error(cursock->ssl, ret);
+			int	s_err = SSL_get_error(cursock->ssl, ret);
 
 			switch (s_err)
 			{
@@ -452,10 +452,8 @@ secfread(void *buf, size_t size, size_t nmemb, FILE *stream)
 ssize_t
 secwrite(const char *buf, size_t count)
 {
-	int	i;
+	int		i;
 	size_t		len[3];
-	ssize_t		ret;
-	static char	head[20];
 	const char	*message[3];
 
 	if (!count)
@@ -463,6 +461,8 @@ secwrite(const char *buf, size_t count)
 
 	if (chunked)
 	{
+		static char	head[20];
+
 		i = 0;
 		len[0] = (size_t)snprintf(head, 20, "%zx\r\n", count);
 		len[1] = count;
@@ -488,7 +488,8 @@ secwrite(const char *buf, size_t count)
 #ifdef		HANDLE_SSL
 		if (cursock->usessl)
 		{
-			int	s_err;
+			int		s_err;
+			ssize_t		ret;
 
 			while ((ret = SSL_write(cursock->ssl, message[i], len[i])) <= 0)
 			{
@@ -514,6 +515,8 @@ secwrite(const char *buf, size_t count)
 		else
 #endif		/* HANDLE_SSL */
 		{
+			ssize_t		ret;
+
 			while ((ret = write(1, message[i], len[i])) < (int)len[i])
 			{
 				if (ret >= 0)
@@ -628,14 +631,14 @@ readline(int rd, char *buf, size_t len)
 ssize_t
 readheaders(int rd, struct maplist *headlist)
 {
-	size_t		len, sz;
 	char		input[LINEBUFSIZE];
-	char		*idx, *val, *value;
 
 	headlist->size = 0;
 	headlist->elements = NULL;
 	while (1)
 	{
+		char	*value;
+
 		switch (readline(rd, input, LINEBUFSIZE))
 		{
 		case ERR_NONE:
@@ -653,6 +656,9 @@ readheaders(int rd, struct maplist *headlist)
 			break;
 		if (isspace(input[0]))
 		{
+			int	len;
+			char	*val;
+
 			/* continue previous header */
 			value = input;
 			while (*value && isspace(*value))
@@ -667,18 +673,23 @@ readheaders(int rd, struct maplist *headlist)
 		}
 		else if ((value = strchr(input, ':')))
 		{
+			size_t	sz;
+
 			*value++ = '\0';
 			while (*value && isspace(*value))
 				value++;
 			for (sz = 0; sz < headlist->size; sz++)
 			{
 				/* append to earlier header */
-				idx = headlist->elements[sz].index;
-				val = headlist->elements[sz].value;
+				const char * const idx = headlist->elements[sz].index;
 				if (!strcasecmp(idx, "set-cookie"))
 					continue;
 				if (!strcasecmp(idx, input))
 				{
+					int	len;
+					char	*val;
+					
+					val = headlist->elements[sz].value;
 					len = strlen(val) + strlen(value) + 3;
 					val = realloc(val, len);
 					strcat(val, ", ");

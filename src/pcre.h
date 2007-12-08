@@ -7,7 +7,7 @@
 
 #define		OVSIZE	30	/* allows \0 through \9 */
 
-char *pcre_subst(const char * const, const char * const, const char * const) MALLOC_FUNC;
-int pcre_match(const char * const, const char * const);
+char *pcre_subst(const char * const, const char * const, const char * const) MALLOC_FUNC NONNULL;
+int pcre_match(const char * const, const char * const) NONNULL WARNUNUSED;
 
 #endif		/* PCRE_H */

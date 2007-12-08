@@ -35,10 +35,10 @@ extern	uid_t	origeuid;
 void	stdheaders		(int, int, int);
 void	alarm_handler		(int);
 void	xserror			(int, const char *, ...) PRINTF_LIKE(2, 3);
-void	redirect		(const char *, int, int);
-int	readline		(int, char *, size_t);
-void	server_error		(int, const char *, const char *);
-void	logrequest		(const char *, off_t);
+void	redirect		(const char *, int, int) NONNULL;
+int	readline		(int, char *, size_t) NONNULL WARNUNUSED;
+void	server_error		(int, const char *, const char *) NONNULL;
+void	logrequest		(const char *, off_t) NONNULL;
 void	setcurrenttime		(void);
 
 #endif		/* HTTPD_H */

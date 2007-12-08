@@ -24,8 +24,8 @@
 #include	"extra.h"
 #include	"httpd.h"
 
-static size_t	internal_xstring_to_arrayp(char *, char ***, size_t (*)(char *, char **));
-static size_t	internal_xstring_to_arraypn(char *, char ***, size_t (*)(char *, char **));
+static size_t	internal_xstring_to_arrayp(char *, char ***, size_t (*)(char *, char **)) WARNUNUSED;
+static size_t	internal_xstring_to_arraypn(char *, char ***, size_t (*)(char *, char **)) WARNUNUSED;
 
 int
 mysleep(int seconds)
@@ -35,6 +35,15 @@ mysleep(int seconds)
 	timeout.tv_usec = 0;
 	timeout.tv_sec = seconds;
 	return(select(0, NULL, NULL, NULL, &timeout) == 0);
+}
+
+struct tm *
+localtimenow(void)
+{
+	time_t	now;
+
+	time(&now);
+	return localtime(&now);
 }
 
 int

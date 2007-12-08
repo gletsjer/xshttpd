@@ -115,7 +115,7 @@ make_etag(struct stat *sb)
 #define	ETAG_LEN	(sizeof(time_t) + sizeof(ino_t) + sizeof(off_t))
 #define	ETAG_SLEN	(2 * ETAG_LEN + 3)
 	static char	etag[ETAG_SLEN];
-	char		binbuf[ETAG_LEN], *p = binbuf;
+	char		binbuf[ETAG_LEN], *p;
 	time_t		modtime;
 
 	if (!sb || !config.useetag)
@@ -128,6 +128,7 @@ make_etag(struct stat *sb)
 	 * Warning: this value is system dependent,
 	 * check struct sizes, definitions, endianness
 	 */
+	p = binbuf;
 	modtime = sb->st_mtime;
 	memcpy(p, &sb->st_ino, sizeof(ino_t));
 	p += sizeof(ino_t);
@@ -150,10 +151,8 @@ static int
 sendheaders(int fd, off_t size)
 {
 	char		*env, *etag;
-	struct stat	statbuf;
 	time_t		modtime;
 	struct tm	reqtime;
-	char		modified[32];
 
 	dynamic = 0;
 
@@ -172,15 +171,17 @@ sendheaders(int fd, off_t size)
 		lseek(fd, (off_t)0, SEEK_SET);
 	}
 
-	if (!dynamic && !fstat(fd, &statbuf))
+	modtime = 0;
+	etag = NULL;
+	if (!dynamic)
 	{
-		modtime = statbuf.st_mtime;
-		etag = make_etag(&statbuf);
-	}
-	else
-	{
-		modtime = 0;
-		etag = NULL;
+		struct stat	statbuf;
+
+		if (!fstat(fd, &statbuf))
+		{
+			modtime = statbuf.st_mtime;
+			etag = make_etag(&statbuf);
+		}
 	}
 
 	if (etag &&
@@ -329,6 +330,7 @@ sendheaders(int fd, off_t size)
 		char	hex_digest[MD5_DIGEST_STRING_LENGTH];
 		char	base64_data[MD5_DIGEST_B64_LENGTH];
 #endif		/* HAVE_MD5 */
+		char	modified[32];
 
 		secprintf("Content-length: %" PRId64 "\r\n", (int64_t)size);
 #ifdef		HAVE_LIBMD
@@ -370,8 +372,6 @@ sendheaders(int fd, off_t size)
 static void
 senduncompressed(int fd)
 {
-	int		errval;
-	ssize_t		written;
 	off_t		size;
 
 	alarm(180);
@@ -404,6 +404,8 @@ senduncompressed(int fd)
 	UNPARSED:
 	if (!dynamic)
 	{
+		ssize_t		written;
+
 #ifdef		HAVE_MMAP
 		/* don't use mmap() for files >12Mb to avoid hogging memory */
 		if (size < 12 * 1048576)
@@ -465,6 +467,7 @@ senduncompressed(int fd)
 	else /* dynamic content only */
 	{
 		off_t		usize = 0;
+		int		errval;
 
 		if (headers >= 11)
 		{
@@ -1234,7 +1237,7 @@ do_get(char *params)
 void
 do_post(char *params)
 {
-	const	char	*cl = getenv("CONTENT_LENGTH");
+	const	char	* const cl = getenv("CONTENT_LENGTH");
 
 	postonly = 1;	/* const: this is a post */
 	postread = 0;	/* var: modified when data buffer is read */
@@ -1305,7 +1308,7 @@ void
 do_trace(const char *params)
 {
 	struct	maplist		http_headers;
-	char		*output, *idx, *val;
+	char		*output;
 	size_t		outlen, mlen;
 	ssize_t		num;
 	size_t		i;
@@ -1328,8 +1331,8 @@ do_trace(const char *params)
 
 	for (i = 0; i < http_headers.size; i++)
 	{
-		idx = http_headers.elements[i].index;
-		val = http_headers.elements[i].value;
+		const char * const idx = http_headers.elements[i].index;
+		const char * const val = http_headers.elements[i].value;
 		if (outlen + strlen(idx) + strlen(val) + 4 >= mlen)
 		{
 			mlen += RWBUFSIZE;
@@ -1411,7 +1414,7 @@ curl_readhack(void *buf, size_t size, size_t nmemb, FILE *stream)
 void
 loadfiletypes(char *orgbase, char *base)
 {
-	char		line[LINEBUFSIZE], *name, *ext, *comment, *p;
+	char		line[LINEBUFSIZE];
 	const char	*mimepath;
 	FILE		*mime;
 	ftypes		*prev = NULL, *new = NULL;
@@ -1444,6 +1447,8 @@ loadfiletypes(char *orgbase, char *base)
 	prev = NULL;
 	while (fgets(line, LINEBUFSIZE, mime))
 	{
+		char	*name, *ext, *comment, *p;
+
 		if ((comment = strchr(line, '#')))
 			*comment = 0;
 		p = line;
@@ -1471,7 +1476,7 @@ loadfiletypes(char *orgbase, char *base)
 void
 loadcompresstypes()
 {
-	char		line[LINEBUFSIZE], *end, *comment;
+	char		line[LINEBUFSIZE];
 	const	char	*path;
 	FILE		*methods;
 	ctypes		*prev, *new;
@@ -1490,6 +1495,8 @@ loadcompresstypes()
 	prev = NULL;
 	while (fgets(line, LINEBUFSIZE, methods))
 	{
+		char	*end, *comment;
+
 		if ((comment = strchr(line, '#')))
 			*comment = 0;
 		end = line + strlen(line);
@@ -1514,7 +1521,7 @@ loadcompresstypes()
 void
 loadscripttypes(char *orgbase, char *base)
 {
-	char		line[LINEBUFSIZE], *end, *comment, *path, *cffile;
+	char		line[LINEBUFSIZE], *path, *cffile;
 	FILE		*methods;
 	ctypes		*prev, *new;
 
@@ -1547,6 +1554,8 @@ loadscripttypes(char *orgbase, char *base)
 	prev = NULL;
 	while (fgets(line, LINEBUFSIZE, methods))
 	{
+		char	*end, *comment;
+
 		if ((comment = strchr(line, '#')))
 			*comment = 0;
 		end = line + strlen(line);
@@ -1596,8 +1605,7 @@ getfiletype(int print)
 	const	ftypes	*search, *flist[2];
 	const	int	flen = sizeof(flist) / sizeof(ftypes *);
 	const	char	*ext;
-	char		extension[20];
-	int		i, count;
+	int		i;
 
 	flist[0] = lftype; flist[1] = ftype;
 
@@ -1611,15 +1619,11 @@ getfiletype(int print)
 		else
 			return !strcasecmp(cfvalues.mimetype, "text/html");
 	}
-	for (count = 0; ext[count] && (count < 16); count++)
-		extension[count] =
-			isupper(ext[count]) ? tolower(ext[count]) : ext[count];
-	extension[count] = 0;
 	for (i = 0; i < flen; i++)
 	{
 		for (search = flist[i]; search; search = search->next)
 		{
-			if (strcmp(extension, search->ext))
+			if (strcasecmp(ext, search->ext))
 				continue;
 			if (print)
 			{

@@ -19,7 +19,7 @@ mksalt()
 {
 	static	char	salt[3];
 
-	srandom((unsigned long)time(NULL));
+	srandomdev();
 	salt[0] = alnum[random() % strlen(alnum)];
 	salt[1] = alnum[random() % strlen(alnum)];
 	salt[2] = '\0';

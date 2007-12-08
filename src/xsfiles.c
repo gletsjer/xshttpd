@@ -38,9 +38,9 @@
 # endif		/* IN6_ARE_MASKED_ADDR_EQUAL */
 #endif		/* HAVE_STRUCT_IN6_ADDR */
 
-static char *	mknewurl		(const char *, const char *, int);
+static char *	mknewurl		(const char *, const char *, int) WARNUNUSED;
 #ifdef		HAVE_STRUCT_IN6_ADDR
-static int	v6masktonum		(int, struct in6_addr *);
+static void	v6masktonum		(int, struct in6_addr *);
 #endif		/* HAVE_STRUCT_IN6_ADDR */
 
 static char    *
@@ -90,7 +90,7 @@ mknewurl(const char *old, const char *new, int withproto)
 }
 
 #ifdef		HAVE_STRUCT_IN6_ADDR
-static	int
+static	void
 v6masktonum(int mask, struct in6_addr *addr6)
 {
 	int		x, y, z;
@@ -110,8 +110,6 @@ v6masktonum(int mask, struct in6_addr *addr6)
 			y++;
 		}
 	}
-
-	return 0;
 }
 #endif		/* HAVE_STRUCT_IN6_ADDR */
 
@@ -368,7 +366,7 @@ int
 check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 {
 	char	line[LINEBUFSIZE];
-	char    *p, *name, *value, *authfile;
+	char    *p, *authfile;
 	int	state = 0;
 	int	restrictcheck = 0, restrictallow = 0;
 	int	sslcheck = 0, sslallow = 0;
@@ -388,6 +386,8 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 
 	while (fgets(line, LINEBUFSIZE, fp))
 	{
+		char	*name, *value;
+
 		p = line;
 		while ((name = strsep(&p, " \t\r\n")) && !*name)
 			/* continue */;

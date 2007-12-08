@@ -3,6 +3,6 @@
 #ifndef		XSCRYPT_H
 #define		XSCRYPT_H
 
-char	*mksalt			(void);
+char	*mksalt			(void) WARNUNUSED;
 
 #endif		/* XSCRYPT_H */

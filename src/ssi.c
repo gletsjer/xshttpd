@@ -579,7 +579,6 @@ dir_date(int argc, char **argv, off_t *size)
 	int		i;
 	char		buffer[MYBUFSIZ];
 	char		*format, *zone, *ozone;
-	time_t		theclock;
 
 	format = dateformat;
 	zone = ozone = NULL;
@@ -589,14 +588,13 @@ dir_date(int argc, char **argv, off_t *size)
 		else if (!strcmp(argv[i], "zone"))
 			zone = argv[i + 1];
 
-	time(&theclock);
 	if (zone)
 	{
 		if ((ozone = getenv("TZ")))
 			ozone = strdup(ozone);
 		setenv("TZ", zone, 1);
 	}
-	*size += strftime(buffer, MYBUFSIZ - 1, format, localtime(&theclock));
+	*size += strftime(buffer, MYBUFSIZ - 1, format, localtimenow());
 	if (ozone)
 	{
 		setenv("TZ", ozone, 1);
@@ -695,11 +693,7 @@ dir_last_mod(int argc, char **argv, off_t *size)
 				!stat(path, &statbuf))
 			thetime = localtime(&statbuf.st_mtime);
 		else
-		{
-			time_t	now;
-			time(&now);
-			thetime = localtime(&now);
-		}
+			thetime = localtimenow();
 	}
 
 	strftime(buffer, MYBUFSIZ - 1, dateformat, thetime);
@@ -1080,14 +1074,15 @@ print_enabled()
 static	int
 parsedirectives(char *parse, off_t *size)
 {
-	char		*here, *search, result[MYBUFSIZ], *store;
-	int		len, printable, argc;
-	char		*argv[SSIARGUMENTS];
-	directivestype	*directive;
+	char		*here, result[MYBUFSIZ], *store;
 
 	store = result; here = parse;
 	while (*here)
 	{
+		int		len, printable, argc;
+		char		*argv[SSIARGUMENTS];
+		directivestype	*directive;
+
 		if ((*here != '<') || strncmp(here + 1, "!--#", 4))
 		{
 			*(store++) = *(here++);
@@ -1108,6 +1103,8 @@ parsedirectives(char *parse, off_t *size)
 		len = argc = parse_values(here, argv, SSIARGUMENTS);
 		for (directive = directives; directive->name; directive++)
 		{
+			char		*search;
+
 			if (len < 1 || strcasecmp(directive->name, argv[0]))
 				continue;
 
@@ -1147,6 +1144,8 @@ parsedirectives(char *parse, off_t *size)
 				free(argv[argc]);
 		if (!directive->name)
 		{
+			char		*search;
+
 			*size += secputs("[Unknown directive]\n");
 			if ((search = strstr(here, "-->")))
 				here = search + 3;
