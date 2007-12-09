@@ -5,6 +5,7 @@
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
+#include	<stdbool.h>
 
 #include	<unistd.h>
 #include	<stdio.h>
@@ -30,7 +31,8 @@ typedef struct	exlist
 	struct	exlist	*next;
 } exlist;
 
-static	int	show_size = 1, show_type = 1, show_back = 1, force_overwrite = 0;
+static	int	show_type = 1;
+static	bool	show_size = true, show_back = true, force_overwrite = false;
 static	size_t	max_filename = 0, max_mimetype = 0, max_mimealt = 0,
 				max_mimeshort = 0;
 static	mime	*mimes;
@@ -102,11 +104,10 @@ static	const	char	*
 encode(const char *what)
 {
 	size_t		len;
-	const char	*p;
 	static	char	buffer[BUFSIZ];
 
 	buffer[0] = '\0';
-	for (p = what; (len = strcspn(p, "<>&\"")); p += len + 1)
+	for (const char *p = what; (len = strcspn(p, "<>&\"")); p += len + 1)
 	{
 		if (strlen(buffer) + len < BUFSIZ)
 			strncat(buffer, p, len);
@@ -136,14 +137,13 @@ encode(const char *what)
 static	const	char	*
 neatsize(long size)
 {
-	long		temp;
 	static	char	buffer1[BUFSIZ];
 	char		buffer2[BUFSIZ];
 
 	buffer1[0] = 0;
 	while (size)
 	{
-		temp = size / 1000;
+		const long temp = size / 1000;
 		if (temp)
 			snprintf(buffer2, BUFSIZ, "%03d,%s",
 				(int)(size % 1000), buffer1);
@@ -198,16 +198,16 @@ main(int argc, char **argv)
 		switch(option)
 		{
 		case 'b':
-			show_back = 0;
+			show_back = false;
 			break;
 		case 'f':
-			force_overwrite = 1;
+			force_overwrite = true;
 			break;
 		case 'm':
 			mimefile = optarg;
 			break;
 		case 's':
-			show_size = 0;
+			show_size = false;
 			break;
 		case 't':
 			show_type = atoi(optarg);
@@ -241,7 +241,7 @@ main(int argc, char **argv)
 		errx(1, "Out of memory");
 	while (fgets(buffer, BUFSIZ, ls))
 	{
-		int skip = 0;
+		bool skip = false;
 
 		if (buffer[0] && (buffer[strlen(buffer) - 1] < ' '))
 			buffer[strlen(buffer) - 1] = 0;
@@ -257,7 +257,7 @@ main(int argc, char **argv)
 		for (exhead = exclude; exhead; exhead = exhead->next)
 			if (fnmatch(exhead->pattern, buffer, 0) != FNM_NOMATCH)
 			{
-				skip = 1;
+				skip = true;
 				printf("b %s p %s\n", buffer, exhead->pattern);
 				break;
 			}

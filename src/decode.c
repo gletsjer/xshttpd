@@ -67,12 +67,12 @@ void
 uudecode(char *buffer)
 {
 	unsigned char	pr2six[256], bufplain[32], *bufout = bufplain;
-	int		nbytesdecoded, j, nprbytes;
+	int		nbytesdecoded, nprbytes;
 	char		*bufin = buffer;
 
-	for (j = 0; j < 256; j++)
+	for (int j = 0; j < 256; j++)
 		pr2six[j] = 64;
-	for (j = 0; j < 64; j++)
+	for (int j = 0; j < 64; j++)
 		pr2six[(int)six2pr[j]] = (unsigned char)j;
 	bufin = buffer;
 	while (pr2six[(int)*(bufin++)] <= 63)
@@ -88,7 +88,8 @@ uudecode(char *buffer)
 			(pr2six[(int)bufin[2]] >> 2));
 		*(bufout++) = (unsigned char) ((pr2six[(int)bufin[2]] << 6) |
 			(pr2six[(int)bufin[3]]));
-		bufin += 4; nprbytes -= 4;
+		bufin += 4;
+		nprbytes -= 4;
 	}
 
 	if (nprbytes & 3)
@@ -144,10 +145,10 @@ escape(const char *what)
 char	*
 urlencode(const char *what)
 {
-	const char	*p;
 	char		*q, *buffer = malloc(strlen(what) * 3 + 1);
 
-	for (p = what, q = buffer; *p; p++)
+	q = buffer;
+	for (const char *p = what; *p; p++)
 		if (isalnum(*p))
 			*q++ = *p;
 		else
@@ -160,10 +161,10 @@ urlencode(const char *what)
 char	*
 shellencode(const char *what)
 {
-	const char	*p;
 	char		*q, *buffer = malloc(strlen(what) * 2 + 1);
 
-	for (p = what, q = buffer; *p; p++)
+	q = buffer;
+	for (const char *p = what; *p; p++)
 		if (!strchr("&;`'|*?-~<>^()[]{}$\\", *p))
 			*q++ = *p;
 		else
@@ -191,12 +192,10 @@ hexdigit(int ch)
 int
 hex_encode(const char *bin, size_t len, char *hex)
 {
-	unsigned short	i;
-	unsigned char	j;
-
-	for (i = 0; i < len; i++)
+	for (size_t i = 0; i < len; i++)
 	{
-		j = (bin[i] >> 4) & 0xf;
+		unsigned char j = (bin[i] >> 4) & 0xf;
+
 		if (j <= 9)
 			hex[i * 2] = (j + '0');
 		else
@@ -215,12 +214,10 @@ hex_encode(const char *bin, size_t len, char *hex)
 int
 hex_decode(const char *hex, size_t len, char *bin)
 {
-	unsigned short i;
-	char j;
-
-	for (i = 0; i < len; i += 2)
+	for (size_t i = 0; i < len; i += 2)
 	{
-		j = hex[i];
+		char j = hex[i];
+
 		if (j <= '9')
 			bin[i / 2] = (j - '0') << 4;
 		else

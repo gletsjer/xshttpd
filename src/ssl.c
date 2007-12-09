@@ -39,7 +39,7 @@ static char	netbuf[MYBUFSIZ];
 static int	pem_passwd_cb(char *buf, int size, int rwflag, void *userdata);
 
 void
-initreadmode(int reset)
+initreadmode(bool reset)
 {
 #ifdef		HANDLE_SSL
 	unsigned long readerror;
@@ -61,12 +61,12 @@ initreadmode(int reset)
 #endif		/* HANDLE_SSL */
 }
 
-int
+bool
 initssl()
 {
 #ifdef		HANDLE_SSL
 	if (!cursock->usessl)
-		return 0;
+		return true;
 
 	cursock->ssl = SSL_new(cursock->ssl_ctx);
 	SSL_set_rfd(cursock->ssl, 0);
@@ -83,7 +83,7 @@ initssl()
 				ERR_reason_error_string(readerror));
 		else
 			warnx("SSL flipped");
-		return -1;
+		return false;
 	}
 
 #ifdef		HAVE_PCRE
@@ -99,7 +99,7 @@ initssl()
 					0, &errormsg, &erroffset, NULL);
 			if (!cursock->sslmatchsdn)
 				/* TODO: error handling */
-				return -1;
+				return false;
 		}
 		if (cursock->sslmatchidn)
 		{
@@ -108,12 +108,12 @@ initssl()
 					0, &errormsg, &erroffset, NULL);
 			if (!cursock->sslmatchidn)
 				/* TODO: error handling */
-				return -1;
+				return false;
 		}
 	}
 #endif		/* HAVE_PCRE */
 #endif		/* HANDLE_SSL */
-	return 0;
+	return true;
 }
 
 void
@@ -250,8 +250,6 @@ loadssl(struct socket_config *lsock)
 #ifdef		HANDLE_SSL
 	SSL_CTX		*ssl_ctx;
 	SSL_METHOD	*method = NULL;
-	BIO		*bio = NULL;
-	struct stat	sb;
 
 	if (!lsock->usessl)
 		return;
@@ -302,6 +300,7 @@ loadssl(struct socket_config *lsock)
 			ERR_reason_error_string(ERR_get_error()));
 
 	/* load randomness */
+	struct stat	sb;
 	if (lstat("/dev/urandom", &sb) == 0 && S_ISCHR(sb.st_mode))
 	{
 		if (!RAND_load_file("/dev/urandom", 16 * 1024))
@@ -310,6 +309,7 @@ loadssl(struct socket_config *lsock)
 	}
 
 	/* read dh parameters from private keyfile */
+	BIO		*bio = NULL;
 	bio = BIO_new_file(calcpath(lsock->sslprivatekey), "r");
 	if (bio)
 	{

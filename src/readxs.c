@@ -16,6 +16,7 @@
 #endif		/* HAVE_ERR_H */
 #include	<time.h>
 #include	<pwd.h>
+#include	<stdbool.h>
 
 #include	"path.h"
 #include	"xscounter.h"
@@ -29,7 +30,8 @@ int
 main(int argc, char **argv)
 {
 	int			x, y, z, comp, total, fd, mode = MODE_TOTAL,
-				wrset = 0, wrint = 0, option;
+				wrint = 0, option;
+	bool			wrset = false;
 	char			url[BUFSIZ];
 	char			xscount_version;
 	const char		*counterfile;
@@ -62,7 +64,7 @@ main(int argc, char **argv)
 			close(fd);
 			exit(xscount_version);
 		case 'w':
-			wrset = 1;
+			wrset = true;
 			if ((wrint = atoi(optarg)) < 0)
 				errx(1, "Cannot set a negative number");
 			break;
