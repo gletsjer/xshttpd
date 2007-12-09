@@ -99,22 +99,17 @@ append(char *buffer, int prepend, const char *format, ...)
 void
 do_script(const char *path, const char *base, const char *file, const char *engine)
 {
-	unsigned long		writetodo;
 	off_t			totalwritten;
 	char			fullpath[XS_PATH_MAX], input[RWBUFSIZE],
 				line[LINEBUFSIZE],
-				head[HEADSIZE],
-				*temp;
+				head[HEADSIZE];
 	char			*argv1;
 	int			p[2], r[2], nph, dossi, chldstat, printerr;
-	ssize_t			written;
 	unsigned	int	left;
 	FILE			*logfile;
 #ifdef		HANDLE_SSL
-	char			inbuf[RWBUFSIZE];
 	int			q[2];
 	int			ssl_post = 0;
-	size_t		tobewritten;
 	const char	*te = getenv("HTTP_TRANSFER_ENCODING");
 #endif		/* HANDLE_SSL */
 	struct	sigaction	action;
@@ -392,11 +387,14 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	}
 	else if (ssl_post)
 	{
+		unsigned long		writetodo;
+
 		writetodo = strtoul(getenv("CONTENT_LENGTH"), NULL, 10);
 		while (writetodo > 0)
 		{
-			int	offset;
-			int	result;
+			char	inbuf[RWBUFSIZE];
+			int	offset, result;
+			size_t	tobewritten;
 
 			tobewritten = writetodo > RWBUFSIZE ? RWBUFSIZE : writetodo;
 			result = secread(0, inbuf, tobewritten);
@@ -620,11 +618,13 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 		while ((result = secread(p[0], input, RWBUFSIZE)) > 0)
 		{
-			writetodo = result;
-			temp = input;
+			unsigned long	writetodo = result;
+			char		*temp = input;
+
 			while (writetodo > 0)
 			{
-				written = secwrite(temp, writetodo);
+				const ssize_t	written = \
+					secwrite(temp, writetodo);
 				if (written < 0)
 				{
 					secprintf("[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",

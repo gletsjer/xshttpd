@@ -14,8 +14,6 @@
 #include	"path.h"
 #include	"htconfig.h"
 
-struct virtual			*current;
-
 static	void	error			(const char *)	NORETURN;
 static	void	user_unknown		(void);
 static	void	post_on_non_cgi		(void);
@@ -35,15 +33,9 @@ static	void	local_no_page		(void);
 static	void	local_invalid_link	(void);
 static	void	local_no_pay		(void);
 
-typedef	struct
-{
-	char		username[XS_USER_MAX];
-	int		rank;
-} userrank;
-
 static	const	char	*error_code, *error_readable, *error_url,
 			*error_url_escaped, *error_url_expanded;
-static	char		buffer[BUFSIZ], *temp;
+static	char		buffer[BUFSIZ];
 
 static void
 error(const char *what)
@@ -63,7 +55,7 @@ error(const char *what)
 static	void
 user_unknown()
 {
-	char			filename[XS_PATH_MAX];
+	char		filename[XS_PATH_MAX], *temp;
 
 	strlcpy(buffer, error_url_escaped + 2, BUFSIZ);
 	if ((temp = strchr(buffer, '/')))
@@ -273,7 +265,7 @@ static	void
 local_no_page()
 {
 	const	char	*env;
-	char		filename[XS_PATH_MAX];
+	char		filename[XS_PATH_MAX], *temp;
 
 	strlcpy(buffer, error_url_escaped + 2, BUFSIZ);
 	if ((temp = strchr(buffer, '/')))
@@ -300,6 +292,8 @@ local_no_page()
 static	void
 local_invalid_link()
 {
+	char		*temp;
+
 	strlcpy(buffer, error_url_escaped + 2, BUFSIZ);
 	if ((temp = strchr(buffer, '/')))
 		*temp = 0;
@@ -314,7 +308,7 @@ local_invalid_link()
 static	void
 local_no_pay()
 {
-	char		filename[XS_PATH_MAX];
+	char		filename[XS_PATH_MAX], *temp;
 
 	strlcpy(buffer, error_url_escaped + 2, BUFSIZ);
 	if ((temp = strchr(buffer, '/')))
