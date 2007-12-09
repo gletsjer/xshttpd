@@ -82,11 +82,11 @@ get_crypted_password(const char *authfile, const char *user, char **passwd, char
 static int
 check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 {
-	char		*search, *line, *passwd, *find;
+	char		line[MYBUFSIZ], *search, *passwd, *find;
 	int		reject;
 
 	/* basic auth */
-	line = strdup(authentication);
+	strlcpy(line, authentication, MYBUFSIZ);
 	find = line + strlen(line);
 	while ((find > line) && (*(find - 1) < ' '))
 		*(--find) = 0;
@@ -106,26 +106,16 @@ check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 		 * may alter the buffer, in which case we compare garbage.
 		 */
 		if (authfile && !check_auth_ldap(authfile, search, find))
-		{
-			free(line);
 			return(0);
-		}
 		else if (ldap && !check_auth_ldap_full(search, find, ldap))
-		{
-			free(line);
 			return(0);
-		}
 #endif /* AUTH_LDAP */
 	}
 	passwd = NULL;
 	if (!get_crypted_password(authfile, search, &passwd, NULL) || !passwd)
-	{
-		free(line);
 		return 1;
-	}
 
 	reject = !strcmp(passwd, crypt(find, passwd));
-	free(line);
 	free(passwd);
 	(void)ldap;
 	return reject;
