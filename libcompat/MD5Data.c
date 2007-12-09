@@ -11,7 +11,7 @@ MD5Data(const unsigned char *data, size_t len, char *bufhex)
 {
 	char	buf[MD5_DIGEST_LENGTH];
 
-	MD5((const unsigned char *)data, len, buf);
+	MD5((const unsigned char *)data, len, (unsigned char *)buf);
 	hex_encode(buf, MD5_DIGEST_LENGTH, bufhex);
 	return bufhex;
 }

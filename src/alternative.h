@@ -12,6 +12,8 @@
 #ifdef		HAVE_TIME_H
 #include	<time.h>
 #endif		/* HAVE_TIME_H */
+#include	<sys/socket.h>
+#include	<arpa/inet.h>
 
 #if		!HAVE_DECL_ENVIRON
 extern	char	**environ;
@@ -39,9 +41,14 @@ typedef	size_t		socklen_t;
 typedef unsigned char	sa_family_t;
 #endif		/* HAVE_SA_FAMILY_T */
 
+
 #ifndef		HAVE_CLOSEFROM
 int	closefrom	(int);
 #endif		/* HAVE_CLOSEFROM */
+
+#ifndef		HAVE_CRYPT
+char *	crypt		(const char *, const char *);
+#endif		/* HAVE_CRYPT */
 
 #ifndef		HAVE_ERR
 void	err		(int, const char *, ...) PRINTF_LIKE(2, 3) NORETURN;
@@ -49,6 +56,10 @@ void	errx		(int, const char *, ...) PRINTF_LIKE(2, 3) NORETURN;
 void	warn		(const char *, ...) PRINTF_LIKE(1, 2);
 void	warnx		(const char *, ...) PRINTF_LIKE(1, 2);
 #endif		/* HAVE_ERR */
+
+#ifndef		HAVE_INET_ATON
+int	inet_aton	(const char *, struct in_addr *);
+#endif		/* HAVE_INET_ATON */
 
 #ifndef		HAVE_KILLPG
 int	killpg		(pid_t, int);
@@ -74,6 +85,13 @@ int	setenv		(const char *, const char *, int);
 void	unsetenv	(const char *);
 #endif		/* HAVE_SETENV */
 
+#ifndef		HAVE_SETEUID
+int	seteuid		(uid_t);
+#endif		/* HAVE_SETEUID */
+#ifndef		HAVE_SETEGID
+int	setguid		(gid_t);
+#endif		/* HAVE_SETEGID */
+
 #ifndef		HAVE_SETGROUPS
 int	setgroups	(int ngroups, const gid_t *gidset);
 #endif		/* HAVE_SETGROUPS */
@@ -82,6 +100,14 @@ int	setgroups	(int ngroups, const gid_t *gidset);
 void	setproctitle	(const char *, ...) PRINTF_LIKE(1, 2);
 void	initproctitle	(int, char **);
 #endif		/* HAVE_SETPROCTITLE */
+
+#ifndef 	HAVE_SNPRINTF
+int	snprintf	(char *, size_t, const char *, ...) PRINTF_LIKE(3, 4);
+int	vsnprintf	(char *, size_t, const char *, va_list);
+#endif		/* HAVE_VSNPRINTF */
+#ifndef		HAVE_ASPRINTF
+int	asprintf	(char **, const char *, ...) PRINTF_LIKE(2, 3);
+#endif		/* HAVE_ASPRINTF */
 
 #ifndef		HAVE_STRCASESTR
 char *	strcasestr	(const char *, const char *);
@@ -103,20 +129,9 @@ char *	strptime	(const char *, const char *, struct tm *);
 char *	strsep		(char **, const char *);
 #endif		/* HAVE_STRSEP */
 
-#ifndef 	HAVE_SNPRINTF
-int	snprintf	(char *, size_t, const char *, ...) PRINTF_LIKE(3, 4);
-int	vsnprintf	(char *, size_t, const char *, va_list);
-#endif		/* HAVE_VSNPRINTF */
-#ifndef		HAVE_ASPRINTF
-int	asprintf	(char **, const char *, ...) PRINTF_LIKE(2, 3);
-#endif		/* HAVE_ASPRINTF */
-
-#ifndef		HAVE_SETEUID
-int	seteuid		(uid_t);
-#endif		/* HAVE_SETEUID */
-#ifndef		HAVE_SETEGID
-int	setguid		(gid_t);
-#endif		/* HAVE_SETEGID */
+#ifndef		HAVE_SRANDOMDEV
+void	srandomdev	(void);
+#endif		/* HAVE_SRANDOMDEV */
 
 #ifndef		PRId64
 #define		PRId64		"llu"
