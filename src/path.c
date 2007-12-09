@@ -17,7 +17,7 @@ calcpath(const char *filename)
 #ifdef		BUILD_HTTPD
 	rootdir = config.systemroot;
 #else		/* BUILD_HTTPD */
-	rootdir = getenv("HTTPD_ROOT");
+	rootdir = getenv("HTTPD_ROOT") ? getenv("HTTPD_ROOT") : HTTPD_ROOT;
 #endif		/* BUILD_HTTPD */
 
 	if (*filename == '/')
