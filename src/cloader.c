@@ -3,6 +3,7 @@
 #include	"config.h"
 
 #include	<sys/types.h>
+#include	<stdbool.h>
 #ifdef		HAVE_SYS_TIME_H
 #include	<sys/time.h>
 #endif		/* HAVE_SYS_TIME_H */
@@ -100,10 +101,10 @@ load_config()
 		lsock->instances = config.instances;
 
 	/* Set simple defaults - others follow the parsing */
-	config.usednslookup = 1;
-	config.usessi = 1;
-	config.useput = 1;
-	config.execasuser = 1;
+	config.usednslookup = true;
+	config.usessi = true;
+	config.useput = true;
+	config.execasuser = true;
 	config.scriptcpulimit = 2;
 	config.scripttimeout = 6;
 	config.sockets = NULL;
@@ -176,9 +177,9 @@ load_config()
 						config.pidfile = strdup(value);
 					else if (!strcasecmp("ExecAsUser", key))
 						if (!strcasecmp("true", value))
-							config.execasuser = 1;
+							config.execasuser = true;
 						else
-							config.execasuser = 0;
+							config.execasuser = false;
 					else if (!strcasecmp("DefaultCharset", key))
 						config.defaultcharset = strdup(value);
 					else if (!strcasecmp("UseVirtualUid", key))
@@ -240,18 +241,18 @@ load_config()
 					}
 					else if (!strcasecmp("UseSSL", key))
 						if (!strcasecmp("true", value))
-							lsock->usessl = 1;
+							lsock->usessl = true;
 						else
-							lsock->usessl = 0;
+							lsock->usessl = false;
 					else if (!strcasecmp("SSLCertificate", key))
 					{
-						lsock->usessl = 1;
+						lsock->usessl = true;
 						lsock->sslcertificate =
 							strdup(calcpath(value));
 					}
 					else if (!strcasecmp("SSLPrivateKey", key))
 					{
-						lsock->usessl = 1;
+						lsock->usessl = true;
 						lsock->sslprivatekey =
 							strdup(calcpath(value));
 					}

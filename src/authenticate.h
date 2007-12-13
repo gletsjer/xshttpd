@@ -4,6 +4,7 @@
 #define		AUTHENTICATE_H
 
 #include	"config.h"
+#include	<stdbool.h>
 #ifdef		USE_OPENSSL_MD5
 # include	<openssl/md5.h>
 #else		/* Not USE_OPENSSL_MD5 */
@@ -30,6 +31,6 @@
 extern char	authentication[];
 
 void	initnonce	(void);
-int	check_auth	(const char *, const struct ldap_auth *) WARNUNUSED;
+bool	check_auth	(const char *, const struct ldap_auth *) WARNUNUSED;
 
 #endif		/* AUTHENTICATE_H */

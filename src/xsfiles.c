@@ -38,9 +38,9 @@
 # endif		/* IN6_ARE_MASKED_ADDR_EQUAL */
 #endif		/* HAVE_STRUCT_IN6_ADDR */
 
-static char *	mknewurl		(const char *, const char *, int) WARNUNUSED;
+static char *	mknewurl		(const char *, const char *, int);
 #ifdef		HAVE_STRUCT_IN6_ADDR
-static void	v6masktonum		(int, struct in6_addr *);
+static int	v6masktonum		(int, struct in6_addr *);
 #endif		/* HAVE_STRUCT_IN6_ADDR */
 
 static char    *
@@ -90,7 +90,7 @@ mknewurl(const char *old, const char *new, int withproto)
 }
 
 #ifdef		HAVE_STRUCT_IN6_ADDR
-static	void
+static	int
 v6masktonum(int mask, struct in6_addr *addr6)
 {
 	int		x, y, z;
@@ -110,60 +110,63 @@ v6masktonum(int mask, struct in6_addr *addr6)
 			y++;
 		}
 	}
+
+	return 0;
 }
 #endif		/* HAVE_STRUCT_IN6_ADDR */
 
-int
+bool
 check_file_redirect(const char *base, const char *filename)
 {
-	int	fd, size, permanent = 0;
-	char	*p, *subst, total[XS_PATH_MAX];
+	int	fd, size;
+	bool	permanent = false;
+	char	total[XS_PATH_MAX];
 
 	if (!filename || !*filename)
-		return 0;
+		return false;
 
 	/* Check for *.redir instructions */
 	snprintf(total, XS_PATH_MAX, "%s%s.redir", base, filename);
 	if ((fd = open(total, O_RDONLY, 0)) < 0)
 	{
 		snprintf(total, XS_PATH_MAX, "%s%s.Redir", base, filename);
-		if ((fd = open(total, O_RDONLY, 0)) >= 0)
-			permanent = 1;
+		if ((fd = open(total, O_RDONLY, 0)) < 0)
+			return false;
+		permanent = true;
 	}
-	if (fd >= 0)
+	if ((size = read(fd, total, XS_PATH_MAX)) <= 0)
 	{
-		if ((size = read(fd, total, XS_PATH_MAX)) <= 0)
-		{
-			xserror(500, "Redirection filename error");
-			close(fd);
-			return 1;
-		}
-		total[size] = 0;
-		p = total;
-		subst = strsep(&p, " \t\r\n");
-		redirect(subst, permanent, 1);
+		xserror(500, "Redirection filename error");
 		close(fd);
-		return 1;
+		return true;
 	}
-	return 0;
+	close(fd);
+
+	char	*p, *subst;
+	total[size] = '\0';
+	p = total;
+	subst = strsep(&p, " \t\r\n");
+	redirect(subst, permanent, true);
+	return true;
 }
 
-int
+bool
 check_redirect(const char *cffile, const char *filename)
 {
-	char	*p, *command, *subst, *newloc,
-		*host, *orig, *repl,
-		line[XS_PATH_MAX], request[XS_PATH_MAX];
+	char	line[XS_PATH_MAX], request[XS_PATH_MAX];
 	FILE	*fp;
 
 	if (!(fp = fopen(cffile, "r")))
 		/* no redir */
-		return 0;
+		return false;
 
 	strlcpy(request, filename, XS_PATH_MAX);
 
 	while (fgets(line, XS_PATH_MAX, fp))
 	{
+		char	*p, *command;
+		char	*subst, *orig, *repl, *newloc, *host;
+
 		p = line;
 		while ((command = strsep(&p, " \t\r\n")) && !*command)
 			/* continue */;
@@ -180,7 +183,7 @@ check_redirect(const char *cffile, const char *filename)
 			if (pcre_match(request, orig) > 0)
 			{
 				fclose(fp);
-				return 0;
+				return false;
 			}
 		}
 		else if (!strcasecmp(command, "redir"))
@@ -196,7 +199,7 @@ check_redirect(const char *cffile, const char *filename)
 				redirect(newloc, 'R' == command[0], 0);
 				free(subst);
 				fclose(fp);
-				return 1;
+				return true;
 			}
 		}
 		else if (!strcasecmp(command, "rewrite"))
@@ -212,7 +215,7 @@ check_redirect(const char *cffile, const char *filename)
 				do_get(newloc);
 				free(subst);
 				fclose(fp);
-				return 1;
+				return true;
 			}
 		}
 		else if (!strcasecmp(command, "forward"))
@@ -230,33 +233,33 @@ check_redirect(const char *cffile, const char *filename)
 				do_proxy(host, subst);
 				free(subst);
 				fclose(fp);
-				return 1;
+				return true;
 			}
 		}
 		else /* no command: redir to url */
 		{
 			newloc = mknewurl(request, command, 1);
-			redirect(newloc, 0, 1);
+			redirect(newloc, false, true);
 			fclose(fp);
-			return 1;
+			return true;
 		}
 	}
 	fclose(fp);
-	return 0;
+	return false;
 }
 
-int
+bool
 check_allow_host(const char *hostname, char *pattern)
 {
 	char	*slash;
 
 	/* return 1 if pattern matches - i.e. access granted */
 	if (!hostname || !pattern || !*hostname || !*pattern)
-		return 0;
+		return false;
 	
 	/* substring match */
 	if (!strncmp(hostname, pattern, strlen(pattern)))
-		return 1;
+		return true;
 
 	/* allow host if remote_addr matches CIDR subnet in file */
 	if ((slash = strchr(pattern, '/')) &&
@@ -274,7 +277,7 @@ check_allow_host(const char *hostname, char *pattern)
 
 #define	IPMASK(addr, sub) (addr.s_addr & htonl(~((1 << (32 - subnet)) - 1)))
 		if (IPMASK(remote, subnet) == IPMASK(allow, subnet))
-			return 1;
+			return true;
 	}
 #ifdef		HAVE_STRUCT_IN6_ADDR
 	if ((slash = strchr(pattern, '/')) &&
@@ -291,7 +294,7 @@ check_allow_host(const char *hostname, char *pattern)
 		inet_pton(AF_INET6, pattern, &allow);
 		v6masktonum(subnet, &mask);
 		if (IN6_ARE_MASKED_ADDR_EQUAL(&remote, &allow, &mask))
-			return 1;
+			return true;
 	}
 #endif		/* HAVE_STRUCT_IN6_ADDR */
 
@@ -315,13 +318,13 @@ check_allow_host(const char *hostname, char *pattern)
 			freeaddrinfo(res);
 		}
 		if (lport && cport == lport)
-			return 1; /* access granted */
+			return true; /* access granted */
 	}
 #endif		/* HAVE_GETADDRINFO */
-	return 0;
+	return false;
 }
 
-int
+bool
 check_noxs(const char *cffile)
 {
 	char	*remoteaddr;
@@ -332,13 +335,13 @@ check_noxs(const char *cffile)
 	{
 		server_error(403, "Authentication file is not available",
 			"NOT_AVAILABLE");
-		return 1; /* access denied */
+		return true; /* access denied */
 	}
 
 	if (!(remoteaddr = getenv("REMOTE_ADDR")))
 	{
 		server_error(403, "File is not available", "NOT_AVAILABLE");
-		return 1; /* access denied */
+		return true; /* access denied */
 	}
 
 	while (fgets(allowhost, 256, rfile))
@@ -353,24 +356,23 @@ check_noxs(const char *cffile)
 		if (check_allow_host(remoteaddr, allowhost))
 		{
 			fclose(rfile);
-			return 0; /* access granted */
+			return false; /* access granted */
 		}
 	}
 
 	fclose(rfile);
 	server_error(403, "File is not available", "NOT_AVAILABLE");
-	return 1;
+	return true;
 }
 
-int
+bool
 check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 {
 	char	line[LINEBUFSIZE];
-	char    *p, *authfile;
-	int	state = 0;
-	int	restrictcheck = 0, restrictallow = 0;
-	int	sslcheck = 0, sslallow = 0;
-	int	sslchecki = 0, sslallowi = 0;
+	char    *authfile;
+	bool	state = 0;
+	bool	restrictcheck = 0, restrictallow = 0;
+	bool	sslcheck = 0, sslallow = 0;
 	FILE    *fp;
 	struct ldap_auth	ldap;
 
@@ -381,12 +383,12 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 	{
 		server_error(403, "Authentication file is not available",
 			"NOT_AVAILABLE");
-		return 1; /* access denied */
+		return true; /* access denied */
 	}
 
 	while (fgets(line, LINEBUFSIZE, fp))
 	{
-		char	*name, *value;
+		char    *p, *name, *value;
 
 		p = line;
 		while ((name = strsep(&p, " \t\r\n")) && !*name)
@@ -451,7 +453,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 		{
 			const char	*remoteaddr = getenv("REMOTE_ADDR");
 
-			restrictcheck = 1;
+			restrictcheck = true;
 			if (remoteaddr && *value)
 				restrictallow |= check_allow_host(remoteaddr, value);
 		}
@@ -517,10 +519,10 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 			int	smatch;
 			char	*subject = getenv("SSL_CLIENT_S_DN");
 
-			sslcheck = 1;
+			sslcheck = true;
 			smatch = subject ? pcre_match(subject, value) : -1;
 			if (smatch < 0)
-				sslallow = 0;
+				sslallow = false;
 			else
 				sslallow |= smatch;
 		}
@@ -529,10 +531,10 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 			int	smatch;
 			char	*issuer = getenv("SSL_CLIENT_I_DN");
 
-			sslcheck = 1;
+			sslcheck = true;
 			smatch = issuer ? pcre_match(issuer, value) : -1;
 			if (smatch < 0)
-				sslallow = 0;
+				sslallow = false;
 			else
 				sslallow |= smatch;
 		}
@@ -542,29 +544,28 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 
 	fclose(fp);
 	if ((restrictcheck && !restrictallow) ||
-		(sslcheck && !sslallow) ||
-		(sslchecki && !sslallowi))
+		(sslcheck && !sslallow))
 	{
 		server_error(403, "File is not available", "NOT_AVAILABLE");
-		return 1;
+		return true;
 	}
 	/* return err if authentication fails */
 	if (authfile && check_auth(authfile, NULL))
 	{
 		free(authfile);
 		/* a 401 response has been sent */
-		return 1;
+		return true;
 	}
 	if (authfile)
 		free(authfile);
 	if (ldap.dn && check_auth(NULL, &ldap))
 		/* a 401 response has been sent */
-		return 1;
+		return true;
 
-	return 0;
+	return false;
 }
 
-int
+void
 free_xsconf(cf_values *cfvalues)
 {
 	if (cfvalues->charset)
@@ -585,5 +586,4 @@ free_xsconf(cf_values *cfvalues)
 		free(cfvalues->p3pcp);
 	if (cfvalues->putscript)
 		free(cfvalues->putscript);
-	return 0;
 }

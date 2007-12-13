@@ -8,6 +8,7 @@
 #include	<string.h>
 #include	<ctype.h>
 #include	<unistd.h>
+#include	<stdbool.h>
 #ifdef		HAVE_CRYPT_H
 #include	<crypt.h>
 #endif		/* HAVE_CRYPT_H */
@@ -22,14 +23,14 @@
 
 char		authentication[MYBUFSIZ];
 static unsigned long int	secret;
-static const int	rfc2617_digest = 1;
+static const bool	rfc2617_digest = true;
 
 static int	get_crypted_password(const char *, const char *, char **, char **) WARNUNUSED;
 static int	check_basic_auth(const char *authfile, const struct ldap_auth *) WARNUNUSED;
 #ifdef		HAVE_MD5
 static int	check_digest_auth(const char *authfile) WARNUNUSED;
 static char 	*fresh_nonce(void) WARNUNUSED;
-static int	valid_nonce(const char *nonce)NONNULL WARNUNUSED;
+static bool	valid_nonce(const char *nonce)NONNULL WARNUNUSED;
 #endif		/* HAVE_MD5 */
 
 /* returns malloc()ed data! */
@@ -217,25 +218,26 @@ check_digest_auth(const char *authfile)
 }
 #endif		/* HAVE_MD5 */
 
-int
+bool
 check_auth(const char *authfile, const struct ldap_auth *ldap)
 {
 	char		*errmsg;
-	int		digest, rv = 0;
+	bool		digest;
+	int		rv = 0;
 	FILE		*af;
 
 	if (!authfile && !ldap)
 	{
 		server_error(403, "Authentication information is not available",
 			"NOT_AVAILABLE");
-		return 1;
+		return false;
 	}
 
 	if (authfile && !(af = fopen(authfile, "r")))
 	{
 		server_error(403, "Authentication file is not available",
 			"NOT_AVAILABLE");
-		return 1;
+		return false;
 	}
 
 	if (authfile)
@@ -251,7 +253,7 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 		fclose(af);
 	}
 	else
-		digest = 0;
+		digest = false;
 
 	if (!authentication[0] ||
 		(strncasecmp(authentication, "Basic", 5) &&
@@ -288,19 +290,19 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 		}
 		secputs(errmsg);
 		free(errmsg);
-		return(1);
+		return false;
 	}
 #ifdef		HAVE_MD5
 	if ('d' == authentication[0] || 'D' == authentication[0])
 	{
 		if (!(rv = check_digest_auth(authfile)))
-			return 0;
+			return true;
 	}
 	else
 #endif		/* HAVE_MD5 */
 	{
 		if (!check_basic_auth(authfile, ldap))
-			return 0;
+			return true;
 	}
 
 	asprintf(&errmsg,
@@ -335,7 +337,7 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 	}
 	secputs(errmsg);
 	free(errmsg);
-	return(1);
+	return false;
 }
 
 void
@@ -363,7 +365,7 @@ fresh_nonce(void)
 	return nonce;
 }
 
-static int
+static bool
 valid_nonce(const char *nonce)
 {
 	char	bufhex[MD5_DIGEST_LENGTH];

@@ -28,13 +28,9 @@ static size_t	internal_xstring_to_arrayp(char *, char ***, size_t (*)(char *, ch
 static size_t	internal_xstring_to_arraypn(char *, char ***, size_t (*)(char *, char **)) WARNUNUSED;
 
 int
-mysleep(int seconds)
+mysleep(int sec)
 {
-	struct	timeval	timeout;
-
-	timeout.tv_usec = 0;
-	timeout.tv_sec = seconds;
-	return(select(0, NULL, NULL, NULL, &timeout) == 0);
+	return !select(0, NULL, NULL, NULL, &(struct timeval){.tv_sec = sec});
 }
 
 struct tm *
@@ -46,7 +42,7 @@ localtimenow(void)
 	return localtime(&now);
 }
 
-int
+bool
 match(const char *total, const char *pattern)
 {
 	int		x, y;
@@ -54,40 +50,40 @@ match(const char *total, const char *pattern)
 	for (x = 0, y = 0; pattern[y]; x++, y++)
 	{
 		if ((!total[x]) && (pattern[y] != '*'))
-			return(0);
+			return false;
 		if (pattern[y] == '*')
 		{
 			while (pattern[++y] == '*')
 				/* NOTHING HERE */;
 			if (!pattern[y])
-				return(1);
+				return true;
 			while (total[x])
 			{
-				int		ret;
+				bool		ret;
 
 				if ((ret = match(total + (x++), pattern + y)))
-					return(ret);
+					return ret;
 			}
-			return(0);
+			return false;
 		} else
 		{
 			if ((pattern[y] != '?') &&
 				((isupper(total[x]) ? tolower(total[x]) : total[x])
 				 != (isupper(pattern[y]) ? tolower(pattern[y]) : pattern[y])))
-				return(0);
+				return false;
 		}
 	}
-	return(!total[x]);
+	return (!total[x]);
 }
 
-int
+bool
 match_list(char *list, const char *browser)
 {
 	char		*begin, *end, origin;
-	int		matches;
+	bool		matches;
 
 	if (!browser)
-		return(0);
+		return false;
 	if ((begin = list))
 	{
 		while (*begin)
@@ -99,13 +95,13 @@ match_list(char *list, const char *browser)
 			matches = match(browser, begin);
 			*end = origin;
 			if (matches)
-				return(1);
+				return true;
 			begin = end;
 			while (*begin == ' ')
 				begin++;
 		}
 	}
-	return(0);
+	return false;
 }
 
 /* Convert whitespace/comma-seperated index=value string into mapping */

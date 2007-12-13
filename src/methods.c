@@ -74,8 +74,8 @@
 MD5_CTX		*md5context;
 #endif		/* HAVE_LIBMD */
 
-static int	getfiletype		(int);
-static int	sendheaders		(int, off_t);
+static bool	getfiletype		(bool);
+static bool	sendheaders		(int, off_t);
 static void	senduncompressed	(int);
 static void	sendcompressed		(int, const char *);
 static char *	find_file		(const char *, const char *, const char *)	MALLOC_FUNC;
@@ -103,7 +103,7 @@ static	ctypes	*itype = NULL, *litype = NULL, *ditype = NULL;
 static	ctypes	**isearches[] = { &litype, &itype, &ditype };
 
 static	cf_values		cfvalues;
-static	int	dynamic = 0;
+static	bool	dynamic = false;
 #ifdef		HAVE_CURL
 static	size_t	curl_readlen;
 #endif		/* HAVE_CURL */
@@ -147,17 +147,17 @@ make_etag(struct stat *sb)
 	return etag;
 }
 
-static int
+static bool
 sendheaders(int fd, off_t size)
 {
 	char		*env, *etag;
 	time_t		modtime;
 	struct tm	reqtime;
 
-	dynamic = 0;
+	dynamic = false;
 
 	/* This is extra overhead, overhead, overhead! */
-	if (config.usessi && getfiletype(0))
+	if (config.usessi && getfiletype(false))
 	{
 		char input[RWBUFSIZE];
 
@@ -165,7 +165,7 @@ sendheaders(int fd, off_t size)
 		while (read(fd, input, RWBUFSIZE))
 			if (strstr(input, "<!--#"))
 			{
-				dynamic = 1;
+				dynamic = true;
 				break;
 			}
 		lseek(fd, (off_t)0, SEEK_SET);
@@ -220,7 +220,7 @@ sendheaders(int fd, off_t size)
 			{
 				server_error(412, "Precondition failed",
 					"PRECONDITION_FAILED");
-				return -1;
+				return false;
 			}
 		}
 	}
@@ -229,7 +229,7 @@ sendheaders(int fd, off_t size)
 		strptime(env, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
 		if (!dynamic && (mktime(&reqtime) >= modtime))
 		{
-			headonly = 1;
+			headonly = true;
 			rstatus = 304;
 			secprintf("%s 304 Not modified\r\n", httpver);
 		}
@@ -241,11 +241,11 @@ sendheaders(int fd, off_t size)
 		{
 			server_error(412, "Precondition failed",
 				"PRECONDITION_FAILED");
-			return -1;
+			return false;
 		}
 	}
 	/* set mimetype and charset */
-	getfiletype(1);
+	getfiletype(true);
 	if (getenv("HTTP_ACCEPT"))
 	{
 		size_t		i, acsz, len;
@@ -274,7 +274,7 @@ sendheaders(int fd, off_t size)
 			{
 				server_error(406, "Not acceptable",
 					"NOT_ACCEPTABLE");
-				return -1;
+				return false;
 			}
 		}
 	}
@@ -297,14 +297,14 @@ sendheaders(int fd, off_t size)
 			{
 				server_error(406, "Charset not acceptable",
 					"NOT_ACCEPTABLE");
-				return -1;
+				return false;
 			}
 		}
 	}
 
 	/* All preconditions satisfied */
 	secprintf("%s 200 OK\r\n", httpver);
-	stdheaders(0, 0, 0);
+	stdheaders(false, false, false);
 	if (cfvalues.charset)
 		secprintf("Content-type: %s; charset=%s\r\n",
 			cfvalues.mimetype, cfvalues.charset);
@@ -366,7 +366,7 @@ sendheaders(int fd, off_t size)
 		secprintf("P3P: CP=\"%s\"\r\n", cfvalues.p3pcp);
 
 	secprintf("\r\n");
-	return 0;
+	return true;
 }
 
 static void
@@ -391,7 +391,7 @@ senduncompressed(int fd)
 	}
 	if (headers >= 10)
 	{
-		if (sendheaders(fd, size))
+		if (!sendheaders(fd, size))
 		{
 			close(fd);
 			return;
@@ -471,7 +471,7 @@ senduncompressed(int fd)
 
 		if (headers >= 11)
 		{
-			chunked = 1;
+			chunked = true;
 #ifdef		HAVE_LIBMD
 			if (config.usecontentmd5 && trailers)
 			{
@@ -508,14 +508,20 @@ sendcompressed(int fd, const char *method)
 {
 	pid_t		pid;
 	int		processed;
-	char	prefix[] = TEMPORARYPREFIX;
 
-	if (!(processed = mkstemp(prefix)))
+	/* local block */
 	{
-		xserror(500, "Unable to open temporary file");
-		err(1, "[%s] httpd: Cannot create temporary file", currenttime);
+		char	prefix[] = TEMPORARYPREFIX;
+
+		if (!(processed = mkstemp(prefix)))
+		{
+			xserror(500, "Unable to open temporary file");
+			err(1, "[%s] httpd: Cannot create temporary file",
+				currenttime);
+		}
+		remove(prefix);
 	}
-	remove(prefix);
+
 	switch(pid = fork())
 	{
 	case -1:
@@ -595,9 +601,9 @@ do_get(char *params)
 				base[XS_PATH_MAX], orgbase[XS_PATH_MAX],
 				total[XS_PATH_MAX], temppath[XS_PATH_MAX];
 	const	char		*filename, *http_host;
-	int			fd, wasdir, switcheduid = 0,
-				delay_redir = 0, script = 0;
-	unsigned int		i;
+	int			fd, script = 0;
+	bool			wasdir, switcheduid = false,
+				delay_redir = false;
 	size_t			size;
 	struct	stat		statbuf;
 	const	struct	passwd	*userinfo;
@@ -612,7 +618,7 @@ do_get(char *params)
 	while ((temp = strstr(params, "//")))
 		if (!question || (temp < question))
 		{
-			delay_redir = 1;
+			delay_redir = true;
 			memmove(temp, temp + 1, strlen(temp));
 			if (question)
 				question--;
@@ -622,7 +628,7 @@ do_get(char *params)
 	while ((temp = strstr(params, "/./")))
 		if (!question || (temp < question))
 		{
-			delay_redir = 1;
+			delay_redir = true;
 			memmove(temp, temp + 2, strlen(temp) - 1);
 			if (question)
 				question -= 2;
@@ -766,7 +772,7 @@ do_get(char *params)
 	if (*file)
 		wasdir = (file[strlen(file) - 1] == '/');
 	else
-		wasdir = 0;
+		wasdir = false;
 	if (strstr(file, "/.."))
 	{
 		server_error(403, "Invalid path specified", "NOT_AVAILABLE");
@@ -836,7 +842,7 @@ do_get(char *params)
 					(slash = strchr(&temp[2], '/')) && !origeuid)
 				{
 					*slash = '\0';
-					for (i = 0; current->uidscripts[i]; i++)
+					for (int i = 0; current->uidscripts[i]; i++)
 						if (!strcmp(params, current->uidscripts[i]))
 						{
 							userinfo = getpwnam(&temp[2]);
@@ -893,7 +899,7 @@ do_get(char *params)
 			setegid(config.system->groupid);
 			setgroups(1, &config.system->groupid);
 			seteuid(config.system->userid);
-			switcheduid = 1;
+			switcheduid = true;
 		}
 		if (!geteuid())
 		{
@@ -1011,7 +1017,7 @@ do_get(char *params)
 		}
 		if (wasdir)
 		{
-			wasdir = 0;
+			wasdir = false;
 			strlcat(real_path, filename = INDEX_HTML, XS_PATH_MAX);
 			goto RETRY;
 		}
@@ -1025,7 +1031,7 @@ do_get(char *params)
 				'.' == params[strlen(params)-1])
 			{
 				params[strlen(params)-2] = '\0';
-				delay_redir = 0;
+				delay_redir = false;
 			}
 			/* pretty url with trailing slash */
 			snprintf(total, XS_PATH_MAX, "%s://%s%s%s%s%s%s%s%s",
@@ -1089,7 +1095,7 @@ do_get(char *params)
 	/* check litype for local and itype for global settings */
 	if (config.uselocalscript && !cfvalues.scripttype)
 		loadscripttypes(orgbase, base);
-	for (i = 0; i < 3 && script >= 0; i++)
+	for (int i = 0; i < 3 && script >= 0; i++)
 	{
 	for (isearch = *isearches[i]; isearch; isearch = isearch->next)
 	{
@@ -1185,7 +1191,7 @@ do_get(char *params)
 	{
 		char	*idx = NULL;
 
-		for (i = 0; i < MAXINDEXFILES - 1; i++)
+		for (int i = 0; i < MAXINDEXFILES - 1; i++)
 		{
 			if (!(idx = current->indexfiles[i]))
 				break;
@@ -1230,7 +1236,7 @@ do_get(char *params)
 		strlcat(real_path, getenv("QUERY_STRING"), XS_PATH_MAX);
 	}
 	params = real_path;
-	wasdir = 0;
+	wasdir = false;
 	goto RETRY;
 }
 
@@ -1239,8 +1245,8 @@ do_post(char *params)
 {
 	const	char	* const cl = getenv("CONTENT_LENGTH");
 
-	postonly = 1;	/* const: this is a post */
-	postread = 0;	/* var: modified when data buffer is read */
+	postonly = true;	/* const: this is a post */
+	postread = false;	/* var: modified when data buffer is read */
 	do_get(params);
 
 	/* flush data buffer if posting was never read */
@@ -1289,7 +1295,7 @@ do_delete(char *params)
 void
 do_head(char *params)
 {
-	headonly = 1;
+	headonly = true;
 	do_get(params);
 }
 
@@ -1297,7 +1303,7 @@ void
 do_options(const char *params)
 {
 	secprintf("%s 200 OK\r\n", httpver);
-	stdheaders(0, 0, 0);
+	stdheaders(false, false, false);
 	secputs("Content-length: 0\r\n"
 		"Allow: GET, HEAD, POST, PUT, DELETE, OPTIONS, TRACE\r\n"
 		"\r\n");
@@ -1311,7 +1317,6 @@ do_trace(const char *params)
 	char		*output;
 	size_t		outlen, mlen;
 	ssize_t		num;
-	size_t		i;
 
 	num = readheaders(0, &http_headers);
 	if (num < 0)
@@ -1329,10 +1334,11 @@ do_trace(const char *params)
 		outlen = snprintf(output, mlen, "TRACE %s %s\r\n",
 			params, httpver);
 
-	for (i = 0; i < http_headers.size; i++)
+	for (size_t i = 0; i < http_headers.size; i++)
 	{
 		const char * const idx = http_headers.elements[i].index;
 		const char * const val = http_headers.elements[i].value;
+
 		if (outlen + strlen(idx) + strlen(val) + 4 >= mlen)
 		{
 			mlen += RWBUFSIZE;
@@ -1343,7 +1349,7 @@ do_trace(const char *params)
 	
 	freeheaders(&http_headers);
 	secprintf("%s 200 OK\r\n", httpver);
-	stdheaders(0, 0, 0);
+	stdheaders(false, false, false);
 	secprintf("Content-length: %zu\r\n", outlen);
 	secputs("Content-type: message/http\r\n\r\n");
 
@@ -1381,7 +1387,7 @@ do_proxy(const char *proxy, const char *params)
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, stdout);
 	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, secfwrite);
 	curl_easy_setopt(handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
-	persistent = 0; headers = 10; /* force HTTP/1.0 */
+	persistent = false; headers = 10; /* force HTTP/1.0 */
 
 	if (curl_easy_perform(handle))
 		xserror(500, "Internal forwarding error");
@@ -1414,37 +1420,45 @@ curl_readhack(void *buf, size_t size, size_t nmemb, FILE *stream)
 void
 loadfiletypes(char *orgbase, char *base)
 {
-	char		line[LINEBUFSIZE];
-	const char	*mimepath;
 	FILE		*mime;
-	ftypes		*prev = NULL, *new = NULL;
 
 	if (!base)
-	{
 		while (ftype)
 		{
-			new = ftype->next;
-			free(ftype); ftype = new;
+			ftypes	*temp;
+
+			temp = ftype->next;
+			free(ftype);
+			ftype = temp;
 		}
-	}
 	while (lftype)
 	{
-		new = lftype->next;
-		free(lftype); lftype = new;
+		ftypes	*temp;
+
+		temp = lftype->next;
+		free(lftype);
+		lftype = temp;
 	}
 	lftype = NULL;
-	if (base)
-		mimepath = find_file(orgbase, base, ".mimetypes");
-	else
-		mimepath = calcpath(MIME_TYPES);
 
-	if (!mimepath || !(mime = fopen(mimepath, "r")))
+	/* local block */
 	{
-		if (!base)
-			warn("fopen(`%s' [read])", mimepath);
-		return;
+		const char * const	mimepath = base
+			? find_file(orgbase, base, ".mimetypes")
+			: calcpath(MIME_TYPES);
+
+		if (!mimepath || !(mime = fopen(mimepath, "r")))
+		{
+			if (!base)
+				warn("fopen(`%s' [read])", mimepath);
+			return;
+		}
 	}
-	prev = NULL;
+
+	/* DECL */
+	ftypes		*prev = NULL, *new = NULL;
+	char		line[LINEBUFSIZE];
+
 	while (fgets(line, LINEBUFSIZE, mime))
 	{
 		char	*name, *ext, *comment, *p;
@@ -1476,15 +1490,16 @@ loadfiletypes(char *orgbase, char *base)
 void
 loadcompresstypes()
 {
-	char		line[LINEBUFSIZE];
 	const	char	*path;
 	FILE		*methods;
-	ctypes		*prev, *new;
 
 	while (ctype)
 	{
-		new = ctype->next;
-		free(ctype); ctype = new;
+		ctypes	*temp;
+
+		temp = ctype->next;
+		free(ctype);
+		ctype = temp;
 	}
 	path = calcpath(COMPRESS_METHODS);
 	if (!(methods = fopen(path, "r")))
@@ -1492,6 +1507,11 @@ loadcompresstypes()
 		warn("fopen(`%s' [read])", path);
 		return;
 	}
+
+	/* DECL */
+	ctypes		*prev, *new;
+	char		line[LINEBUFSIZE];
+
 	prev = NULL;
 	while (fgets(line, LINEBUFSIZE, methods))
 	{
@@ -1521,14 +1541,15 @@ loadcompresstypes()
 void
 loadscripttypes(char *orgbase, char *base)
 {
-	char		line[LINEBUFSIZE], *path, *cffile;
+	char		*path;
 	FILE		*methods;
-	ctypes		*prev, *new;
 
 	if (orgbase && base)
 	{
+		char	*cffile;
+
 		while (litype)
-			{ new = litype->next; free(litype); litype = new; }
+			{ ctypes *n = litype->next; free(litype); litype = n; }
 		if (ditype)
 			{ free(ditype); ditype = NULL; }
 		path = (char *)malloc(strlen(base) + 12);
@@ -1542,7 +1563,7 @@ loadscripttypes(char *orgbase, char *base)
 	else
 	{
 		while (itype)
-			{ new = itype->next; free(itype); itype = new; }
+			{ ctypes *n = itype->next; free(itype); itype = n; }
 		path = strdup(calcpath(SCRIPT_METHODS));
 		if (!(methods = fopen(path, "r")))
 		{
@@ -1551,6 +1572,11 @@ loadscripttypes(char *orgbase, char *base)
 			return;
 		}
 	}
+
+	/* DECL */
+	ctypes		*prev, *new;
+	char		line[LINEBUFSIZE];
+
 	prev = NULL;
 	while (fgets(line, LINEBUFSIZE, methods))
 	{
@@ -1599,29 +1625,27 @@ loadscripttypes(char *orgbase, char *base)
 	fclose(methods);
 }
 
-static int
-getfiletype(int print)
+static bool
+getfiletype(bool print)
 {
-	const	ftypes	*search, *flist[2];
+	const	ftypes	* const flist[] = { lftype, ftype };
 	const	int	flen = sizeof(flist) / sizeof(ftypes *);
 	const	char	*ext;
-	int		i;
-
-	flist[0] = lftype; flist[1] = ftype;
 
 	if (cfvalues.mimetype || !(ext = strrchr(orig_filename, '.')) || !(*(++ext)))
 	{
 		if (!cfvalues.mimetype)
 		{
 			cfvalues.mimetype = strdup("application/octet-stream");
-			return 0;
+			return false;
 		}
 		else
 			return !strcasecmp(cfvalues.mimetype, "text/html");
 	}
-	for (i = 0; i < flen; i++)
+
+	for (int i = 0; i < flen; i++)
 	{
-		for (search = flist[i]; search; search = search->next)
+		for (const ftypes *search = flist[i]; search; search = search->next)
 		{
 			if (strcasecmp(ext, search->ext))
 				continue;
@@ -1650,6 +1674,6 @@ getfiletype(int print)
 	}
 	if (print)
 		cfvalues.mimetype = strdup("application/octet-stream");
-	return 0;
+	return false;
 }
 
