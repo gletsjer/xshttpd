@@ -1662,12 +1662,14 @@ main(int argc, char **argv)
 	}
 
 	if (nolog)
+	{
 		config.pidfile =
 			config.system->logaccess =
 			config.system->logreferer =
 			config.system->logerror =
-			config.system->logscript =
-			strdup("/dev/null");
+			strdup(BITBUCKETNAME);
+		config.system->logscript = NULL;
+	}
 	if (config.sockets)
 		SET_OPTION(opt_port,  config.sockets[0].port);
 	SET_OPTION(opt_dir,  config.systemroot);

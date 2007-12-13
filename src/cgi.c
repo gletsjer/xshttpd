@@ -104,7 +104,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				line[LINEBUFSIZE],
 				head[HEADSIZE];
 	char			*argv1;
-	int			p[2], r[2], nph, dossi, chldstat, printerr;
+	int			p[2], r[2], nph, dossi, chldstat;
 	unsigned	int	left;
 	FILE			*logfile;
 #ifdef		HANDLE_SSL
@@ -421,32 +421,41 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	}
 #endif		/* HANDLE_SSL */
 
-	/* handle stderr */
-	printerr = 0;
-	for (;;)
+	if (logfile)
 	{
-		if (readline(r[0], line, sizeof(line)) != ERR_NONE)
-			break;
+		int	printerr = 0;
 
-		if (!logfile)
-			continue;
-
-		if (!printerr)
+		switch(fork())
 		{
-			setcurrenttime();
-			fprintf(logfile, "%% [%s] %s %s %s\n%% 200 %s\n"
-				"%%stderr\n",
-				currenttime,
-				getenv("REQUEST_METHOD"),
-				getenv("REQUEST_URI"),
-				getenv("SERVER_PROTOCOL"),
-				fullpath);
-			printerr = 1;
+		case -1:
+			warn("fork(errlogger)");
+			break;
+		case 0:
+			/* handle stderr */
+			for (;;)
+			{
+				if (readline(r[0], line, sizeof(line)) != ERR_NONE)
+					break;
+
+				if (!printerr)
+				{
+					setcurrenttime();
+					fprintf(logfile, "%% [%s] %s %s %s\n%% 200 %s\n"
+						"%%stderr\n",
+						currenttime,
+						getenv("REQUEST_METHOD"),
+						getenv("REQUEST_URI"),
+						getenv("SERVER_PROTOCOL"),
+						fullpath);
+					printerr = 1;
+				}
+				if ('%' == line[0])
+					fprintf(logfile, "%% %s\n", line);
+				else
+					fprintf(logfile, "%s\n", line);
+			}
+			exit(0);
 		}
-		if ('%' == line[0])
-			fprintf(logfile, "%% %s\n", line);
-		else
-			fprintf(logfile, "%s\n", line);
 	}
 
 	head[0] = '\0';
@@ -461,7 +470,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		if (readheaders(p[0], &http_headers) < 0)
 		{
 			/* Script header read error */
-			if (!printerr && logfile)
+			if (logfile)
 			{
 				setcurrenttime();
 				fprintf(logfile, "%% [%s] %s %s %s\n%% 503 %s\n",
@@ -470,10 +479,9 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					getenv("REQUEST_URI"),
 					getenv("SERVER_PROTOCOL"),
 					fullpath);
-			}
-			if (logfile)
 				fprintf(logfile, "%%%%error\n"
 					"503 Script did not end header\n");
+			}
 			xserror(503, "Script did not end header");
 			goto END;
 		}
