@@ -14,11 +14,7 @@
 #define		LINEBUFSIZE	4096
 #define		HEADSIZE	10240
 
-#define		ERR_NONE	0
-#define		ERR_CONT	1
-#define		ERR_QUIT	2
-#define		ERR_LINE	3
-#define		ERR_CLOSE	4
+typedef enum { ERR_NONE, ERR_CONT, ERR_QUIT, ERR_LINE, ERR_CLOSE } xs_error_t;
 
 #define		MINBYTESPERSEC	32
 
@@ -38,7 +34,7 @@ void	stdheaders		(bool, bool, bool);
 void	alarm_handler		(int);
 void	xserror			(int, const char *, ...) PRINTF_LIKE(2, 3);
 void	redirect		(const char *, bool, bool) NONNULL;
-int	readline		(int, char *, size_t) NONNULL WARNUNUSED;
+xs_error_t	readline	(int, char *, size_t) NONNULL WARNUNUSED;
 void	server_error		(int, const char *, const char *) NONNULL;
 void	logrequest		(const char *, off_t) NONNULL;
 void	setcurrenttime		(void);

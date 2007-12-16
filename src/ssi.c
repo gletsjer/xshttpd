@@ -51,9 +51,9 @@ typedef	enum
 	MODE_RESET
 } countermode;
 
-static	int	xsc_initdummy		(off_t *);
-static	int	xsc_initcounter		(const char *, off_t *);
-static	int	xsc_counter		(countermode, const char *, off_t *);
+static	bool	xsc_initdummy		(off_t *);
+static	bool	xsc_initcounter		(const char *, off_t *);
+static	bool	xsc_counter		(countermode, const char *, off_t *);
 static	int	call_counter		(countermode, int, char **, off_t *);
 static	int	parse_values		(char *, char **, size_t);
 static	int	dir_count_total		(int, char **, off_t *);
@@ -92,7 +92,7 @@ static	char	*switchstr;
 static	int	setvarlen;
 static	char	*setvars[SETVARIABLES];
 
-static	int
+static	bool
 xsc_initdummy(off_t *size)
 {
 	int		fd;
@@ -103,7 +103,7 @@ xsc_initdummy(off_t *size)
 	{
 		*size += secprintf("[Failed to create dummies: %s]\n",
 			strerror(errno));
-		return(1);
+		return false;
 	}
 
 	memset(dummy.filename, 1, sizeof(dummy.filename) - 1);
@@ -116,7 +116,7 @@ xsc_initdummy(off_t *size)
 		*size += secprintf("[Failed to write dummy file: %s]\n",
 			strerror(errno));
 		close(fd);
-		return(1);
+		return false;
 	}
 
 	memset(dummy.filename, 255, sizeof(dummy.filename)-1);
@@ -126,13 +126,13 @@ xsc_initdummy(off_t *size)
 		*size += secprintf("[Failed to write dummy file: %s]\n",
 			strerror(errno));
 		close(fd);
-		return(1);
+		return false;
 	}
 	close(fd);
-	return(0);
+	return true;
 }
 
-static	int
+static	bool
 xsc_initcounter(const char *filename, off_t *size)
 {
 	int		fd, fd2;
@@ -148,7 +148,7 @@ xsc_initcounter(const char *filename, off_t *size)
 	{
 		*size += secprintf("[Could not open the counter file: %s]\n",
 			strerror(errno));
-		return(1);
+		return false;
 	}
 	retry = 0;
 	while ((fd2 = open(lockfile = calcpath(CNT_LOCK),
@@ -162,7 +162,7 @@ xsc_initcounter(const char *filename, off_t *size)
 		*size += secprintf("[Failed to create temporary file: %s]\n",
 			strerror(errno));
 		close(fd);
-		return(1);
+		return false;
 	}
 
 	done = false;
@@ -180,7 +180,7 @@ xsc_initcounter(const char *filename, off_t *size)
 				*size += secprintf("[Failed to write temp file: %s]\n",
 					strerror(errno));
 				close(fd); close(fd2); remove(lockfile);
-				return(1);
+				return false;
 			}
 			done = true;
 		}
@@ -189,7 +189,7 @@ xsc_initcounter(const char *filename, off_t *size)
 			*size += secprintf("[Failed to write temp file: %s]\n",
 				strerror(errno));
 			close(fd); close(fd2); remove(lockfile);
-			return(1);
+			return false;
 		}
 	}
 
@@ -205,13 +205,13 @@ xsc_initcounter(const char *filename, off_t *size)
 		*size += secprintf("[Could not rename counter file: %s]\n",
 			strerror(errno));
 		remove(lockfile);
-		return(1);
+		return false;
 	}
 	remove(lockfile);
-	return(0);
+	return true;
 }
 
-int
+void
 counter_versioncheck()
 {
 	int		fd;
@@ -221,14 +221,14 @@ counter_versioncheck()
 	counterfile = calcpath(CNT_DATA);
 	if ((fd = open(counterfile, O_RDONLY, 0)) < 0)
 		/* no data yet: that's fine */
-		return 0;
+		return;
 
 	if (read(fd, &xscount_version, sizeof(char)) != sizeof(char))
 		errx(1, "XS count data corrupt (%s)", counterfile);
 	close(fd);
 
 	if (XSCOUNT_VERSION == (int)xscount_version)
-		return 0;
+		return;
 	else if (XSCOUNT_VERSION > (int)xscount_version)
 		errx(1, "XS count data in old format: run reformatxs first!");
 	else
@@ -236,7 +236,7 @@ counter_versioncheck()
 	/* NOTREACHED */
 }
 
-static	int
+static	bool
 xsc_counter(countermode mode, const char *args, off_t *size)
 {
 	int			fd = -1, timer, total, x, y, z, comp;
@@ -258,8 +258,8 @@ reopen:
 	if ((fd = open(calcpath(CNT_DATA), O_RDWR,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
 	{
-		if (xsc_initdummy(size))
-			return(1);
+		if (!xsc_initdummy(size))
+			return false;
 		goto reopen;
 	}
 
@@ -268,15 +268,15 @@ reopen:
 		*size += secprintf("[Could not find end of the counter file: %s]\n",
 			strerror(errno));
 		close(fd);
-		return(1);
+		return false;
 	}
 
 	total /= sizeof(countstr);
 	if (total < 2)
 	{
 		close(fd);
-		if (xsc_initdummy(size))
-			return(1);
+		if (!xsc_initdummy(size))
+			return false;
 		goto reopen;
 	}
 
@@ -289,14 +289,14 @@ reopen:
 			*size += secprintf("[Could not seek in counter file: %s]\n",
 				strerror(errno));
 			close(fd);
-			return(1);
+			return false;
 		}
 		if (read(fd, &counter, sizeof(countstr)) != sizeof(countstr))
 		{
 			*size += secprintf("[Could not read counter file: %s]\n",
 				strerror(errno));
 			close(fd);
-			return(1);
+			return false;
 		}
 		if ((comp = strncmp(filename, counter.filename, sizeof(counter.filename))) < 0)
 			z = y;
@@ -310,11 +310,11 @@ reopen:
 		if (already)
 		{
 			*size += secprintf("[Failed to create new counter]\n");
-			return(1);
+			return false;
 		}
 		already = true;
-		if (xsc_initcounter(filename, size))
-			return(1);
+		if (!xsc_initcounter(filename, size))
+			return false;
 		goto reopen;
 	}
 
@@ -325,7 +325,7 @@ reopen:
 		*size += secprintf("[Could not seek in counter file: %s]\n",
 			strerror(errno));
 		close(fd);
-		return(1);
+		return false;
 	}
 	if (mode == MODE_RESET)
 	{
@@ -336,17 +336,17 @@ reopen:
 			*size += secprintf("[Could not update counter file: %s]\n",
 				strerror(errno));
 			close(fd);
-			return(1);
+			return false;
 		}
 		close(fd);
-		return(0);
+		return true;
 	}
 	if (write(fd, &counter, sizeof(countstr)) != sizeof(countstr))
 	{
 		*size += secprintf("[Could not update counter file: %s]\n",
 			strerror(errno));
 		close(fd);
-		return(1);
+		return false;
 	}
 	close(fd);
 ALREADY:
@@ -383,13 +383,13 @@ ALREADY:
 		*size += secprintf("[reset stats counter]");
 		break;
 	}
-	return(0);
+	return true;
 }
 
 static	int
 call_counter(countermode mode, int argc, char **argv, off_t *size)
 {
-	int		ret;
+	xs_error_t	ret;
 	uid_t		savedeuid;
 	gid_t		savedegid;
 	const	char	*path;
@@ -405,7 +405,7 @@ call_counter(countermode mode, int argc, char **argv, off_t *size)
 		savedeuid = config.system->userid;
 		savedegid = config.system->groupid;
 	}
-	ret = xsc_counter(mode, path, size) ? ERR_CONT : ERR_NONE;
+	ret = xsc_counter(mode, path, size) ? ERR_NONE : ERR_CONT;
 	if (!origeuid)
 	{
 		setegid(savedegid); seteuid(savedeuid);
@@ -1187,7 +1187,8 @@ sendwithdirectives_internal(int fd, off_t *size)
 			{
 				if (secputs(line) == EOF)
 				{
-					alarm(0); fclose(parse);
+					alarm(0);
+					fclose(parse);
 					return(ERR_QUIT);
 				}
 				*size += strlen(line) + 1;
@@ -1197,7 +1198,8 @@ sendwithdirectives_internal(int fd, off_t *size)
 		{
 			if (parsedirectives(line, size) == ERR_QUIT)
 			{
-				alarm(0); fclose(parse);
+				alarm(0);
+				fclose(parse);
 				return(ERR_QUIT);
 			}
 		}

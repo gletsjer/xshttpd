@@ -590,7 +590,7 @@ secread(int rd, void *buf, size_t len)
 	return secread_internal(rd, buf, len);
 }
 
-int
+xs_error_t
 readline(int rd, char *buf, size_t len)
 {
 	char		ch, *buf2;

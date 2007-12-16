@@ -343,19 +343,13 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	const char * const te = getenv("HTTP_TRANSFER_ENCODING");
 	if (ssl_post && te && !strcasecmp(te, "chunked"))
 	{
-		size_t          chunksz;
-		char            buffer[20];
+		char		buffer[20];
 		const size_t	buflen = sizeof buffer;
-		int             result;
-		char		*cbuf;
-
-		chunksz = 0;
-		cbuf = NULL;
+		char		*cbuf = NULL;
 
 		while (1)
 		{
-			result = readline(0, buffer, buflen);
-			if (result != ERR_NONE)
+			if (readline(0, buffer, buflen) != ERR_NONE)
 			{
 				if (cbuf)
 					free(cbuf);
@@ -363,7 +357,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			}
 			buffer[buflen-1] = '\0';
 
-			chunksz = (size_t)strtoul(buffer, NULL, 16);
+			const size_t chunksz = (size_t)strtoul(buffer, NULL,16);
 			if (!chunksz)
 			{
 				/* end of data marker */
@@ -378,8 +372,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			if (secread(0, cbuf, chunksz + 2) < 0)
 				goto END;
 
-			result = write(q[1], cbuf, chunksz);
-			if ((result < 0) && (errno != EINTR))
+			if ((write(q[1], cbuf, chunksz) < 0) &&
+				(errno != EINTR))
 			{
 				xserror(500, "Connection closed (fd = %d, todo = %zu",
 					q[1], chunksz);
