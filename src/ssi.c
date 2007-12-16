@@ -210,7 +210,7 @@ xsc_initcounter(const char *filename, off_t *size)
 	return(0);
 }
 
-int
+void
 counter_versioncheck()
 {
 	int		fd;
@@ -220,14 +220,14 @@ counter_versioncheck()
 	counterfile = calcpath(CNT_DATA);
 	if ((fd = open(counterfile, O_RDONLY, 0)) < 0)
 		/* no data yet: that's fine */
-		return 0;
+		return;
 
 	if (read(fd, &xscount_version, sizeof(char)) != sizeof(char))
 		errx(1, "XS count data corrupt (%s)", counterfile);
 	close(fd);
 
 	if (XSCOUNT_VERSION == (int)xscount_version)
-		return 0;
+		return;
 	else if (XSCOUNT_VERSION > (int)xscount_version)
 		errx(1, "XS count data in old format: run reformatxs first!");
 	else

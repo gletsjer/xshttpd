@@ -1320,6 +1320,8 @@ standalone_socket(int id)
 	{
 		struct	linger	sl;
 
+		alarm(0);
+
 		/* (in)sanity check */
 		if (count > cursock->instances || count < 0)
 		{
