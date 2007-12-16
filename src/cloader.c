@@ -509,8 +509,6 @@ load_config()
 		config.system->logaccess = strdup(BITBUCKETNAME);
 	if (!config.system->logerror)
 		config.system->logerror = strdup(BITBUCKETNAME);
-	if (!config.system->logscript)
-		config.system->logscript = strdup(BITBUCKETNAME);
 	if (!config.system->logreferer)
 		config.system->logreferer = strdup(BITBUCKETNAME);
 	if (!config.system->logstyle)
