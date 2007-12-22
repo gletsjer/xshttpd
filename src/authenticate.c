@@ -115,7 +115,7 @@ check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 	if (!get_crypted_password(authfile, search, &passwd, NULL) || !passwd)
 		return 1;
 
-	reject = !strcmp(passwd, crypt(find, passwd));
+	reject = strcmp(passwd, crypt(find, passwd));
 	free(passwd);
 	(void)ldap;
 	return reject;
