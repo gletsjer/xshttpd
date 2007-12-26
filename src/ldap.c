@@ -13,7 +13,7 @@
 #include	<string.h>
 #include	<ldap.h>
 
-int
+bool
 check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 {
 	LDAPMessage	*res = NULL;
@@ -22,7 +22,7 @@ check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 	char		filter[MYBUFSIZ];
 	char		*a;
 	char		*attrs[] = { NULL, NULL };
-	int		result = 0;
+	bool		result = false;
 
 	attrs[0] = strdup("memberUid");
 
@@ -57,7 +57,7 @@ check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 			for (i = 0; vals[i]->bv_val != NULL; i++)
 			{
 				if (!strcasecmp (vals[i]->bv_val, user))
-					result++;
+					result = true;
 			}
 
 			ldap_value_free_len (vals);
@@ -77,7 +77,7 @@ leave:
 	return result;
 }
 
-int
+bool
 check_auth_ldap(const char *authfile, const char *user, const char *pass)
 {
 	FILE	*af;
@@ -88,14 +88,14 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
 
 	/* LDAP may support empty passwords to do an anonymous bind. That's
 	 * not what our idea of security is ... */
-	if (!strlen (pass))
-		return(1);
+	if (!pass || !strlen(pass))
+		return false;
 
 	if (!(af = fopen(authfile, "r")))
 	{
 		server_error(403, "Authentication file is not available",
 			"NOT_AVAILABLE");
-		return 1;
+		return false;
 	}
 
 	/*
@@ -149,7 +149,7 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
 	return check_auth_ldap_full(user, pass, &ldap);
 }
 
-int
+bool
 check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth *ldap)
 {
 	char	filter[MYBUFSIZ];
@@ -157,15 +157,18 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 	LDAP	*ld;
 	LDAPMessage	*res = NULL;
 	LDAPMessage	*e;
-	int	ok = 1, version = 3;
+	bool	allow = false;
+	int	version = 3;
 	struct	berval	cred;
 
-	if ((!strlen (ldap->uri)) || (!strlen(ldap->dn)) || (!strlen (ldap->attr)))
+	if (!ldap->uri || !strlen(ldap->uri) ||
+			!ldap->dn || !strlen(ldap->dn) ||
+			!ldap->attr || !strlen(ldap->attr))
 		/* LDAP config is incomplete */
-		return(1);
+		return false;
 
 	if (ldap_initialize (&ld, ldap->uri) != LDAP_SUCCESS)
-		return(1);
+		return false;
 	if (ldap->version)
 		version = ldap->version;
 	ldap_set_option (ld, LDAP_OPT_PROTOCOL_VERSION, &version);
@@ -199,7 +202,7 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 	if (!strcmp (ldap->groups, ""))
 	{
 		/* no groups specified, so it's a definite go */
-		ok = 0;
+		allow = true;
 	}
 	else
 	{
@@ -218,7 +221,7 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 
 			if (check_group (ld, ldap->dn, user, line))
 			{
-				ok = 0;
+				allow = true;
 				break;
 			}
 
@@ -236,7 +239,7 @@ leave:
 	if (res)
 		ldap_msgfree (res);
 	ldap_unbind_ext_s (ld, NULL, NULL);
-	return ok;
+	return allow;
 }
 
 #endif		/* AUTH_LDAP */

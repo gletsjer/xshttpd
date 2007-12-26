@@ -1365,12 +1365,11 @@ standalone_socket(int id)
 		clen = sizeof(saddr);
 		if ((csd = accept(sd, (struct sockaddr *)&saddr, &clen)) < 0)
 		{
-			warn("accept()");
 			mysleep(1);
 			if (errno == EINTR)
 				child_handler(SIGCHLD);
 			if (errno == EBADF || errno == EFAULT)
-				exit(1);
+				err(1, "accept()");
 			continue;
 		}
 		setproctitle("xs(%c%d): [Reqs: %06d] accept() gave me a connection...",

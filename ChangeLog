@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.5 beta 28
+- Fix authentication check (for basic auth)
+
 Changes since 3.5 beta 27
 - Fix reading of stderr data from CGI scripts (could block CGI)
 - Minor code cleanups

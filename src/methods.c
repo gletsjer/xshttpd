@@ -933,7 +933,7 @@ do_get(char *params)
 	/* These should all send there own error messages when appropriate */
 	if ((xsfile = find_file(orgbase, base, NOXS_FILE)) && check_noxs(xsfile))
 		return;
-	if ((xsfile = find_file(orgbase, base, AUTH_FILE)) && check_auth(xsfile, NULL))
+	if ((xsfile = find_file(orgbase, base, AUTH_FILE)) && !check_auth(xsfile, NULL))
 		return;
 	if (check_file_redirect(base, filename))
 		return;

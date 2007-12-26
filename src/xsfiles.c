@@ -550,7 +550,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 		return true;
 	}
 	/* return err if authentication fails */
-	if (authfile && check_auth(authfile, NULL))
+	if (authfile && !check_auth(authfile, NULL))
 	{
 		free(authfile);
 		/* a 401 response has been sent */
@@ -558,7 +558,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 	}
 	if (authfile)
 		free(authfile);
-	if (ldap.dn && check_auth(NULL, &ldap))
+	if (ldap.dn && !check_auth(NULL, &ldap))
 		/* a 401 response has been sent */
 		return true;
 

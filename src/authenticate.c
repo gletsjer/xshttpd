@@ -25,23 +25,23 @@ char		authentication[MYBUFSIZ];
 static unsigned long int	secret;
 static const bool	rfc2617_digest = true;
 
-static int	get_crypted_password(const char *, const char *, char **, char **) WARNUNUSED;
-static int	check_basic_auth(const char *authfile, const struct ldap_auth *) WARNUNUSED;
+static bool	get_crypted_password(const char *, const char *, char **, char **) WARNUNUSED;
+static bool	check_basic_auth(const char *authfile, const struct ldap_auth *) WARNUNUSED;
 #ifdef		HAVE_MD5
-static int	check_digest_auth(const char *authfile) WARNUNUSED;
+static bool	check_digest_auth(const char *authfile, bool *stale) WARNUNUSED;
 static char 	*fresh_nonce(void) WARNUNUSED;
-static bool	valid_nonce(const char *nonce)NONNULL WARNUNUSED;
+static bool	valid_nonce(const char *nonce) NONNULL WARNUNUSED;
 #endif		/* HAVE_MD5 */
 
 /* returns malloc()ed data! */
-static int
+static bool
 get_crypted_password(const char *authfile, const char *user, char **passwd, char **hash)
 {
 	char	line[LINEBUFSIZE];
 	FILE	*af;
 
 	if (!(af = fopen(authfile, "r")))
-		return 0;
+		return false;
 
 	if (passwd)
 		*passwd = NULL;
@@ -61,7 +61,7 @@ get_crypted_password(const char *authfile, const char *user, char **passwd, char
 		else
 		{
 			fclose(af);
-			return 0;
+			return false;
 		}
 		if ((lhash = strchr(lpass, ':')))
 			*lhash++ = '\0';
@@ -74,17 +74,17 @@ get_crypted_password(const char *authfile, const char *user, char **passwd, char
 		if (hash)
 			*hash = lhash ? strdup(lhash) : NULL;
 		fclose(af);
-		return 1; /* found! */
+		return true; /* found! */
 	}
 	fclose(af);
-	return 0;
+	return false;
 }
 
-static int
+static bool
 check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 {
 	char		line[MYBUFSIZ], *search, *passwd, *find;
-	int		reject;
+	bool		allow;
 
 	/* basic auth */
 	strlcpy(line, authentication, MYBUFSIZ);
@@ -106,25 +106,25 @@ check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 		 * Try to do an LDAP auth first. This is because xs_encrypt()
 		 * may alter the buffer, in which case we compare garbage.
 		 */
-		if (authfile && !check_auth_ldap(authfile, search, find))
-			return(0);
-		else if (ldap && !check_auth_ldap_full(search, find, ldap))
-			return(0);
+		if (authfile && check_auth_ldap(authfile, search, find))
+			return true;
+		else if (ldap && check_auth_ldap_full(search, find, ldap))
+			return true;
 #endif /* AUTH_LDAP */
 	}
 	passwd = NULL;
 	if (!get_crypted_password(authfile, search, &passwd, NULL) || !passwd)
-		return 1;
+		return false;
 
-	reject = !strcmp(passwd, crypt(find, passwd));
+	allow = !strcmp(passwd, crypt(find, passwd));
 	free(passwd);
 	(void)ldap;
-	return reject;
+	return allow;
 }
 
 #ifdef		HAVE_MD5
-static int
-check_digest_auth(const char *authfile)
+static bool
+check_digest_auth(const char *authfile, bool *stale)
 {
 	char		ha2[MD5_DIGEST_STRING_LENGTH],
 			digest[MD5_DIGEST_STRING_LENGTH],
@@ -136,17 +136,19 @@ check_digest_auth(const char *authfile)
 	char		*idx, *val;
 	size_t		sz, fields, len;
 
+	*stale = false;
+
 	/* digest auth, rfc 2069 */
 	if (strncmp(authentication, "Digest ", 7))
-		return 1; /* fail */
+		return false; /* fail */
 	strlcpy(line, authentication + 7, MYBUFSIZ);
 	if (!*line)
-		return 1;
+		return false;
 
 	/* grab element from line */
 	fields = eqstring_to_array(line, NULL);
 	if (!fields)
-		return 1;
+		return false;
 	authreq = (struct mapping *)malloc(fields * sizeof (struct mapping));
 	fields = eqstring_to_array(line, authreq);
 	user = realm = nonce = cnonce = uri = response = qop = nc = NULL;
@@ -175,20 +177,20 @@ check_digest_auth(const char *authfile)
 	free(authreq);
 
 	if (!user || !realm || !nonce || !uri || !response)
-		return 1; /* fail */
+		return false; /* fail */
 	passwd = ha1 = NULL;
 	if (!get_crypted_password(authfile, user, &passwd, &ha1) || !passwd)
-		return 1; /* not found */
+		return false; /* not found */
 
 	free(passwd);
 	if (!ha1)
-		return 1;
+		return false;
 
 	/* obtain h(a1) from file */
 	if (strlen(ha1) > MD5_DIGEST_STRING_LENGTH)
 	{
 		free(ha1);
-		return 1; /* no valid hash */
+		return false; /* no valid hash */
 	}
 
 	/* calculate h(a2) */
@@ -207,14 +209,17 @@ check_digest_auth(const char *authfile)
 	free(ha1);
 
 	if (strcmp(response, digest))
-		return 1; /* no match */
+		return false; /* no match */
 
 	if (!valid_nonce(nonce))
-		return 2; /* invalid nonce */
+	{
+		*stale = true;
+		return false; /* invalid nonce */
+	}
 
 	setenv("AUTH_TYPE", "Digest", 1);
 	setenv("REMOTE_USER", user, 1);
-	return 0;
+	return true;
 }
 #endif		/* HAVE_MD5 */
 
@@ -222,8 +227,7 @@ bool
 check_auth(const char *authfile, const struct ldap_auth *ldap)
 {
 	char		*errmsg;
-	bool		digest;
-	int		rv = 0;
+	bool		digest, stale;
 	FILE		*af;
 
 	if (!authfile && !ldap)
@@ -293,15 +297,16 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 		return false;
 	}
 #ifdef		HAVE_MD5
+	stale = false;
 	if ('d' == authentication[0] || 'D' == authentication[0])
 	{
-		if (!(rv = check_digest_auth(authfile)))
+		if (check_digest_auth(authfile, &stale))
 			return true;
 	}
 	else
 #endif		/* HAVE_MD5 */
 	{
-		if (!check_basic_auth(authfile, ldap))
+		if (check_basic_auth(authfile, ldap))
 			return true;
 	}
 
@@ -326,7 +331,7 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 				rfc2617_digest
 				 ? ", qop=\"auth\", algorithm=md5"
 				 : "",
-				2 == rv ? ", stale=true" : "");
+				stale ? ", stale=true" : "");
 		}
 		else
 #endif		/* HAVE_MD5 */
