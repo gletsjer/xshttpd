@@ -160,7 +160,9 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 	int	ok = 1, version = 3;
 	struct	berval	cred;
 
-	if ((!strlen (ldap->uri)) || (!strlen(ldap->dn)) || (!strlen (ldap->attr)))
+	if (!ldap || !ldap->uri || !strlen(ldap->uri) ||
+			!ldap->dn || !strlen(ldap->dn) ||
+			!ldap->attr || !strlen(ldap->attr))
 		/* LDAP config is incomplete */
 		return(1);
 
