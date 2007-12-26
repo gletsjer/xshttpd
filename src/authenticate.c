@@ -22,7 +22,7 @@
 #include	"extra.h"
 
 char		authentication[MYBUFSIZ];
-static unsigned long int	secret;
+static unsigned long	secret;
 static const bool	rfc2617_digest = true;
 
 static bool	get_crypted_password(const char *, const char *, char **, char **) WARNUNUSED;
@@ -380,20 +380,18 @@ valid_nonce(const char *nonce)
 	int	len;
 
 	if (!nonce)
-		return 0;		/* invalid */
+		return false;		/* invalid */
 	if (!(ptr = strchr(nonce, ':')))
-		return 0;
+		return false;
 	ptr++;
 	ts = strtol(nonce, NULL, 16);
 
-	/* XXX: asprintf() seems buggy */
-	buf = malloc(100);
-	len = snprintf(buf, 100, "%lx:%lu:%s", ts, secret, getenv("REMOTE_ADDR"));
+	len = asprintf(&buf, "%lx:%lu:%s", ts, secret, getenv("REMOTE_ADDR"));
 	MD5Data((unsigned char *)buf, len, bufhex);
 	free(buf);
 
 	if (strcmp(ptr, bufhex))
-		return 0;
+		return false;
 
 	/* fresh for 1 hour */
 	return ts + 3600 > (long)time(NULL);
