@@ -191,7 +191,7 @@ fi
 XS_ARG_DEFAULT(ssp, DUMMY, no, [enable stack smashing protector])
 if test x${enable_ssp} = xyes
 then
-	AC_MSG_CHECKING([whether ${CC} supports stack protection...])
+	AC_MSG_CHECKING([whether ${CC%% *} supports stack protection...])
 	TCFLAGS="${CFLAGS}"
 	CFLAGS="${CFLAGS} -fstack-protector-all -Wstack-protector"
 	AC_COMPILE_IFELSE(AC_LANG_SOURCE([int i = 0;]),

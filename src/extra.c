@@ -98,8 +98,8 @@ match_list(char *list, const char *browser)
 }
 
 /* Convert whitespace/comma-seperated index=value string into mapping */
-#define ISALNUM(p) ((p >= '0' && p <= '9') || (p >= 'a' && p <= 'z') || \
-		(p >= 'A' && p <= 'Z') || p == '-' || p == '_')
+#define ISALNUM(p) (((p) >= '0' && (p) <= '9') || ((p) >= 'a' && (p) <= 'z') ||\
+		((p) >= 'A' && (p) <= 'Z') || (p) == '-' || (p) == '_')
 size_t
 eqstring_to_array(char *string, struct mapping *map)
 {

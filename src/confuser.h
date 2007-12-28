@@ -57,8 +57,8 @@ but not able to overwrite your data - nor should it be able to write logfiles */
 /* Argument to listen(). Leave it as it is, it should be fine. */
 #define MAXLISTEN	50
 
-/* Assumed maximum pathlength. Hmmm, this looks like a nice number... */
-#define	XS_PATH_MAX	1024
+/* Assumed maximum pathlength. Use C99 define */
+#define	XS_PATH_MAX	FILENAME_MAX
 
 /* Assume user/group name maximum length */
 #define	XS_USER_MAX	32

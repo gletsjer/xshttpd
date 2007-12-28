@@ -12,6 +12,7 @@
 #include	<time.h>
 #endif		/* HAVE_TIME_H */
 #include	<sys/socket.h>
+#include	<sys/stat.h>
 #include	<arpa/inet.h>
 
 #if		!HAVE_DECL_ENVIRON
@@ -34,6 +35,10 @@ typedef	size_t		socklen_t;
 #ifndef		HAVE_SA_FAMILY_T
 typedef unsigned char	sa_family_t;
 #endif		/* HAVE_SA_FAMILY_T */
+
+#ifndef		S_ISREG
+#define		S_ISREG(m)	(((m)&(S_IFMT)) == (S_IFREG))
+#endif		/* S_ISREG */
 
 #ifndef		HAVE_CLOSEFROM
 int	closefrom	(int);
@@ -115,9 +120,5 @@ char *	strsep		(char **, const char *);
 #ifndef		HAVE_SRANDOMDEV
 void	srandomdev	(void);
 #endif		/* HAVE_SRANDOMDEV */
-
-#ifndef		PRId64
-#define		PRId64		"llu"
-#endif		/* PRId64 */
 
 #endif		/* ALTERNATIVE_H */
