@@ -46,7 +46,7 @@
 #include	"extra.h"
 
 static	void		time_is_up(int)	NORETURN;
-static	bool		append(char *, bool, const char *format, ...)	PRINTF_LIKE(3,4);
+static	bool		append(char **, bool, const char * const format, ...)	PRINTF_LIKE(3,4);
 
 #ifdef		HAVE_PERL
 char *	perlargs[] = { NULL, NULL };
@@ -70,41 +70,54 @@ time_is_up(int sig)
 }
 
 static	bool
-append(char *buffer, bool prepend, const char *format, ...)
+append(char **buffer, bool prepend, const char * const format, ...)
 {
-	va_list	ap;
-	char	line[HEADSIZE];
+	va_list		ap;
+	char		*line, *newbuf;
+	size_t		slen, llen;
 
+	line = NULL;
 	va_start(ap, format);
-	vsnprintf(line, LINEBUFSIZE, format, ap);
+	llen = vasprintf(&line, format, ap);
 	va_end(ap);
-	if (strlen(buffer) + strlen(line) + 1 > HEADSIZE)
+	if (!line)
 		return false;
+
+	slen = buffer && *buffer ? strlen(*buffer) : 0;
+	newbuf = realloc(*buffer, slen + llen + 1);
+	*buffer = newbuf;
+	if (!newbuf)
+	{
+		free(line);
+		return false;
+	}
+
 	if (prepend)
 	{
-		strlcat(line, buffer, HEADSIZE);
-		memcpy(buffer, line, HEADSIZE);
+		memmove(newbuf + llen, newbuf, slen + 1);
+		memmove(newbuf, line, llen);
 	}
 	else
-		strlcat(buffer, line, HEADSIZE);
+		memmove(newbuf + slen, line, llen + 1);
+
+	free(line);
 	return true;
 }
 
 void
 do_script(const char *path, const char *base, const char *file, const char *engine)
 {
-	off_t			totalwritten;
-	char			fullpath[XS_PATH_MAX], input[RWBUFSIZE],
-				line[LINEBUFSIZE],
-				head[HEADSIZE];
-	char			*argv1;
-	int			p[2], r[2], chldstat;
-	bool			nph, dossi;
-	unsigned	int	left;
-	FILE			*logfile;
+	off_t		totalwritten;
+	char		fullpath[XS_PATH_MAX], input[RWBUFSIZE],
+			line[LINEBUFSIZE];
+	char		*argv1;
+	int		p[2], r[2], chldstat;
+	bool		nph, dossi;
+	unsigned int	left;
+	FILE		*logfile;
 #ifdef		HANDLE_SSL
-	int			q[2];
-	bool			ssl_post = false;
+	int		q[2];
+	bool		ssl_post = false;
 #endif		/* HANDLE_SSL */
 	struct	sigaction	action;
 
@@ -452,10 +465,10 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 	}
 
-	head[0] = '\0';
 	initreadmode(true);
 	if (!nph)
 	{
+		char		*head = NULL;
 		struct maplist	http_headers;
 		bool		ctype, status, lastmod, server, pragma;
 
@@ -490,14 +503,14 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				{
 					status = true;
 					rstatus = atoi(val);
-					append(head, true, "%s %s\r\n", httpver, val);
+					append(&head, true, "%s %s\r\n", httpver, val);
 					continue;
 				}
 				else if (!strcasecmp(idx, "Location"))
 				{
 					status = true;
 					rstatus = 302;
-					append(head, true, "%s 302 Moved\r\n", httpver);
+					append(&head, true, "%s 302 Moved\r\n", httpver);
 				}
 			}
 
@@ -508,52 +521,52 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				else if ('/' == val[0])
 				{
 					if (!strcmp(cursock->port, "http"))
-						append(head, false, "Location: http://%s%s\r\n",
+						append(&head, false, "Location: http://%s%s\r\n",
 							current->hostname, val);
 					else if (cursock->usessl && !strcmp(cursock->port, "https"))
-						append(head, false, "Location: https://%s%s\r\n",
+						append(&head, false, "Location: https://%s%s\r\n",
 							current->hostname, val);
 					else if (cursock->usessl)
-						append(head, false, "Location: https://%s:%s%s\r\n",
+						append(&head, false, "Location: https://%s:%s%s\r\n",
 							current->hostname, cursock->port, val);
 					else
-						append(head, false, "Location: http://%s:%s%s\r\n",
+						append(&head, false, "Location: http://%s:%s%s\r\n",
 							current->hostname, cursock->port, val);
 				}
 				else
-					append(head, false, "Location: %s\r\n", val);
+					append(&head, false, "Location: %s\r\n", val);
 			}
 			else if (!strcasecmp(idx, "Content-type"))
 			{
 				ctype = true;
-				append(head, false, "Content-type: %s\r\n", val);
+				append(&head, false, "Content-type: %s\r\n", val);
 			}
 			else if (!strcasecmp(idx, "Last-modified"))
 			{
-				append(head, false, "Last-modified: %s\r\n", val);
+				append(&head, false, "Last-modified: %s\r\n", val);
 				lastmod = true;
 			}
 			else if (!strcasecmp(idx, "Cache-control"))
 			{
 				if (headers >= 11)
-					append(head, false, "Cache-control: %s\r\n", val);
+					append(&head, false, "Cache-control: %s\r\n", val);
 				else if (!pragma)
-					append(head, false, "Pragma: no-cache\r\n");
+					append(&head, false, "Pragma: no-cache\r\n");
 				pragma = true;
 			}
 			else if (!strcasecmp(idx, "Pragma"))
 			{
 				if (headers < 11 && !pragma)
-					append(head, false, "Pragma: %s\r\n", val);
+					append(&head, false, "Pragma: %s\r\n", val);
 				pragma = true;
 			}
 			else if (!strcasecmp(idx, "Server"))
 			{
 				/* Append value to SERVER_IDENT */
 				if (!strncasecmp(val, SERVER_IDENT, strlen(SERVER_IDENT)))
-					append(head, false, "Server: %s\r\n", val);
+					append(&head, false, "Server: %s\r\n", val);
 				else
-					append(head, false, "Server: %s %s\r\n", SERVER_IDENT, val);
+					append(&head, false, "Server: %s %s\r\n", SERVER_IDENT, val);
 				server = true;
 			}
 			else if (!strcasecmp(idx, "Date"))
@@ -561,24 +574,26 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				/* Thank you, I do know how to tell time */
 			}
 			else
-				append(head, false, "%s: %s\r\n", idx, val);
+				append(&head, false, "%s: %s\r\n", idx, val);
 		}
 		if (headers >= 10)
 		{
 			if (!status)
-				append(head, true, "%s 200 OK\r\n", httpver);
+				append(&head, true, "%s 200 OK\r\n", httpver);
 			if (!ctype)
-				append(head, false, "Content-type: text/html\r\n");
+				append(&head, false, "Content-type: text/html\r\n");
 			setcurrenttime();
 			if (!lastmod)
-				append(head, false, "Last-modified: %s\r\n",
+				append(&head, false, "Last-modified: %s\r\n",
 					currenttime);
 			if (!server)
-				append(head, false, "Server: %s\r\n", SERVER_IDENT);
+				append(&head, false, "Server: %s\r\n", SERVER_IDENT);
 			if (headers >= 11)
-				append(head, false, "Transfer-encoding: chunked\r\n");
-			append(head, false, "Date: %s\r\n", currenttime);
+				append(&head, false, "Transfer-encoding: chunked\r\n");
+			append(&head, false, "Date: %s\r\n", currenttime);
 			secprintf("%s\r\n", head);
+			if (head)
+				free(head);
 			/* 304 pages don't even get an empty body */
 			if (rstatus != 204 && rstatus != 304 && headers >= 11)
 				chunked = true;
