@@ -11,7 +11,6 @@
 #define		RWBUFSIZE	4096
 #define		MYBUFSIZ	1024
 #define		LINEBUFSIZE	4096
-#define		HEADSIZE	10240
 
 #define		ERR_NONE	0
 #define		ERR_CONT	1
