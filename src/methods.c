@@ -4,7 +4,6 @@
 #include	"config.h"
 
 #include	<inttypes.h>
-#include	<sys/time.h>
 #ifdef		HAVE_SYS_RESOURCE_H
 #include	<sys/resource.h>
 #endif		/* HAVE_SYS_RESOURCE_H */
