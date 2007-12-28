@@ -3,24 +3,10 @@
 
 #include	"config.h"
 
-#ifdef		HAVE_SYS_EXEC_H
-#endif		/* HAVE_SYS_EXEC_H */
 #ifdef		HAVE_SYS_PARAM_H
 #include	<sys/param.h>
 #endif		/* HAVE_SYS_PARAM_H */
-#ifdef		HAVE_SYS_PSTAT_H
-#include	<sys/pstat.h>
-#endif		/* HAVE_SYS_PSTAT_H */
-#ifdef		HAVE_SYS_SYSMIPS_H
-#include	<sys/sysmips.h>
-#endif		/* HAVE_SYS_SYSMIPS_H */
-#ifdef		HAVE_SYS_SYSNEWS_H
-#include	<sys/sysnews.h>
-#endif		/* HAVE_SYS_SYSNEWS_H */
-
-#ifdef		HAVE_SYS_TIME_H
 #include	<sys/time.h>
-#endif		/* HAVE_SYS_TIME_H */
 
 #include	<stdio.h>
 #include	<unistd.h>

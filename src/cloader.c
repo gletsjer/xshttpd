@@ -2,11 +2,9 @@
 
 #include	"config.h"
 
-#include	<sys/types.h>
+#include	<inttypes.h>
 #include	<stdbool.h>
-#ifdef		HAVE_SYS_TIME_H
 #include	<sys/time.h>
-#endif		/* HAVE_SYS_TIME_H */
 #ifdef		HAVE_SYS_RESOURCE_H
 #include	<sys/resource.h>
 #endif		/* HAVE_SYS_RESOURCE_H */
@@ -14,9 +12,7 @@
 #include	<sys/mman.h>
 #endif		/* HAVE_SYS_MMAN_H */
 #include	<sys/socket.h>
-#ifdef		HAVE_SYS_WAIT_H
 #include	<sys/wait.h>
-#endif		/* HAVE_SYS_WAIT_H */
 #include	<sys/signal.h>
 #include	<sys/stat.h>
 #include	<sys/utsname.h>
@@ -29,12 +25,8 @@
 #ifdef		HAVE_SYS_SYSLIMITS_H
 #include	<sys/syslimits.h>
 #endif		/* HAVE_SYS_SYSLIMITS_H */
-#ifdef		HAVE_INTTYPES_H
-#include	<inttypes.h>
-#endif		/* HAVE_INTTYPES_H */
 
 #include	<netinet/in.h>
-
 #include	<arpa/inet.h>
 
 #include	<fcntl.h>

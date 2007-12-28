@@ -3,10 +3,8 @@
 
 #include	"config.h"
 
-#include	<sys/types.h>
-#ifdef		HAVE_SYS_TIME_H
+#include	<inttypes.h>
 #include	<sys/time.h>
-#endif		/* HAVE_SYS_TIME_H */
 #ifdef		HAVE_SYS_RESOURCE_H
 #include	<sys/resource.h>
 #endif		/* HAVE_SYS_RESOURCE_H */
@@ -14,9 +12,7 @@
 #include	<sys/mman.h>
 #endif		/* HAVE_SYS_MMAN_H */
 #include	<sys/socket.h>
-#ifdef		HAVE_SYS_WAIT_H
 #include	<sys/wait.h>
-#endif		/* HAVE_SYS_WAIT_H */
 #include	<sys/signal.h>
 #include	<sys/stat.h>
 #ifdef		HAVE_SYS_SELECT_H
@@ -25,18 +21,11 @@
 #ifdef		HAVE_SYS_PARAM_H
 #include	<sys/param.h>
 #endif		/* HAVE_SYS_PARAM_H */
-#ifdef		HAVE_INTTYPES_H
-#include	<inttypes.h>
-#endif		/* HAVE_INTTYPES_H */
 
 #include	<fcntl.h>
 #include	<stdio.h>
 #include	<errno.h>
-#ifdef		HAVE_TIME_H
-#ifdef		TIME_WITH_SYS_TIME
 #include	<time.h>
-#endif		/* TIME_WITH_SYS_TIME */
-#endif		/* HAVE_TIME_H */
 #include	<stdlib.h>
 #include	<stdarg.h>
 #include	<string.h>

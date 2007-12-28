@@ -4,14 +4,8 @@
 #include	"config.h"
 
 #include	<sys/types.h>
-#ifdef		HAVE_SYS_TIME_H
 #include	<sys/time.h>
-#endif		/* HAVE_SYS_TIME_H */
-#ifdef		HAVE_TIME_H
-#ifdef		TIME_WITH_SYS_TIME
 #include	<time.h>
-#endif		/* TIME_WITH_SYS_TIME */
-#endif		/* HAVE_TIME_H */
 #include	<unistd.h>
 #include	<signal.h>
 #include	<stdlib.h>

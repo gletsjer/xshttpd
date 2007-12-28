@@ -114,9 +114,6 @@
 /* Define to 1 if the system has the type `sa_family_t'. */
 #undef HAVE_SA_FAMILY_T
 
-/* Define to 1 if you have the `setenv' function. */
-#undef HAVE_SETENV
-
 /* Define to 1 if you have the `seteuid' function. */
 #undef HAVE_SETEUID
 
@@ -147,9 +144,6 @@
 /* Define to 1 if you have the `siginterrupt' function. */
 #undef HAVE_SIGINTERRUPT
 
-/* Define to 1 if you have the `snprintf' function. */
-#undef HAVE_SNPRINTF
-
 /* Define if you have the `socket' function */
 #undef HAVE_SOCKET
 
@@ -170,9 +164,6 @@
 
 /* Define to 1 if you have the `strcasestr' function. */
 #undef HAVE_STRCASESTR
-
-/* Define to 1 if you have the `strerror' function. */
-#undef HAVE_STRERROR
 
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
@@ -195,17 +186,11 @@
 /* Define to 1 if the system has the type `struct in6_addr'. */
 #undef HAVE_STRUCT_IN6_ADDR
 
-/* Define to 1 if you have the <sys/exec.h> header file. */
-#undef HAVE_SYS_EXEC_H
-
 /* Define to 1 if you have the <sys/mman.h> header file. */
 #undef HAVE_SYS_MMAN_H
 
 /* Define to 1 if you have the <sys/param.h> header file. */
 #undef HAVE_SYS_PARAM_H
-
-/* Define to 1 if you have the <sys/pstat.h> header file. */
-#undef HAVE_SYS_PSTAT_H
 
 /* Define to 1 if you have the <sys/resource.h> header file. */
 #undef HAVE_SYS_RESOURCE_H
@@ -219,23 +204,8 @@
 /* Define to 1 if you have the <sys/syslimits.h> header file. */
 #undef HAVE_SYS_SYSLIMITS_H
 
-/* Define to 1 if you have the <sys/sysmips.h> header file. */
-#undef HAVE_SYS_SYSMIPS_H
-
-/* Define to 1 if you have the <sys/sysnews.h> header file. */
-#undef HAVE_SYS_SYSNEWS_H
-
-/* Define to 1 if you have the <sys/time.h> header file. */
-#undef HAVE_SYS_TIME_H
-
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
-
-/* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
-#undef HAVE_SYS_WAIT_H
-
-/* Define to 1 if you have the <time.h> header file. */
-#undef HAVE_TIME_H
 
 /* Define to 1 if you have the `uname' function. */
 #undef HAVE_UNAME
@@ -294,9 +264,6 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
-#undef TIME_WITH_SYS_TIME
-
 /* Define if you have openssl, but no MD5Data() */
 #undef USE_OPENSSL_MD5
 
@@ -305,9 +272,6 @@
 
 /* Define for large files, on AIX-style hosts. */
 #undef _LARGE_FILES
-
-/* Define to empty if `const' does not conform to ANSI C. */
-#undef const
 
 /* Define to `int' if <sys/types.h> doesn't define. */
 #undef gid_t
@@ -320,9 +284,6 @@
 
 /* in6_addr elements, 32-bit version */
 #undef s6_addr32
-
-/* Define to `unsigned int' if <sys/types.h> does not define. */
-#undef size_t
 
 /* Define to `int' if <sys/types.h> does not define. */
 #undef ssize_t

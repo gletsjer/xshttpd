@@ -3,9 +3,7 @@
 
 #include	"config.h"
 
-#ifdef		HAVE_SYS_TIME_H
 #include	<sys/time.h>
-#endif		/* HAVE_SYS_TIME_H */
 #include	<sys/types.h>
 #include	<sys/stat.h>
 #ifdef		HAVE_SYS_PARAM_H
@@ -13,11 +11,7 @@
 #endif		/* HAVE_SYS_PARAM_H */
 
 #include	<stdio.h>
-#ifdef		HAVE_TIME_H
-#ifdef		TIME_WITH_SYS_TIME
 #include	<time.h>
-#endif		/* TIME_WITH_SYS_TIME */
-#endif		/* HAVE_TIME_H */
 #include	<unistd.h>
 #include	<errno.h>
 #include	<signal.h>

@@ -8,7 +8,11 @@ AC_DEFINE_UNQUOTED(SERVER_IDENT, "${SERVER_IDENT}", [Server version])
 AC_CONFIG_HEADERS([config.h])
 
 dnl Checks for programs.
-AC_PROG_CC
+AC_PROG_CC_C99
+if test "$ac_cv_prog_cc_c99" = no
+then
+	AC_MSG_ERROR([ISO C99 capable compiler required])
+fi
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_PATH_PROG(ppmtogif, ppmtogif, /bin/true)
@@ -24,18 +28,12 @@ httpd_ldlags="${LDLAGS}"
 libxs_ldlags="${LDLAGS}"
 
 dnl Checks for header files.
-AC_HEADER_STDC
-AC_HEADER_SYS_WAIT
 AC_SYS_LARGEFILE
-
-AC_CHECK_HEADERS(crypt.h err.h sys/exec.h getopt.h inttypes.h memory.h sys/mman.h sys/param.h sys/pstat.h sys/resource.h sys/select.h sys/syslimits.h sys/sysmips.h sys/sysnews.h sys/time.h time.h)
+AC_CHECK_HEADERS_ONCE(crypt.h err.h getopt.h memory.h sys/mman.h sys/param.h sys/resource.h sys/select.h sys/syslimits.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
-AC_C_CONST
-AC_HEADER_TIME
 AC_TYPE_UID_T
 AC_TYPE_PID_T
-AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 AC_TYPE_OFF_T
 AC_CHECK_TYPES([socklen_t, sa_family_t],,, [#include <sys/types.h>
@@ -43,7 +41,7 @@ AC_CHECK_TYPES([socklen_t, sa_family_t],,, [#include <sys/types.h>
 
 dnl Checks for library functions.
 AC_FUNC_MMAP
-AC_CHECK_FUNCS(setpriority setresgid setresuid setrlimit setsid sigemptyset siginterrupt uname)
+AC_CHECK_FUNCS_ONCE(setpriority setresgid setresuid setrlimit setsid sigemptyset siginterrupt uname)
 
 dnl Checks for functions requiring additional libraries.
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)
@@ -61,7 +59,7 @@ fi
 AS_IF([test "$ac_cv_search_inet_aton" = no], [AC_LIBOBJ(inet_aton)])
 AC_CHECK_FUNC(asprintf,, [AC_LIBOBJ(snprintf)])
 AC_CHECK_FUNC(setegid,,   [AC_LIBOBJ(seteuid)])
-AC_REPLACE_FUNCS(closefrom err killpg memmem mkstemp setenv seteuid setgroups setproctitle srandomdev strlcat strcasestr strerror strlcpy strptime strsep snprintf)
+AC_REPLACE_FUNCS(closefrom err killpg memmem mkstemp seteuid setgroups setproctitle srandomdev strlcat strcasestr strlcpy strptime strsep)
 
 dnl Check in6_addr layout; must follow socket library check.
 AC_CHECK_TYPES(struct in6_addr,,, [#include <netinet/in.h>])
@@ -187,7 +185,7 @@ XS_ARG_DEFAULT(warnings, DUMMY, no, [enable extra compiler warnings])
 # -Wformat-pre-promo is not standard
 if test x${enable_warnings} = xyes
 then
-	CFLAGS="${CFLAGS} -g -ggdb -O2 -fsigned-char -fshort-enums -funroll-loops -std=c99 -pedantic -trigraphs -pipe -Wall -W -Wpointer-arith -Wshadow -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wformat -Wformat-security -Wcomment -Wchar-subscripts -Wcast-align -Waggregate-return -Wnested-externs -Winline -Wundef -Wmissing-noreturn -Wmissing-format-attribute -Wpacked -Wpadded -Wunreachable-code"
+	CFLAGS="${CFLAGS} -g -ggdb -O2 -fsigned-char -fshort-enums -funroll-loops -pedantic -trigraphs -pipe -Wall -W -Wpointer-arith -Wshadow -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wformat -Wformat-security -Wcomment -Wchar-subscripts -Wcast-align -Waggregate-return -Wnested-externs -Winline -Wundef -Wmissing-noreturn -Wmissing-format-attribute -Wpacked -Wunreachable-code"
 fi
 
 XS_ARG_DEFAULT(ssp, DUMMY, no, [enable stack smashing protector])
@@ -203,7 +201,7 @@ then
 fi
 
 dnl Test runs for required global variables.
-AC_CHECK_DECLS([sys_errlist, optarg, environ])
+AC_CHECK_DECLS_ONCE([sys_errlist, optarg, environ])
 
 dnl Generate configure output.
 AC_SUBST(libxs_ldflags)
