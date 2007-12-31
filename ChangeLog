@@ -1,6 +1,11 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.5 beta 29
+- Make CGI header size dynamic (unlimited)
+- Add default PathInfoScripts (imagemap, xschpass)
+- Update manpages
+
 Changes since 3.5 beta 28
 - Fix basic authentication check
 - Fix ldap authentication check

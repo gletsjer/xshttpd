@@ -69,6 +69,8 @@ then arguments will be included in the environment variable
 .Ev QUERY_STRING ,
 but on a
 .Sy POST
+(or
+.Sy PUT )
 request the user data must be read from standard input.
 When handling a
 .Sy HEAD
@@ -103,6 +105,33 @@ If a user has a personal error CGI binary it will be called
 in case an error occurs on a request pertaining to that user.
 Extra environment variables that describe the situation,
 will be available to this error script (see below).
+.Sh FILE UPLOADING
+Apart from the standard
+.Sy GET ,
+.Sy HEAD
+and
+.Sy POST
+methods, HTTP/1.1 allows file uploading and deletion using the
+.Sy PUT
+and
+.Sy DELETE
+methods respectively.
+These methods are required to implement WebDav support.
+The methods must be explicitly handled by CGI scripts if you
+want to support these: there is no built-in default action.
+The scripts can be configured on a per directory  basis using the
+.Sy PutScript
+and
+.Sy DeleteScript
+directives; see the
+.Xr xsconf 5
+configuration file.
+.Pp
+The CGI script (environment) should take care of proper
+sanity checking and permission handling.
+Use of HTTP or SSL authentication is strongly recommended.
+Keep in mind that CGI scripts run with normal user privileges
+and access to all your files.
 .Sh ENVIRONMENT VARIABLES
 The server sets the following environment variables for a
 CGI binary:
