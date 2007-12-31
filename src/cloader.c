@@ -88,7 +88,7 @@ load_config()
 {
 	FILE	*confd;
 	char	line[LINEBUFSIZE], thishostname[NI_MAXHOST];
-	char	**defaultindexfiles;
+	char	**defaultindexfiles, **defaultuidscripts;
 	struct socket_config	*lsock;
 
 	/* default socket for backwards compatibility */
@@ -116,6 +116,11 @@ load_config()
 	defaultindexfiles[1] = strdup("index.htm");
 	defaultindexfiles[2] = strdup("index.php");
 	defaultindexfiles[3] = NULL;
+
+	defaultuidscripts = malloc(3 * sizeof(char *));
+	defaultuidscripts[0] = strdup("/cgi-bin/imagemap");
+	defaultuidscripts[1] = strdup("/cgi-bin/xschpass");
+	defaultuidscripts[2] = NULL;
 
 	if (*config_preprocessor)
 	{
@@ -532,6 +537,8 @@ load_config()
 	}
 	if (!config.system->indexfiles)
 		config.system->indexfiles = defaultindexfiles;
+	if (!config.system->uidscripts)
+		config.system->uidscripts = defaultuidscripts;
 	/* Set up users section */
 	if (!config.users)
 	{

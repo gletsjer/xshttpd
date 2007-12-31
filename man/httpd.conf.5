@@ -38,7 +38,7 @@ to use a configuration file and leaving out an option does
 not mean it will be automatically disabled.
 .Pp
 Options names and their values must be seperated by whitespace.
-Option values in the configuration file should never be quoted
+Option values in the configuration file should not be quoted
 using single or double quotation marks.
 Note that a
 .Ar boolean
@@ -83,7 +83,7 @@ If enabled then filenames and CGI's in a user directory will
 be read and executed with the permissions of that user.
 .It Sy DefaultCharset Ar charset Aq us-ascii
 The chacterset in which text documents will be displayed by
-deafult. This can be overridden locally by
+default. This can be overridden locally by
 .Pa .charset
 files. The
 .Pa .charset
@@ -234,14 +234,20 @@ within a
 .Sy Socket
 block:
 .Bl -tag -width Ds
-.It Sy ListenAddress Ar hostname
+.It Sy ListenAddress Ar hostname Aq
 The hostname or IP-address the webserver should bind on. If
 the hostname resolves to multiple IP-addresses, the
 webserver will only bind to the first address resolved.
-.It Sy ListenPort Ar port
+.It Sy ListenPort Ar port Aq http
 The service name or port number to bind on. If you want to
-listen to multiple ports, you can add more Socket-blocks.
-.It Sy ListenFamily Brq Cm IPv4 Ns No | Ns Cm IPv6
+listen to multiple ports, you can add more Socket blocks.
+The port may be either a number or a service name;
+it defaults to
+.Sy https
+(443) when SSL is enabled for this socket and
+.Sy http
+(80) otherwise.
+.It Sy ListenFamily Bro Cm IPv4 Ns No | Ns Cm IPv6 Brc Aq
 The address family to use:
 .Sy IPv6
 may not be available on all systems. The default is to leave
@@ -252,7 +258,7 @@ systems don't allow binding to multi-family sockets, in
 which case you will need seperate
 .Sy Socket
 blocks for IPv4 and IPv6.
-.It Sy SocketName Ar key
+.It Sy SocketName Ar key Aq
 A socket name is optional and should usually not be
 specified. If such a
 .Ar key
@@ -269,9 +275,8 @@ The number of parallell services to run.
 If enabled, use SSL instead of plain text. This can only be
 used if SSL support is enabled at compile time. If this
 option is set then the https (443) port will be used by
-default, instead of http (80). This option is disabled by
-default. Note that you may include both blocks with and
-without
+default, instead of http (80). Note that you may include
+both blocks with and without
 .Sy UseSSL .
 .It Sy SSLCertificate Ar filename Aq conf/cert.pem
 The location of the x509 certificate to be used for SSL
@@ -286,7 +291,7 @@ In that case the server will prompt for this passphrase when started.
 Do not use passphrase protection when you expect the server to start
 up automatically.
 .It Sy SSLAuthentication Xo
-.Brq Cm none Ns No | Ns Cm optional Ns No | Ns Cm strict
+.Bro Cm none Ns No | Ns Cm optional Ns No | Ns Cm strict Brc Aq none
 .Xc
 This setting indicates whether clients connecting using https
 should sent a client certificate to authenticate themselves.
@@ -319,7 +324,7 @@ is enabled, extra environment variables are available in the
 CGI environment to offer details about the client
 certificate subject and issuing organisation; see
 .Xr httpd_cgi 7 .
-.It Sy SSLCAfile Ar filename
+.It Sy SSLCAfile Ar filename Aq
 The location of the list of x509 root certificates to be
 used for validation of client certificates. This is unset by
 default; although an example
@@ -327,7 +332,7 @@ default; although an example
 file is included in the distribution.
 This may be an absolute path or a path relative to
 .Sy SystemRoot .
-.It Sy SSLCApath Ar directory
+.It Sy SSLCApath Ar directory Aq
 The location of the list of files containing x509 root
 certificates to be used for validation of client certs. This
 is unset by default.
@@ -339,7 +344,7 @@ and
 .Sy SSLCAfile
 may be set, in which case both locations will be checked for
 certification authority certificates.
-.It Sy SSLMatchSDN Ar pcre
+.It Sy SSLMatchSDN Ar pcre Aq
 If
 .Sy SSLAuthentication
 is enabled
@@ -351,7 +356,7 @@ match the client certificate subject as presented in the
 environment variable
 .Ev SSL_CLIENT_S_DN .
 Otherwise the client certificate will be rejected.
-.It Sy SSLMatchIDN Ar pcre
+.It Sy SSLMatchIDN Ar pcre Aq
 If
 .Sy SSLAuthentication
 is enabled
@@ -379,15 +384,14 @@ section. For the
 and
 .Sy Users
 sections it defaults to the name of the machine.
-.It Sy HostAlias Ar hostname Op Ar hostname ...
+.It Sy HostAlias Ar hostname Oo Ar hostname ... Oc Aq
 One or more aliases for the previously mentioned hostname.
-.It Sy PathInfoScripts Ar filename Op Ar filename ...
+.It Sy PathInfoScripts Ar filename Oo Ar filename ... Oc Aq /cgi-bin/imagemap\ /cgi-bin/xschpass
 One or more filenames (URIs) of scripts that should be
 executed using the username path specified in the
 .Ev PATH_INFO
-argument. A good example of such a filename would be
-.Pa /cgi-bin/imagemap .
-.It Sy HtmlDir Ar directory
+argument.
+.It Sy HtmlDir Ar directory Aq htdocs
 The main directory containing all the HTML files. This
 defaults to
 .Sy SystemRoot Ns Pa /htdocs/
@@ -425,28 +429,26 @@ Location where the icons used by
 are to be stored on disk.
 This may be an absolute path or a path relative to
 .Sy SystemRoot .
-.It Sy LogAccess Ar filename
+.It Sy LogAccess Ar filename Aq
 Logfile to use for normal HTTP requests (answered with a
 .Li 2xx
 response). Instead of a filename, it is possible to log to
 an external process using a pipe-symbol and full pathname.
-If the command is followed by options or arguments, make
-sure to quote it using double quotes. For example to enable
-logging through cronolog:
+For example to enable logging through cronolog:
 .Bd -literal
-LogAccess "|/usr/local/sbin/cronolog /wwwsys/logs/access_%Y%m%d"
+LogAccess  |/usr/local/sbin/cronolog /wwwsys/logs/access_%Y%m%d
 .Ed
-.It Sy LogError Ar filename
+.It Sy LogError Ar filename Aq
 Logfile or program to use for HTTP requests that trigger
 errors (like file not found,
 .Li 4xx
 responses).
-.It Sy LogScript Ar filename
+.It Sy LogScript Ar filename Aq
 Logfile used to collect errors generated by CGI scripts.
 This includes all data written to stderr by a user script
 and errors from scripts that cannot be executed or produce
 invalid HTTP response headers.
-.It Sy LogReferer Ar filename
+.It Sy LogReferer Ar filename Aq
 Logfile or program to use for HTTP referrer information. Note that this
 is only used when
 .Sy LogStyle
@@ -455,7 +457,7 @@ is selected - otherwise referrer information will be
 included in the standard
 .Sy LogAccess
 file.
-.It Sy LogRefererIgnoreDomain Ar domain
+.It Sy LogRefererIgnoreDomain Ar domain Aq
 References coming from this
 .Ar domain
 will not be logged in the
@@ -468,7 +470,7 @@ name instead of a domain name. Note: This only affects
 logging where a sperate referrer logfile is used. It will be
 ignored when using more modern logstyles.
 .It Sy LogStyle Xo
-.Brq Cm traditional Ns | Ns Cm combined Ns | Ns Cm virtual
+.Bro Cm traditional Ns | Ns Cm combined Ns | Ns Cm virtual Brc Aq combined
 .Xc
 Defines the logfile format. Traditionally access and
 referrer logs will be split over two different files
@@ -482,19 +484,19 @@ The
 format is basically a combined log with an extra first
 field indicating the virtual hostname that was accessed on
 the webserver.
-.It Sy IndexFiles Ar filename Op Ar filename ...
+.It Sy IndexFiles Ar filename Oo Ar filename ... Oc Aq index.html index.htm index.php
 Defines the filename(s) that should be used when the user
 asks for a directory. The webserver will never autogenerate
 a directory index: you can use
 .Xr xsindex 1
 for that. You can specify multiple filenames seperated by
-commas or whitespace. The default value is
+commas or whitespace. The default value of
 .Ql index.html index.htm index.php
-(meaning that
+means that
 .Pa index.htm
 will only be tried if
 .Pa index.html
-is not present, etc.).
+is not present, etc.
 .Pp
 If this option is omitted for the
 .Sy Virtual or
@@ -503,7 +505,7 @@ section, it will default to the definition in the
 .Sy System
 block, or the previously mentioned default if this is also
 unspecified.
-.It Sy SocketName Ar key
+.It Sy SocketName Ar key Aq
 A socket name is optional and should usually not be
 specified. If such a
 .Ar key
