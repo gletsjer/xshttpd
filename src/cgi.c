@@ -89,8 +89,16 @@ append(char **buffer, int prepend, const char *format, ...)
 	if (!line)
 		return 0;
 
-	slen = buffer && *buffer ? strlen(*buffer) : 0;
-	newbuf = realloc(*buffer, slen + llen + 1);
+	if (buffer && *buffer)
+	{
+		slen = strlen(*buffer);
+		newbuf = realloc(*buffer, slen + llen + 1);
+	}
+	else
+	{
+		slen = 0;
+		newbuf = malloc(slen + llen + 1);
+	}
 	*buffer = newbuf;
 	if (!newbuf)
 	{
