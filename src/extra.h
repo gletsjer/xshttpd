@@ -16,6 +16,5 @@ size_t	qstring_to_array	(char *, char **) NONNULL1;	/* ;q-value strings */
 size_t	qstring_to_arrayp	(char *, char ***) NONNULL1;
 size_t	qstring_to_arraypn	(char *, char ***) NONNULL1;
 size_t	eqstring_to_array	(char *, struct mapping *) NONNULL1;	/* idx=val strings */
-uid_t	valid_user		(const char *) NONNULL WARNUNUSED;
 
 #endif		/* EXTRA_H */

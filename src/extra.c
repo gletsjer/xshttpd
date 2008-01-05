@@ -324,25 +324,3 @@ qstring_to_array(char *value, char **array)
 	return num;
 }
 
-uid_t
-valid_user(const char *user)
-{
-	struct	passwd	*userinfo;
-	char		*shell;
-
-	/* user must exit */
-	if (!user || !(userinfo = getpwnam(user)))
-		return 0;
-	/* ... not be root */
-	if (!userinfo->pw_uid || !userinfo->pw_shell)
-		return 0;
-	/* ... and have a valid login shell */
-	setusershell();
-	while ((shell = getusershell()))
-		if (!strcmp(shell, userinfo->pw_shell))
-			return userinfo->pw_uid;
-	endusershell();
-
-	return 0;
-}
-

@@ -40,7 +40,7 @@
 
 static char *	mknewurl		(const char *, const char *, int);
 #ifdef		HAVE_STRUCT_IN6_ADDR
-static int	v6masktonum		(int, struct in6_addr *);
+static void	v6masktonum		(int, struct in6_addr *);
 #endif		/* HAVE_STRUCT_IN6_ADDR */
 
 static char    *
@@ -90,7 +90,7 @@ mknewurl(const char *old, const char *new, int withproto)
 }
 
 #ifdef		HAVE_STRUCT_IN6_ADDR
-static	int
+static	void
 v6masktonum(int mask, struct in6_addr *addr6)
 {
 	int		x, y, z;
@@ -110,8 +110,6 @@ v6masktonum(int mask, struct in6_addr *addr6)
 			y++;
 		}
 	}
-
-	return 0;
 }
 #endif		/* HAVE_STRUCT_IN6_ADDR */
 

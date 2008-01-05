@@ -25,7 +25,7 @@ static	char	six2pr[64] =
 	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'
 };
 
-int
+bool
 decode(char *str)
 {
 	char		*posd, chr;
@@ -39,28 +39,24 @@ decode(char *str)
 			if (chr == '?')
 			{
 				memmove(posd, poss, strlen(poss) + 1);
-				return(ERR_NONE);
+				return true;
 			}
 			*(posd++) = chr;
 			poss++;
 		}
 		else
 		{
-			unsigned int	top, bottom;
+			int	top = hexdigit(poss[1]);
+			int	bottom = hexdigit(poss[2]);
 
-			if (hexdigit((int)poss[1]) < 0 ||
-				hexdigit((int)poss[2]) < 0)
-			{
-				return(ERR_QUIT);
-			}
-			top = hexdigit((int)poss[1]);
-			bottom = hexdigit((int)poss[2]);
+			if (top < 0 || bottom < 0)
+				return false;
 			*(posd++) = (top << 4) + bottom;
 			poss += 3;
 		}
 	}
 	*posd = 0;
-	return(ERR_NONE);
+	return true;
 }
 
 void
@@ -177,19 +173,20 @@ shellencode(const char *what)
 }
 
 int
-hexdigit(int ch)
+hexdigit(char ch)
 {
 	const	char	*temp;
 	const	char	hexdigits[] = "0123456789ABCDEF";
+	const	int	ich = ch;
 
-	if ((temp = strchr(hexdigits, islower(ch) ? toupper(ch) : ch)))
+	if ((temp = strchr(hexdigits, islower(ich) ? toupper(ich) : ich)))
 		return (temp - hexdigits);
 	else
 		return (-1);
 }
 
 /* sizeof(hex) >= 2 * len + 1 */
-int
+void
 hex_encode(const char *bin, size_t len, char *hex)
 {
 	for (size_t i = 0; i < len; i++)
@@ -207,11 +204,10 @@ hex_encode(const char *bin, size_t len, char *hex)
 			hex[i * 2 + 1] = (j + 'a' - 10);
 	}
 	hex[2 * len] = '\0';
-	return 0;
 }
 
 /* sizeof(bin) >= len / 2 */
-int
+void
 hex_decode(const char *hex, size_t len, char *bin)
 {
 	for (size_t i = 0; i < len; i += 2)
@@ -228,7 +224,6 @@ hex_decode(const char *hex, size_t len, char *bin)
 		else
 			bin[i / 2] |= (j - 'a' + 10);
 	}
-	return 0;
 }
 
 /* sizeof(bin) >= (len * 4 + 2) / 3 + 1 */
@@ -282,7 +277,7 @@ base64_encode(const char *msg, size_t len, char *bin)
 
 #ifdef		HAVE_MD5
 /* sizeof(hash) >= MD5_DIGEST_STRING_LENGTH */
-int
+void
 generate_ha1(const char *user, const char *passwd, char *ha1)
 {
 	char	*a1;
@@ -292,8 +287,6 @@ generate_ha1(const char *user, const char *passwd, char *ha1)
 	len = asprintf(&a1, "%s:%s:%s", user, REALM, passwd);
 	MD5Data((const unsigned char *)a1, len, ha1);
 	free(a1);
-
-	return 0;
 }
 #endif		/* HAVE_MD5 */
 

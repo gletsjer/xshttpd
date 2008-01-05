@@ -921,7 +921,7 @@ process_request()
 
 	alarm(0);
 	params = url;
-	if (decode(params))
+	if (!decode(params))
 	{
 		xserror(500, "Cannot process request");
 		return;
