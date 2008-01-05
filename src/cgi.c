@@ -83,7 +83,13 @@ append(char **buffer, bool prepend, const char * const format, ...)
 	if (!line)
 		return false;
 
-	slen = buffer && *buffer ? strlen(*buffer) : 0;
+	if (!buffer || !*buffer)
+	{
+		*buffer = line;
+		return true;
+	}
+
+	slen = strlen(*buffer);
 	newbuf = realloc(*buffer, slen + llen + 1);
 	*buffer = newbuf;
 	if (!newbuf)
