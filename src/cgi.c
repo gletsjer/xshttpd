@@ -89,7 +89,13 @@ append(char **buffer, int prepend, const char *format, ...)
 	if (!line)
 		return 0;
 
-	slen = buffer && *buffer ? strlen(*buffer) : 0;
+	if (!buffer || !*buffer)
+	{
+		*buffer = line;
+		return 1;
+	}
+
+	slen = strlen(*buffer);
 	newbuf = realloc(*buffer, slen + llen + 1);
 	*buffer = newbuf;
 	if (!newbuf)
@@ -479,6 +485,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		size_t	sz;
 		char	*idx, *val, *head;
 
+		head = NULL;
 		if (readheaders(p[0], &http_headers) < 0)
 		{
 			/* Script header read error */
