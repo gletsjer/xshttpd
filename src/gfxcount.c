@@ -25,14 +25,14 @@ static	void	buildpicture		(void)	NORETURN;
 
 typedef	struct
 {
-	int		size_x, size_y;
+	unsigned int	size_x, size_y;
 	char		*fontdata;
 } font;
 
 static	const	char	*pathtranslated, *querystring;
 static	char		dirname[XS_PATH_MAX], filename[XS_PATH_MAX];
 static	font		digit[10];
-static	int		max_x, max_y;
+static	unsigned int	max_x, max_y;
 
 static	void
 xserror(const char *status, const char *message)
@@ -50,7 +50,8 @@ loaddigit(int num)
 {
 	FILE		*file;
 	char		buffer[BUFSIZ], words[4][BUFSIZ], *search;
-	int		word, size;
+	int		word;
+	size_t		size;
 
 	snprintf(filename, XS_PATH_MAX, "%s%d.ppm", dirname, num);
 	if (!(file = fopen(filename, "r")))
@@ -163,7 +164,8 @@ buildpicture()
 {
 	const	char	*search;
 	char		*data, header[BUFSIZ];
-	int		number, pos_x, y, font_width, fd, p[2];
+	unsigned int	number, pos_x, y, font_width;
+	int		fd, p[2];
 
 	if (!(data = (char *)malloc(max_x * max_y * 3)))
 		xserror("500 Out of memory",

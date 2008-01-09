@@ -63,7 +63,8 @@ void
 uudecode(char *buffer)
 {
 	unsigned char	pr2six[256], bufplain[32], *bufout = bufplain;
-	int		nbytesdecoded, nprbytes;
+	unsigned int	nbytesdecoded;
+	int		nprbytes;
 	char		*bufin = buffer;
 
 	for (int j = 0; j < 256; j++)
@@ -148,10 +149,9 @@ urlencode(const char *what)
 		if (isalnum(*p))
 			*q++ = *p;
 		else
-			q += sprintf(q, "%%%02x",
-				(unsigned int)(unsigned char)*p);
+			q += sprintf(q, "%%%02hhx", (unsigned char)*p);
 	*q++ = '\0';
-	return realloc(buffer, q - buffer);
+	return realloc(buffer, (size_t)(q - buffer));
 }
 
 char	*
@@ -169,7 +169,7 @@ shellencode(const char *what)
 			*q++ = *p;
 		}
 	*q++ = '\0';
-	return realloc(buffer, q - buffer);
+	return realloc(buffer, (size_t)(q - buffer));
 }
 
 int

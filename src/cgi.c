@@ -310,8 +310,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			/* let shell handle engines containing metacharacters */
 			if (engine[strcspn(engine, meta)])
 			{
-				int		len, pos;
-				char	*buffer, *pengine;
+				unsigned int	len, pos;
+				char		*buffer, *pengine;
 
 				len = 2 + strlen(engine) + strlen(fullpath);
 				if ((buffer = (char *)malloc(len)))
@@ -321,7 +321,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					{
 						pos = pengine - engine;
 						snprintf(buffer, len, "%*.*s%s%s", pos, pos,
-								engine, fullpath, pengine + 2);
+							engine, fullpath, pengine + 2);
 					}
 					else
 						snprintf(buffer, len, "%s %s", engine, fullpath);

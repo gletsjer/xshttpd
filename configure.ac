@@ -186,7 +186,7 @@ fi
 
 dnl User may tweak compilation behaviour.
 XS_ARG_DEFAULT(warnings, DUMMY, no, [enable extra compiler warnings])
-# -Wformat-pre-promo is not standard
+# -Wformat-pre-promo is not standard, -Wconversion -Wpadded too verbose
 if test x${enable_warnings} = xyes
 then
 	CFLAGS="${CFLAGS} -g -ggdb -O2 -fsigned-char -fshort-enums -funroll-loops -pedantic -trigraphs -pipe -Wall -W -Wpointer-arith -Wshadow -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wformat -Wformat-security -Wcomment -Wchar-subscripts -Wcast-align -Waggregate-return -Wnested-externs -Winline -Wundef -Wmissing-noreturn -Wmissing-format-attribute -Wpacked -Wunreachable-code"

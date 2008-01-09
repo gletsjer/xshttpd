@@ -40,7 +40,7 @@
 
 static char *	mknewurl		(const char *, const char *, int);
 #ifdef		HAVE_STRUCT_IN6_ADDR
-static void	v6masktonum		(int, struct in6_addr *);
+static void	v6masktonum		(unsigned int, struct in6_addr *);
 #endif		/* HAVE_STRUCT_IN6_ADDR */
 
 static char    *
@@ -91,9 +91,9 @@ mknewurl(const char *old, const char *new, int withproto)
 
 #ifdef		HAVE_STRUCT_IN6_ADDR
 static	void
-v6masktonum(int mask, struct in6_addr *addr6)
+v6masktonum(unsigned int mask, struct in6_addr *addr6)
 {
-	int		x, y, z;
+	unsigned int		x, y, z;
 
 	for (x = 0; x < 4; x++)
 		addr6->s6_addr32[x] = 0;
@@ -273,7 +273,7 @@ check_allow_host(const char *hostname, char *pattern)
 		inet_aton(hostname, &remote);
 		inet_aton(pattern, &allow);
 
-#define	IPMASK(addr, sub) (addr.s_addr & htonl(~((1 << (32 - subnet)) - 1)))
+#define	IPMASK(addr, sub) (addr.s_addr & htonl(~((1 << (32 - (sub))) - 1)))
 		if (IPMASK(remote, subnet) == IPMASK(allow, subnet))
 			return true;
 	}

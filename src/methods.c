@@ -970,7 +970,7 @@ do_get(char *params)
 	}
 	if (stat(total, &statbuf))
 	{
-		int	templen = sizeof(total) - strlen(total);
+		unsigned int	templen = sizeof(total) - strlen(total);
 
 		csearch = ctype;
 		temp = total + strlen(total);

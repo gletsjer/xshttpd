@@ -76,7 +76,7 @@ initssl()
 		(const unsigned char *)SERVER_IDENT, sizeof(SERVER_IDENT));
 	if (SSL_accept(cursock->ssl) < 0)
 	{
-		int	readerror;
+		unsigned long	readerror;
 
 		if ((readerror = ERR_get_error()))
 			warnx("SSL accept error: %s",
@@ -236,7 +236,7 @@ pem_passwd_cb(char *buf, int size, int rwflag, void *userdata)
 		(char *)userdata);
 	if (!(passphrase = getpass("Passphrase: ")))
 		return 0;
-	strlcpy(buf, passphrase, size);
+	strlcpy(buf, passphrase, (size_t)size);
 	memset(passphrase, '\0', strlen(passphrase));
 
 	(void) rwflag;
@@ -393,7 +393,7 @@ secread_internal(int fd, void *buf, size_t count)
 
 		while ((ret = SSL_read(cursock->ssl, buf, count)) <= 0)
 		{
-			int	s_err = SSL_get_error(cursock->ssl, ret);
+			unsigned long	s_err = SSL_get_error(cursock->ssl, ret);
 
 			switch (s_err)
 			{
@@ -488,7 +488,7 @@ secwrite(const char *buf, size_t count)
 #ifdef		HANDLE_SSL
 		if (cursock->usessl)
 		{
-			int		s_err;
+			unsigned long	s_err;
 			ssize_t		ret;
 
 			while ((ret = SSL_write(cursock->ssl, message[i], len[i])) <= 0)
@@ -570,11 +570,11 @@ secprintf(const char *format, ...)
 ssize_t
 secread(int rd, void *buf, size_t len)
 {
-	const long	inbuffer = netbufsiz - netbufind;
+	const size_t	inbuffer = netbufsiz - netbufind;
 
 	if (inbuffer > 0)
 	{
-		if ((long)len >= inbuffer)
+		if (len >= inbuffer)
 		{
 			memcpy(buf, &netbuf[netbufind], inbuffer);
 			netbufsiz = netbufind = 0;
@@ -656,7 +656,7 @@ readheaders(int rd, struct maplist *headlist)
 			break;
 		if (isspace(input[0]))
 		{
-			int	len;
+			size_t	len;
 			char	*val;
 
 			/* continue previous header */
@@ -686,7 +686,7 @@ readheaders(int rd, struct maplist *headlist)
 					continue;
 				if (!strcasecmp(idx, input))
 				{
-					int	len;
+					size_t	len;
 					char	*val;
 					
 					val = headlist->elements[sz].value;

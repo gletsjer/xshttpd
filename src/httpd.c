@@ -1492,7 +1492,8 @@ setup_environment()
 int
 main(int argc, char **argv)
 {
-	int			option, num;
+	int			option;
+	size_t			num;
 	bool			nolog = false;
 	enum { opt_port, opt_dir, opt_host };
 	char *		longopt[6] = { NULL, NULL, NULL, NULL, NULL, NULL };
