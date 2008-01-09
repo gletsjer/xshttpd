@@ -47,11 +47,13 @@ pcre_subst(const char * const string, const char * const pattern, const char * c
 	pcre_get_substring_list(string, ovector, rc, &list);
 	for (prev = replacement; (next = strchr(prev, '\\')); prev = next + 2)
 	{
-		int	loc = next[1] - '0';
+		const size_t	len = next - prev;
+		const int	loc = next[1] - '0';
+
 		if (loc < 0 || loc > 9 || loc >= rc)
 			continue;
-		if (next > prev && strlen(result) + (next - prev) < BUFSIZ)
-			strncat(result, prev, next - prev);
+		if (next > prev && strlen(result) + len < BUFSIZ)
+			strncat(result, prev, len);
 		strlcat(result, list[loc], BUFSIZ);
 	}
 	strlcat(result, prev, BUFSIZ);

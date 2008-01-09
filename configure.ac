@@ -186,10 +186,13 @@ fi
 
 dnl User may tweak compilation behaviour.
 XS_ARG_DEFAULT(warnings, DUMMY, no, [enable extra compiler warnings])
-# -Wformat-pre-promo is not standard, -Wconversion -Wpadded too verbose
-if test x${enable_warnings} = xyes
+if test x${enable_warnings} != xno
 then
 	CFLAGS="${CFLAGS} -g -ggdb -O2 -fsigned-char -fshort-enums -funroll-loops -pedantic -trigraphs -pipe -Wall -W -Wpointer-arith -Wshadow -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wformat -Wformat-security -Wcomment -Wchar-subscripts -Wcast-align -Waggregate-return -Wnested-externs -Winline -Wundef -Wmissing-noreturn -Wmissing-format-attribute -Wpacked -Wunreachable-code"
+	if test x${enable_warnings} = xextra
+	then
+		CFLAGS="${CFLAGS} -Wconversion -Wpadded"
+	fi
 fi
 
 XS_ARG_DEFAULT(ssp, DUMMY, no, [enable stack smashing protector])
