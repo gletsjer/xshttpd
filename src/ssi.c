@@ -81,7 +81,8 @@ static	int	sendwithdirectives_internal (int, off_t *);
 #define		CONDKEYWORDS	16
 #define		SETVARIABLES	200
 #define		SSIARGUMENTS	100
-static	int	ssioutput, cnt_readbefore, numincludes;
+static	bool	cnt_readbefore;
+static	unsigned int	ssioutput, numincludes;
 static	char	ssiarray[CONDKEYWORDS];
 static	char	*switchstr;
 static	int	setvarlen;
@@ -245,17 +246,19 @@ xsc_counter(countermode mode, const char *args, off_t *size)
 
 	if (cnt_readbefore)
 		goto ALREADY;
-	cnt_readbefore = 1; timer = 0;
+	cnt_readbefore = true;
+
+	timer = 0;
 	counter.total = counter.today = counter.month = 0;
 	counter.lastseen = (time_t)0;
 
-reopen:
+	REOPEN:
 	if ((fd = open(calcpath(CNT_DATA), O_RDWR,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
 	{
 		if (!xsc_initdummy(size))
 			return false;
-		goto reopen;
+		goto REOPEN;
 	}
 
 	if ((total = lseek(fd, (off_t)0, SEEK_END)) == -1)
@@ -272,7 +275,7 @@ reopen:
 		close(fd);
 		if (!xsc_initdummy(size))
 			return false;
-		goto reopen;
+		goto REOPEN;
 	}
 
 	x = 0; z = total - 1; y = z / 2; comp = 1;
@@ -310,7 +313,7 @@ reopen:
 		already = true;
 		if (!xsc_initcounter(filename, size))
 			return false;
-		goto reopen;
+		goto REOPEN;
 	}
 
 	counter.total++; counter.today++; counter.month++;
@@ -344,7 +347,8 @@ reopen:
 		return false;
 	}
 	close(fd);
-ALREADY:
+
+	ALREADY:
 	switch(mode)
 	{
 	case MODE_ALL:
@@ -374,7 +378,7 @@ ALREADY:
 	case MODE_RESET:
 		if (counter.total > 0)
 			/* This is quite redundant... Let's think of a better way */
-			goto reopen;
+			goto REOPEN;
 		*size += secprintf("[reset stats counter]");
 		break;
 	}
@@ -1057,13 +1061,13 @@ static	bool
 print_enabled()
 {
 	bool		output;
-	int		count;
+	unsigned int	count;
 
-	output = false;
+	output = true;
 	for (count = 0; count <= ssioutput; count++)
 		if (!ssiarray[count])
-			output = true;
-	return(output);
+			output = false;
+	return output;
 }
 
 static	int
@@ -1210,7 +1214,8 @@ sendwithdirectives(int fd, off_t *size)
 	int	ret;
 
 	ssioutput = 0; ssiarray[0] = 1;
-	cnt_readbefore = numincludes = 0;
+	cnt_readbefore = false;
+	numincludes = 0;
 	setvarlen = 0;
 	switchstr = NULL;
 	ret = sendwithdirectives_internal(fd, size);
