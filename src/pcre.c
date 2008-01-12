@@ -22,10 +22,8 @@ pcre_subst(const char * const string, const char * const pattern, const char * c
 	if (!(match = strcasestr(string, pattern)))
 		return NULL;
 
-	asprintf(&result, BUFSIZ, "%.*s%s%s", (int)(match - string),
-		string,
-		replacement,
-		match + strlen(pattern));
+	asprintf(&result, "%.*s%s%s", (int)(match - string), string,
+		replacement, match + strlen(pattern));
 
 	return result;
 #else		/* Not Not HAVE_PCRE */

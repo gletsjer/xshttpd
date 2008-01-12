@@ -58,7 +58,7 @@ but not able to overwrite your data - nor should it be able to write logfiles */
 #define MAXLISTEN	50
 
 /* Assumed maximum pathlength. Use C99 define */
-#define	XS_PATH_MAX	FILENAME_MAX
+#define	XS_PATH_MAX	((size_t)FILENAME_MAX)
 
 /* Assume user/group name maximum length */
 #define	XS_USER_MAX	32
