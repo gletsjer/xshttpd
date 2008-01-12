@@ -481,8 +481,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 		{
 			if (ldap.uri)
 				free(ldap.uri);
-			ldap.uri = malloc(8 + strlen(value));
-			sprintf(ldap.uri, "ldap://%s", value);
+			asprintf(&ldap.uri, "ldap://%s", value);
 		}
 		else if (!strcasecmp(name, "LdapURI"))
 		{

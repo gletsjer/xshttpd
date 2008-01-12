@@ -2,6 +2,7 @@
 /* Copyright (C) 1998-2007 by Johan van Selst (johans@stack.nl) */
 
 #include	"config.h"
+#include	"malloc.h"
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -85,8 +86,7 @@ loadmime(const char *name)
 			*(--end) = 0;
 		if (!buffer[0])
 			continue;
-		if (!(new = (mime *)malloc(sizeof(mime))))
-			errx(1, "Out of memory in loadmime()");
+		MALLOC(new, mime, 1);
 		if (sscanf(buffer, "%s %s %s %s %[^\n]\n", new->type,
 			new->ext, new->icon, new->alt, new->small) != 5)
 		{
@@ -218,7 +218,7 @@ main(int argc, char **argv)
 			}
 			break;
 		case 'x':
-			exhead = malloc(sizeof(exlist));
+			MALLOC(exhead, exlist, 1);
 			exhead->next = exclude;
 			exhead->pattern = optarg;
 			exclude = exhead;
@@ -237,8 +237,7 @@ main(int argc, char **argv)
 	if (!(ls = popen("ls -a", "r")))
 		err(1, "popen(`ls -a', `r')");
 	amount = 0;
-	if (!(listing = (char **)malloc(16 * sizeof(char *))))
-		errx(1, "Out of memory");
+	MALLOC(listing, char *, 16);
 	while (fgets(buffer, BUFSIZ, ls))
 	{
 		bool skip = false;
@@ -268,11 +267,7 @@ main(int argc, char **argv)
 		if (max_filename < strlen(listing[amount]))
 			max_filename = strlen(listing[amount]);
 		if (!((amount + 1) & 0xf))
-		{
-			if (!(listing = (char **)realloc(listing,
-				(amount + 17) * sizeof(char *))))
-				errx(1, "Out of memory");
-		}
+			REALLOC(listing, char *, amount + 17);
 		if (stat(listing[amount], &statbuf))
 			err(1, "stat(`%s')", listing[amount]);
 		if (S_ISDIR(statbuf.st_mode))

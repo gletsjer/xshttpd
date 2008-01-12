@@ -27,6 +27,7 @@
 #include	"ssl.h"
 #include	"extra.h"
 #include	"methods.h"
+#include	"malloc.h"
 
 #ifdef		HAVE_PCRE
 #include		"pcre.h"
@@ -237,7 +238,7 @@ pem_passwd_cb(char *buf, int size, int rwflag, void *userdata)
 	if (!(passphrase = getpass("Passphrase: ")))
 		return 0;
 	strlcpy(buf, passphrase, (size_t)size);
-	memset(passphrase, '\0', strlen(passphrase));
+	memset(passphrase, 0, strlen(passphrase));
 
 	(void) rwflag;
 	(void) userdata;
@@ -666,7 +667,7 @@ readheaders(int rd, struct maplist *headlist)
 
 			val = headlist->elements[headlist->size-1].value;
 			len = strlen(val) + strlen(value) + 2;
-			val = realloc(val, len);
+			REALLOC(val, char, len);
 			strcat(val, " ");
 			strcat(val, value);
 			headlist->elements[headlist->size-1].value = val;
@@ -691,7 +692,7 @@ readheaders(int rd, struct maplist *headlist)
 					
 					val = headlist->elements[sz].value;
 					len = strlen(val) + strlen(value) + 3;
-					val = realloc(val, len);
+					REALLOC(val, char, len);
 					strcat(val, ", ");
 					strcat(val, value);
 					headlist->elements[sz].value = val;
@@ -701,8 +702,8 @@ readheaders(int rd, struct maplist *headlist)
 			/* add new header */
 			if (sz == headlist->size)
 			{
-				headlist->elements = realloc(headlist->elements,
-					(sz + 1) * sizeof(struct mapping));
+				REALLOC(headlist->elements,
+					struct mapping, sz + 1);
 				headlist->elements[sz].index = strdup(input);
 				headlist->elements[sz].value = strdup(value);
 				headlist->size++;
@@ -711,8 +712,7 @@ readheaders(int rd, struct maplist *headlist)
 		else if (!headlist->size)
 		{
 			/* first 'status' line is special */
-			headlist->elements = realloc(headlist->elements,
-					sizeof(struct mapping));
+			MALLOC(headlist->elements, struct mapping, 1);
 			headlist->elements[0].index = strdup("Status");
 			headlist->elements[0].value = strdup(input);
 			headlist->size = 1;

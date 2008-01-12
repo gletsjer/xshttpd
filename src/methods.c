@@ -57,6 +57,7 @@
 #include	"pcre.h"
 #include	"authenticate.h"
 #include	"xsfiles.h"
+#include	"malloc.h"
 
 #ifdef		HAVE_LIBMD
 MD5_CTX		*md5context;
@@ -428,7 +429,7 @@ senduncompressed(int fd)
 			ssize_t		readtotal;
 			off_t		writetotal;
 
-			buffer = malloc(100 * RWBUFSIZE);
+			MALLOC(buffer, char, 100 * RWBUFSIZE);
 			writetotal = 0;
 			/* alarm((size / MINBYTESPERSEC) + 20); */
 			alarm(0);
@@ -463,7 +464,7 @@ senduncompressed(int fd)
 #ifdef		HAVE_LIBMD
 			if (config.usecontentmd5 && trailers)
 			{
-				md5context = malloc(sizeof(MD5_CTX));
+				MALLOC(md5context, MD5_CTX, 1);
 				MD5Init(md5context);
 			}
 #endif		/* HAVE_LIBMD */
@@ -1250,7 +1251,7 @@ do_post(char *params)
 				"ENTITY_TOO_LARGE");
 			return;
 		}
-		rbuf = malloc(rlen + 1);
+		MALLOC(rbuf, char, rlen + 1);
 		secread(0, rbuf, rlen);
 		free(rbuf);
 	}
@@ -1313,7 +1314,7 @@ do_trace(const char *params)
 		return;
 	}
 	mlen = LINEBUFSIZE;
-	output = malloc(mlen);
+	MALLOC(output, char, mlen);
 
 	if (num && !strcasecmp(http_headers.elements[0].index, "Status"))
 		outlen = snprintf(output, mlen, "%s\r\n",
@@ -1330,7 +1331,7 @@ do_trace(const char *params)
 		if (outlen + strlen(idx) + strlen(val) + 4 >= mlen)
 		{
 			mlen += RWBUFSIZE;
-			output = realloc(output, mlen);
+			REALLOC(output, char, mlen);
 		}
 		outlen += sprintf(&output[outlen], "%s: %s\r\n", idx, val);
 	}
@@ -1458,8 +1459,7 @@ loadfiletypes(char *orgbase, char *base)
 		{
 			if (!*ext)
 				continue;
-			if (!(new = (ftypes *)malloc(sizeof(ftypes))))
-				err(1, "Out of memory in loadfiletypes()");
+			MALLOC(new, ftypes, 1);
 			if (prev)
 				prev->next = new;
 			else if (base)
@@ -1512,8 +1512,7 @@ loadcompresstypes()
 			*(--end) = 0;
 		if (line == end)
 			continue;
-		if (!(new = (ctypes *)malloc(sizeof(ctypes))))
-			err(1, "Out of memory in loadcompresstypes()");
+		MALLOC(new, ctypes, 1);
 		if (prev)
 			prev->next = new;
 		else
@@ -1529,7 +1528,6 @@ loadcompresstypes()
 void
 loadscripttypes(char *orgbase, char *base)
 {
-	char		*path;
 	FILE		*methods;
 
 	if (orgbase && base)
@@ -1540,25 +1538,17 @@ loadscripttypes(char *orgbase, char *base)
 			{ ctypes *n = litype->next; free(litype); litype = n; }
 		if (ditype)
 			{ free(ditype); ditype = NULL; }
-		path = (char *)malloc(strlen(base) + 12);
 		if (!(cffile = find_file(orgbase, base, ".xsscripts")) ||
-			!(methods = fopen(cffile, "r")))
-		{
-			free(path);
+				!(methods = fopen(cffile, "r")))
 			return;
-		}
 	}
 	else
 	{
 		while (itype)
 			{ ctypes *n = itype->next; free(itype); itype = n; }
-		path = strdup(calcpath(SCRIPT_METHODS));
-		if (!(methods = fopen(path, "r")))
-		{
+		if (!(methods = fopen(calcpath(SCRIPT_METHODS), "r")))
 			/* missing script.methods is not fatal */
-			free(path);
 			return;
-		}
 	}
 
 	/* DECL */
@@ -1585,10 +1575,9 @@ loadscripttypes(char *orgbase, char *base)
 		if (!strncmp(line, "internal:python", 15))
 			continue;
 #endif		/* HAVE_PYTHON */
-		if (!(new = (ctypes *)malloc(sizeof(ctypes))))
-			err(1, "Out of memory in loadscripttypes()");
+		MALLOC(new, ctypes, 1);
 		if (sscanf(line, "%s %s", new->prog, new->ext) != 2)
-			errx(1, "Unable to parse `%s' in `%s'", line, path);
+			errx(1, "Unable to parse `%s' in script types", line);
 		new->next = NULL;
 		if (!strcmp(new->ext, "*"))
 		{
@@ -1609,7 +1598,6 @@ loadscripttypes(char *orgbase, char *base)
 			prev = new;
 		}
 	}
-	free(path);
 	fclose(methods);
 }
 
@@ -1641,8 +1629,9 @@ getfiletype(bool print)
 			{
 				size_t	len = strlen(search->name) + 1;
 
-				cfvalues.mimetype =
-					realloc(cfvalues.mimetype, len);
+				if (cfvalues.mimetype)
+					free(cfvalues.mimetype);
+				MALLOC(cfvalues.mimetype, char, len);
 				strlcpy(cfvalues.mimetype, search->name, len);
 
 				if (!cfvalues.charset &&

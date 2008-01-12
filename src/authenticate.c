@@ -20,6 +20,7 @@
 #include	"authenticate.h"
 #include	"ldap.h"
 #include	"extra.h"
+#include	"malloc.h"
 
 char		authentication[MYBUFSIZ];
 static unsigned long	secret;
@@ -149,7 +150,7 @@ check_digest_auth(const char *authfile, bool *stale)
 	fields = eqstring_to_array(line, NULL);
 	if (!fields)
 		return false;
-	authreq = (struct mapping *)malloc(fields * sizeof (struct mapping));
+	MALLOC(authreq, struct mapping, fields);
 	fields = eqstring_to_array(line, authreq);
 	user = realm = nonce = cnonce = uri = response = qop = nc = NULL;
 	for (sz = 0; sz < fields; sz++)

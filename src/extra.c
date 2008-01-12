@@ -16,6 +16,7 @@
 #include	"htconfig.h"
 #include	"extra.h"
 #include	"httpd.h"
+#include	"malloc.h"
 
 static size_t	internal_xstring_to_arrayp(char *, char ***, size_t (*)(char *, char **)) WARNUNUSED;
 static size_t	internal_xstring_to_arraypn(char *, char ***, size_t (*)(char *, char **)) WARNUNUSED;
@@ -169,12 +170,10 @@ static size_t
 internal_xstring_to_arrayp(char *value, char ***array, size_t (*xstring_to_array)(char *, char **))
 {
 	size_t	sz;
-	char	**p;
 
 	sz = xstring_to_array(value, NULL);
-	p = realloc(*array, sz * sizeof(char *));
-	sz = xstring_to_array(value, p);
-	*array = p;
+	REALLOC(*array, char *, sz);
+	sz = xstring_to_array(value, *array);
 	return sz;
 }
 
@@ -182,15 +181,13 @@ static size_t
 internal_xstring_to_arraypn(char *value, char ***array, size_t (*xstring_to_array)(char *, char **))
 {
 	size_t	sz;
-	char	**p;
 
 	sz = internal_xstring_to_arrayp(value, array, xstring_to_array);
 	if (!sz)
 		return sz;
 
-	p = realloc(*array, (sz + 1) * sizeof(char *));
-	p[sz] = NULL;
-	*array = p;
+	REALLOC(*array, char *, sz + 1);
+	(*array)[sz] = NULL;
 	return sz;
 }
 
@@ -284,7 +281,7 @@ qstring_to_array(char *value, char **array)
 						first = 0;
 						if (array)
 						{
-							term = malloc(vlen + 1);
+							MALLOC(term, char, vlen + 1);
 							strlcpy(term, p, vlen + 1);
 						}
 						num++;

@@ -203,9 +203,7 @@ void begin_request(fcgi_server* server) {
 int init_env(fcgi_env* env) {
 	env->buffer_size = 1024; 
 	env->env_size = 0;
-	env->buffer = (char*)malloc(env->buffer_size);
-	if (env->buffer == NULL)
-		return -1;
+	MALLOC(env->buffer, char, env->buffer_size);
 	return 0;
 }
 
@@ -232,10 +230,7 @@ int set_env(fcgi_env* env, const char* name, const char* value) {
 	
 	if (env->env_size + 8 + name_len + value_len < env->buffer_size) {
 		env->buffer_size += MAX(1024, 8 + name_len + value_len);
-		env->buffer = (char*)realloc(env->buffer, env->buffer_size);
-		if (NULL == env->buffer) {
-			return -1;
-		}
+		REALLOC(env->buffer, char, env->buffer_size);
 	}
 	
 	p = env->buffer + env->env_size;
@@ -385,13 +380,7 @@ ssize_t send_stream(fcgi_server* server, ssize_t length, unsigned char stream_id
 
 	n = MIN(FCGI_MAX_BUFFER, length);
 
-	buffer = (char*)malloc(n);
-
-	if (NULL == buffer) {
-		return -1;
-	}
-	
-	n = secread(fd, buffer, n);
+	MALLOC(buffer, char, n);
 
 	if (n <= 0) {
 		free(buffer);
@@ -433,11 +422,7 @@ ssize_t recv_stream(fcgi_server* server, ssize_t length, int fd) {
 	if (length == 0)
 		return 0;
 
-	buffer = (char*)malloc(n);
-
-	if (NULL == buffer) {
-		return -1;
-	}
+	MALLOC(buffer, char, n);
 
 	n = read(server->socket, buffer, n);
 

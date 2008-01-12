@@ -69,6 +69,7 @@
 #include	"convert.h"
 #include	"authenticate.h"
 #include	"ldap.h"
+#include	"malloc.h"
 
 static char copyright[] = "Copyright 1995-2007 Sven Berkvens, Johan van Selst";
 
@@ -88,7 +89,7 @@ static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[RWBUFSIZE],
 		message503[MYBUFSIZ], orig[MYBUFSIZ],
 		*startparams;
 #define CLEANENV do { \
-	environ = malloc(sizeof(char *));\
+	MALLOC(environ, char *, 1);\
 	*environ = NULL; } while (0)
 
 /* Prototypes */
@@ -1234,9 +1235,8 @@ standalone_socket(int id)
 	{
 		/* can only be called after listen() */
 #ifdef		SO_ACCEPTFILTER
-		struct	accept_filter_arg	afa;
-		bzero(&afa, sizeof(afa));
-		strcpy(afa.af_name, "httpready");
+		struct	accept_filter_arg	afa = { .af_name = "httpready" };
+
 		if ((setsockopt(sd, SOL_SOCKET, SO_ACCEPTFILTER, &afa, sizeof(afa))) == -1)
 		{
 			warn("setsockopt(ACCEPTFILTER) - missing accf_http(9)?");
@@ -1246,8 +1246,7 @@ standalone_socket(int id)
 		}
 #else		/* SO_ACCEPTFILTER */
 # ifdef		TCP_DEFER_ACCEPT
-		temp = 180;
-		if ((setsockopt(sd, SOL_TCP, TCP_DEFER_ACCEPT, &temp, sizeof(temp))) == -1)
+		if ((setsockopt(sd, SOL_TCP, TCP_DEFER_ACCEPT, (int[]){180}, sizeof(int))) == -1)
 			warn("setsockopt(TCP_DEFER_ACCEPT)");
 # endif		/* TCP_DEFER_ACCEPT */
 #endif		/* SO_ACCEPTFILTER */
@@ -1256,14 +1255,13 @@ standalone_socket(int id)
 #ifdef		HAVE_SETRLIMIT
 	/* local block */
 	{
-		struct	rlimit		limit;
+		const struct	rlimit		limit =
+			{ .rlim_cur = RLIM_INFINITY, .rlim_max = RLIM_INFINITY };
 
 # ifdef		RLIMIT_NPROC
-		limit.rlim_max = limit.rlim_cur = RLIM_INFINITY;
 		setrlimit(RLIMIT_NPROC, &limit);
 # endif		/* RLIMIT_NPROC */
 # ifdef		RLIMIT_CPU
-		limit.rlim_max = limit.rlim_cur = RLIM_INFINITY;
 		setrlimit(RLIMIT_CPU, &limit);
 # endif		/* RLIMIT_CPU */
 	}
@@ -1271,8 +1269,7 @@ standalone_socket(int id)
 
 	set_signals();
 	reqs = 0;
-	if (!(childs = (pid_t *)malloc(sizeof(pid_t) * cursock->instances)))
-		err(1, "malloc() failed");
+	MALLOC(childs, pid_t, cursock->instances);
 
 	for (count = 0; count < cursock->instances; count++)
 	{
@@ -1493,21 +1490,21 @@ int
 main(int argc, char **argv)
 {
 	int			option;
-	size_t			num;
-	bool			nolog = false;
-	enum { opt_port, opt_dir, opt_host };
-	char *		longopt[6] = { NULL, NULL, NULL, NULL, NULL, NULL };
+	size_t		num;
+	bool		nolog = false;
+	enum		{ opt_port, opt_dir, opt_host };
+	char		*longopt[] = { [2] = NULL };
 	uid_t		uid = 0;
 	gid_t		gid = 0;
 
 	origeuid = geteuid(); origegid = getegid();
 	memset(&config, 0, sizeof config);
 
-	for (num = option = 0; option < argc; option++)
+	num = 0;
+	for (option = 0; option < argc; option++)
 		num += (1 + strlen(argv[option]));
-	if (!(startparams = (char *)malloc(num)))
-		err(1, "Cannot malloc memory for startparams");
-	*startparams = 0;
+	MALLOC(startparams, char, num);
+	startparams[0] = '\0';
 	for (option = 0; option < argc; option++)
 	{
 		strlcat(startparams, argv[option], num);

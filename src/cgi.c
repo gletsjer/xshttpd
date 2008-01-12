@@ -44,6 +44,7 @@
 #include	"cgi.h"
 #include	"htconfig.h"
 #include	"extra.h"
+#include	"malloc.h"
 
 static	void		time_is_up(int)	NORETURN;
 static	bool		append(char **, bool, const char * const format, ...)	PRINTF_LIKE(3,4);
@@ -90,8 +91,8 @@ append(char **buffer, bool prepend, const char * const format, ...)
 	}
 
 	slen = strlen(*buffer);
-	newbuf = realloc(*buffer, slen + llen + 1);
-	*buffer = newbuf;
+	REALLOC(*buffer, char, slen + llen + 1);
+	newbuf = *buffer;
 	if (!newbuf)
 	{
 		free(line);
@@ -314,20 +315,18 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				char		*buffer, *pengine;
 
 				len = 2 + strlen(engine) + strlen(fullpath);
-				if ((buffer = (char *)malloc(len)))
+				MALLOC(buffer, char, len);
+				/* optional %f indicates filename */
+				if ((pengine = strstr(engine, "%f")))
 				{
-					/* optional %f indicates filename */
-					if ((pengine = strstr(engine, "%f")))
-					{
-						pos = pengine - engine;
-						snprintf(buffer, len, "%*.*s%s%s", pos, pos,
-							engine, fullpath, pengine + 2);
-					}
-					else
-						snprintf(buffer, len, "%s %s", engine, fullpath);
-					(void) execl("/bin/sh", "sh", "-c", buffer, NULL);
-					free(buffer);
+					pos = pengine - engine;
+					snprintf(buffer, len, "%*.*s%s%s", pos, pos,
+						engine, fullpath, pengine + 2);
 				}
+				else
+					snprintf(buffer, len, "%s %s", engine, fullpath);
+				(void) execl("/bin/sh", "sh", "-c", buffer, NULL);
+				free(buffer);
 			}
 			else
 				(void) execl(engine, engine, fullpath, argv1, NULL);
@@ -378,7 +377,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				break;
 			}
 			/* two bytes extra for trailing \r\n */
-			cbuf = realloc(cbuf, chunksz + 2);
+			REALLOC(cbuf, char, chunksz + 2);
 			if (!cbuf)
 				goto END;
 			if (secread(0, cbuf, chunksz + 2) < 0)

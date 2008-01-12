@@ -1,7 +1,6 @@
 /* Copyright (C) 2005-2007 by Johan van Selst (johans@stack.nl) */
 
 #include	"config.h"
-#include	"pcre.h"
 
 #include	<stdio.h>
 #include	<string.h>
@@ -9,6 +8,9 @@
 #ifdef		HAVE_PCRE
 #include	<pcre.h>
 #endif		/* HAVE_PCRE */
+
+#include	"pcre.h"
+#include	"malloc.h"
 
 char *
 pcre_subst(const char * const string, const char * const pattern, const char * const replacement)
@@ -20,8 +22,7 @@ pcre_subst(const char * const string, const char * const pattern, const char * c
 	if (!(match = strcasestr(string, pattern)))
 		return NULL;
 
-	result = malloc(BUFSIZ);
-	snprintf(result, BUFSIZ, "%.*s%s%s", (int)(match - string),
+	asprintf(&result, BUFSIZ, "%.*s%s%s", (int)(match - string),
 		string,
 		replacement,
 		match + strlen(pattern));
@@ -41,7 +42,7 @@ pcre_subst(const char * const string, const char * const pattern, const char * c
 	if (rc <= 0)
 		return NULL;
 
-	result = malloc(BUFSIZ);
+	MALLOC(result, char, BUFSIZ);
 	result[0] = '\0';
 	strncat(result, string, ovector[0]);
 	pcre_get_substring_list(string, ovector, rc, &list);

@@ -37,6 +37,7 @@
 #include	"xscounter.h"
 #include	"methods.h"
 #include	"decode.h"
+#include	"malloc.h"
 
 typedef	enum
 {
@@ -417,16 +418,14 @@ parse_values(char *here, char **mapping, size_t maxsize)
 {
 	char		*p, *e, *word, *args, *end = strstr(here, "-->");
 	enum		{ T_INDEX, T_EQUAL, T_VALUE }	expect;
-	size_t		len, mapsize;
+	size_t		mapsize;
 	bool		guard;
 
 	if (!end)
 		return 0;
 	*end = '\0';
 
-	len = end + 1 - here;
-	args = (char *)malloc(len);
-	strlcpy(args, here, len);
+	args = strdup(here);
 	mapsize = 0;
 	expect = T_INDEX;
 	guard = true;

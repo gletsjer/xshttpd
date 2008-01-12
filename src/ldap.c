@@ -7,6 +7,7 @@
 #include	"htconfig.h"
 #include	"ldap.h"
 #include	"httpd.h"
+#include	"malloc.h"
 
 #include	<stdio.h>
 #include	<stdlib.h>
@@ -115,8 +116,8 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
                 {
                         if (ldap.uri)
                                 free(ldap.uri);
-                        if ((ldap.uri = malloc(strlen(line))))
-				sprintf(ldap.uri, "ldap://%s", line + 9);
+			MALLOC(ldap.uri, char, strlen(line));
+			sprintf(ldap.uri, "ldap://%s", line + 9);
                 }
 		if (!strncasecmp ("ldapattr=", line, 9))
                 {

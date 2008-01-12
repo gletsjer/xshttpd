@@ -13,6 +13,7 @@
 #include	"httpd.h"
 #include	"decode.h"
 #include	"authenticate.h"
+#include	"malloc.h"
 
 /* Static arrays */
 
@@ -106,10 +107,9 @@ escape(const char *what)
 {
 	size_t		len;
 	const char	*p;
-	char		*buffer = malloc(BUFSIZ);
+	char		*buffer;
 
-	if (!buffer)
-		return NULL;
+	MALLOC(buffer, char, BUFSIZ);
 
 	buffer[0] = '\0';
 	for (p = what; (len = strcspn(p, "<>&\"")); p += len + 1)
@@ -136,14 +136,15 @@ escape(const char *what)
 			/* do nothing */;
 		}
 	}
-	return (buffer);
+	return buffer;
 }
 
 char	*
 urlencode(const char *what)
 {
-	char		*q, *buffer = malloc(strlen(what) * 3 + 1);
+	char		*q, *buffer;
 
+	MALLOC(buffer, char, strlen(what) * 3 + 1);
 	q = buffer;
 	for (const char *p = what; *p; p++)
 		if (isalnum(*p))
@@ -151,14 +152,16 @@ urlencode(const char *what)
 		else
 			q += sprintf(q, "%%%02hhx", (unsigned char)*p);
 	*q++ = '\0';
-	return realloc(buffer, (size_t)(q - buffer));
+	REALLOC(buffer, char, q - buffer);
+	return buffer;
 }
 
 char	*
 shellencode(const char *what)
 {
-	char		*q, *buffer = malloc(strlen(what) * 2 + 1);
+	char		*q, *buffer;
 
+	MALLOC(buffer, char, strlen(what) * 2 + 1);
 	q = buffer;
 	for (const char *p = what; *p; p++)
 		if (!strchr("&;`'|*?-~<>^()[]{}$\\", *p))
@@ -169,7 +172,8 @@ shellencode(const char *what)
 			*q++ = *p;
 		}
 	*q++ = '\0';
-	return realloc(buffer, (size_t)(q - buffer));
+	REALLOC(buffer, char, q - buffer);
+	return buffer;
 }
 
 int

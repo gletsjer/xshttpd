@@ -16,6 +16,7 @@
 #include	<errno.h>
 #include	<fcntl.h>
 #include	"path.h"
+#include	"malloc.h"
 
 #ifdef		PATH_PPMTOGIF
 static	void	xserror			(const char *, const char *)	NORETURN;
@@ -122,9 +123,7 @@ loaddigit(int num)
 		xserror("500 Corrupt image depth header", buffer);
 	}
 	size = digit[num].size_x * digit[num].size_y * 3;
-	if (!(digit[num].fontdata = (char *)malloc(size)))
-		xserror("500 Out of memory",
-			"There was not enough memory to load the images");
+	MALLOC(digit[num].fontdata, char, size);
 	if (fread(digit[num].fontdata, size, 1, file) != 1)
 		xserror("500 Error reading actual font data",
 			"The image body could not be successfully read");
@@ -167,10 +166,7 @@ buildpicture()
 	unsigned int	number, pos_x, y, font_width;
 	int		fd, p[2];
 
-	if (!(data = (char *)malloc(max_x * max_y * 3)))
-		xserror("500 Out of memory",
-			"Not enough memory to build picture");
-	memset(data, 0, max_x * max_y * 3);
+	CALLOC(data, char, max_x * max_y * 3);
 	pos_x = 0;
 	for (search = querystring; *search; search++)
 	{
