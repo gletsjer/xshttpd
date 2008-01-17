@@ -37,6 +37,4 @@ size_t	secfwrite(const char *, size_t, size_t, FILE *);
 ssize_t	secputs(const char *);
 ssize_t	secprintf(const char *format, ...) PRINTF_LIKE(1, 2);
 
-int	base64_encode(const char *, size_t, char *) NONNULL;
-
 #endif		/* SSL_H */

@@ -21,7 +21,7 @@
 static size_t	internal_xstring_to_arrayp(char *, char ***, size_t (*)(char *, char **)) WARNUNUSED;
 static size_t	internal_xstring_to_arraypn(char *, char ***, size_t (*)(char *, char **)) WARNUNUSED;
 
-int
+bool
 mysleep(int sec)
 {
 	return !select(0, NULL, NULL, NULL, &(struct timeval){.tv_sec = sec});
