@@ -571,6 +571,7 @@ ssize_t
 secread(int rd, void *buf, size_t len)
 {
 	const long	inbuffer = netbufsiz - netbufind;
+	char		*cbuf = buf;
 
 	if (inbuffer > 0)
 	{
@@ -578,7 +579,8 @@ secread(int rd, void *buf, size_t len)
 		{
 			memcpy(buf, &netbuf[netbufind], inbuffer);
 			netbufsiz = netbufind = 0;
-			return inbuffer;
+			cbuf += inbuffer;
+			len -= inbuffer;
 		}
 		else
 		{
@@ -587,7 +589,7 @@ secread(int rd, void *buf, size_t len)
 			return len;
 		}
 	}
-	return secread_internal(rd, buf, len);
+	return inbuffer + secread_internal(rd, cbuf, len);
 }
 
 int
