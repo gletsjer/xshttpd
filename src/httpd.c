@@ -1152,7 +1152,8 @@ standalone_main()
 static	void
 standalone_socket(int id)
 {
-	int			csd = 0, count;
+	int			csd = 0;
+	unsigned int		count;
 	socklen_t		clen;
 #ifdef		HAVE_GETADDRINFO
 	struct	addrinfo	hints, *res;
@@ -1325,7 +1326,7 @@ standalone_socket(int id)
 		struct	linger	sl;
 
 		/* (in)sanity check */
-		if (count > cursock->instances || count < 0)
+		if (count > cursock->instances)
 		{
 			const	char	*env;
 
