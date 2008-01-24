@@ -1244,6 +1244,7 @@ do_post(char *params)
 		size_t	rlen;
 		char	*rbuf;
 			
+		errno = 0;
 		rlen = strtoul(cl, NULL, 10);
 		if (ERANGE == errno)
 		{

@@ -22,12 +22,18 @@
 #  define	CONST_FUNC		__attribute__ ((const))
 #  define	MALLOC_FUNC
 #  define	NORETURN
+#  define	NONNULL
+#  define	NONNULL1
+#  define	WARNUNUSED
 # endif		/* __GNUC__ < 3 */
 #else		/* Not __GNUC__ */
 # define	PRINTF_LIKE(f, p)
 # define	CONST_FUNC
 # define	MALLOC_FUNC
 # define	NORETURN
+# define	NONNULL
+# define	NONNULL1
+# define	WARNUNUSED
 #endif		/* __GNUC__ */
 
 #endif		/* CONFPATCH_H */
