@@ -731,7 +731,7 @@ process_request()
 			*params, *url, *ver;
 
 	headers = 11;
-	strlcpy(httpver, "HTTP/1.1", 16);
+	strlcpy(httpver, "HTTP/1.1", sizeof(httpver));
 	strlcpy(dateformat, "%a %b %e %H:%M:%S %Y", MYBUFSIZ);
 
 	orig[0] = referer[0] = line[0] =
@@ -791,12 +791,12 @@ process_request()
 	{
 		if (!strncmp(ver + 5, "1.0", 3))
 		{
-			strlcpy(httpver, "HTTP/1.0", 16);
+			strlcpy(httpver, "HTTP/1.0", sizeof(httpver));
 			headers = 10;
 		}
 		else
 		{
-			strlcpy(httpver, "HTTP/1.1", 16);
+			strlcpy(httpver, "HTTP/1.1", sizeof(httpver));
 			headers = 11;
 			persistent = true;
 		}
@@ -889,14 +889,14 @@ process_request()
 	else if (!strncasecmp(ver, "HTCPCP/", 7))
 	{
 		headers = 10;
-		strlcpy(httpver, "HTCPCP/1.0", 16);
+		strlcpy(httpver, "HTCPCP/1.0", sizeof(httpver));
 		xserror(418, "Duh... I'm a webserver Jim, not a coffeepot!");
 		return;
 	}
 	else
 	{
 		headers = 0;
-		strlcpy(httpver, "HTTP/0.9", 16);
+		strlcpy(httpver, "HTTP/0.9", sizeof(httpver));
 		setenv("SERVER_PROTOCOL", httpver, 1);
 	}
 

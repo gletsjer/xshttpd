@@ -560,10 +560,10 @@ ssize_t
 secprintf(const char *format, ...)
 {
 	va_list ap;
-	char	buf[4096];
+	char	buf[LINEBUFSIZE];
 
 	va_start(ap, format);
-	vsnprintf(buf, 4096, format, ap);
+	vsnprintf(buf, sizeof(buf), format, ap);
 	va_end(ap);
 	return secwrite(buf, strlen(buf));
 }
