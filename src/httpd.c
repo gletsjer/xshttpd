@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* Copyright (C) 1998-2007 by Johan van Selst (johans@stack.nl) */
+/* Copyright (C) 1998-2008 by Johan van Selst (johans@stack.nl) */
 
 #include	"config.h"
 
@@ -71,7 +71,7 @@
 #include	"ldap.h"
 #include	"malloc.h"
 
-static char copyright[] = "Copyright 1995-2007 Sven Berkvens, Johan van Selst";
+static char copyright[] = "Copyright 1995-2008 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 

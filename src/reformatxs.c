@@ -1,4 +1,4 @@
-/* Copyright (C) 2006-2007 by Johan van Selst (johans@stack.nl) */
+/* Copyright (C) 2006-2008 by Johan van Selst (johans@stack.nl) */
 
 /* tidy up xs counter file and convert to latest version */
 

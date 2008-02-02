@@ -1,4 +1,4 @@
-/* Copyright (C) 2007 by Johan van Selst (johans@stack.nl) */
+/* Copyright (C) 2007-2008 by Johan van Selst (johans@stack.nl) */
 
 #ifndef		AUTHENTICATE_H
 #define		AUTHENTICATE_H
