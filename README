@@ -7,6 +7,9 @@ at the mailinglist, <xshttpd-devel@lists.stack.nl>
 You can subscribe to this mailinglist via http://lists.stack.nl/
 A seperate list for announcements about new versions is also available.
 
+Requirements:
+XS-httpd 3.6 needs a C compiler that supports C99 language features.
+
 Download sites (anonymous FTP):
 ftp.stack.nl:/pub/xs-httpd/
 mud.stack.nl:/pub/xs-httpd/
