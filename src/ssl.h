@@ -1,4 +1,4 @@
-/* Copyright (C) 2007 by Johan van Selst */
+/* Copyright (C) 2007-2008 by Johan van Selst */
 
 #ifndef		SSL_H
 #define		SSL_H
