@@ -767,7 +767,12 @@ do_get(char *params)
 		server_error(403, "Invalid path specified", "NOT_AVAILABLE");
 		return;
 	}
-	else if (strstr(file, "/.xs") || strstr(file, "/.noxs") || strstr(file, ".redir") || strstr(file, ".Redir") || strstr(file, ".charset") || strstr(file, ".snapshot"))
+	else if (strstr(file, "/.xs") || strstr(file, "/.noxs") || strstr(file, ".redir") || strstr(file, ".Redir") || strstr(file, ".charset") || strstr(file, "/.snapshot"))
+	{
+		server_error(404, "Requested URL not found", "NOT_FOUND");
+		return;
+	}
+	else if (strstr(file, current->execdir) && (temp = strrchr(file, '/')) && !strcmp(temp, "/error"))
 	{
 		server_error(404, "Requested URL not found", "NOT_FOUND");
 		return;

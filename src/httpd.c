@@ -576,7 +576,8 @@ redirect(const char *redir, bool permanent, bool pass_env)
 void
 server_error(int code, const char *readable, const char *cgi)
 {
-	char		cgipath[XS_PATH_MAX];
+	char		cgipath[XS_PATH_MAX],
+			errmsg[LINEBUFSIZE];
 	const char	filename[] = "/error";
 	const char	*env;
 
@@ -588,7 +589,8 @@ server_error(int code, const char *readable, const char *cgi)
 		return;
 	}
 	setenv("ERROR_CODE", cgi, 1);
-	setenv("ERROR_READABLE", readable, 1);
+	snprintf(errmsg, LINEBUFSIZE, "%03d %s", code, readable);
+	setenv("ERROR_READABLE", errmsg, 1);
 	setenv("ERROR_URL", orig, 1);
 	setenv("ERROR_URL_EXPANDED", convertpath(orig), 1);
 	setenv("ERROR_URL_ESCAPED", *orig ? escape(orig) : "", 1);
@@ -634,8 +636,8 @@ server_error(int code, const char *readable, const char *cgi)
 	}
 	setcurrenttime();
 	fprintf((current && current->openerror) ? current->openerror : stderr,
-		"[%s] httpd(pid %ld): %s [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']\n",
-		currenttime, (long)getpid(), readable,
+		"[%s] httpd(pid %ld): %03d %s [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']\n",
+		currenttime, (long)getpid(), code, readable,
 		remotehost[0] ? remotehost : "(none)",
 		orig[0] ? orig : "(none)", env ? env : "(none)",
 		current ? current->hostname : config.system->hostname,
