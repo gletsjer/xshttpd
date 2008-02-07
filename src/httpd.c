@@ -98,7 +98,7 @@ static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[RWBUFSIZE],
 		message503[MYBUFSIZ], orig[MYBUFSIZ],
 		*startparams;
 #define CLEANENV do { \
-	environ = malloc(sizeof(char *));\
+	environ = malloc(sizeof(char **));\
 	*environ = NULL; } while (0)
 
 /* Prototypes */

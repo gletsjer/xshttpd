@@ -1217,7 +1217,7 @@ sendwithdirectives(int fd, off_t *size)
 	switchstr = NULL;
 	ret = sendwithdirectives_internal(fd, size);
 
-	while (setvarlen--)
+	while (setvarlen-- > 0)
 		if (setvars[setvarlen])
 			free(setvars[setvarlen]);
 	return ret;
