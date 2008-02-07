@@ -114,6 +114,9 @@
 /* Define to 1 if the system has the type `sa_family_t'. */
 #undef HAVE_SA_FAMILY_T
 
+/* Define to 1 if you have the `sendfile' function. */
+#undef HAVE_SENDFILE
+
 /* Define to 1 if you have the `seteuid' function. */
 #undef HAVE_SETEUID
 

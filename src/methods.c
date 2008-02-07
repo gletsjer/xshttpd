@@ -395,6 +395,15 @@ senduncompressed(int fd)
 	{
 		ssize_t		written;
 
+#ifdef		HAVE_SENDFILE
+		if (!cursock->usessl && !chunked)
+		{
+			if (sendfile(fd, 1, 0, size, NULL, NULL, 0) < 0)
+				xserror(599, "Aborted sendfile for `%s'",
+					remotehost[0] ? remotehost : "(none)");
+		}
+		else
+#endif		/* HAVE_SENDFILE */
 #ifdef		HAVE_MMAP
 		/* don't use mmap() for files >12Mb to avoid hogging memory */
 		if (size < 12 * 1048576)

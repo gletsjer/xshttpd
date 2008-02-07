@@ -3,6 +3,7 @@ is not complete. Refer to cvs comments for more information.
 
 Changes since 3.6 beta 2
 - Fix server-side include variable cleanup
+- Use sendfile (where appropriate)
 
 Changes since 3.6 beta 1
 - Add http status code back to $ERROR_READABLE
