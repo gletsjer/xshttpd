@@ -394,6 +394,7 @@ senduncompressed(int fd)
 	if (!dynamic)
 	{
 		ssize_t		written;
+		alarm((size / MINBYTESPERSEC) + 20);
 
 #ifdef		HAVE_SENDFILE
 		if (!cursock->usessl && !chunked)
@@ -414,7 +415,6 @@ senduncompressed(int fd)
 			if ((buffer = (char *)mmap((caddr_t)0, msize, PROT_READ,
 				MAP_SHARED, fd, (off_t)0)) == (char *)-1)
 				err(1, "[%s] httpd: mmap() failed", currenttime);
-			alarm((msize / MINBYTESPERSEC) + 20);
 			fflush(stdout);
 			if ((size_t)(written = secwrite(buffer, msize)) != msize)
 			{
@@ -428,7 +428,6 @@ senduncompressed(int fd)
 			}
 			(void) munmap(buffer, msize);
 			size = written;
-			alarm(0);
 		}
 		else
 #endif		/* HAVE_MMAP */
@@ -440,8 +439,6 @@ senduncompressed(int fd)
 
 			MALLOC(buffer, char, 100 * RWBUFSIZE);
 			writetotal = 0;
-			/* alarm((size / MINBYTESPERSEC) + 20); */
-			alarm(0);
 			fflush(stdout);
 			while ((readtotal = read(fd, buffer, 100 * RWBUFSIZE)) > 0)
 			{
@@ -453,13 +450,12 @@ senduncompressed(int fd)
 						remotehost[0] ? remotehost : "(none)",
 						(int64_t)writetotal + written, size);
 					size = writetotal;
-					alarm(0); goto DONE;
+					goto DONE;
 				}
 				writetotal += written;
 			}
 			size = writetotal;
 			free(buffer);
-			alarm(0);
 		}
 	}
 	else /* dynamic content only */
@@ -497,6 +493,7 @@ senduncompressed(int fd)
 	}
 
 	DONE:
+	alarm(0);
 	logrequest(real_path, size);
 	close(fd);
 }
