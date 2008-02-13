@@ -26,6 +26,8 @@
 #endif		/* HAVE_SYS_SYSLIMITS_H */
 
 #include	<netinet/in.h>
+#include	<netinet/in_systm.h>
+#include	<netinet/ip.h>
 
 #include	<arpa/inet.h>
 
@@ -1322,7 +1324,7 @@ standalone_socket(int id)
 	}
 
 	CHILD:
-	setvbuf(stdout, outputbuffer, _IOFBF, RWBUFSIZE);
+	setvbuf(stdout, NULL, _IOFBF, 0);
 	while (true)
 	{
 		struct	linger	sl;
@@ -1366,7 +1368,14 @@ standalone_socket(int id)
 			warn("fcntl()");
 
 		sl.l_onoff = 1; sl.l_linger = 10;
-		setsockopt(csd, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl));
+		if (setsockopt(csd, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl)) < 0)
+			warnx("setsockopt(SOL_SOCKET)");
+
+#ifdef		IP_TOS
+		if (!cursock->family || AF_INET == cursock->family)
+			if ((setsockopt(sd, IP_TOS, IPPROTO_IP, (int[]){IPTOS_THROUGHPUT}, sizeof(int))) == -1)
+				warnx("setsockopt(IP_TOS)");
+#endif		/* IP_TOS */
 
 		dup2(csd, 0); dup2(csd, 1);
 		close(csd);
