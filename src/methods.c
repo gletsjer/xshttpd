@@ -43,6 +43,8 @@
 #ifdef		HAVE_CURL
 #include	<curl/curl.h>
 #endif		/* HAVE_CURL */
+#include	<netinet/in.h>
+#include	<netinet/tcp.h>
 
 #include	"httpd.h"
 #include	"htconfig.h"
@@ -396,6 +398,10 @@ senduncompressed(int fd)
 		ssize_t		written;
 		alarm((size / MINBYTESPERSEC) + 20);
 
+		fflush(stdout);
+		if (setsockopt(1, IPPROTO_TCP, TCP_NOPUSH, (int[]){1}, sizeof(int)) < 0)
+			warnx("setsockopt(IPPROTO_TCP)");
+
 #ifdef		HAVE_SENDFILE
 		if (!cursock->usessl && !chunked)
 		{
@@ -415,7 +421,6 @@ senduncompressed(int fd)
 			if ((buffer = (char *)mmap((caddr_t)0, msize, PROT_READ,
 				MAP_SHARED, fd, (off_t)0)) == (char *)-1)
 				err(1, "[%s] httpd: mmap() failed", currenttime);
-			fflush(stdout);
 			if ((size_t)(written = secwrite(buffer, msize)) != msize)
 			{
 				if (written != -1)
@@ -439,7 +444,6 @@ senduncompressed(int fd)
 
 			MALLOC(buffer, char, 100 * RWBUFSIZE);
 			writetotal = 0;
-			fflush(stdout);
 			while ((readtotal = read(fd, buffer, 100 * RWBUFSIZE)) > 0)
 			{
 				if ((written = secwrite(buffer, (size_t)readtotal))
@@ -494,6 +498,8 @@ senduncompressed(int fd)
 
 	DONE:
 	alarm(0);
+	/* silently reset tcp flags */
+	setsockopt(1, IPPROTO_TCP, TCP_NOPUSH, (int[]){0}, sizeof(int));
 	logrequest(real_path, size);
 	close(fd);
 }

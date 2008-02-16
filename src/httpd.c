@@ -1217,6 +1217,7 @@ standalone_socket(int id)
 		err(1, "bind()");
 
 	freeaddrinfo(res);
+
 #else		/* HAVE_GETADDRINFO */
 	/* Quick patch to run on old systems */
 	memset(&saddr, 0, sizeof(struct sockaddr));
@@ -1370,12 +1371,6 @@ standalone_socket(int id)
 		sl.l_onoff = 1; sl.l_linger = 10;
 		if (setsockopt(csd, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl)) < 0)
 			warnx("setsockopt(SOL_SOCKET)");
-
-#ifdef		IP_TOS
-		if (!cursock->family || AF_INET == cursock->family)
-			if ((setsockopt(sd, IP_TOS, IPPROTO_IP, (int[]){IPTOS_THROUGHPUT}, sizeof(int))) == -1)
-				warnx("setsockopt(IP_TOS)");
-#endif		/* IP_TOS */
 
 		dup2(csd, 0); dup2(csd, 1);
 		close(csd);

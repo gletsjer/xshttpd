@@ -2,7 +2,7 @@ This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
 Changes since 3.6 beta 3
-- Remove outputbuffer and set IP_TOS (where available)
+- Remove outputbuffer and set TCP_NOPUSH (where available)
 
 Changes since 3.6 beta 2
 - Fix server-side include variable cleanup
