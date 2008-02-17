@@ -378,7 +378,7 @@ valid_nonce(const char *nonce)
 	const char	*ptr;
 	char	*buf;
 	long	ts;
-	int	len;
+	size_t	len;
 
 	if (!nonce)
 		return false;		/* invalid */

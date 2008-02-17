@@ -87,7 +87,7 @@ char		remotehost[NI_MAXHOST], remoteaddr[NI_MAXHOST],
 		currenttime[80], httpver[16], dateformat[MYBUFSIZ],
 		real_path[XS_PATH_MAX], currentdir[XS_PATH_MAX],
 		orig_filename[XS_PATH_MAX];
-static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[RWBUFSIZE],
+static	char	browser[MYBUFSIZ], referer[MYBUFSIZ],
 		message503[MYBUFSIZ], orig[MYBUFSIZ],
 		*startparams;
 #define CLEANENV do { \
