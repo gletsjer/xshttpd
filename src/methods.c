@@ -20,6 +20,9 @@
 #ifdef		HAVE_SYS_PARAM_H
 #include	<sys/param.h>
 #endif		/* HAVE_SYS_PARAM_H */
+#ifdef		HAVE_SYS_SENDFILE_H
+#include	<sys/sendfile.h>
+#endif		/* HAVE_SYS_SENDFILE_H */
 
 #include	<fcntl.h>
 #include	<stdio.h>

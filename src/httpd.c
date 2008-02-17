@@ -24,9 +24,6 @@
 #ifdef		HAVE_SYS_SYSLIMITS_H
 #include	<sys/syslimits.h>
 #endif		/* HAVE_SYS_SYSLIMITS_H */
-#ifdef		HAVE_SYS_SENDFILE_H
-#include	<sys/sendfile.h>
-#endif		/* HAVE_SYS_SENDFILE_H */
 
 #include	<netinet/in.h>
 #include	<netinet/in_systm.h>
