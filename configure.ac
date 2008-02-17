@@ -31,7 +31,7 @@ libxs_ldlags="${LDLAGS}"
 dnl Checks for header files.
 AC_GNU_SOURCE
 AC_SYS_LARGEFILE
-AC_CHECK_HEADERS([crypt.h err.h getopt.h memory.h sys/mman.h sys/param.h sys/resource.h sys/select.h], [], [], [[]])
+AC_CHECK_HEADERS([crypt.h err.h getopt.h memory.h sys/mman.h sys/param.h sys/resource.h sys/select.h sys/sendfile.h], [], [], [[]])
 AC_CHECK_HEADERS([sys/syslimits.h], [], [], [#include <sys/cdefs.h>
 ])
 

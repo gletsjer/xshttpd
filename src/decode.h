@@ -4,6 +4,7 @@
 #define		DECODE_H
 
 #include	"config.h"
+#include	<stdbool.h>
 
 bool	decode		(char *) NONNULL;
 void	uudecode	(char *) NONNULL;

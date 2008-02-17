@@ -399,8 +399,10 @@ senduncompressed(int fd)
 		alarm((size / MINBYTESPERSEC) + 20);
 
 		fflush(stdout);
+#ifdef		TCP_NOPUSH
 		if (setsockopt(1, IPPROTO_TCP, TCP_NOPUSH, (int[]){1}, sizeof(int)) < 0)
 			warnx("setsockopt(IPPROTO_TCP)");
+#endif		/* TCP_NOPUSH */
 
 #ifdef		HAVE_SENDFILE
 		if (!cursock->usessl && !chunked)
@@ -498,8 +500,10 @@ senduncompressed(int fd)
 
 	DONE:
 	alarm(0);
+#ifdef		TCP_NOPUSH
 	/* silently reset tcp flags */
 	setsockopt(1, IPPROTO_TCP, TCP_NOPUSH, (int[]){0}, sizeof(int));
+#endif		/* TCP_NOPUSH */
 	logrequest(real_path, size);
 	close(fd);
 }
