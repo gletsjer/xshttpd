@@ -2,9 +2,11 @@
 /* Copyright (C) 1998-2008 by Johan van Selst (johans@stack.nl) */
 
 #include	"config.h"
+#include	"malloc.h"
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
+#include	<stdbool.h>
 
 #include	<unistd.h>
 #include	<stdio.h>
@@ -30,7 +32,8 @@ typedef struct	exlist
 	struct	exlist	*next;
 } exlist;
 
-static	int	show_size = 1, show_type = 1, show_back = 1, force_overwrite = 0;
+static	int	show_type = 1;
+static	bool	show_size = true, show_back = true, force_overwrite = false;
 static	size_t	max_filename = 0, max_mimetype = 0, max_mimealt = 0,
 				max_mimeshort = 0;
 static	mime	*mimes;
@@ -83,8 +86,7 @@ loadmime(const char *name)
 			*(--end) = 0;
 		if (!buffer[0])
 			continue;
-		if (!(new = (mime *)malloc(sizeof(mime))))
-			errx(1, "Out of memory in loadmime()");
+		MALLOC(new, mime, 1);
 		if (sscanf(buffer, "%s %s %s %s %[^\n]\n", new->type,
 			new->ext, new->icon, new->alt, new->small) != 5)
 		{
@@ -102,11 +104,10 @@ static	const	char	*
 encode(const char *what)
 {
 	size_t		len;
-	const char	*p;
 	static	char	buffer[BUFSIZ];
 
 	buffer[0] = '\0';
-	for (p = what; (len = strcspn(p, "<>&\"")); p += len + 1)
+	for (const char *p = what; (len = strcspn(p, "<>&\"")); p += len + 1)
 	{
 		if (strlen(buffer) + len < BUFSIZ)
 			strncat(buffer, p, len);
@@ -136,14 +137,13 @@ encode(const char *what)
 static	const	char	*
 neatsize(long size)
 {
-	long		temp;
 	static	char	buffer1[BUFSIZ];
 	char		buffer2[BUFSIZ];
 
 	buffer1[0] = 0;
 	while (size)
 	{
-		temp = size / 1000;
+		const long temp = size / 1000;
 		if (temp)
 			snprintf(buffer2, BUFSIZ, "%03d,%s",
 				(int)(size % 1000), buffer1);
@@ -198,16 +198,16 @@ main(int argc, char **argv)
 		switch(option)
 		{
 		case 'b':
-			show_back = 0;
+			show_back = false;
 			break;
 		case 'f':
-			force_overwrite = 1;
+			force_overwrite = true;
 			break;
 		case 'm':
 			mimefile = optarg;
 			break;
 		case 's':
-			show_size = 0;
+			show_size = false;
 			break;
 		case 't':
 			show_type = atoi(optarg);
@@ -218,7 +218,7 @@ main(int argc, char **argv)
 			}
 			break;
 		case 'x':
-			exhead = malloc(sizeof(exlist));
+			MALLOC(exhead, exlist, 1);
 			exhead->next = exclude;
 			exhead->pattern = optarg;
 			exclude = exhead;
@@ -237,11 +237,10 @@ main(int argc, char **argv)
 	if (!(ls = popen("ls -a", "r")))
 		err(1, "popen(`ls -a', `r')");
 	amount = 0;
-	if (!(listing = (char **)malloc(16 * sizeof(char *))))
-		errx(1, "Out of memory");
+	MALLOC(listing, char *, 16);
 	while (fgets(buffer, BUFSIZ, ls))
 	{
-		int skip = 0;
+		bool skip = false;
 
 		if (buffer[0] && (buffer[strlen(buffer) - 1] < ' '))
 			buffer[strlen(buffer) - 1] = 0;
@@ -257,7 +256,7 @@ main(int argc, char **argv)
 		for (exhead = exclude; exhead; exhead = exhead->next)
 			if (fnmatch(exhead->pattern, buffer, 0) != FNM_NOMATCH)
 			{
-				skip = 1;
+				skip = true;
 				printf("b %s p %s\n", buffer, exhead->pattern);
 				break;
 			}
@@ -268,11 +267,7 @@ main(int argc, char **argv)
 		if (max_filename < strlen(listing[amount]))
 			max_filename = strlen(listing[amount]);
 		if (!((amount + 1) & 0xf))
-		{
-			if (!(listing = (char **)realloc(listing,
-				(amount + 17) * sizeof(char *))))
-				errx(1, "Out of memory");
-		}
+			REALLOC(listing, char *, amount + 17);
 		if (stat(listing[amount], &statbuf))
 			err(1, "stat(`%s')", listing[amount]);
 		if (S_ISDIR(statbuf.st_mode))

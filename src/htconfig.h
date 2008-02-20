@@ -5,6 +5,7 @@
 
 #include	"config.h"
 #include	<sys/types.h>
+#include	<stdbool.h>
 #include	<sys/socket.h>
 #include	<pwd.h>
 
@@ -15,6 +16,7 @@
 
 typedef	enum { log_none, log_traditional, log_combined, log_virtual }	logstyle_t;
 typedef enum { auth_none, auth_optional, auth_strict }	sslauth_t;
+typedef enum { ERR_NONE, ERR_CONT, ERR_QUIT, ERR_LINE, ERR_CLOSE } xs_error_t;
 
 struct ldap_auth
 {
@@ -65,8 +67,8 @@ struct socket_config
 	char *		port;
 	sa_family_t	family;
 	sslauth_t	sslauth;
-	unsigned	usessl: 1;
-	int		instances;
+	bool		usessl;
+	unsigned int	instances;
 	char *		sslcertificate;
 	char *		sslprivatekey;
 	char *		sslcafile;
@@ -88,22 +90,22 @@ extern struct configuration
 {
 	char *		systemroot;
 	char *		pidfile;
-	int		instances;
+	unsigned int	instances;
 	int		priority;
 	int		scriptpriority;
 	unsigned int	scriptcpulimit;
 	unsigned int	scripttimeout;
-	unsigned	execasuser: 1;
-	unsigned	usevirtualuid: 1;
-	unsigned	uselocalscript: 1;
-	unsigned	usednslookup: 1;
-	unsigned	usestricthostname: 1;
-	unsigned	useacceptfilter: 1;
-	unsigned	usessi: 1;
-	unsigned	usecoredump: 1;
-	unsigned	useetag: 1;
-	unsigned	usecontentmd5: 1;
-	unsigned	useput: 1;
+	bool		execasuser;
+	bool		usevirtualuid;
+	bool		uselocalscript;
+	bool		usednslookup;
+	bool		usestricthostname;
+	bool		useacceptfilter;
+	bool		usessi;
+	bool		usecoredump;
+	bool		useetag;
+	bool		usecontentmd5;
+	bool		useput;
 	char *		virtualhostdir;
 	char *		defaultcharset;
 	char *		scriptpath;

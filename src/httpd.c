@@ -3,10 +3,7 @@
 
 #include	"config.h"
 
-#include	<sys/types.h>
-#ifdef		HAVE_SYS_TIME_H
-#include	<sys/time.h>
-#endif		/* HAVE_SYS_TIME_H */
+#include	<inttypes.h>
 #ifdef		HAVE_SYS_RESOURCE_H
 #include	<sys/resource.h>
 #endif		/* HAVE_SYS_RESOURCE_H */
@@ -14,9 +11,7 @@
 #include	<sys/mman.h>
 #endif		/* HAVE_SYS_MMAN_H */
 #include	<sys/socket.h>
-#ifdef		HAVE_SYS_WAIT_H
 #include	<sys/wait.h>
-#endif		/* HAVE_SYS_WAIT_H */
 #include	<sys/signal.h>
 #include	<sys/stat.h>
 #include	<sys/utsname.h>
@@ -29,11 +24,10 @@
 #ifdef		HAVE_SYS_SYSLIMITS_H
 #include	<sys/syslimits.h>
 #endif		/* HAVE_SYS_SYSLIMITS_H */
-#ifdef		HAVE_INTTYPES_H
-#include	<inttypes.h>
-#endif		/* HAVE_INTTYPES_H */
 
 #include	<netinet/in.h>
+#include	<netinet/in_systm.h>
+#include	<netinet/ip.h>
 
 #include	<arpa/inet.h>
 
@@ -45,11 +39,7 @@
 #define		NI_MAXSERV	32
 #define		NI_MAXHOST	1025
 #endif		/* NI_MAXSERV */
-#ifdef		HAVE_TIME_H
-#ifdef		TIME_WITH_SYS_TIME
 #include	<time.h>
-#endif		/* TIME_WITH_SYS_TIME */
-#endif		/* HAVE_TIME_H */
 #include	<stdlib.h>
 #include	<stdarg.h>
 #include	<string.h>
@@ -81,24 +71,27 @@
 #include	"convert.h"
 #include	"authenticate.h"
 #include	"ldap.h"
+#include	"malloc.h"
 
 static char copyright[] = "Copyright 1995-2008 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
-int		headers, headonly, postonly, postread, chunked, persistent, trailers, rstatus;
-static	int	sd, reqs, reqsc, mainhttpd = 1, in_progress = 0;
+int		headers, rstatus;
+bool		headonly, postonly, postread, chunked, persistent, trailers;
+static	int	sd, reqs, reqsc;
+static	bool	mainhttpd = true, in_progress = false;
 gid_t		origegid;
 uid_t		origeuid;
 char		remotehost[NI_MAXHOST], remoteaddr[NI_MAXHOST],
 		currenttime[80], httpver[16], dateformat[MYBUFSIZ],
 		real_path[XS_PATH_MAX], currentdir[XS_PATH_MAX],
 		orig_filename[XS_PATH_MAX];
-static	char	browser[MYBUFSIZ], referer[MYBUFSIZ], outputbuffer[RWBUFSIZE],
+static	char	browser[MYBUFSIZ], referer[MYBUFSIZ],
 		message503[MYBUFSIZ], orig[MYBUFSIZ],
 		*startparams;
 #define CLEANENV do { \
-	environ = malloc(sizeof(char **));\
+	MALLOC(environ, char *, 1);\
 	*environ = NULL; } while (0)
 
 /* Prototypes */
@@ -118,7 +111,7 @@ static	void	standalone_main		(void)	NORETURN;
 static	void	standalone_socket	(int)	NORETURN;
 
 void
-stdheaders(int lastmod, int texthtml, int endline)
+stdheaders(bool lastmod, bool texthtml, bool endline)
 {
 	setcurrenttime();
 	secprintf("Date: %s\r\nServer: %s\r\n", currenttime, SERVER_IDENT);
@@ -193,7 +186,7 @@ term_handler(int sig)
 			currenttime, sig);
 		fflush(stderr);
 		close(sd);
-		mainhttpd = 0;
+		mainhttpd = false;
 		killpg(0, SIGTERM);
 	}
 	(void)sig;
@@ -409,7 +402,7 @@ alarm_handler(int sig)
 		endssl();
 		close(0);
 		close(1);
-		persistent = 0;
+		persistent = false;
 		return;
 	}
 	(void)sig;
@@ -531,7 +524,7 @@ xserror(int code, const char *format, ...)
 			errmsg ? strlen(errmsg) : 0);
 		if ((env = getenv("HTTP_ALLOW")))
 			secprintf("Allow: %s\r\n", env);
-		stdheaders(1, 1, 1);
+		stdheaders(true, true, true);
 	}
 	if (!headonly)
 	{
@@ -541,7 +534,7 @@ xserror(int code, const char *format, ...)
 }
 
 void
-redirect(const char *redir, int permanent, int pass_env)
+redirect(const char *redir, bool permanent, bool pass_env)
 {
 	const	char	*env = NULL;
 	char		*errmsg = NULL;
@@ -571,7 +564,7 @@ redirect(const char *redir, int permanent, int pass_env)
 			secprintf("%s %s moved\r\nLocation: %s\r\n", httpver,
 				permanent ? "301 Permanently" : "302 Temporarily", redir);
 		secprintf("Content-length: %zu\n", errmsg ? strlen(errmsg) : 0);
-		stdheaders(1, 1, 1);
+		stdheaders(true, true, true);
 	}
 	rstatus = permanent ? 301 : 302;
 	if (!headonly)
@@ -585,12 +578,10 @@ redirect(const char *redir, int permanent, int pass_env)
 void
 server_error(int code, const char *readable, const char *cgi)
 {
-	struct	stat		statbuf;
-	char			cgipath[XS_PATH_MAX],
-				errmsg[LINEBUFSIZE],
-				*temp;
-	const	char		filename[] = "/error";
-	const	char		*env, *username;
+	char		cgipath[XS_PATH_MAX],
+			errmsg[LINEBUFSIZE];
+	const char	filename[] = "/error";
+	const char	*env;
 
 	if (!current)
 		current = config.system;
@@ -604,33 +595,47 @@ server_error(int code, const char *readable, const char *cgi)
 	setenv("ERROR_READABLE", errmsg, 1);
 	setenv("ERROR_URL", orig, 1);
 	setenv("ERROR_URL_EXPANDED", convertpath(orig), 1);
-	setenv("ERROR_URL_ESCAPED", orig[0] ? escape(orig) : "", 1);
+	setenv("ERROR_URL_ESCAPED", *orig ? escape(orig) : "", 1);
 	env = getenv("QUERY_STRING");
 	/* Look for user-defined error script */
-	if (current == config.users && (username = getenv("USER")))
+	if (current == config.users)
 	{
-		snprintf(cgipath, XS_PATH_MAX, "/~%s/%s%s",
-			username, current->execdir, filename);
-		strlcpy(cgipath, convertpath(cgipath), XS_PATH_MAX);
+		const char * const username = getenv("USER");
+
+		if (username)
+		{
+			snprintf(cgipath, XS_PATH_MAX, "/~%s/%s%s",
+				username, current->execdir, filename);
+			strlcpy(cgipath, convertpath(cgipath), XS_PATH_MAX);
+		}
 	}
 	else	/* Look for virtual host error script */
 	{
 		snprintf(cgipath, XS_PATH_MAX, "%s%s",
 			calcpath(current->phexecdir), filename);
 	}
-	if (stat(cgipath, &statbuf))
+
+	/* local block */
 	{
-		/* Last resort: try system error script */
-		snprintf(cgipath, XS_PATH_MAX, "%s%s",
-			calcpath(config.system->phexecdir), filename);
+		struct	stat		statbuf;
+
 		if (stat(cgipath, &statbuf))
 		{
-			xserror(code, "%s", readable);
-			return;
+			/* Last resort: try system error script */
+			snprintf(cgipath, XS_PATH_MAX, "%s%s",
+				calcpath(config.system->phexecdir), filename);
+			if (stat(cgipath, &statbuf))
+			{
+				xserror(code, "%s", readable);
+				return;
+			}
 		}
 	}
-	if ((temp = strrchr(cgipath, '/')))
-		*temp = '\0';
+	{
+		char	*temp = strrchr(cgipath, '/');
+		if (temp)
+			*temp = '\0';
+	}
 	setcurrenttime();
 	fprintf((current && current->openerror) ? current->openerror : stderr,
 		"[%s] httpd(pid %ld): %03d %s [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']\n",
@@ -648,7 +653,7 @@ logrequest(const char *request, off_t size)
 	char		buffer[90], *dynrequest, *dynagent, *p;
 	FILE		*alog;
 
-	strftime(buffer, 90, "%d/%b/%Y:%H:%M:%S +0000", localtimenow());
+	strftime(buffer, 80, "%d/%b/%Y:%H:%M:%S +0000", localtimenow());
 
 	if (!current->openaccess)
 		if (!config.system->openaccess)
@@ -674,11 +679,10 @@ logrequest(const char *request, off_t size)
 	switch (current->logstyle)
 	{
 	case log_traditional:
-	{
+		{
 		FILE	*rlog = current->openreferer
 			? current->openreferer
 			: config.system->openreferer;
-
 		fprintf(alog, "%s - - [%s] \"%s %s %s\" %03d %" PRId64 "\n",
 			remotehost,
 			buffer,
@@ -688,7 +692,7 @@ logrequest(const char *request, off_t size)
 		if (rlog &&
 			(!current->thisdomain || !strcasestr(referer, current->thisdomain)))
 			fprintf(rlog, "%s -> %s\n", referer, request);
-	}
+		}
 		break;
 	case log_virtual:
 		/* this is combined format + virtual hostname */
@@ -715,6 +719,7 @@ logrequest(const char *request, off_t size)
 			dynagent);
 		break;
 	case log_none:
+		/* DO NOTHING */
 		break;
 	}
 
@@ -727,17 +732,15 @@ process_request()
 {
 	char		line[LINEBUFSIZE],
 			http_host[NI_MAXHOST], http_host_long[NI_MAXHOST],
-			*temp, ch, *params, *url, *ver;
-	struct maplist	http_headers;
-	size_t		sz;
+			*params, *url, *ver;
 
 	headers = 11;
-	strlcpy(httpver, "HTTP/1.1", 16);
+	strlcpy(httpver, "HTTP/1.1", sizeof(httpver));
 	strlcpy(dateformat, "%a %b %e %H:%M:%S %Y", MYBUFSIZ);
 
 	orig[0] = referer[0] = line[0] =
 		real_path[0] = browser[0] = authentication[0] = '\0';
-	headonly = postonly = 0;
+	headonly = postonly = false;
 	current = NULL;
 	setup_environment();
 
@@ -745,14 +748,14 @@ process_request()
 
 	rstatus = 200;
 	errno = 0;
-	chunked = 0;
-	persistent = 0;
-	trailers = 0;
+	chunked = false;
+	persistent = false;
+	trailers = false;
 #ifdef		HAVE_LIBMD
 	md5context = NULL;
 #endif		/* HAVE_LIBMD */
 
-	initreadmode(0);
+	initreadmode(false);
 	switch (readline(0, line, sizeof(line)))
 	{
 	case ERR_NONE:
@@ -768,7 +771,7 @@ process_request()
 		xserror(400, "Unable to read begin of request line");
 		return;
 	}
-	in_progress = 1;
+	in_progress = true;
 
 	url = line;
 	while (*url && (*url > ' '))
@@ -782,24 +785,24 @@ process_request()
 	*(ver++) = 0;
 	while (*ver && *ver <= ' ')
 		ver++;
-	temp = ver;
-	while (*temp && (*temp > ' '))
-		temp++;
-	*temp = 0;
+
+	for (char *p = ver; *p; p++)
+		if (*p <= ' ')
+			*p-- = 0;
 
 	alarm(180);
 	if (!strncasecmp(ver, "HTTP/", 5))
 	{
 		if (!strncmp(ver + 5, "1.0", 3))
 		{
-			strlcpy(httpver, "HTTP/1.0", 16);
+			strlcpy(httpver, "HTTP/1.0", sizeof(httpver));
 			headers = 10;
 		}
 		else
 		{
-			strlcpy(httpver, "HTTP/1.1", 16);
+			strlcpy(httpver, "HTTP/1.1", sizeof(httpver));
 			headers = 11;
-			persistent = 1;
+			persistent = true;
 		}
 		setenv("SERVER_PROTOCOL", httpver, 1);
 		if (!strcasecmp(line, "TRACE"))
@@ -808,15 +811,16 @@ process_request()
 			goto METHOD;
 		}
 
+		struct maplist	http_headers;
 		if (readheaders(0, &http_headers) < 0)
 		{
 			xserror(400, "Unable to read request line");
 			return;
 		}
-		for (sz = 0; sz < http_headers.size; sz++)
+		for (size_t sz = 0; sz < http_headers.size; sz++)
 		{
-			char	*idx = http_headers.elements[sz].index;
-			char	*val = http_headers.elements[sz].value;
+			const char	*idx = http_headers.elements[sz].index;
+			const char	*val = http_headers.elements[sz].value;
 
 			if (!strcasecmp("Content-length", idx))
 				setenv("CONTENT_LENGTH", val, 1);
@@ -828,9 +832,9 @@ process_request()
 				setenv("USER_AGENT", browser, 1);
 				setenv("HTTP_USER_AGENT", browser, 1);
 				(void) strtok(browser, "/");
-				for (temp = browser; *temp; temp++)
-					if (isupper(*temp))
-						*temp = tolower(*temp);
+				for (char *p = browser; *p; p++)
+					if (isupper(*p))
+						*p = tolower(*p);
 				if (islower(*browser))
 					*browser = toupper(*browser);
 				setenv("USER_AGENT_SHORT", browser, 1);
@@ -851,13 +855,13 @@ process_request()
 			else if (!strcasecmp("Connection", idx))
 			{
 				if (strcasestr(val, "close"))
-					persistent = 0;
+					persistent = false;
 				setenv("HTTP_CONNECTION", val, 1);
 			}
 			else if (!strcasecmp("TE", idx))
 			{
 				if (strcasestr(val, "trailers"))
-					trailers = 1;
+					trailers = true;
 				setenv("HTTP_TE", val, 1);
 			}
 			else if (!strcasecmp("X-Forwarded-For", idx))
@@ -889,14 +893,14 @@ process_request()
 	else if (!strncasecmp(ver, "HTCPCP/", 7))
 	{
 		headers = 10;
-		strlcpy(httpver, "HTCPCP/1.0", 16);
+		strlcpy(httpver, "HTCPCP/1.0", sizeof(httpver));
 		xserror(418, "Duh... I'm a webserver Jim, not a coffeepot!");
 		return;
 	}
 	else
 	{
 		headers = 0;
-		strlcpy(httpver, "HTTP/0.9", 16);
+		strlcpy(httpver, "HTTP/0.9", sizeof(httpver));
 		setenv("SERVER_PROTOCOL", httpver, 1);
 	}
 
@@ -922,7 +926,7 @@ process_request()
 
 	alarm(0);
 	params = url;
-	if (decode(params))
+	if (!decode(params))
 	{
 		xserror(500, "Cannot process request");
 		return;
@@ -930,16 +934,20 @@ process_request()
 
 	strlcpy(orig, params, MYBUFSIZ);
 
-	if (strlen(orig) < NI_MAXHOST &&
-		sscanf(params, "http://%[^/]%c", http_host, &ch) == 2 &&
-		ch == '/')
+	if (strlen(orig) < NI_MAXHOST)
 	{
-		/* absoluteURI's are supported by HTTP/1.1,
-		 * this syntax is preferred over Host-headers(!)
-		 */
-		setenv("HTTP_HOST", http_host, 1);
-		params += strlen(http_host) + 7;
-		strlcpy(orig, params, MYBUFSIZ);
+		char	ch;
+
+		if (sscanf(params, "http://%[^/]%c", http_host, &ch) == 2 &&
+			ch == '/')
+		{
+			/* absoluteURI's are supported by HTTP/1.1,
+			 * this syntax is preferred over Host-headers(!)
+			 */
+			setenv("HTTP_HOST", http_host, 1);
+			params += strlen(http_host) + 7;
+			strlcpy(orig, params, MYBUFSIZ);
+		}
 	}
 	else if (params[0] != '/' && strcasecmp("OPTIONS", line))
 	{
@@ -948,9 +956,11 @@ process_request()
 	}
 	/* SERVER_NAME may be overriden soon */
 	setenv("SERVER_NAME", config.system->hostname, 1);
-	if ((temp = getenv("HTTP_HOST")))
+	if (getenv("HTTP_HOST"))
 	{
-		strlcpy(http_host, temp, NI_MAXHOST);
+		char	*temp;
+
+		strlcpy(http_host, getenv("HTTP_HOST"), NI_MAXHOST);
 		for (temp = http_host; *temp; temp++)
 			if ((*temp < 'a' || *temp > 'z') &&
 				(*temp < 'A' || *temp > 'Z') &&
@@ -993,15 +1003,20 @@ process_request()
 		return;
 	}
 
-	if ((temp = strchr(http_host, ':')))
+	/* local block */
 	{
-		strlcpy(http_host_long, http_host, NI_MAXHOST);
-		*temp = '\0';
-	}
-	else
-	{
-		snprintf(http_host_long, NI_MAXHOST, "%s:%s",
-			http_host, cursock->port);
+		char	*temp = strchr(http_host, ':');
+
+		if (temp)
+		{
+			strlcpy(http_host_long, http_host, NI_MAXHOST);
+			*temp = '\0';
+		}
+		else
+		{
+			snprintf(http_host_long, NI_MAXHOST, "%s:%s",
+				http_host, cursock->port);
+		}
 	}
 	if (cursock->socketname)
 	{
@@ -1019,7 +1034,6 @@ process_request()
 				else if (current->aliases)
 				{
 					char	**aliasp;
-
 					for (aliasp = current->aliases; *aliasp; aliasp++)
 						if (!strcasecmp(http_host_long, *aliasp) ||
 								!strcasecmp(http_host, *aliasp))
@@ -1126,7 +1140,7 @@ standalone_main()
 			killpg(0, SIGTERM);
 			exit(1);
 		case 0:
-			mainhttpd = 0;
+			mainhttpd = false;
 			standalone_socket(id);
 			/* NOTREACHED */
 		default:
@@ -1142,7 +1156,8 @@ standalone_main()
 static	void
 standalone_socket(int id)
 {
-	int			csd = 0, count, temp;
+	int			csd = 0;
+	unsigned int		count;
 	socklen_t		clen;
 #ifdef		HAVE_GETADDRINFO
 	struct	addrinfo	hints, *res;
@@ -1180,26 +1195,21 @@ standalone_socket(int id)
 #endif		/* HAVE_GETADDRINFO */
 
 #ifdef		SO_REUSEPORT
-	temp = 1;
-	if ((setsockopt(sd, SOL_SOCKET, SO_REUSEPORT, &temp, sizeof(temp))) == -1)
+	if ((setsockopt(sd, SOL_SOCKET, SO_REUSEPORT, (int[]){1}, sizeof(int))) == -1)
 		err(1, "setsockopt(REUSEPORT)");
 #else		/* SO_REUSEPORT */
 # ifdef		SO_REUSEADDR
-	temp = 1;
-	if ((setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &temp, sizeof(temp))) == -1)
+	if ((setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, (int[]){1}, sizeof(int))) == -1)
 		err(1, "setsockopt(REUSEADDR)");
 # endif		/* SO_REUSEADDR */
 #endif		/* SO_REUSEPORT */
 
-	temp = 1;
-	if ((setsockopt(sd, SOL_SOCKET, SO_KEEPALIVE, &temp, sizeof(temp))) == -1)
+	if ((setsockopt(sd, SOL_SOCKET, SO_KEEPALIVE, (int[]){1}, sizeof(int))) == -1)
 		err(1, "setsockopt(KEEPALIVE)");
 
-	temp = RWBUFSIZE;
-	if ((setsockopt(sd, SOL_SOCKET, SO_SNDBUF, &temp, sizeof(temp))) == -1)
+	if ((setsockopt(sd, SOL_SOCKET, SO_SNDBUF, (int[]){RWBUFSIZE}, sizeof(int))) == -1)
 		err(1, "setsockopt(SNDBUF)");
-	temp = RWBUFSIZE;
-	if ((setsockopt(sd, SOL_SOCKET, SO_RCVBUF, &temp, sizeof(temp))) == -1)
+	if ((setsockopt(sd, SOL_SOCKET, SO_RCVBUF, (int[]){RWBUFSIZE}, sizeof(int))) == -1)
 		err(1, "setsockopt(SNDBUF)");
 
 #ifdef		HAVE_GETADDRINFO
@@ -1207,6 +1217,7 @@ standalone_socket(int id)
 		err(1, "bind()");
 
 	freeaddrinfo(res);
+
 #else		/* HAVE_GETADDRINFO */
 	/* Quick patch to run on old systems */
 	memset(&saddr, 0, sizeof(struct sockaddr));
@@ -1230,9 +1241,8 @@ standalone_socket(int id)
 	{
 		/* can only be called after listen() */
 #ifdef		SO_ACCEPTFILTER
-		struct	accept_filter_arg	afa;
-		bzero(&afa, sizeof(afa));
-		strcpy(afa.af_name, "httpready");
+		struct	accept_filter_arg	afa = { .af_name = "httpready" };
+
 		if ((setsockopt(sd, SOL_SOCKET, SO_ACCEPTFILTER, &afa, sizeof(afa))) == -1)
 		{
 			warn("setsockopt(ACCEPTFILTER) - missing accf_http(9)?");
@@ -1242,23 +1252,22 @@ standalone_socket(int id)
 		}
 #else		/* SO_ACCEPTFILTER */
 # ifdef		TCP_DEFER_ACCEPT
-		temp = 180;
-		if ((setsockopt(sd, SOL_TCP, TCP_DEFER_ACCEPT, &temp, sizeof(temp))) == -1)
+		if ((setsockopt(sd, SOL_TCP, TCP_DEFER_ACCEPT, (int[]){180}, sizeof(int))) == -1)
 			warn("setsockopt(TCP_DEFER_ACCEPT)");
 # endif		/* TCP_DEFER_ACCEPT */
 #endif		/* SO_ACCEPTFILTER */
 	}
 
 #ifdef		HAVE_SETRLIMIT
+	/* local block */
 	{
-		struct	rlimit		limit;
+		const struct	rlimit		limit =
+			{ .rlim_cur = RLIM_INFINITY, .rlim_max = RLIM_INFINITY };
 
 # ifdef		RLIMIT_NPROC
-		limit.rlim_max = limit.rlim_cur = RLIM_INFINITY;
 		setrlimit(RLIMIT_NPROC, &limit);
 # endif		/* RLIMIT_NPROC */
 # ifdef		RLIMIT_CPU
-		limit.rlim_max = limit.rlim_cur = RLIM_INFINITY;
 		setrlimit(RLIMIT_CPU, &limit);
 # endif		/* RLIMIT_CPU */
 	}
@@ -1266,21 +1275,20 @@ standalone_socket(int id)
 
 	set_signals();
 	reqs = 0;
-	if (!(childs = (pid_t *)malloc(sizeof(pid_t) * cursock->instances)))
-		err(1, "malloc() failed");
+	MALLOC(childs, pid_t, cursock->instances);
 
 	for (count = 0; count < cursock->instances; count++)
 	{
-		pid_t	pid = fork();
+		pid_t	pid;
 
-		switch (pid)
+		switch (pid = fork())
 		{
 		case -1:
 			warn("fork()");
 			killpg(0, SIGTERM);
 			exit(1);
 		case 0:
-			mainhttpd = 0;
+			mainhttpd = false;
 			goto CHILD;
 		default:
 			childs[count] = pid;
@@ -1288,7 +1296,7 @@ standalone_socket(int id)
 	}
 
 	fflush(stdout);
-	while (1)
+	while (true)
 	{
 		setproctitle("xs(MAIN-%c): Waiting for dead children", id);
 		while (mysleep(30))
@@ -1301,13 +1309,13 @@ standalone_socket(int id)
 				pid_t	pid;
 
 				fflush(stdout);
-				switch (pid = fork())
+				switch(pid = fork())
 				{
 				case -1:
 					warn("fork()");
 					break;
 				case 0:
-					mainhttpd = 0;
+					mainhttpd = false;
 					goto CHILD;
 				default:
 					childs[count] = pid;
@@ -1317,13 +1325,13 @@ standalone_socket(int id)
 	}
 
 	CHILD:
-	setvbuf(stdout, outputbuffer, _IOFBF, RWBUFSIZE);
-	while (1)
+	setvbuf(stdout, NULL, _IOFBF, 0);
+	while (true)
 	{
 		struct	linger	sl;
 
 		/* (in)sanity check */
-		if (count > cursock->instances || count < 0)
+		if (count > cursock->instances)
 		{
 			const	char	*env;
 
@@ -1361,7 +1369,8 @@ standalone_socket(int id)
 			warn("fcntl()");
 
 		sl.l_onoff = 1; sl.l_linger = 10;
-		setsockopt(csd, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl));
+		if (setsockopt(csd, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl)) < 0)
+			warnx("setsockopt(SOL_SOCKET)");
 
 		dup2(csd, 0); dup2(csd, 1);
 		close(csd);
@@ -1413,15 +1422,15 @@ standalone_socket(int id)
 # endif		/* HAVE_GETADDRINFO */
 #endif		/* HAVE GETNAMEINFO */
 		}
-		if (initssl() < 0)
+		if (!initssl())
 			continue;
 		setproctitle("xs(%c%d): Connect from `%s'",
 			id, count + 1, remotehost);
 		setcurrenttime();
-		initreadmode(1);
+		initreadmode(true);
 		alarm(20);
 		reqsc = 1;
-		in_progress = 0;
+		in_progress = false;
 		if (message503[0])
 			secprintf("HTTP/1.1 503 Busy\r\n"
 				"Content-type: text/plain\r\n"
@@ -1434,7 +1443,7 @@ standalone_socket(int id)
 				alarm(10);
 				if (chunked)
 				{
-					chunked = 0;
+					chunked = false;
 #ifdef		HAVE_LIBMD
 					if (md5context)
 					{
@@ -1453,7 +1462,7 @@ standalone_socket(int id)
 				setproctitle("xs(%c%d): Awaiting request "
 					"#%d from `%s'",
 					id, count + 1, ++reqsc, remotehost);
-				in_progress = 0;
+				in_progress = false;
 			}
 			while (persistent && fflush(stdout) != EOF);
 		reqs++;
@@ -1487,21 +1496,22 @@ setup_environment()
 int
 main(int argc, char **argv)
 {
-	int			option, num;
-	int			nolog = 0;
-	enum { opt_port, opt_dir, opt_host };
-	char *		longopt[6] = { NULL, NULL, NULL, NULL, NULL, NULL };
+	int			option;
+	size_t		num;
+	bool		nolog = false;
+	enum		{ opt_port, opt_dir, opt_host };
+	char		*longopt[] = { [2] = NULL };
 	uid_t		uid = 0;
 	gid_t		gid = 0;
 
 	origeuid = geteuid(); origegid = getegid();
 	memset(&config, 0, sizeof config);
 
-	for (num = option = 0; option < argc; option++)
+	num = 0;
+	for (option = 0; option < argc; option++)
 		num += (1 + strlen(argv[option]));
-	if (!(startparams = (char *)malloc(num)))
-		err(1, "Cannot malloc memory for startparams");
-	*startparams = 0;
+	MALLOC(startparams, char, num);
+	startparams[0] = '\0';
 	for (option = 0; option < argc; option++)
 	{
 		strlcat(startparams, argv[option], num);
@@ -1534,6 +1544,7 @@ main(int argc, char **argv)
 		case 'g':	/* group */
 		{
 			const struct group	*groupinfo;
+
 			if ((gid = atoi(optarg)) > 0)
 				break;
 			if (!(groupinfo = getgrnam(optarg)))
@@ -1554,6 +1565,7 @@ main(int argc, char **argv)
 		case 'u':	/* user */
 		{
 			const struct passwd	*userinfo;
+
 			if ((uid = atoi(optarg)) > 0)
 				break;
 			if (!(userinfo = getpwnam(optarg)))
@@ -1562,7 +1574,7 @@ main(int argc, char **argv)
 			break;
 		}
 		case 'N':	/* nolog */
-			nolog = 1;
+			nolog = true;
 			strlcpy(config_path, "/dev/null", XS_PATH_MAX);
 			break;
 	 	case 'P':	/* preprocessor */
@@ -1575,8 +1587,7 @@ main(int argc, char **argv)
 				struct utsname		utsname;
 
 				uname(&utsname);
-				printf(" %s/%s",
-					utsname.sysname,
+				printf(" %s/%s", utsname.sysname,
 					utsname.release);
 			}
 #endif		/* HAVE_UNAME */

@@ -64,7 +64,7 @@ urldecode(char *what)
 			    (d2 = strchr(hexdigits,
 					islower(what[2]) ? toupper(what[2]) : what[2])))
 			{
-				*what = (d1-hexdigits)*16 + (d2-hexdigits);
+				*what = (d1-hexdigits) << 4 | (d2-hexdigits);
 				memmove(what + 1, what + 3, strlen(what) - 2);
 			}
 		}
@@ -81,7 +81,6 @@ changepasswd(const char *param, int  cl)
 			*cryptnew, *cryptold;
 	struct	stat	statbuf1, statbuf2;
 	FILE		*input, *output;
-	int		found;
 
 	umask(S_IRWXG | S_IRWXO);
 	filename[0] = '/';
@@ -148,19 +147,19 @@ changepasswd(const char *param, int  cl)
 		xserror(403, "Could not fopen new password file '%s': %s",
 			filename, strerror(errno));
 
-	found = 0;
+	bool		found = false;
 	snprintf(new2, BUFSIZ, "%s:", username);
 	while (fgets(buffer, BUFSIZ, input))
 	{
 		if (!found && strlen(buffer) > 1 &&
 			!strncmp(buffer+1, new2, strlen(new2)))
 		{
-			int	digest;
+			bool	digest;
 			char	*opwent;
 			char	*eol;
 
 			eol = strchr(buffer + strlen(new2) + 2, ':');
-			digest = eol ? 1 : 0;
+			digest = eol ? true : false;
 			if (!eol && !(eol = strchr(buffer, '\n')))
 				/* bad entry: skip, don't write */
 				continue;
@@ -174,7 +173,7 @@ changepasswd(const char *param, int  cl)
 				xserror(403, "Password doesn't match");
 			}
 			free(cryptold);
-			found = 1;
+			found = true;
 			if (buffer[0] != 'U')
 			{
 				fclose(input); fclose(output);

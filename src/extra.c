@@ -4,14 +4,7 @@
 #include	"config.h"
 
 #include	<sys/types.h>
-#ifdef		HAVE_SYS_TIME_H
-#include	<sys/time.h>
-#endif		/* HAVE_SYS_TIME_H */
-#ifdef		HAVE_TIME_H
-#ifdef		TIME_WITH_SYS_TIME
 #include	<time.h>
-#endif		/* TIME_WITH_SYS_TIME */
-#endif		/* HAVE_TIME_H */
 #include	<unistd.h>
 #include	<signal.h>
 #include	<stdlib.h>
@@ -23,18 +16,15 @@
 #include	"htconfig.h"
 #include	"extra.h"
 #include	"httpd.h"
+#include	"malloc.h"
 
 static size_t	internal_xstring_to_arrayp(char *, char ***, size_t (*)(char *, char **)) WARNUNUSED;
 static size_t	internal_xstring_to_arraypn(char *, char ***, size_t (*)(char *, char **)) WARNUNUSED;
 
-int
-mysleep(int seconds)
+bool
+mysleep(int sec)
 {
-	struct	timeval	timeout;
-
-	timeout.tv_usec = 0;
-	timeout.tv_sec = seconds;
-	return(select(0, NULL, NULL, NULL, &timeout) == 0);
+	return !select(0, NULL, NULL, NULL, &(struct timeval){.tv_sec = sec});
 }
 
 struct tm *
@@ -46,7 +36,7 @@ localtimenow(void)
 	return localtime(&now);
 }
 
-int
+bool
 match(const char *total, const char *pattern)
 {
 	int		x, y;
@@ -54,40 +44,40 @@ match(const char *total, const char *pattern)
 	for (x = 0, y = 0; pattern[y]; x++, y++)
 	{
 		if ((!total[x]) && (pattern[y] != '*'))
-			return(0);
+			return false;
 		if (pattern[y] == '*')
 		{
 			while (pattern[++y] == '*')
 				/* NOTHING HERE */;
 			if (!pattern[y])
-				return(1);
+				return true;
 			while (total[x])
 			{
-				int		ret;
+				bool		ret;
 
 				if ((ret = match(total + (x++), pattern + y)))
-					return(ret);
+					return ret;
 			}
-			return(0);
+			return false;
 		} else
 		{
 			if ((pattern[y] != '?') &&
 				((isupper(total[x]) ? tolower(total[x]) : total[x])
 				 != (isupper(pattern[y]) ? tolower(pattern[y]) : pattern[y])))
-				return(0);
+				return false;
 		}
 	}
-	return(!total[x]);
+	return (!total[x]);
 }
 
-int
+bool
 match_list(char *list, const char *browser)
 {
 	char		*begin, *end, origin;
-	int		matches;
+	bool		matches;
 
 	if (!browser)
-		return(0);
+		return false;
 	if ((begin = list))
 	{
 		while (*begin)
@@ -99,18 +89,18 @@ match_list(char *list, const char *browser)
 			matches = match(browser, begin);
 			*end = origin;
 			if (matches)
-				return(1);
+				return true;
 			begin = end;
 			while (*begin == ' ')
 				begin++;
 		}
 	}
-	return(0);
+	return false;
 }
 
 /* Convert whitespace/comma-seperated index=value string into mapping */
-#define ISALNUM(p) ((p >= '0' && p <= '9') || (p >= 'a' && p <= 'z') || \
-		(p >= 'A' && p <= 'Z') || p == '-' || p == '_')
+#define ISALNUM(p) (((p) >= '0' && (p) <= '9') || ((p) >= 'a' && (p) <= 'z') ||\
+		((p) >= 'A' && (p) <= 'Z') || (p) == '-' || (p) == '_')
 size_t
 eqstring_to_array(char *string, struct mapping *map)
 {
@@ -180,12 +170,10 @@ static size_t
 internal_xstring_to_arrayp(char *value, char ***array, size_t (*xstring_to_array)(char *, char **))
 {
 	size_t	sz;
-	char	**p;
 
 	sz = xstring_to_array(value, NULL);
-	p = realloc(*array, sz * sizeof(char *));
-	sz = xstring_to_array(value, p);
-	*array = p;
+	REALLOC(*array, char *, sz);
+	sz = xstring_to_array(value, *array);
 	return sz;
 }
 
@@ -193,15 +181,13 @@ static size_t
 internal_xstring_to_arraypn(char *value, char ***array, size_t (*xstring_to_array)(char *, char **))
 {
 	size_t	sz;
-	char	**p;
 
 	sz = internal_xstring_to_arrayp(value, array, xstring_to_array);
 	if (!sz)
 		return sz;
 
-	p = realloc(*array, (sz + 1) * sizeof(char *));
-	p[sz] = NULL;
-	*array = p;
+	REALLOC(*array, char *, sz + 1);
+	(*array)[sz] = NULL;
 	return sz;
 }
 
@@ -295,7 +281,7 @@ qstring_to_array(char *value, char **array)
 						first = 0;
 						if (array)
 						{
-							term = malloc(vlen + 1);
+							MALLOC(term, char, vlen + 1);
 							strlcpy(term, p, vlen + 1);
 						}
 						num++;
@@ -333,27 +319,5 @@ qstring_to_array(char *value, char **array)
 				*p = ',';
 	}
 	return num;
-}
-
-uid_t
-valid_user(const char *user)
-{
-	struct	passwd	*userinfo;
-	char		*shell;
-
-	/* user must exit */
-	if (!user || !(userinfo = getpwnam(user)))
-		return 0;
-	/* ... not be root */
-	if (!userinfo->pw_uid || !userinfo->pw_shell)
-		return 0;
-	/* ... and have a valid login shell */
-	setusershell();
-	while ((shell = getusershell()))
-		if (!strcmp(shell, userinfo->pw_shell))
-			return userinfo->pw_uid;
-	endusershell();
-
-	return 0;
 }
 

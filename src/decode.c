@@ -13,6 +13,7 @@
 #include	"httpd.h"
 #include	"decode.h"
 #include	"authenticate.h"
+#include	"malloc.h"
 
 /* Static arrays */
 
@@ -25,7 +26,7 @@ static	char	six2pr[64] =
 	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'
 };
 
-int
+bool
 decode(char *str)
 {
 	char		*posd, chr;
@@ -39,40 +40,37 @@ decode(char *str)
 			if (chr == '?')
 			{
 				memmove(posd, poss, strlen(poss) + 1);
-				return(ERR_NONE);
+				return true;
 			}
 			*(posd++) = chr;
 			poss++;
 		}
 		else
 		{
-			unsigned int	top, bottom;
+			int	top = hexdigit(poss[1]);
+			int	bottom = hexdigit(poss[2]);
 
-			if (hexdigit((int)poss[1]) < 0 ||
-				hexdigit((int)poss[2]) < 0)
-			{
-				return(ERR_QUIT);
-			}
-			top = hexdigit((int)poss[1]);
-			bottom = hexdigit((int)poss[2]);
+			if (top < 0 || bottom < 0)
+				return false;
 			*(posd++) = (top << 4) + bottom;
 			poss += 3;
 		}
 	}
 	*posd = 0;
-	return(ERR_NONE);
+	return true;
 }
 
 void
 uudecode(char *buffer)
 {
 	unsigned char	pr2six[256], bufplain[32], *bufout = bufplain;
-	int		nbytesdecoded, j, nprbytes;
+	unsigned int	nbytesdecoded;
+	int		nprbytes;
 	char		*bufin = buffer;
 
-	for (j = 0; j < 256; j++)
+	for (int j = 0; j < 256; j++)
 		pr2six[j] = 64;
-	for (j = 0; j < 64; j++)
+	for (int j = 0; j < 64; j++)
 		pr2six[(int)six2pr[j]] = (unsigned char)j;
 	bufin = buffer;
 	while (pr2six[(int)*(bufin++)] <= 63)
@@ -88,7 +86,8 @@ uudecode(char *buffer)
 			(pr2six[(int)bufin[2]] >> 2));
 		*(bufout++) = (unsigned char) ((pr2six[(int)bufin[2]] << 6) |
 			(pr2six[(int)bufin[3]]));
-		bufin += 4; nprbytes -= 4;
+		bufin += 4;
+		nprbytes -= 4;
 	}
 
 	if (nprbytes & 3)
@@ -108,10 +107,9 @@ escape(const char *what)
 {
 	size_t		len;
 	const char	*p;
-	char		*buffer = malloc(BUFSIZ);
+	char		*buffer;
 
-	if (!buffer)
-		return NULL;
+	MALLOC(buffer, char, BUFSIZ);
 
 	buffer[0] = '\0';
 	for (p = what; (len = strcspn(p, "<>&\"")); p += len + 1)
@@ -138,32 +136,34 @@ escape(const char *what)
 			/* do nothing */;
 		}
 	}
-	return (buffer);
+	return buffer;
 }
 
 char	*
 urlencode(const char *what)
 {
-	const char	*p;
-	char		*q, *buffer = malloc(strlen(what) * 3 + 1);
+	char		*q, *buffer;
 
-	for (p = what, q = buffer; *p; p++)
+	MALLOC(buffer, char, strlen(what) * 3 + 1);
+	q = buffer;
+	for (const char *p = what; *p; p++)
 		if (isalnum(*p))
 			*q++ = *p;
 		else
-			q += sprintf(q, "%%%02x",
-				(unsigned int)(unsigned char)*p);
+			q += sprintf(q, "%%%02hhx", (unsigned char)*p);
 	*q++ = '\0';
-	return realloc(buffer, q - buffer);
+	REALLOC(buffer, char, q - buffer);
+	return buffer;
 }
 
 char	*
 shellencode(const char *what)
 {
-	const char	*p;
-	char		*q, *buffer = malloc(strlen(what) * 2 + 1);
+	char		*q, *buffer;
 
-	for (p = what, q = buffer; *p; p++)
+	MALLOC(buffer, char, strlen(what) * 2 + 1);
+	q = buffer;
+	for (const char *p = what; *p; p++)
 		if (!strchr("&;`'|*?-~<>^()[]{}$\\", *p))
 			*q++ = *p;
 		else
@@ -172,31 +172,31 @@ shellencode(const char *what)
 			*q++ = *p;
 		}
 	*q++ = '\0';
-	return realloc(buffer, q - buffer);
+	REALLOC(buffer, char, q - buffer);
+	return buffer;
 }
 
 int
-hexdigit(int ch)
+hexdigit(char ch)
 {
 	const	char	*temp;
 	const	char	hexdigits[] = "0123456789ABCDEF";
+	const	int	ich = ch;
 
-	if ((temp = strchr(hexdigits, islower(ch) ? toupper(ch) : ch)))
+	if ((temp = strchr(hexdigits, islower(ich) ? toupper(ich) : ich)))
 		return (temp - hexdigits);
 	else
 		return (-1);
 }
 
 /* sizeof(hex) >= 2 * len + 1 */
-int
+void
 hex_encode(const char *bin, size_t len, char *hex)
 {
-	unsigned short	i;
-	unsigned char	j;
-
-	for (i = 0; i < len; i++)
+	for (size_t i = 0; i < len; i++)
 	{
-		j = (bin[i] >> 4) & 0xf;
+		unsigned char j = (bin[i] >> 4) & 0xf;
+
 		if (j <= 9)
 			hex[i * 2] = (j + '0');
 		else
@@ -208,19 +208,16 @@ hex_encode(const char *bin, size_t len, char *hex)
 			hex[i * 2 + 1] = (j + 'a' - 10);
 	}
 	hex[2 * len] = '\0';
-	return 0;
 }
 
 /* sizeof(bin) >= len / 2 */
-int
+void
 hex_decode(const char *hex, size_t len, char *bin)
 {
-	unsigned short i;
-	char j;
-
-	for (i = 0; i < len; i += 2)
+	for (size_t i = 0; i < len; i += 2)
 	{
-		j = hex[i];
+		char j = hex[i];
+
 		if (j <= '9')
 			bin[i / 2] = (j - '0') << 4;
 		else
@@ -231,7 +228,6 @@ hex_decode(const char *hex, size_t len, char *bin)
 		else
 			bin[i / 2] |= (j - 'a' + 10);
 	}
-	return 0;
 }
 
 /* sizeof(bin) >= (len * 4 + 2) / 3 + 1 */
@@ -285,7 +281,7 @@ base64_encode(const char *msg, size_t len, char *bin)
 
 #ifdef		HAVE_MD5
 /* sizeof(hash) >= MD5_DIGEST_STRING_LENGTH */
-int
+void
 generate_ha1(const char *user, const char *passwd, char *ha1)
 {
 	char	*a1;
@@ -295,8 +291,6 @@ generate_ha1(const char *user, const char *passwd, char *ha1)
 	len = asprintf(&a1, "%s:%s:%s", user, REALM, passwd);
 	MD5Data((const unsigned char *)a1, len, ha1);
 	free(a1);
-
-	return 0;
 }
 #endif		/* HAVE_MD5 */
 

@@ -21,12 +21,12 @@ struct	maplist;
 struct	socket_config;
 
 /* Wrapper functions are used even if SSL is not enabled */
-int	initssl(void);
+bool	initssl(void);
 void	ssl_environment(void);
 void	loadssl(struct socket_config *) NONNULL;
 void	endssl(void);
 
-void	initreadmode(int);
+void	initreadmode(bool);
 ssize_t	secread(int, void *, size_t) NONNULL;
 size_t	secfread(void *, size_t, size_t, FILE *) NONNULL;
 ssize_t	readheaders(int, struct maplist *) NONNULL;
@@ -36,7 +36,5 @@ ssize_t	secwrite(const char *, size_t);
 size_t	secfwrite(const char *, size_t, size_t, FILE *);
 ssize_t	secputs(const char *);
 ssize_t	secprintf(const char *format, ...) PRINTF_LIKE(1, 2);
-
-int	base64_encode(const char *, size_t, char *) NONNULL;
 
 #endif		/* SSL_H */

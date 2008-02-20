@@ -1,10 +1,15 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
-Changes since 3.5 gamma 2
-- Fix server-side include variable cleanup
+Changes since 3.6 beta 3
+- Remove outputbuffer and set TCP_NOPUSH (where available)
+- Add 'passexist' redirection command
 
-Changes since 3.5 gamma 1
+Changes since 3.6 beta 2
+- Fix server-side include variable cleanup
+- Use sendfile (where appropriate)
+
+Changes since 3.6 beta 1
 - Add http status code back to $ERROR_READABLE
 
 Changes since 3.5 beta 31

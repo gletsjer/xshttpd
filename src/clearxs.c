@@ -51,7 +51,7 @@ main(int argc, char **argv)
 			break;
 		case 'x':
 			mode = MODE_EXPUNGE;
-			memset(&timeptr, '\0', sizeof timeptr);
+			memset(&timeptr, 0, sizeof timeptr);
 			if (!strptime(optarg, "%Y%m%d", &timeptr) ||
 					(since = mktime(&timeptr)) < 0)
 				errx(1, "Invalid date specification"

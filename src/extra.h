@@ -6,9 +6,9 @@
 #include	"htconfig.h"
 
 struct tm *	localtimenow	(void) WARNUNUSED;
-int	mysleep			(int);
-int	match			(const char *, const char *) NONNULL WARNUNUSED;
-int	match_list		(char *, const char *) NONNULL WARNUNUSED;
+bool	mysleep			(int);
+bool	match			(const char *, const char *) NONNULL WARNUNUSED;
+bool	match_list		(char *, const char *) NONNULL WARNUNUSED;
 size_t	string_to_array		(char *, char **) NONNULL1;	/* prealloced */
 size_t	string_to_arrayp	(char *, char ***) NONNULL1;	/* malloc()s */
 size_t	string_to_arraypn	(char *, char ***) NONNULL1;	/* malloc() + 0-terminates */
@@ -16,6 +16,5 @@ size_t	qstring_to_array	(char *, char **) NONNULL1;	/* ;q-value strings */
 size_t	qstring_to_arrayp	(char *, char ***) NONNULL1;
 size_t	qstring_to_arraypn	(char *, char ***) NONNULL1;
 size_t	eqstring_to_array	(char *, struct mapping *) NONNULL1;	/* idx=val strings */
-uid_t	valid_user		(const char *) NONNULL WARNUNUSED;
 
 #endif		/* EXTRA_H */

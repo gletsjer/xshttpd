@@ -16,6 +16,7 @@
 #include	<errno.h>
 #include	<fcntl.h>
 #include	"path.h"
+#include	"malloc.h"
 
 #ifdef		PATH_PPMTOGIF
 static	void	xserror			(const char *, const char *)	NORETURN;
@@ -25,14 +26,14 @@ static	void	buildpicture		(void)	NORETURN;
 
 typedef	struct
 {
-	int		size_x, size_y;
+	unsigned int	size_x, size_y;
 	char		*fontdata;
 } font;
 
 static	const	char	*pathtranslated, *querystring;
 static	char		dirname[XS_PATH_MAX], filename[XS_PATH_MAX];
 static	font		digit[10];
-static	int		max_x, max_y;
+static	unsigned int	max_x, max_y;
 
 static	void
 xserror(const char *status, const char *message)
@@ -50,7 +51,8 @@ loaddigit(int num)
 {
 	FILE		*file;
 	char		buffer[BUFSIZ], words[4][BUFSIZ], *search;
-	int		word, size;
+	int		word;
+	size_t		size;
 
 	snprintf(filename, XS_PATH_MAX, "%s%d.ppm", dirname, num);
 	if (!(file = fopen(filename, "r")))
@@ -121,9 +123,7 @@ loaddigit(int num)
 		xserror("500 Corrupt image depth header", buffer);
 	}
 	size = digit[num].size_x * digit[num].size_y * 3;
-	if (!(digit[num].fontdata = (char *)malloc(size)))
-		xserror("500 Out of memory",
-			"There was not enough memory to load the images");
+	MALLOC(digit[num].fontdata, char, size);
 	if (fread(digit[num].fontdata, size, 1, file) != 1)
 		xserror("500 Error reading actual font data",
 			"The image body could not be successfully read");
@@ -163,12 +163,10 @@ buildpicture()
 {
 	const	char	*search;
 	char		*data, header[BUFSIZ];
-	int		number, pos_x, y, font_width, fd, p[2];
+	unsigned int	number, pos_x, y, font_width;
+	int		fd, p[2];
 
-	if (!(data = (char *)malloc(max_x * max_y * 3)))
-		xserror("500 Out of memory",
-			"Not enough memory to build picture");
-	memset(data, 0, max_x * max_y * 3);
+	CALLOC(data, char, max_x * max_y * 3);
 	pos_x = 0;
 	for (search = querystring; *search; search++)
 	{

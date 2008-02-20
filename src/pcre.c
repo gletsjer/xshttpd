@@ -1,7 +1,6 @@
 /* Copyright (C) 2005-2008 by Johan van Selst (johans@stack.nl) */
 
 #include	"config.h"
-#include	"pcre.h"
 
 #include	<stdio.h>
 #include	<string.h>
@@ -9,6 +8,9 @@
 #ifdef		HAVE_PCRE
 #include	<pcre.h>
 #endif		/* HAVE_PCRE */
+
+#include	"pcre.h"
+#include	"malloc.h"
 
 char *
 pcre_subst(const char * const string, const char * const pattern, const char * const replacement)
@@ -20,11 +22,8 @@ pcre_subst(const char * const string, const char * const pattern, const char * c
 	if (!(match = strcasestr(string, pattern)))
 		return NULL;
 
-	result = malloc(BUFSIZ);
-	snprintf(result, BUFSIZ, "%.*s%s%s", (int)(match - string),
-		string,
-		replacement,
-		match + strlen(pattern));
+	asprintf(&result, "%.*s%s%s", (int)(match - string), string,
+		replacement, match + strlen(pattern));
 
 	return result;
 #else		/* Not Not HAVE_PCRE */
@@ -41,17 +40,19 @@ pcre_subst(const char * const string, const char * const pattern, const char * c
 	if (rc <= 0)
 		return NULL;
 
-	result = malloc(BUFSIZ);
+	MALLOC(result, char, BUFSIZ);
 	result[0] = '\0';
 	strncat(result, string, ovector[0]);
 	pcre_get_substring_list(string, ovector, rc, &list);
 	for (prev = replacement; (next = strchr(prev, '\\')); prev = next + 2)
 	{
-		int	loc = next[1] - '0';
+		const size_t	len = next - prev;
+		const int	loc = next[1] - '0';
+
 		if (loc < 0 || loc > 9 || loc >= rc)
 			continue;
-		if (next > prev && strlen(result) + (next - prev) < BUFSIZ)
-			strncat(result, prev, next - prev);
+		if (next > prev && strlen(result) + len < BUFSIZ)
+			strncat(result, prev, len);
 		strlcat(result, list[loc], BUFSIZ);
 	}
 	strlcat(result, prev, BUFSIZ);

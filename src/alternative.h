@@ -6,13 +6,13 @@
 
 #include	"config.h"
 
-#include	<sys/types.h>
 #include	<inttypes.h>
 #include	<stdarg.h>
 #ifdef		HAVE_TIME_H
 #include	<time.h>
 #endif		/* HAVE_TIME_H */
 #include	<sys/socket.h>
+#include	<sys/stat.h>
 #include	<arpa/inet.h>
 
 #if		!HAVE_DECL_ENVIRON
@@ -23,11 +23,6 @@ extern	char	**environ;
 extern	char	*optarg;
 extern	int	optind;
 #endif          /* HAVE_DECL_OPTARG */
-
-
-#ifndef		HAVE_STRERROR
-extern	const char *	strerror		(int);
-#endif		/* HAVE_STRERROR */
 
 #ifndef             HAVE_DECL_SYS_ERRLIST
 extern	char		*sys_errlist[];
@@ -41,6 +36,9 @@ typedef	size_t		socklen_t;
 typedef unsigned char	sa_family_t;
 #endif		/* HAVE_SA_FAMILY_T */
 
+#ifndef		S_ISREG
+#define		S_ISREG(m)	(((m)&(S_IFMT)) == (S_IFREG))
+#endif		/* S_ISREG */
 
 #ifndef		HAVE_CLOSEFROM
 int	closefrom	(int);
@@ -79,12 +77,6 @@ void *	memmem		(const void *, size_t, const void *, size_t);
 int	mkstemp		(char *);
 #endif		/* MKSTEMP */
 
-#ifndef		HAVE_SETENV
-char	*getenv		(const char *);
-int	setenv		(const char *, const char *, int);
-void	unsetenv	(const char *);
-#endif		/* HAVE_SETENV */
-
 #ifndef		HAVE_SETEUID
 int	seteuid		(uid_t);
 #endif		/* HAVE_SETEUID */
@@ -101,10 +93,6 @@ void	setproctitle	(const char *, ...) PRINTF_LIKE(1, 2);
 void	initproctitle	(int, char **);
 #endif		/* HAVE_SETPROCTITLE */
 
-#ifndef 	HAVE_SNPRINTF
-int	snprintf	(char *, size_t, const char *, ...) PRINTF_LIKE(3, 4);
-int	vsnprintf	(char *, size_t, const char *, va_list);
-#endif		/* HAVE_VSNPRINTF */
 #ifndef		HAVE_ASPRINTF
 int	asprintf	(char **, const char *, ...) PRINTF_LIKE(2, 3);
 #endif		/* HAVE_ASPRINTF */
@@ -132,9 +120,5 @@ char *	strsep		(char **, const char *);
 #ifndef		HAVE_SRANDOMDEV
 void	srandomdev	(void);
 #endif		/* HAVE_SRANDOMDEV */
-
-#ifndef		PRId64
-#define		PRId64		"llu"
-#endif		/* PRId64 */
 
 #endif		/* ALTERNATIVE_H */

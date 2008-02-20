@@ -8,6 +8,7 @@
 #include	<unistd.h>
 #include	<string.h>
 #include	<ctype.h>
+#include	<stdbool.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
@@ -29,7 +30,8 @@ main(int argc, char **argv)
 	char		*pwd, *username, *passone, *filename,
 			*total, line[BUFSIZ], *newfile;
 	const	char	*password;
-	int		found, option, passwdlock = 0, digest = 0;
+	int		option;
+	bool		passwdlock = false, digest = false;
 	FILE		*authinp, *authout;
 
 	umask(S_IRWXG | S_IRWXO);
@@ -39,22 +41,22 @@ main(int argc, char **argv)
 		switch (option)
 		{
 		case 'b':
-			digest = 0;
+			digest = false;
 			break;
 		case 'd':
 #ifndef		HAVE_MD5
 			errx(1, "Digest authentication is not available");
 #endif		/* HAVE_MD5 */
-			digest = 1;
+			digest = true;
 			break;
 		case 'f':
 			filename = optarg;
 			break;
 		case 'l':
-			passwdlock = 1;
+			passwdlock = true;
 			break;
 		case 'u':
-			passwdlock = 0;
+			passwdlock = false;
 			break;
 		default:
 			errx(1, "Usage: xspasswd [-b|-d] [-l|-u] "
@@ -114,13 +116,14 @@ main(int argc, char **argv)
 	asprintf(&newfile, "%s.new", filename);
 	if (!(authout = fopen(newfile, "w")))
 		err(1, "fopen(`%s', `w')", newfile);
-	found = 0;
+
+	bool found = false;
 	while (authinp && fgets(line, sizeof(line), authinp))
 	{
 		if (!strncmp(line + 1, username, strlen(username)) &&
 			(line[strlen(username) + 1] == ':'))
 		{
-			found = 1;
+			found = true;
 			fputs(total, authout);
 		} else
 			fputs(line, authout);

@@ -54,8 +54,8 @@ If
 then more flexible redirection rules can be written. The
 .Pa .redir
 file may contain multiple redirection commands. These
-commands may use several types: pass, redir, Redir, rewrite
-or forward.
+commands may use several types: pass, passexist, redir, Redir,
+rewrite or forward.
 .Pp
 The expression that must be matched by the given PCRE is the
 full local request path (basically the URL without hostname,
@@ -78,6 +78,13 @@ files are parsed line by line and the first matching
 directive will be executed. If the
 .Sy pass
 command matches, the rest of the redir file will be ignored.
+.It Sy passexist
+This expression will match if the requested URL matches a file
+that exists on disk. In this case no further rules will be
+processed and the file will be retrieved as normal.
+This is a shortcut notation to making a
+.Sy pass
+rule for every existing file in the directory.
 .It Sy redir Ar oldurl Ar newurl
 The requested URL is matched against the
 .Ar oldurl

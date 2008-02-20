@@ -3,9 +3,6 @@
 
 #include	"config.h"
 
-#ifdef		HAVE_SYS_TIME_H
-#include	<sys/time.h>
-#endif		/* HAVE_SYS_TIME_H */
 #include	<sys/types.h>
 #include	<sys/stat.h>
 #ifdef		HAVE_SYS_PARAM_H
@@ -13,11 +10,7 @@
 #endif		/* HAVE_SYS_PARAM_H */
 
 #include	<stdio.h>
-#ifdef		HAVE_TIME_H
-#ifdef		TIME_WITH_SYS_TIME
 #include	<time.h>
-#endif		/* TIME_WITH_SYS_TIME */
-#endif		/* HAVE_TIME_H */
 #include	<unistd.h>
 #include	<errno.h>
 #include	<signal.h>
@@ -30,7 +23,9 @@
 #include	<string.h>
 
 #include	<sys/wait.h>
+#ifdef		HAVE_SYS_RESOURCE_H
 #include	<sys/resource.h>
+#endif		/* HAVE_SYS_RESOURCE_H */
 
 #include	"htconfig.h"
 #include	"ssi.h"
@@ -42,6 +37,7 @@
 #include	"xscounter.h"
 #include	"methods.h"
 #include	"decode.h"
+#include	"malloc.h"
 
 typedef	enum
 {
@@ -51,9 +47,9 @@ typedef	enum
 	MODE_RESET
 } countermode;
 
-static	int	xsc_initdummy		(off_t *);
-static	int	xsc_initcounter		(const char *, off_t *);
-static	int	xsc_counter		(countermode, const char *, off_t *);
+static	bool	xsc_initdummy		(off_t *);
+static	bool	xsc_initcounter		(const char *, off_t *);
+static	bool	xsc_counter		(countermode, const char *, off_t *);
 static	int	call_counter		(countermode, int, char **, off_t *);
 static	int	parse_values		(char *, char **, size_t);
 static	int	dir_count_total		(int, char **, off_t *);
@@ -78,7 +74,7 @@ static	int	dir_endif		(int, char **, off_t *);
 static	int	dir_switch		(int, char **, off_t *);
 static	int	dir_endswitch	(int, char **, off_t *);
 static	int	dir_case		(int, char **, off_t *);
-static	int	print_enabled		(void);
+static	bool	print_enabled		(void);
 static	int	parsedirectives		(char *, off_t *);
 static	int	sendwithdirectives_internal (int, off_t *);
 
@@ -86,13 +82,14 @@ static	int	sendwithdirectives_internal (int, off_t *);
 #define		CONDKEYWORDS	16
 #define		SETVARIABLES	200
 #define		SSIARGUMENTS	100
-static	int	ssioutput, cnt_readbefore, numincludes;
+static	bool	cnt_readbefore;
+static	unsigned int	ssioutput, numincludes;
 static	char	ssiarray[CONDKEYWORDS];
 static	char	*switchstr;
 static	int	setvarlen;
 static	char	*setvars[SETVARIABLES];
 
-static	int
+static	bool
 xsc_initdummy(off_t *size)
 {
 	int		fd;
@@ -103,7 +100,7 @@ xsc_initdummy(off_t *size)
 	{
 		*size += secprintf("[Failed to create dummies: %s]\n",
 			strerror(errno));
-		return(1);
+		return false;
 	}
 
 	memset(dummy.filename, 1, sizeof(dummy.filename) - 1);
@@ -116,7 +113,7 @@ xsc_initdummy(off_t *size)
 		*size += secprintf("[Failed to write dummy file: %s]\n",
 			strerror(errno));
 		close(fd);
-		return(1);
+		return false;
 	}
 
 	memset(dummy.filename, 255, sizeof(dummy.filename)-1);
@@ -126,17 +123,18 @@ xsc_initdummy(off_t *size)
 		*size += secprintf("[Failed to write dummy file: %s]\n",
 			strerror(errno));
 		close(fd);
-		return(1);
+		return false;
 	}
 	close(fd);
-	return(0);
+	return true;
 }
 
-static	int
+static	bool
 xsc_initcounter(const char *filename, off_t *size)
 {
 	int		fd, fd2;
-	unsigned int	done, retry;
+	bool		done;
+	unsigned int	retry;
 	countstr	counter, counter2;
 	char		datafile[XS_PATH_MAX];
 	const	char	*lockfile;
@@ -147,7 +145,7 @@ xsc_initcounter(const char *filename, off_t *size)
 	{
 		*size += secprintf("[Could not open the counter file: %s]\n",
 			strerror(errno));
-		return(1);
+		return false;
 	}
 	retry = 0;
 	while ((fd2 = open(lockfile = calcpath(CNT_LOCK),
@@ -161,10 +159,10 @@ xsc_initcounter(const char *filename, off_t *size)
 		*size += secprintf("[Failed to create temporary file: %s]\n",
 			strerror(errno));
 		close(fd);
-		return(1);
+		return false;
 	}
 
-	done = 0;
+	done = false;
 	strlcpy(counter2.filename, filename, sizeof(counter2.filename));
 	counter2.total = counter2.today = counter2.month = 0;
 	counter2.lastseen = (time_t)0;
@@ -179,16 +177,16 @@ xsc_initcounter(const char *filename, off_t *size)
 				*size += secprintf("[Failed to write temp file: %s]\n",
 					strerror(errno));
 				close(fd); close(fd2); remove(lockfile);
-				return(1);
+				return false;
 			}
-			done = 1;
+			done = true;
 		}
 		if (write(fd2, &counter, sizeof(counter)) != sizeof(counter))
 		{
 			*size += secprintf("[Failed to write temp file: %s]\n",
 				strerror(errno));
 			close(fd); close(fd2); remove(lockfile);
-			return(1);
+			return false;
 		}
 	}
 
@@ -204,10 +202,10 @@ xsc_initcounter(const char *filename, off_t *size)
 		*size += secprintf("[Could not rename counter file: %s]\n",
 			strerror(errno));
 		remove(lockfile);
-		return(1);
+		return false;
 	}
 	remove(lockfile);
-	return(0);
+	return true;
 }
 
 void
@@ -235,10 +233,11 @@ counter_versioncheck()
 	/* NOTREACHED */
 }
 
-static	int
+static	bool
 xsc_counter(countermode mode, const char *args, off_t *size)
 {
-	int			fd = -1, timer, total, x, y, z, comp, already = 0;
+	int			fd = -1, timer, total, x, y, z, comp;
+	bool			already = false;
 	static	countstr	counter;
 	char			*p, filename[sizeof(counter.filename)];
 
@@ -248,17 +247,19 @@ xsc_counter(countermode mode, const char *args, off_t *size)
 
 	if (cnt_readbefore)
 		goto ALREADY;
-	cnt_readbefore = 1; timer = 0;
+	cnt_readbefore = true;
+
+	timer = 0;
 	counter.total = counter.today = counter.month = 0;
 	counter.lastseen = (time_t)0;
 
-reopen:
+	REOPEN:
 	if ((fd = open(calcpath(CNT_DATA), O_RDWR,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
 	{
-		if (xsc_initdummy(size))
-			return(1);
-		goto reopen;
+		if (!xsc_initdummy(size))
+			return false;
+		goto REOPEN;
 	}
 
 	if ((total = lseek(fd, (off_t)0, SEEK_END)) == -1)
@@ -266,16 +267,16 @@ reopen:
 		*size += secprintf("[Could not find end of the counter file: %s]\n",
 			strerror(errno));
 		close(fd);
-		return(1);
+		return false;
 	}
 
 	total /= sizeof(countstr);
 	if (total < 2)
 	{
 		close(fd);
-		if (xsc_initdummy(size))
-			return(1);
-		goto reopen;
+		if (!xsc_initdummy(size))
+			return false;
+		goto REOPEN;
 	}
 
 	x = 0; z = total - 1; y = z / 2; comp = 1;
@@ -287,14 +288,14 @@ reopen:
 			*size += secprintf("[Could not seek in counter file: %s]\n",
 				strerror(errno));
 			close(fd);
-			return(1);
+			return false;
 		}
 		if (read(fd, &counter, sizeof(countstr)) != sizeof(countstr))
 		{
 			*size += secprintf("[Could not read counter file: %s]\n",
 				strerror(errno));
 			close(fd);
-			return(1);
+			return false;
 		}
 		if ((comp = strncmp(filename, counter.filename, sizeof(counter.filename))) < 0)
 			z = y;
@@ -308,12 +309,12 @@ reopen:
 		if (already)
 		{
 			*size += secprintf("[Failed to create new counter]\n");
-			return(1);
+			return false;
 		}
-		already = 1;
-		if (xsc_initcounter(filename, size))
-			return(1);
-		goto reopen;
+		already = true;
+		if (!xsc_initcounter(filename, size))
+			return false;
+		goto REOPEN;
 	}
 
 	counter.total++; counter.today++; counter.month++;
@@ -323,7 +324,7 @@ reopen:
 		*size += secprintf("[Could not seek in counter file: %s]\n",
 			strerror(errno));
 		close(fd);
-		return(1);
+		return false;
 	}
 	if (mode == MODE_RESET)
 	{
@@ -334,20 +335,21 @@ reopen:
 			*size += secprintf("[Could not update counter file: %s]\n",
 				strerror(errno));
 			close(fd);
-			return(1);
+			return false;
 		}
 		close(fd);
-		return(0);
+		return true;
 	}
 	if (write(fd, &counter, sizeof(countstr)) != sizeof(countstr))
 	{
 		*size += secprintf("[Could not update counter file: %s]\n",
 			strerror(errno));
 		close(fd);
-		return(1);
+		return false;
 	}
 	close(fd);
-ALREADY:
+
+	ALREADY:
 	switch(mode)
 	{
 	case MODE_ALL:
@@ -377,17 +379,17 @@ ALREADY:
 	case MODE_RESET:
 		if (counter.total > 0)
 			/* This is quite redundant... Let's think of a better way */
-			goto reopen;
+			goto REOPEN;
 		*size += secprintf("[reset stats counter]");
 		break;
 	}
-	return(0);
+	return true;
 }
 
 static	int
 call_counter(countermode mode, int argc, char **argv, off_t *size)
 {
-	int		ret;
+	xs_error_t	ret;
 	uid_t		savedeuid;
 	gid_t		savedegid;
 	const	char	*path;
@@ -403,7 +405,7 @@ call_counter(countermode mode, int argc, char **argv, off_t *size)
 		savedeuid = config.system->userid;
 		savedegid = config.system->groupid;
 	}
-	ret = xsc_counter(mode, path, size) ? ERR_CONT : ERR_NONE;
+	ret = xsc_counter(mode, path, size) ? ERR_NONE : ERR_CONT;
 	if (!origeuid)
 	{
 		setegid(savedegid); seteuid(savedeuid);
@@ -416,19 +418,17 @@ parse_values(char *here, char **mapping, size_t maxsize)
 {
 	char		*p, *e, *word, *args, *end = strstr(here, "-->");
 	enum		{ T_INDEX, T_EQUAL, T_VALUE }	expect;
-	size_t		len, mapsize;
-	unsigned int	guard;
+	size_t		mapsize;
+	bool		guard;
 
 	if (!end)
 		return 0;
 	*end = '\0';
 
-	len = end + 1 - here;
-	args = (char *)malloc(len);
-	strlcpy(args, here, len);
+	args = strdup(here);
 	mapsize = 0;
 	expect = T_INDEX;
-	guard = 1;
+	guard = true;
 	for (p = word = args; guard && mapsize < maxsize; p++)
 	{
 		switch (*p)
@@ -464,7 +464,7 @@ parse_values(char *here, char **mapping, size_t maxsize)
 				expect = T_EQUAL;
 			break;
 		case '\0':
-			guard = 0;
+			guard = false;
 		case ' ':  case '\t':
 		case '\r': case '\n':
 			*p = '\0';
@@ -547,7 +547,6 @@ dir_count_reset(int argc, char **argv, off_t *size)
 static	int
 dir_date_format(int argc, char **argv, off_t *size)
 {
-	int	i;
 	char	*format, *zone;
 
 	if (!argc)
@@ -557,7 +556,7 @@ dir_date_format(int argc, char **argv, off_t *size)
 	}
 
 	format = zone = NULL;
-	for (i = 0; i < argc; i += 2)
+	for (int i = 0; i < argc; i += 2)
 		if (!strcmp(argv[i], "format"))
 			format = argv[i + 1];
 		else if (!strcmp(argv[i], "zone"))
@@ -608,7 +607,8 @@ dir_date(int argc, char **argv, off_t *size)
 static	int
 dir_include_file(int argc, char **argv, off_t *size)
 {
-	int		i, fd, ret, ssi;
+	bool		ssi;
+	int		fd, ret;
 	const	char	*path = NULL;
 
 	if ((numincludes++) > MAXINCLUDES)
@@ -622,8 +622,8 @@ dir_include_file(int argc, char **argv, off_t *size)
 		return(ERR_CONT);
 	}
 
-	ssi = 1;
-	for (i = 0; i < argc; i += 2)
+	ssi = true;
+	for (int i = 0; i < argc; i += 2)
 		if (!strcmp(argv[i], "virtual"))
 			/* run as script */
 			return dir_run_cgi(1, &argv[i + 1], size);
@@ -632,7 +632,7 @@ dir_include_file(int argc, char **argv, off_t *size)
 		else if (!strcmp(argv[i], "binary"))
 		{
 			path = argv[i + 1];
-			ssi = 0;
+			ssi = false;
 		}
 
 	if (!path)
@@ -804,15 +804,13 @@ dir_printenv(int argc, char **argv, off_t *size)
 static	int
 dir_set(int argc, char **argv, off_t *size)
 {
-	int	i;
-
 	if (setvarlen + argc > SETVARIABLES)
 	{
 		*size += secputs("[Too many set arguments]\n");
 		return(ERR_CONT);
 	}
 
-	for (i = 0; i < argc; i++, setvarlen++)
+	for (int i = 0; i < argc; i++, setvarlen++)
 		setvars[setvarlen] = strdup(argv[i]);
 	(void)size;
 	return ERR_NONE;
@@ -821,11 +819,10 @@ dir_set(int argc, char **argv, off_t *size)
 static	int
 dir_echo(int argc, char **argv, off_t *size)
 {
-	int	i;
 	char	*var = NULL, *envvar = NULL, *enc = NULL;
 	const	char	*value;
 
-	for (i = 0; i < argc; i += 2)
+	for (int i = 0; i < argc; i += 2)
 	{
 		if (!strcmp(argv[i], "var"))
 			var = argv[i+1];
@@ -843,7 +840,7 @@ dir_echo(int argc, char **argv, off_t *size)
 
 	value = getenv(envvar ? envvar : var);
 	if (var)
-		for (i = 0; i < setvarlen; i += 2)
+		for (int i = 0; i < setvarlen; i += 2)
 			if (setvars[i] && !strcmp(setvars[i], var))
 				value = setvars[i + 1];
 
@@ -869,7 +866,7 @@ dir_echo(int argc, char **argv, off_t *size)
 static	int
 dir_echo_obsolete(int argc, char **argv, off_t *size)
 {
-	char	*value = NULL;
+	const char	*value = NULL;
 
 	/* argv[0] = ssi name for ssi w/o arguments */
 	if (!strcmp(argv[0], "remote-host"))
@@ -1059,16 +1056,17 @@ static	directivestype	directives[] =
 	{ NULL,			NULL,			0	}
 };
 
-static	int
+static	bool
 print_enabled()
 {
-	int		count, output;
+	bool		output;
+	unsigned int	count;
 
-	output = 1;
+	output = true;
 	for (count = 0; count <= ssioutput; count++)
 		if (!ssiarray[count])
-			output = 0;
-	return(output);
+			output = false;
+	return output;
 }
 
 static	int
@@ -1079,7 +1077,8 @@ parsedirectives(char *parse, off_t *size)
 	store = result; here = parse;
 	while (*here)
 	{
-		int		len, printable, argc;
+		bool		printable;
+		int		len, argc;
 		char		*argv[SSIARGUMENTS];
 		directivestype	*directive;
 
@@ -1186,7 +1185,8 @@ sendwithdirectives_internal(int fd, off_t *size)
 			{
 				if (secputs(line) == EOF)
 				{
-					alarm(0); fclose(parse);
+					alarm(0);
+					fclose(parse);
 					return(ERR_QUIT);
 				}
 				*size += strlen(line) + 1;
@@ -1196,7 +1196,8 @@ sendwithdirectives_internal(int fd, off_t *size)
 		{
 			if (parsedirectives(line, size) == ERR_QUIT)
 			{
-				alarm(0); fclose(parse);
+				alarm(0);
+				fclose(parse);
 				return(ERR_QUIT);
 			}
 		}
@@ -1212,7 +1213,8 @@ sendwithdirectives(int fd, off_t *size)
 	int	ret;
 
 	ssioutput = 0; ssiarray[0] = 1;
-	cnt_readbefore = numincludes = 0;
+	cnt_readbefore = false;
+	numincludes = 0;
 	setvarlen = 0;
 	switchstr = NULL;
 	ret = sendwithdirectives_internal(fd, size);

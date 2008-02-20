@@ -27,6 +27,7 @@
 #include	"ssl.h"
 #include	"extra.h"
 #include	"methods.h"
+#include	"malloc.h"
 
 #ifdef		HAVE_PCRE
 #include		"pcre.h"
@@ -39,7 +40,7 @@ static char	netbuf[MYBUFSIZ];
 static int	pem_passwd_cb(char *buf, int size, int rwflag, void *userdata);
 
 void
-initreadmode(int reset)
+initreadmode(bool reset)
 {
 #ifdef		HANDLE_SSL
 	unsigned long readerror;
@@ -61,12 +62,12 @@ initreadmode(int reset)
 #endif		/* HANDLE_SSL */
 }
 
-int
+bool
 initssl()
 {
 #ifdef		HANDLE_SSL
 	if (!cursock->usessl)
-		return 0;
+		return true;
 
 	cursock->ssl = SSL_new(cursock->ssl_ctx);
 	SSL_set_rfd(cursock->ssl, 0);
@@ -76,14 +77,14 @@ initssl()
 		(const unsigned char *)SERVER_IDENT, sizeof(SERVER_IDENT));
 	if (SSL_accept(cursock->ssl) < 0)
 	{
-		int	readerror;
+		unsigned long	readerror;
 
 		if ((readerror = ERR_get_error()))
 			warnx("SSL accept error: %s",
 				ERR_reason_error_string(readerror));
 		else
 			warnx("SSL flipped");
-		return -1;
+		return false;
 	}
 
 #ifdef		HAVE_PCRE
@@ -99,7 +100,7 @@ initssl()
 					0, &errormsg, &erroffset, NULL);
 			if (!cursock->sslmatchsdn)
 				/* TODO: error handling */
-				return -1;
+				return false;
 		}
 		if (cursock->sslmatchidn)
 		{
@@ -108,12 +109,12 @@ initssl()
 					0, &errormsg, &erroffset, NULL);
 			if (!cursock->sslmatchidn)
 				/* TODO: error handling */
-				return -1;
+				return false;
 		}
 	}
 #endif		/* HAVE_PCRE */
 #endif		/* HANDLE_SSL */
-	return 0;
+	return true;
 }
 
 void
@@ -236,8 +237,8 @@ pem_passwd_cb(char *buf, int size, int rwflag, void *userdata)
 		(char *)userdata);
 	if (!(passphrase = getpass("Passphrase: ")))
 		return 0;
-	strlcpy(buf, passphrase, size);
-	memset(passphrase, '\0', strlen(passphrase));
+	strlcpy(buf, passphrase, (size_t)size);
+	memset(passphrase, 0, strlen(passphrase));
 
 	(void) rwflag;
 	(void) userdata;
@@ -250,8 +251,6 @@ loadssl(struct socket_config *lsock)
 #ifdef		HANDLE_SSL
 	SSL_CTX		*ssl_ctx;
 	SSL_METHOD	*method = NULL;
-	BIO		*bio = NULL;
-	struct stat	sb;
 
 	if (!lsock->usessl)
 		return;
@@ -302,6 +301,7 @@ loadssl(struct socket_config *lsock)
 			ERR_reason_error_string(ERR_get_error()));
 
 	/* load randomness */
+	struct stat	sb;
 	if (lstat("/dev/urandom", &sb) == 0 && S_ISCHR(sb.st_mode))
 	{
 		if (!RAND_load_file("/dev/urandom", 16 * 1024))
@@ -310,6 +310,7 @@ loadssl(struct socket_config *lsock)
 	}
 
 	/* read dh parameters from private keyfile */
+	BIO		*bio = NULL;
 	bio = BIO_new_file(calcpath(lsock->sslprivatekey), "r");
 	if (bio)
 	{
@@ -393,7 +394,7 @@ secread_internal(int fd, void *buf, size_t count)
 
 		while ((ret = SSL_read(cursock->ssl, buf, count)) <= 0)
 		{
-			int	s_err = SSL_get_error(cursock->ssl, ret);
+			unsigned long	s_err = SSL_get_error(cursock->ssl, ret);
 
 			switch (s_err)
 			{
@@ -488,7 +489,7 @@ secwrite(const char *buf, size_t count)
 #ifdef		HANDLE_SSL
 		if (cursock->usessl)
 		{
-			int		s_err;
+			unsigned long	s_err;
 			ssize_t		ret;
 
 			while ((ret = SSL_write(cursock->ssl, message[i], len[i])) <= 0)
@@ -559,10 +560,10 @@ ssize_t
 secprintf(const char *format, ...)
 {
 	va_list ap;
-	char	buf[4096];
+	char	buf[LINEBUFSIZE];
 
 	va_start(ap, format);
-	vsnprintf(buf, 4096, format, ap);
+	vsnprintf(buf, sizeof(buf), format, ap);
 	va_end(ap);
 	return secwrite(buf, strlen(buf));
 }
@@ -570,12 +571,12 @@ secprintf(const char *format, ...)
 ssize_t
 secread(int rd, void *buf, size_t len)
 {
-	const long	inbuffer = netbufsiz - netbufind;
+	const size_t	inbuffer = netbufsiz - netbufind;
 	char		*cbuf = buf;
 
 	if (inbuffer > 0)
 	{
-		if ((long)len >= inbuffer)
+		if (len >= inbuffer)
 		{
 			memcpy(buf, &netbuf[netbufind], inbuffer);
 			netbufsiz = netbufind = 0;
@@ -592,7 +593,7 @@ secread(int rd, void *buf, size_t len)
 	return inbuffer + secread_internal(rd, cbuf, len);
 }
 
-int
+xs_error_t
 readline(int rd, char *buf, size_t len)
 {
 	char		ch, *buf2;
@@ -658,7 +659,7 @@ readheaders(int rd, struct maplist *headlist)
 			break;
 		if (isspace(input[0]))
 		{
-			int	len;
+			size_t	len;
 			char	*val;
 
 			/* continue previous header */
@@ -668,7 +669,7 @@ readheaders(int rd, struct maplist *headlist)
 
 			val = headlist->elements[headlist->size-1].value;
 			len = strlen(val) + strlen(value) + 2;
-			val = realloc(val, len);
+			REALLOC(val, char, len);
 			strcat(val, " ");
 			strcat(val, value);
 			headlist->elements[headlist->size-1].value = val;
@@ -688,12 +689,12 @@ readheaders(int rd, struct maplist *headlist)
 					continue;
 				if (!strcasecmp(idx, input))
 				{
-					int	len;
+					size_t	len;
 					char	*val;
 					
 					val = headlist->elements[sz].value;
 					len = strlen(val) + strlen(value) + 3;
-					val = realloc(val, len);
+					REALLOC(val, char, len);
 					strcat(val, ", ");
 					strcat(val, value);
 					headlist->elements[sz].value = val;
@@ -703,8 +704,8 @@ readheaders(int rd, struct maplist *headlist)
 			/* add new header */
 			if (sz == headlist->size)
 			{
-				headlist->elements = realloc(headlist->elements,
-					(sz + 1) * sizeof(struct mapping));
+				REALLOC(headlist->elements,
+					struct mapping, sz + 1);
 				headlist->elements[sz].index = strdup(input);
 				headlist->elements[sz].value = strdup(value);
 				headlist->size++;
@@ -713,8 +714,7 @@ readheaders(int rd, struct maplist *headlist)
 		else if (!headlist->size)
 		{
 			/* first 'status' line is special */
-			headlist->elements = realloc(headlist->elements,
-					sizeof(struct mapping));
+			MALLOC(headlist->elements, struct mapping, 1);
 			headlist->elements[0].index = strdup("Status");
 			headlist->elements[0].value = strdup(input);
 			headlist->size = 1;

@@ -2,10 +2,8 @@
 
 #include	"config.h"
 
-#include	<sys/types.h>
-#ifdef		HAVE_SYS_TIME_H
-#include	<sys/time.h>
-#endif		/* HAVE_SYS_TIME_H */
+#include	<inttypes.h>
+#include	<stdbool.h>
 #ifdef		HAVE_SYS_RESOURCE_H
 #include	<sys/resource.h>
 #endif		/* HAVE_SYS_RESOURCE_H */
@@ -13,9 +11,7 @@
 #include	<sys/mman.h>
 #endif		/* HAVE_SYS_MMAN_H */
 #include	<sys/socket.h>
-#ifdef		HAVE_SYS_WAIT_H
 #include	<sys/wait.h>
-#endif		/* HAVE_SYS_WAIT_H */
 #include	<sys/signal.h>
 #include	<sys/stat.h>
 #include	<sys/utsname.h>
@@ -28,12 +24,8 @@
 #ifdef		HAVE_SYS_SYSLIMITS_H
 #include	<sys/syslimits.h>
 #endif		/* HAVE_SYS_SYSLIMITS_H */
-#ifdef		HAVE_INTTYPES_H
-#include	<inttypes.h>
-#endif		/* HAVE_INTTYPES_H */
 
 #include	<netinet/in.h>
-
 #include	<arpa/inet.h>
 
 #include	<fcntl.h>
@@ -68,6 +60,7 @@
 #include	"cloader.h"
 #include	"extra.h"
 #include	"path.h"
+#include	"malloc.h"
 
 #ifndef		PRIO_MAX
 #define		PRIO_MAX	20
@@ -88,39 +81,28 @@ load_config()
 {
 	FILE	*confd;
 	char	line[LINEBUFSIZE], thishostname[NI_MAXHOST];
-	char	**defaultindexfiles, **defaultuidscripts;
 	struct socket_config	*lsock;
+	static const char	*defaultindexfiles[] =
+		{ INDEX_HTML, "index.htm", "index.php", NULL };
+	static const char	*defaultuidscripts[] =
+		{ "/cgi-bin/imagemap", "/cgi-bin/xschpass", NULL };
 
 	/* default socket for backwards compatibility */
-	lsock = malloc(sizeof(struct socket_config));
-	if (!lsock)
-		err(1, "Fatal error");
-	memset(lsock, 0, sizeof(struct socket_config));
+	CALLOC(lsock, struct socket_config, 1);
 	if (config.instances)
 		lsock->instances = config.instances;
 
 	/* Set simple defaults - others follow the parsing */
-	config.usednslookup = 1;
-	config.usessi = 1;
-	config.useput = 1;
-	config.execasuser = 1;
+	config.usednslookup = true;
+	config.usessi = true;
+	config.useput = true;
+	config.execasuser = true;
 	config.scriptcpulimit = 2;
 	config.scripttimeout = 6;
 	config.sockets = NULL;
 	config.priority = 0;
 	config.scriptpriority = PRIO_MAX;
 	config.virtualhostdir = NULL;
-
-	defaultindexfiles = malloc(4 * sizeof(char *));
-	defaultindexfiles[0] = strdup(INDEX_HTML);
-	defaultindexfiles[1] = strdup("index.htm");
-	defaultindexfiles[2] = strdup("index.php");
-	defaultindexfiles[3] = NULL;
-
-	defaultuidscripts = malloc(3 * sizeof(char *));
-	defaultuidscripts[0] = strdup("/cgi-bin/imagemap");
-	defaultuidscripts[1] = strdup("/cgi-bin/xschpass");
-	defaultuidscripts[2] = NULL;
 
 	if (*config_preprocessor)
 	{
@@ -181,9 +163,9 @@ load_config()
 						config.pidfile = strdup(value);
 					else if (!strcasecmp("ExecAsUser", key))
 						if (!strcasecmp("true", value))
-							config.execasuser = 1;
+							config.execasuser = true;
 						else
-							config.execasuser = 0;
+							config.execasuser = false;
 					else if (!strcasecmp("DefaultCharset", key))
 						config.defaultcharset = strdup(value);
 					else if (!strcasecmp("UseVirtualUid", key))
@@ -245,18 +227,18 @@ load_config()
 					}
 					else if (!strcasecmp("UseSSL", key))
 						if (!strcasecmp("true", value))
-							lsock->usessl = 1;
+							lsock->usessl = true;
 						else
-							lsock->usessl = 0;
+							lsock->usessl = false;
 					else if (!strcasecmp("SSLCertificate", key))
 					{
-						lsock->usessl = 1;
+						lsock->usessl = true;
 						lsock->sslcertificate =
 							strdup(calcpath(value));
 					}
 					else if (!strcasecmp("SSLPrivateKey", key))
 					{
-						lsock->usessl = 1;
+						lsock->usessl = true;
 						lsock->sslprivatekey =
 							strdup(calcpath(value));
 					}
@@ -361,30 +343,21 @@ load_config()
 					if (subtype)
 						errx(1, "illegal <System> nesting");
 					subtype = sub_system;
-					current = malloc(sizeof(struct virtual));
-					if (!current)
-						err(1, "Fatal error");
-					memset(current, 0, sizeof(struct virtual));
+					CALLOC(current, struct virtual, 1);
 				}
 				else if (!strcasecmp("<Users>", key))
 				{
 					if (subtype)
 						errx(1, "illegal <Users> nesting");
 					subtype = sub_users;
-					current = malloc(sizeof(struct virtual));
-					if (!current)
-						err(1, "Fatal error");
-					memset(current, 0, sizeof(struct virtual));
+					CALLOC(current, struct virtual, 1);
 				}
 				else if (!strcasecmp("<Virtual>", key))
 				{
 					if (subtype)
 						errx(1, "illegal <Virtual> nesting");
 					subtype = sub_virtual;
-					current = malloc(sizeof(struct virtual));
-					if (!current)
-						err(1, "Fatal error");
-					memset(current, 0, sizeof(struct virtual));
+					CALLOC(current, struct virtual, 1);
 				}
 				else if (!strcasecmp("<Socket>", key))
 				{
@@ -397,11 +370,8 @@ load_config()
 					}
 					else
 					{
-						lsock->next = malloc(sizeof(struct socket_config));
-						if (!lsock->next)
-							err(1, "Fatal error");
+						CALLOC(lsock->next, struct socket_config, 1);
 						lsock = lsock->next;
-						memset(lsock, 0, sizeof(struct socket_config));
 					}
 				}
 				else if (!strcasecmp("</System>", key))
@@ -489,12 +459,7 @@ load_config()
 
 	/* Set up system section */
 	if (!config.system)
-	{
-		config.system = malloc(sizeof(struct virtual));
-		if (!config.system)
-			err(1, "Fatal error");
-		memset(config.system, 0, sizeof(struct virtual));
-	}
+		CALLOC(config.system, struct virtual, 1);
 	if (!config.system->hostname)
 	{
 		if (gethostname(thishostname, NI_MAXHOST) == -1)
@@ -536,17 +501,30 @@ load_config()
 		config.system->groupid = grp->gr_gid;
 	}
 	if (!config.system->indexfiles)
-		config.system->indexfiles = defaultindexfiles;
+	{
+		int		i;
+		size_t	sz = sizeof(defaultindexfiles) / sizeof(char *);
+
+		MALLOC(config.system->indexfiles, char *, sz);
+		for (i = 0; defaultindexfiles[i]; i++)
+			config.system->indexfiles[i] =
+				strdup(defaultindexfiles[i]);
+		config.system->indexfiles[i] = NULL;
+	}
 	if (!config.system->uidscripts)
-		config.system->uidscripts = defaultuidscripts;
+	{
+		int		i;
+		size_t	sz = sizeof(defaultindexfiles) / sizeof(char *);
+
+		MALLOC(config.system->uidscripts, char *, sz);
+		for (i = 0; defaultuidscripts[i]; i++)
+			config.system->uidscripts[i] =
+				strdup(defaultuidscripts[i]);
+		config.system->uidscripts[i] = NULL;
+	}
 	/* Set up users section */
 	if (!config.users)
-	{
-		config.users = malloc(sizeof(struct virtual));
-		if (!config.users)
-			err(1, "Fatal error");
-		memset(config.users, 0, sizeof(struct virtual));
-	}
+		CALLOC(config.users, struct virtual, 1);
 	if (!config.users->hostname)
 		config.users->hostname = strdup(config.system->hostname);
 	if (!config.users->htmldir)
@@ -581,7 +559,7 @@ void
 remove_config()
 {
 	/* XXX: Rewrite this to avoid memory leaks */
-	memset(&config, '\0', sizeof config);
+	memset(&config, 0, sizeof config);
 }
 
 #ifdef		HAVE_PERL

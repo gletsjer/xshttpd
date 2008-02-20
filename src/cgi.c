@@ -4,9 +4,6 @@
 #include	"config.h"
 
 #include	<sys/types.h>
-#ifdef		HAVE_SYS_TIME_H
-#include	<sys/time.h>
-#endif		/* HAVE_SYS_TIME_H */
 #ifdef		HAVE_SYS_RESOURCE_H
 #include	<sys/resource.h>
 #endif		/* HAVE_SYS_RESOURCE_H */
@@ -16,12 +13,9 @@
 #include	<sys/wait.h>
 
 #include	<stdio.h>
+#include	<stdbool.h>
 #include	<errno.h>
-#ifdef		HAVE_TIME_H
-#ifdef		TIME_WITH_SYS_TIME
 #include	<time.h>
-#endif		/* TIME_WITH_SYS_TIME */
-#endif		/* HAVE_TIME_H */
 #include	<stdlib.h>
 #include	<signal.h>
 #include	<pwd.h>
@@ -50,9 +44,10 @@
 #include	"cgi.h"
 #include	"htconfig.h"
 #include	"extra.h"
+#include	"malloc.h"
 
 static	void		time_is_up(int)	NORETURN;
-static	int		append(char **, int, const char *format, ...)	PRINTF_LIKE(3,4);
+static	bool		append(char **, bool, const char * const format, ...)	PRINTF_LIKE(3,4);
 
 #ifdef		HAVE_PERL
 char *	perlargs[] = { NULL, NULL };
@@ -75,8 +70,8 @@ time_is_up(int sig)
 	exit(1);
 }
 
-static	int
-append(char **buffer, int prepend, const char *format, ...)
+static	bool
+append(char **buffer, bool prepend, const char * const format, ...)
 {
 	va_list		ap;
 	char		*line, *newbuf;
@@ -87,21 +82,21 @@ append(char **buffer, int prepend, const char *format, ...)
 	llen = vasprintf(&line, format, ap);
 	va_end(ap);
 	if (!line)
-		return 0;
+		return false;
 
 	if (!buffer || !*buffer)
 	{
 		*buffer = line;
-		return 1;
+		return true;
 	}
 
 	slen = strlen(*buffer);
-	newbuf = realloc(*buffer, slen + llen + 1);
-	*buffer = newbuf;
+	REALLOC(*buffer, char, slen + llen + 1);
+	newbuf = *buffer;
 	if (!newbuf)
 	{
 		free(line);
-		return 0;
+		return false;
 	}
 
 	if (prepend)
@@ -113,26 +108,25 @@ append(char **buffer, int prepend, const char *format, ...)
 		memmove(newbuf + slen, line, llen + 1);
 
 	free(line);
-	return 1;
+	return true;
 }
 
 void
 do_script(const char *path, const char *base, const char *file, const char *engine)
 {
-	off_t			totalwritten;
-	char			fullpath[XS_PATH_MAX], input[RWBUFSIZE],
-				line[LINEBUFSIZE];
-	char			*argv1;
-	int			p[2], r[2], nph, dossi, chldstat;
-	unsigned	int	left;
-	FILE			*logfile;
+	off_t		totalwritten;
+	char		fullpath[XS_PATH_MAX], input[RWBUFSIZE],
+			line[LINEBUFSIZE];
+	char		*argv1;
+	int		p[2], r[2], chldstat;
+	bool		nph, dossi;
+	unsigned int	left;
+	FILE		*logfile;
 #ifdef		HANDLE_SSL
-	int			q[2];
-	int			ssl_post = 0;
-	const char	*te = getenv("HTTP_TRANSFER_ENCODING");
+	int		q[2];
+	bool		ssl_post = false;
 #endif		/* HANDLE_SSL */
 	struct	sigaction	action;
-	struct	stat		statbuf;
 
 	child = (pid_t)-1;
 #ifdef		HAVE_SIGEMPTYSET
@@ -151,10 +145,16 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 	snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
 
-	if (!engine && !stat(fullpath, &statbuf) && !(statbuf.st_mode & S_IXUSR))
+	if (!engine)
 	{
-		server_error(403, "File permissions deny access", "NOT_AVAILABLE");
-		return;
+		struct	stat		statbuf;
+
+		if (!stat(fullpath, &statbuf) && !(statbuf.st_mode & S_IXUSR))
+		{
+			server_error(403, "File permissions deny access",
+				"NOT_AVAILABLE");
+			return;
+		}
 	}
 
 	setenv("SCRIPT_FILENAME", fullpath, 1);
@@ -164,7 +164,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	if (config.usessi)
 		dossi = (!strncmp(file, "ssi-", 4) || strstr(file, "/ssi-"));
 	else
-		dossi = 0;
+		dossi = false;
 	p[0] = p[1] = -1;
 	if (1 /* !nph || do_ssl */)
 	{
@@ -311,24 +311,22 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			/* let shell handle engines containing metacharacters */
 			if (engine[strcspn(engine, meta)])
 			{
-				int		len, pos;
-				char	*buffer, *pengine;
+				unsigned int	len, pos;
+				char		*buffer, *pengine;
 
 				len = 2 + strlen(engine) + strlen(fullpath);
-				if ((buffer = (char *)malloc(len)))
+				MALLOC(buffer, char, len);
+				/* optional %f indicates filename */
+				if ((pengine = strstr(engine, "%f")))
 				{
-					/* optional %f indicates filename */
-					if ((pengine = strstr(engine, "%f")))
-					{
-						pos = pengine - engine;
-						snprintf(buffer, len, "%*.*s%s%s", pos, pos,
-								engine, fullpath, pengine + 2);
-					}
-					else
-						snprintf(buffer, len, "%s %s", engine, fullpath);
-					(void) execl("/bin/sh", "sh", "-c", buffer, NULL);
-					free(buffer);
+					pos = pengine - engine;
+					snprintf(buffer, len, "%*.*s%s%s", pos, pos,
+						engine, fullpath, pengine + 2);
 				}
+				else
+					snprintf(buffer, len, "%s %s", engine, fullpath);
+				(void) execl("/bin/sh", "sh", "-c", buffer, NULL);
+				free(buffer);
 			}
 			else
 				(void) execl(engine, engine, fullpath, argv1, NULL);
@@ -353,21 +351,16 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	}
 
 #ifdef		HANDLE_SSL
+	const char * const te = getenv("HTTP_TRANSFER_ENCODING");
 	if (ssl_post && te && !strcasecmp(te, "chunked"))
 	{
-		size_t          chunksz;
-		char            buffer[20];
+		char		buffer[20];
 		const size_t	buflen = sizeof buffer;
-		int             result;
-		char		*cbuf;
-
-		chunksz = 0;
-		cbuf = NULL;
+		char		*cbuf = NULL;
 
 		while (1)
 		{
-			result = readline(0, buffer, buflen);
-			if (result != ERR_NONE)
+			if (readline(0, buffer, buflen) != ERR_NONE)
 			{
 				if (cbuf)
 					free(cbuf);
@@ -375,7 +368,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			}
 			buffer[buflen-1] = '\0';
 
-			chunksz = (size_t)strtoul(buffer, NULL, 16);
+			const size_t chunksz = (size_t)strtoul(buffer, NULL,16);
 			if (!chunksz)
 			{
 				/* end of data marker */
@@ -384,14 +377,14 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				break;
 			}
 			/* two bytes extra for trailing \r\n */
-			cbuf = realloc(cbuf, chunksz + 2);
+			REALLOC(cbuf, char, chunksz + 2);
 			if (!cbuf)
 				goto END;
 			if (secread(0, cbuf, chunksz + 2) < 0)
 				goto END;
 
-			result = write(q[1], cbuf, chunksz);
-			if ((result < 0) && (errno != EINTR))
+			if ((write(q[1], cbuf, chunksz) < 0) &&
+				(errno != EINTR))
 			{
 				xserror(500, "Connection closed (fd = %d, todo = %zu",
 					q[1], chunksz);
@@ -401,7 +394,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 		if (cbuf)
 			free(cbuf);
-		postread = 1;
+		postread = true;
 		close(q[1]);
 	}
 	else if (ssl_post)
@@ -435,7 +428,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			writetodo -= tobewritten;
 		}
 
-		postread = 1;
+		postread = true;
 		close(q[1]);
 	}
 #endif		/* HANDLE_SSL */
@@ -451,7 +444,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			break;
 		case 0:
 			/* handle stderr */
-			for (;;)
+			while (true)
 			{
 				if (readline(r[0], line, sizeof(line)) != ERR_NONE)
 					break;
@@ -477,15 +470,14 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 	}
 
-	initreadmode(1);
+	initreadmode(true);
 	if (!nph)
 	{
+		char		*head = NULL;
 		struct maplist	http_headers;
-		int		ctype = 0, status = 0, lastmod = 0, server = 0, pragma = 0;
-		size_t	sz;
-		char	*idx, *val, *head;
+		bool		ctype, status, lastmod, server, pragma;
 
-		head = NULL;
+		ctype = status = lastmod = server = pragma = false;
 		if (readheaders(p[0], &http_headers) < 0)
 		{
 			/* Script header read error */
@@ -504,26 +496,26 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			xserror(503, "Script did not end header");
 			goto END;
 		}
-		for (sz = 0; sz < http_headers.size; sz++)
+		for (size_t sz = 0; sz < http_headers.size; sz++)
 		{
-			idx = http_headers.elements[sz].index;
-			val = http_headers.elements[sz].value;
+			const char * const idx = http_headers.elements[sz].index;
+			const char * const val = http_headers.elements[sz].value;
 
 			/* Look for status header */
 			if (!status)
 			{
 				if (!strcasecmp(idx, "Status"))
 				{
-					status = 1;
+					status = true;
 					rstatus = atoi(val);
-					append(&head, 1, "%s %s\r\n", httpver, val);
+					append(&head, true, "%s %s\r\n", httpver, val);
 					continue;
 				}
 				else if (!strcasecmp(idx, "Location"))
 				{
-					status = 1;
+					status = true;
 					rstatus = 302;
-					append(&head, 1, "%s 302 Moved\r\n", httpver);
+					append(&head, true, "%s 302 Moved\r\n", httpver);
 				}
 			}
 
@@ -534,82 +526,82 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				else if ('/' == val[0])
 				{
 					if (!strcmp(cursock->port, "http"))
-						append(&head, 0, "Location: http://%s%s\r\n",
+						append(&head, false, "Location: http://%s%s\r\n",
 							current->hostname, val);
 					else if (cursock->usessl && !strcmp(cursock->port, "https"))
-						append(&head, 0, "Location: https://%s%s\r\n",
+						append(&head, false, "Location: https://%s%s\r\n",
 							current->hostname, val);
 					else if (cursock->usessl)
-						append(&head, 0, "Location: https://%s:%s%s\r\n",
+						append(&head, false, "Location: https://%s:%s%s\r\n",
 							current->hostname, cursock->port, val);
 					else
-						append(&head, 0, "Location: http://%s:%s%s\r\n",
+						append(&head, false, "Location: http://%s:%s%s\r\n",
 							current->hostname, cursock->port, val);
 				}
 				else
-					append(&head, 0, "Location: %s\r\n", val);
+					append(&head, false, "Location: %s\r\n", val);
 			}
 			else if (!strcasecmp(idx, "Content-type"))
 			{
-				ctype = 1;
-				append(&head, 0, "Content-type: %s\r\n", val);
+				ctype = true;
+				append(&head, false, "Content-type: %s\r\n", val);
 			}
 			else if (!strcasecmp(idx, "Last-modified"))
 			{
-				append(&head, 0, "Last-modified: %s\r\n", val);
-				lastmod = 1;
+				append(&head, false, "Last-modified: %s\r\n", val);
+				lastmod = true;
 			}
 			else if (!strcasecmp(idx, "Cache-control"))
 			{
 				if (headers >= 11)
-					append(&head, 0, "Cache-control: %s\r\n", val);
+					append(&head, false, "Cache-control: %s\r\n", val);
 				else if (!pragma)
-					append(&head, 0, "Pragma: no-cache\r\n");
-				pragma = 1;
+					append(&head, false, "Pragma: no-cache\r\n");
+				pragma = true;
 			}
 			else if (!strcasecmp(idx, "Pragma"))
 			{
 				if (headers < 11 && !pragma)
-					append(&head, 0, "Pragma: %s\r\n", val);
-				pragma = 1;
+					append(&head, false, "Pragma: %s\r\n", val);
+				pragma = true;
 			}
 			else if (!strcasecmp(idx, "Server"))
 			{
 				/* Append value to SERVER_IDENT */
 				if (!strncasecmp(val, SERVER_IDENT, strlen(SERVER_IDENT)))
-					append(&head, 0, "Server: %s\r\n", val);
+					append(&head, false, "Server: %s\r\n", val);
 				else
-					append(&head, 0, "Server: %s %s\r\n", SERVER_IDENT, val);
-				server = 1;
+					append(&head, false, "Server: %s %s\r\n", SERVER_IDENT, val);
+				server = true;
 			}
 			else if (!strcasecmp(idx, "Date"))
 			{
 				/* Thank you, I do know how to tell time */
 			}
 			else
-				append(&head, 0, "%s: %s\r\n", idx, val);
+				append(&head, false, "%s: %s\r\n", idx, val);
 		}
 		if (headers >= 10)
 		{
 			if (!status)
-				append(&head, 1, "%s 200 OK\r\n", httpver);
+				append(&head, true, "%s 200 OK\r\n", httpver);
 			if (!ctype)
-				append(&head, 0, "Content-type: text/html\r\n");
+				append(&head, false, "Content-type: text/html\r\n");
 			setcurrenttime();
 			if (!lastmod)
-				append(&head, 0, "Last-modified: %s\r\n",
+				append(&head, false, "Last-modified: %s\r\n",
 					currenttime);
 			if (!server)
-				append(&head, 0, "Server: %s\r\n", SERVER_IDENT);
+				append(&head, false, "Server: %s\r\n", SERVER_IDENT);
 			if (headers >= 11)
-				append(&head, 0, "Transfer-encoding: chunked\r\n");
-			append(&head, 0, "Date: %s\r\n", currenttime);
+				append(&head, false, "Transfer-encoding: chunked\r\n");
+			append(&head, false, "Date: %s\r\n", currenttime);
 			secprintf("%s\r\n", head);
 			if (head)
 				free(head);
 			/* 304 pages don't even get an empty body */
 			if (rstatus != 204 && rstatus != 304 && headers >= 11)
-				chunked = 1;
+				chunked = true;
 		}
 		freeheaders(&http_headers);
 	}
@@ -654,6 +646,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			{
 				const ssize_t	written = \
 					secwrite(temp, writetodo);
+
 				if (written < 0)
 				{
 					secprintf("[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
