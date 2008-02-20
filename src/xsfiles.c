@@ -184,6 +184,16 @@ check_redirect(const char *cffile, const char *filename)
 				return false;
 			}
 		}
+		else if (!strcasecmp(command, "passexist"))
+		{
+			struct stat	statbuf;
+
+			if ((orig = getenv("SCRIPT_FILENAME")) &&
+				!stat(orig, &statbuf))
+			{
+				return false;
+			}
+		}
 		else if (!strcasecmp(command, "redir"))
 		{
 			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
