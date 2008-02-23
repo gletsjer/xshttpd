@@ -1,7 +1,7 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
 
-#ifndef		CONFUSER_H
-#define		CONFUSER_H
+#ifndef		CONSTANTS_H
+#define		CONSTANTS_H
 
 /* This is where all the user preferences are defined. You may probably
 want to edit something in this file. At least have a good look at it. */
@@ -69,4 +69,4 @@ but not able to overwrite your data - nor should it be able to write logfiles */
 /* Maximum size of configured IndexFiles */
 #define	MAXINDEXFILES	32
 
-#endif		/* CONFUSER_H */
+#endif		/* CONSTANTS_H */

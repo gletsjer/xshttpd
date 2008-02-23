@@ -40,6 +40,11 @@ typedef unsigned char	sa_family_t;
 #define		S_ISREG(m)	(((m)&(S_IFMT)) == (S_IFREG))
 #endif		/* S_ISREG */
 
+#ifdef		NULL
+#undef		NULL
+#endif		/* NULL */
+#define		NULL		((void *)0)
+
 #ifndef		HAVE_CLOSEFROM
 int	closefrom	(int);
 #endif		/* HAVE_CLOSEFROM */

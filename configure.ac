@@ -6,7 +6,7 @@ AC_CONFIG_SRCDIR(src/httpd.c)
 AC_CONFIG_LIBOBJ_DIR(libcompat)
 AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 no-dist-gzip])
 AC_DEFINE_UNQUOTED(SERVER_IDENT, "${SERVER_IDENT}", [Server version])
-AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_HEADERS([autoconf.h])
 
 dnl Checks for programs.
 AC_PROG_CC_C99
@@ -45,7 +45,8 @@ AC_CHECK_TYPES([socklen_t, sa_family_t],,, [#include <sys/types.h>
 
 dnl Checks for library functions.
 AC_FUNC_MMAP
-AC_CHECK_FUNCS_ONCE(sendfile setpriority setresgid setresuid setrlimit setsid sigemptyset siginterrupt uname)
+AC_CHECK_FUNCS_ONCE(setpriority setresgid setresuid setrlimit setsid sigemptyset siginterrupt uname)
+XS_FUNC_SENDFILE
 
 dnl Checks for functions requiring additional libraries.
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)

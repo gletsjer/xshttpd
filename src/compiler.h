@@ -3,8 +3,8 @@
 /* This file contains the backup definitions for old systems. */
 /* autoconfs handles keywords like const and types as uid_t for us. */
 
-#ifndef		CONFPATCH_H
-#define		CONFPATCH_H
+#ifndef		COMPILER_H
+#define		COMPILER_H
 
 #ifdef		__GNUC__
 # if		__GNUC__ >= 3
@@ -36,4 +36,4 @@
 # define	WARNUNUSED
 #endif		/* __GNUC__ */
 
-#endif		/* CONFPATCH_H */
+#endif		/* COMPILER_H */

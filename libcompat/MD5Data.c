@@ -1,7 +1,7 @@
 /* Copyright (C) 2007-2008 by Johan van Selst (johans@stack.nl) */
 
 #include	"config.h"
-#include	"decode.h"
+#include	"../src/decode.h"
 
 #include	<sys/types.h>
 #include	<openssl/md5.h>

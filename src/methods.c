@@ -407,7 +407,7 @@ senduncompressed(int fd)
 			warnx("setsockopt(IPPROTO_TCP)");
 #endif		/* TCP_NOPUSH */
 
-#ifdef		HAVE_SENDFILE
+#ifdef		HAVE_BSD_SENDFILE
 		if (!cursock->usessl && !chunked)
 		{
 			if (sendfile(fd, 1, 0, size, NULL, NULL, 0) < 0)
@@ -415,7 +415,16 @@ senduncompressed(int fd)
 					remotehost[0] ? remotehost : "(none)");
 		}
 		else
-#endif		/* HAVE_SENDFILE */
+#endif		/* HAVE_BSD_SENDFILE */
+#ifdef		HAVE_LINUX_SENDFILE	/* cannot have both */
+		if (!cursock->usessl && !chunked)
+		{
+			if (sendfile(1, fd, NULL, size) < 0)
+				xserror(599, "Aborted sendfile for `%s'",
+					remotehost[0] ? remotehost : "(none)");
+		}
+		else
+#endif		/* HAVE_LINUX_SENDFILE */
 #ifdef		HAVE_MMAP
 		/* don't use mmap() for files >12Mb to avoid hogging memory */
 		if (size < 12 * 1048576)

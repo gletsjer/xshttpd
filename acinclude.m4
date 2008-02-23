@@ -62,3 +62,29 @@ AC_DEFUN([XS_TRY_CONFIG], [
 		[$2_ldflags="${$2_ldflags} -l$1"])
 	])
 
+AC_DEFUN([XS_FUNC_SENDFILE], [
+	AC_MSG_CHECKING([for sendfile])
+	AC_COMPILE_IFELSE(AC_LANG_PROGRAM([#include <sys/types.h>
+#ifdef	HAVE_SYS_SENDFILE_H
+#include <sys/sendfile.h>
+#endif
+#include <sys/socket.h>
+#include <sys/uio.h>],
+		[sendfile(0, 0, 0, 0, (void *)0, (void *)0, 0);]),
+		[AC_MSG_RESULT([yes])
+		 AC_DEFINE(HAVE_BSD_SENDFILE, [], [BSD-style sendfile])
+		 ],
+		[AC_COMPILE_IFELSE(AC_LANG_PROGRAM([#include <sys/types.h>
+#ifdef	HAVE_SYS_SENDFILE_H
+#include <sys/sendfile.h>
+#endif
+#include <sys/socket.h>
+#include <sys/uio.h>],
+			[sendfile(0, 0, (void *)0, 0);]),
+			AC_MSG_RESULT([yes (Linux-style)])
+			AC_DEFINE(HAVE_LINUX_SENDFILE, [],
+				[Linux-style sendfile]),
+			AC_MSG_RESULT([no])
+			)]
+		)
+	])
