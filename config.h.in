@@ -1,6 +1,6 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* Define if you have the `ldap_initialize' function */
+/* Define to 1 if you have the `ldap_initialize' function */
 #undef AUTH_LDAP
 
 /* cgi directory */
@@ -33,16 +33,19 @@
 /* Enable OpenSSL support */
 #undef HANDLE_SSL
 
+/* Define to 1 if you have the BSD-style `sendfile' function */
+#undef HAVE_BSD_SENDFILE
+
 /* Define to 1 if you have the `closefrom' function. */
 #undef HAVE_CLOSEFROM
 
-/* Define if you have the `crypt' function */
+/* Define to 1 if you have the `crypt' function */
 #undef HAVE_CRYPT
 
 /* Define to 1 if you have the <crypt.h> header file. */
 #undef HAVE_CRYPT_H
 
-/* Define if you have the `curl_version' function */
+/* Define to 1 if you have the `curl_version' function */
 #undef HAVE_CURL
 
 /* Define to 1 if you have the declaration of `environ', and to 0 if you
@@ -63,10 +66,10 @@
 /* Define to 1 if you have the <err.h> header file. */
 #undef HAVE_ERR_H
 
-/* Define if you have the `getaddrinfo' function */
+/* Define to 1 if you have the `getaddrinfo' function */
 #undef HAVE_GETADDRINFO
 
-/* Define if you have the `getnameinfo' function */
+/* Define to 1 if you have the `getnameinfo' function */
 #undef HAVE_GETNAMEINFO
 
 /* Define to 1 if you have the <getopt.h> header file. */
@@ -75,10 +78,10 @@
 /* Define to 1 if you have the `getpagesize' function. */
 #undef HAVE_GETPAGESIZE
 
-/* Define if you have the `inet_aton' function */
+/* Define to 1 if you have the `inet_aton' function */
 #undef HAVE_INET_ATON
 
-/* Define if you have the `inet_pton' function */
+/* Define to 1 if you have the `inet_pton' function */
 #undef HAVE_INET_PTON
 
 /* Define to 1 if you have the <inttypes.h> header file. */
@@ -87,10 +90,13 @@
 /* Define to 1 if you have the `killpg' function. */
 #undef HAVE_KILLPG
 
-/* Define if you have the `MD5Data' function */
+/* Define to 1 if you have the `MD5Data' function */
 #undef HAVE_LIBMD
 
-/* MD5 function is available (libmd or openssl) */
+/* Define to 1 if you have the Linux-style `sendfile' function */
+#undef HAVE_LINUX_SENDFILE
+
+/* Define to 1 if you have the `MD5' function (from libmd or openssl) */
 #undef HAVE_MD5
 
 /* Define to 1 if you have the `memmem' function. */
@@ -105,7 +111,7 @@
 /* Define to 1 if you have a working `mmap' system call. */
 #undef HAVE_MMAP
 
-/* Define if you have the `pcre_exec' function */
+/* Define to 1 if you have the `pcre_exec' function */
 #undef HAVE_PCRE
 
 /* Define this to use perl cgi environment */
@@ -113,9 +119,6 @@
 
 /* Define to 1 if the system has the type `sa_family_t'. */
 #undef HAVE_SA_FAMILY_T
-
-/* Define to 1 if you have the `sendfile' function. */
-#undef HAVE_SENDFILE
 
 /* Define to 1 if you have the `seteuid' function. */
 #undef HAVE_SETEUID
@@ -147,7 +150,7 @@
 /* Define to 1 if you have the `siginterrupt' function. */
 #undef HAVE_SIGINTERRUPT
 
-/* Define if you have the `socket' function */
+/* Define to 1 if you have the `socket' function */
 #undef HAVE_SOCKET
 
 /* Define to 1 if the system has the type `socklen_t'. */
@@ -156,7 +159,7 @@
 /* Define to 1 if you have the `srandomdev' function. */
 #undef HAVE_SRANDOMDEV
 
-/* Define if you have the `SSL_version' function */
+/* Define to 1 if you have the `SSL_version' function */
 #undef HAVE_SSL
 
 /* Define to 1 if you have the <stdint.h> header file. */
@@ -270,7 +273,7 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/* Define if you have openssl, but no MD5Data() */
+/* Define to 1 if you have openssl, but no `MD5Data' function */
 #undef USE_OPENSSL_MD5
 
 /* Number of bits in a file offset, on hosts where this is settable. */

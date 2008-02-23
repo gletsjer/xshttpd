@@ -3,7 +3,7 @@
 #ifndef		CONFIG_H
 #define		CONFIG_H
 
-#include	<autoconf.h>
+#include	<config.h>
 #include	"constants.h"
 #include	"compiler.h"
 #include	"alternative.h"
