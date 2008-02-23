@@ -63,7 +63,6 @@ time_is_up(int sig)
 	if (child != (pid_t)-1)
 	{
 		(void) killpg(child, SIGTERM);
-		(void) mysleep(1);
 		(void) killpg(child, SIGKILL);
 	}
 	alarm_handler(sig);
@@ -407,6 +406,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			result = secread(0, inbuf, tobewritten);
 			if (result < 0)
 				goto END;
+			else if (!result)
+				break;
 			tobewritten = result;
 			offset = 0;
 			while ((result = write(q[1], inbuf + offset, tobewritten - offset)) < (int)(tobewritten - offset))
@@ -439,6 +440,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			break;
 		case 0:
 			/* handle stderr */
+			initreadmode(true);
 			while (true)
 			{
 				if (readline(r[0], line, sizeof(line)) != ERR_NONE)

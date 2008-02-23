@@ -654,7 +654,8 @@ do_get(char *params)
 			break;
 
 	strlcpy(real_path, params, XS_PATH_MAX);
-	setproctitle("xs: Handling `%s' from `%s'", real_path, remotehost);
+	setproctitle("xs: Handling %s `%s' from `%s'",
+		postonly ? "POST" : "GET", real_path, remotehost);
 	userinfo = NULL;
 
 	if (!origeuid)
