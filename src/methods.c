@@ -1660,8 +1660,6 @@ getfiletype(bool print)
 			{
 				size_t	len = strlen(search->name) + 1;
 
-				if (cfvalues.mimetype)
-					free(cfvalues.mimetype);
 				MALLOC(cfvalues.mimetype, char, len);
 				strlcpy(cfvalues.mimetype, search->name, len);
 

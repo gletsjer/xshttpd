@@ -93,11 +93,6 @@ append(char **buffer, bool prepend, const char * const format, ...)
 	slen = strlen(*buffer);
 	REALLOC(*buffer, char, slen + llen + 1);
 	newbuf = *buffer;
-	if (!newbuf)
-	{
-		free(line);
-		return false;
-	}
 
 	if (prepend)
 	{
