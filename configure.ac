@@ -58,7 +58,7 @@ XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
 XS_FUNC_IN_LIB(MD5Data, HAVE_LIBMD, md, libxs)
 if test "$ac_cv_search_MD5Data" != no
 then
-	AC_DEFINE(HAVE_MD5, [], [MD5 function is available (libmd or openssl)])
+	AC_DEFINE(HAVE_MD5, [], [Define to 1 if you have the `MD5' function (from libmd or openssl)])
 fi
 
 AS_IF([test "$ac_cv_search_inet_aton" = no], [AC_LIBOBJ(inet_aton)])
@@ -117,7 +117,7 @@ then
 		then
 			AC_DEFINE(HAVE_MD5)
 			AC_DEFINE(USE_OPENSSL_MD5,,
-				[Define if you have openssl, but no MD5Data()])
+				[Define to 1 if you have openssl, but no `MD5Data' function])
 			AC_LIBOBJ(MD5Data)
 			libxs_ldflags="${libxs_ldflags} ${xssl_ldflags}"
 		fi

@@ -25,14 +25,12 @@ GroupId		nogroup
 # IndexFiles	index.html, index.htm, index.php
 LogAccess	logs/access_log
 LogError	logs/error_log
+LogScript	logs/script_log
 LogStyle	virtual
-PathInfoScripts	/cgi-bin/imagemap, /cgi-bin/xschpass
 </System>
 
 <Users>
 # HtmlDir	.html
-# ExecDir	cgi-bin
-# PhExecDir	cgi-bin
 </Users>
 
 # <Virtual>

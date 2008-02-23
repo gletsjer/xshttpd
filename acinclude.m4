@@ -36,7 +36,7 @@ AC_DEFUN([XS_ARG_DIR], [
 # AC_FUNC_IN_LIB(function, define, library, buildprog, extra-lib)
 AC_DEFUN([XS_FUNC_IN_LIB], [
 	LIBS=
-	AH_TEMPLATE($2, [Define if you have the `$1' function])
+	AH_TEMPLATE($2, [Define to 1 if you have the `$1' function])
 	AC_SEARCH_LIBS($1, $3, [AC_DEFINE($2)],, $5)
 	AS_IF([test -n "${LIBS}"], [$4_ldflags="${$4_ldflags} ${LIBS} $5"])
 	LIBS=
@@ -72,7 +72,8 @@ AC_DEFUN([XS_FUNC_SENDFILE], [
 #include <sys/uio.h>],
 		[sendfile(0, 0, 0, 0, (void *)0, (void *)0, 0);]),
 		[AC_MSG_RESULT([yes])
-		 AC_DEFINE(HAVE_BSD_SENDFILE, [], [BSD-style sendfile])
+		 AC_DEFINE(HAVE_BSD_SENDFILE, [],
+			 [Define to 1 if you have the BSD-style `sendfile' function])
 		 ],
 		[AC_COMPILE_IFELSE(AC_LANG_PROGRAM([#include <sys/types.h>
 #ifdef	HAVE_SYS_SENDFILE_H
@@ -83,7 +84,7 @@ AC_DEFUN([XS_FUNC_SENDFILE], [
 			[sendfile(0, 0, (void *)0, 0);]),
 			AC_MSG_RESULT([yes (Linux-style)])
 			AC_DEFINE(HAVE_LINUX_SENDFILE, [],
-				[Linux-style sendfile]),
+				[Define to 1 if you have the Linux-style `sendfile' function]),
 			AC_MSG_RESULT([no])
 			)]
 		)
