@@ -60,13 +60,4 @@ but not able to overwrite your data - nor should it be able to write logfiles */
 /* Assumed maximum pathlength. Use C99 define */
 #define	XS_PATH_MAX	((size_t)FILENAME_MAX)
 
-/* Assume user/group name maximum length */
-#define	XS_USER_MAX	32
-
-/* Maximum number of configured virtual hosts */
-#define	MAXVHOSTALIASES	32
-
-/* Maximum size of configured IndexFiles */
-#define	MAXINDEXFILES	32
-
 #endif		/* CONSTANTS_H */

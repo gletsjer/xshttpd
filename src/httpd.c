@@ -1575,7 +1575,7 @@ main(int argc, char **argv)
 		}
 		case 'N':	/* nolog */
 			nolog = true;
-			strlcpy(config_path, "/dev/null", XS_PATH_MAX);
+			strlcpy(config_path, BITBUCKETNAME, XS_PATH_MAX);
 			break;
 	 	case 'P':	/* preprocessor */
 			strlcpy(config_preprocessor, optarg, XS_PATH_MAX);

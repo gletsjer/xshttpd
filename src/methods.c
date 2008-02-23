@@ -1213,11 +1213,8 @@ do_get(char *params)
 	{
 		char	*idx = NULL;
 
-		for (int i = 0; i < MAXINDEXFILES - 1; i++)
+		for (int i = 0; (idx = current->indexfiles[i]); i++)
 		{
-			if (!(idx = current->indexfiles[i]))
-				break;
-
 			if (!strcmp(filename, idx))
 			{
 				if (!(idx = current->indexfiles[i + 1]))
