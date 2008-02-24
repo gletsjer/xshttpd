@@ -260,7 +260,9 @@ loadssl(struct socket_config *lsock)
 	if (!lsock->sslprivatekey)
 		lsock->sslprivatekey = strdup(KEY_FILE);
 	SSL_load_error_strings();
+#ifdef		HAVE_OPENSSL_CONFIG
 	OPENSSL_config(NULL);
+#endif		/* HAVE_OPENSSL_CONFIG */
 	SSL_library_init();
 	ERR_print_errors_fp(stderr);
 	if (!(method = SSLv23_server_method()))

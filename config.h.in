@@ -111,6 +111,9 @@
 /* Define to 1 if you have a working `mmap' system call. */
 #undef HAVE_MMAP
 
+/* Define to 1 if you have the `OPENSSL_config' function */
+#undef HAVE_OPENSSL_CONFIG
+
 /* Define to 1 if you have the `pcre_exec' function */
 #undef HAVE_PCRE
 
@@ -119,6 +122,12 @@
 
 /* Define to 1 if the system has the type `sa_family_t'. */
 #undef HAVE_SA_FAMILY_T
+
+/* Define to 1 if you have the `sendfile' function */
+#undef HAVE_SENDFILE
+
+/* Define to 1 if you have the `setenv' function. */
+#undef HAVE_SETENV
 
 /* Define to 1 if you have the `seteuid' function. */
 #undef HAVE_SETEUID

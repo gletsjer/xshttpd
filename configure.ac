@@ -22,7 +22,7 @@ AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "${ppmtogif}",
 
 dnl Checks for libraries.
 CFLAGS="${CFLAGS} -I/usr/local/include -I/usr/include"
-LDFLAGS="${LDFLAGS} -L/usr/local/lib"
+LDFLAGS="${LDFLAGS} -L/usr/local/lib -Wl,-R/usr/local/lib"
 httpd_cflags="${CFLAGS}"
 libxs_cflags="${CFLAGS}"
 httpd_ldlags="${LDLAGS}"
@@ -50,6 +50,7 @@ XS_FUNC_SENDFILE
 
 dnl Checks for functions requiring additional libraries.
 XS_FUNC_IN_LIB(socket, HAVE_SOCKET, socket, httpd)
+XS_FUNC_IN_LIB(sendfile, HAVE_SENDFILE, sendfile, httpd)
 XS_FUNC_IN_LIB(inet_aton, HAVE_INET_ATON, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(inet_pton, HAVE_INET_PTON, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(getaddrinfo, HAVE_GETADDRINFO, nsl, httpd, -lsocket)
@@ -64,7 +65,7 @@ fi
 AS_IF([test "$ac_cv_search_inet_aton" = no], [AC_LIBOBJ(inet_aton)])
 AC_CHECK_FUNC(asprintf,, [AC_LIBOBJ(snprintf)])
 AC_CHECK_FUNC(setegid,,   [AC_LIBOBJ(seteuid)])
-AC_REPLACE_FUNCS(closefrom err killpg memmem mkstemp seteuid setgroups setproctitle srandomdev strlcat strcasestr strlcpy strptime strsep)
+AC_REPLACE_FUNCS(closefrom err killpg memmem mkstemp setenv seteuid setgroups setproctitle srandomdev strlcat strcasestr strlcpy strptime strsep)
 
 dnl Check in6_addr layout; must follow socket library check.
 AC_CHECK_TYPES(struct in6_addr,,, [#include <netinet/in.h>])
@@ -110,6 +111,7 @@ then
 	XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, xssl, -lcrypto)
 	if test "$ac_cv_search_SSL_version" != no
 	then
+		XS_FUNC_IN_LIB(OPENSSL_config, HAVE_OPENSSL_CONFIG, ssl, xssl, -lcrypto)
 		httpd_cflags="${httpd_cflags} -I/usr/local/ssl/include"
 		httpd_ldflags="${httpd_ldflags} ${xssl_ldflags}"
 		AC_DEFINE(HANDLE_SSL,, [Enable OpenSSL support])

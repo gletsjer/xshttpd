@@ -6,6 +6,7 @@ Changes since 3.6 beta 4
 - Fix build outside source directory (wrt config.h)
 - Fix sendfile on Linux
 - Fix infinate read when content-length exceeds post data
+- Portability fixes in function/library checking
 
 Changes since 3.6 beta 3
 - Remove outputbuffer and set TCP_NOPUSH (where available)

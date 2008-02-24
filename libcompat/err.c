@@ -7,7 +7,6 @@
 #include	<stdarg.h>
 #include	<errno.h>
 
-#ifndef		HAVE_ERR_H
 void
 err(int code, const char *format, ...)
 {
@@ -58,4 +57,3 @@ warnx(const char *format, ...)
 	va_end(ap);
 	fprintf(stderr, "\n");
 }
-#endif		/* HAVE_ERR_H */
