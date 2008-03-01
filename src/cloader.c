@@ -168,8 +168,6 @@ load_config()
 							config.execasuser = false;
 					else if (!strcasecmp("DefaultCharset", key))
 						config.defaultcharset = strdup(value);
-					else if (!strcasecmp("FcgiPath", key))
-						config.fcgipath = strdup(value);
 					else if (!strcasecmp("UseVirtualUid", key))
 						config.usevirtualuid = !strcasecmp("true", value);
 					else if (!strcasecmp("UseDnsLookup", key))
@@ -292,6 +290,8 @@ load_config()
 					current->logreferer = strdup(value);
 				else if (!strcasecmp("LogRefererIgnoreDomain", key))
 					current->thisdomain = strdup(value);
+				else if (!strcasecmp("FcgiPath", key))
+					current->fcgipath = strdup(value);
 				else if (!strcasecmp("FcgiSocket", key))
 					current->fcgisocket = strdup(value);
 				else if (!strcasecmp("IndexFiles", key))

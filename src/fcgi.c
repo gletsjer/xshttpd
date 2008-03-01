@@ -11,6 +11,7 @@
 #include <sys/un.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "config.h"
 #include "ssl.h"
@@ -25,11 +26,12 @@
 
 #define MAX(a,b) ((a)>(b)?(a):(b))
 #define MIN(a,b) ((a)<(b)?(a):(b))
-fcgi_server	fsrv;
+static pid_t		*fcgichildren = NULL;
 
 int		fcgi_connect(fcgi_server * server);
 void		fcgi_disconnect(fcgi_server * server);
 void		begin_request(fcgi_server * server);
+int		fcgi_child_init(void);
 int		init_env(fcgi_env * env);
 void		free_env(fcgi_env * env);
 int		set_env(fcgi_env * env, const char *name, const char *value);
@@ -39,27 +41,23 @@ int		handle_record(fcgi_server * server);
 ssize_t		send_stream(fcgi_server * server, ssize_t length, unsigned char stream_id, int fd);
 ssize_t		recv_stream(fcgi_server * server, ssize_t length, int fd);
 
-void
-do_fcgi(const char *path, const char *base, const char *file, int showheader)
+int
+run_fcgi(void)
 {
 	fcgi_env	env;
 	int		request_ended = 0;
 	ssize_t		content_length = atoi(getenv("CONTENT_LENGTH"));
-	char		fullpath  [XS_PATH_MAX];
-	fcgi_server	*server = &fsrv;
+	fcgi_server	*server = current->fcgiserver;
 
-	snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
+	if (!server)
+		return -1;
 
-	(void)showheader;
 	init_env(&env);
-	/* FIXME need webserver address list */
-	setenv("FCGI_WEBSERVER_ADDRS", "127.0.0.1", 1);
+	setenv("FCGI_WEB_SERVER_ADDRS", "127.0.0.1", 1);
+	setenv("PHP_FCGI_CHILDREN", "16", 1);
+	setenv("PHP_FCGI_MAX_REQUESTS", "2000", 1);
 	build_env(&env);
-	setenv("SCRIPT_NAME", path, 1);
-	setenv("SCRIPT_FILENAME", fullpath, 1);
-	setenv("REDIRECT_STATUS", "200", 1);
-	setenv("PATH", config.scriptpath, 1);
-	secwrite("HTTP/1.0 200 OK\r\n", 17);
+	secwrite("X-FastCGI: 1\r\n", 14);
 
 	fcgi_connect(server);
 	begin_request(server);
@@ -67,8 +65,8 @@ do_fcgi(const char *path, const char *base, const char *file, int showheader)
 	if (!content_length)
 		send_stream(server, 0, FCGI_STDIN, STDIN_FILENO);
 	/*
-	 * if (empty data file) send_stream(&server, 0, FCGI_DATA,
-	 * data_file);
+	 * if (empty data file)
+	 * 	send_stream(&server, 0, FCGI_DATA, data_file);
 	 */
 
 	while (!request_ended)
@@ -79,8 +77,10 @@ do_fcgi(const char *path, const char *base, const char *file, int showheader)
 		FD_ZERO(&set);
 		FD_SET(server->socket, &set);
 		/*
-		 * if (content_length) FD_SET(STDIN_FILENO, &set); if (...)
-		 * FD_SET(data_file, &set);
+		 * if (content_length)
+		 * 	FD_SET(STDIN_FILENO, &set);
+		 * if (...)
+		 * 	FD_SET(data_file, &set);
 		 */
 
 		ret = select(server->socket + 1, &set, NULL, NULL, 0);
@@ -108,37 +108,63 @@ do_fcgi(const char *path, const char *base, const char *file, int showheader)
 			}
 		}
 		/*
-		 * if (... && FD_ISSET(data_file, &set)) { ssite_t n =
-		 * send_stream(&server, ..., FCGI_DATA, data_file); if (n
-		 * <= 0) { } if (...) { send_stream(&server, 0, FCGI_DATA,
-		 * data_file); }
+		 * if (... && FD_ISSET(data_file, &set))
+		 * {
+		 * 	ssite_t n =
+		 * 		send_stream(&server, ..., FCGI_DATA, data_file);
+		 * 	if (n <= 0) { }
+		 * 	if (...)
+		 * 		send_stream(&server, 0, FCGI_DATA, data_file);
+		 * }
 		 */
 	}
 
 	fcgi_disconnect(server);
 	free_env(&env);
+	return 0;
 }
 
 int 
-fcgi_init(void)
+fcgi_child_init(void)
 {
-	char	*sep;
+	pid_t		child;
+	const int	argv_sz = 32;
+	char		*sep, *str, **ap, *argv[argv_sz];
+	fcgi_server	*fsrv;
 
+	MALLOC(fsrv, fcgi_server, 1);
+	if (!current->fcgipath || !current->fcgisocket)
+		return -1;
+
+	current->fcgiserver = fsrv;
 	if ((sep = strchr(current->fcgisocket, ':')))
 	{
 		*sep = '\0';
-		fsrv.type = FCGI_INET_SOCKET;
-		fsrv.host = strdup(current->fcgisocket);
-		fsrv.port = strdup(sep + 1);
+		fsrv->type = FCGI_INET_SOCKET;
+		fsrv->host = strdup(current->fcgisocket);
+		fsrv->port = strdup(sep + 1);
 		*sep = ':';
 	}
 	else
 	{
-		fsrv.type = FCGI_UNIX_SOCKET;
-		fsrv.unixsocket = strdup(current->fcgisocket);
+		fsrv->type = FCGI_UNIX_SOCKET;
+		fsrv->unixsocket = strdup(current->fcgisocket);
 	}
 
-	switch (fork())
+	str = current->fcgipath;
+	for (ap = argv; (*ap = strsep(&str, " \t")) != NULL;)
+		if (**ap)
+		{
+			if (!strcmp(*ap, "%s"))
+				*ap = current->fcgisocket;
+			if (++ap >= &argv[argv_sz])
+			{
+				argv[argv_sz - 1] = NULL;
+				break;
+			}
+		}
+
+	switch (child = fork())
 	{
 	case -1:
 		return -1;
@@ -148,13 +174,48 @@ fcgi_init(void)
 		seteuid(current->userid);
 		setuid(current->userid);
 
-		execl(config.fcgipath, "php-cgi",
-			"-b", current->fcgisocket, NULL);
+		execv(argv[0], argv);
 		/* this should not happen */
 		current->fcgisocket = NULL;
 		return -1;
+	default:
+		return child;
 	}
-	return 0;
+	/* NOTREACHED */
+}
+
+void
+initfcgi(void)
+{
+	int     cnt, fcginum, ret;
+
+	fcginum = 0;
+	fcgichildren = NULL;
+	for (current = config.virtual; current; current = current->next)
+		fcginum++;
+
+	if (!fcginum)
+		return;
+	MALLOC(fcgichildren, pid_t, fcginum + 1);
+
+	cnt = 0;
+	for (current = config.virtual; current; current = current->next)
+		if (current->fcgisocket)
+		{
+			if ((ret = fcgi_child_init()) > 0)
+				fcgichildren[cnt++] = ret;
+			else
+				err(1, "fcgi_init() failed");
+		}
+	fcgichildren[cnt] = 0;
+}
+
+void
+killfcgi(void)
+{
+	if (fcgichildren)
+		for (pid_t * pid = fcgichildren; *pid > 0; pid++)
+			kill(*pid, SIGTERM);
 }
 
 int 
@@ -500,13 +561,14 @@ recv_stream(fcgi_server * server, ssize_t length, int fd)
 		return -1;
 	}
 
-	if (n != secwrite(buffer, n))
+	if (STDERR_FILENO == fd)
+		write(2, buffer, n);
+	else if (n != write(1, buffer, n))
 	{
 		free(buffer);
 		return -1;
 	}
 
 	free(buffer);
-	(void)fd;
 	return n;
 }

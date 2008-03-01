@@ -187,6 +187,7 @@ term_handler(int sig)
 			currenttime, sig);
 		fflush(stderr);
 		close(sd);
+		killfcgi();
 		mainhttpd = false;
 		killpg(0, SIGTERM);
 	}
@@ -1696,12 +1697,8 @@ main(int argc, char **argv)
 	initproctitle(argc, argv);
 #endif		/* HAVE_SETPROCTITLE */
 	initnonce();
+	initfcgi();
 	CLEANENV;
-
-	if (config.fcgipath)
-		for (current = config.virtual; current; current = current->next)
-			if (current->fcgisocket)
-				fcgi_init();
 
 	standalone_main();
 	/* NOTREACHED */

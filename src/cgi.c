@@ -42,6 +42,7 @@
 #include	"ssi.h"
 #include	"ssl.h"
 #include	"cgi.h"
+#include	"fcgi.h"
 #include	"htconfig.h"
 #include	"extra.h"
 #include	"malloc.h"
@@ -284,7 +285,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			perlargs[0] = fullpath;
 			perl_call_argv("Embed::Persistent::eval_file",
 				G_DISCARD | G_EVAL, perlargs);
-			return;
+			exit(0);
 		}
 		else
 #endif		/* HAVE_PERL */
@@ -294,10 +295,18 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			FILE	*fp = fopen(fullpath, "r");
 			PyRun_SimpleFile(fp, fullpath);
 			fclose(fp);
-			return;
+			exit(0);
 		}
 		else
 #endif		/* HAVE_PERL */
+		if (engine && !strcmp(engine, "internal:fcgi") &&
+			current->fcgisocket)
+		{
+			if (run_fcgi() < 0)
+				/* failed: error later */;
+			else
+				exit(0);
+		}
 		if (engine)
 		{
 			const char	meta[] = " \t&();<>|{}$%";
@@ -696,5 +705,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	action.sa_flags = 0;
 	sigaction(SIGALRM, &action, NULL);
 	alarm(left);
-	waitpid(child, &chldstat, 0);
+	if (child > 0)
+		waitpid(child, &chldstat, 0);
 }

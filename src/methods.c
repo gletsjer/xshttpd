@@ -1142,11 +1142,6 @@ do_get(char *params)
 				close(fd);
 				do_script(params, base, filename, NULL);
 			}
-			else if (!strcmp(prog, "internal:fcgi"))
-			{
-				close(fd);
-				do_fcgi(params, base, file, headers);
-			}
 			else
 			{
 				close(fd);
