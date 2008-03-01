@@ -72,6 +72,7 @@
 #include	"authenticate.h"
 #include	"ldap.h"
 #include	"malloc.h"
+#include	"fcgi.h"
 
 static char copyright[] = "Copyright 1995-2008 Sven Berkvens, Johan van Selst";
 
@@ -1696,6 +1697,12 @@ main(int argc, char **argv)
 #endif		/* HAVE_SETPROCTITLE */
 	initnonce();
 	CLEANENV;
+
+	if (config.fcgipath)
+		for (current = config.virtual; current; current = current->next)
+			if (current->fcgisocket)
+				fcgi_init();
+
 	standalone_main();
 	/* NOTREACHED */
 	(void)copyright;

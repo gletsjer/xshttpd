@@ -63,6 +63,7 @@
 #include	"authenticate.h"
 #include	"xsfiles.h"
 #include	"malloc.h"
+#include	"fcgi.h"
 
 #ifdef		HAVE_LIBMD
 MD5_CTX		*md5context;
@@ -1141,13 +1142,11 @@ do_get(char *params)
 				close(fd);
 				do_script(params, base, filename, NULL);
 			}
-#if		0	/* not production ready */
 			else if (!strcmp(prog, "internal:fcgi"))
 			{
 				close(fd);
 				do_fcgi(params, base, file, headers);
 			}
-#endif		/* 0 */
 			else
 			{
 				close(fd);

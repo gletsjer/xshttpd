@@ -448,6 +448,11 @@ The project homepage:
 .%T The Transport Layer Security (TLS) Protocol Version 1.1
 .%D April 2006
 .Re
+.Rs
+.%R http://www.fastcgi.com/devkit/doc/fcgi-spec.html
+.%T FastCGI Specification Version 1.0
+.%D April 1996
+.Re
 .El
 .Sh AUTHORS
 The original author of this WWW server and its accompanying programs
