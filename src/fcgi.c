@@ -37,12 +37,12 @@ void		free_env(fcgi_env * env);
 int		set_env(fcgi_env * env, const char *name, const char *value);
 void		build_env(fcgi_env * env);
 int		send_env(fcgi_server * server, fcgi_env * env);
-int		handle_record(fcgi_server * server);
+int		handle_record(fcgi_server * server, int, int);
 ssize_t		send_stream(fcgi_server * server, ssize_t length, unsigned char stream_id, int fd);
 ssize_t		recv_stream(fcgi_server * server, ssize_t length, int fd);
 
 int
-run_fcgi(void)
+run_fcgi(int fdin, int fdout, int fderr)
 {
 	fcgi_env	env;
 	int		request_ended = 0;
@@ -57,7 +57,7 @@ run_fcgi(void)
 	setenv("PHP_FCGI_CHILDREN", "16", 1);
 	setenv("PHP_FCGI_MAX_REQUESTS", "2000", 1);
 	build_env(&env);
-	secwrite("X-FastCGI: 1\r\n", 14);
+	write(fdout, "X-FastCGI: 1\r\n", 14);
 
 	fcgi_connect(server);
 	begin_request(server);
@@ -87,7 +87,7 @@ run_fcgi(void)
 
 		if (FD_ISSET(server->socket, &set))
 		{
-			switch (handle_record(server))
+			switch (handle_record(server, fdout, fderr))
 			{
 			case FCGI_END_REQUEST:
 				request_ended = 1;
@@ -173,6 +173,9 @@ fcgi_child_init(void)
 		setgid(current->groupid);
 		seteuid(current->userid);
 		setuid(current->userid);
+		setenv("FCGI_WEB_SERVER_ADDRS", "127.0.0.1", 1);
+		setenv("PHP_FCGI_CHILDREN", "16", 1);
+		setenv("PHP_FCGI_MAX_REQUESTS", "2000", 1);
 
 		execv(argv[0], argv);
 		/* this should not happen */
@@ -445,7 +448,7 @@ send_env(fcgi_server * server, fcgi_env * env)
 }
 
 int 
-handle_record(fcgi_server * server)
+handle_record(fcgi_server * server, int fdout, int fderr)
 {
 	FCGI_record	record_header;
 	ssize_t		content_length = 0;
@@ -466,10 +469,10 @@ handle_record(fcgi_server * server)
 	case FCGI_END_REQUEST:
 		break;
 	case FCGI_STDOUT:
-		recv_stream(server, content_length, STDOUT_FILENO);
+		recv_stream(server, content_length, fdout);
 		break;
 	case FCGI_STDERR:
-		recv_stream(server, content_length, STDERR_FILENO);
+		recv_stream(server, content_length, fderr);
 		break;
 	case FCGI_GET_VALUES_RESULT:
 		/* don't use it so break */
@@ -561,9 +564,7 @@ recv_stream(fcgi_server * server, ssize_t length, int fd)
 		return -1;
 	}
 
-	if (STDERR_FILENO == fd)
-		write(2, buffer, n);
-	else if (n != write(1, buffer, n))
+	if (n != write(fd, buffer, n))
 	{
 		free(buffer);
 		return -1;

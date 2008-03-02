@@ -203,7 +203,24 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		? current->openscript
 		: config.system->openscript;
 
-	switch(child = fork())
+	/* Special case: don't fork */
+	if (engine && !strcmp(engine, "internal:fcgi") &&
+		current->fcgisocket)
+	{
+		logfile = NULL;
+		if (run_fcgi(q[0], p[1], r[1]) < 0)
+		{
+			xserror(500, "run_fcgi()");
+			goto END;
+		}
+		if (ssl_post)
+			close(q[0]);
+		close(p[1]);
+		close(r[1]);
+	}
+	else
+
+	switch (child = fork())
 	{
 	case -1:
 		xserror(500, "fork(): %s", strerror(errno));
@@ -299,14 +316,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 		else
 #endif		/* HAVE_PERL */
-		if (engine && !strcmp(engine, "internal:fcgi") &&
-			current->fcgisocket)
-		{
-			if (run_fcgi() < 0)
-				/* failed: error later */;
-			else
-				exit(0);
-		}
 		if (engine)
 		{
 			const char	meta[] = " \t&();<>|{}$%";
