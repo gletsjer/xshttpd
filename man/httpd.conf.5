@@ -515,6 +515,31 @@ multiple sockets or
 .Sy Virtual
 sections with the same
 .Sy SocketName .
+.It Sy FcgiSocket Ar path Aq
+Set the path for communication with a FastCGI daemon. This path
+can either be the filename of a UNIX domain socket or a
+.Oo hostname Oc : Ns port
+specification. This setting is required in order to use FastCGI.
+FastCGI is  not available for the
+.Sy Users
+section.
+.It Sy FcgiPath Ar path Aq
+The full pathname of the program that launches the FastCGI daemon.
+This is only required if you want to launch the daemon from within
+the webserver. It will use the standard uid of the virtual host block
+in which it is defined. The path specification may contain a
+.Sy %s
+argument which will automatically be replaced with the
+.Sy FcgiSocket
+name specified in the same block.
+.It Sy PhpFcgiChildren Ar number Aq 16
+Specifically for the PHP FastCGI daemon, if launched by the webserver.
+This sets the number of parallel FastCGI processes to run.
+.It Sy PhpFcgiResults Ar number Aq 2000
+Specifically for the PHP FastCGI daemon, if launched by the webserver.
+This sets the number of requests that each process should handle.
+The child processes will automatically be restarted by the FastCGI
+daemon after handling the specified amount of requests.
 .El
 .Sh EXAMPLES
 Refer to the

@@ -148,7 +148,7 @@ fcgi_child_init(void)
 	fcgi_server	*fsrv;
 
 	MALLOC(fsrv, fcgi_server, 1);
-	if (!current->fcgipath || !current->fcgisocket)
+	if (!current->fcgisocket)
 		return -1;
 
 	current->fcgiserver = fsrv;
@@ -165,6 +165,9 @@ fcgi_child_init(void)
 		fsrv->type = FCGI_UNIX_SOCKET;
 		fsrv->unixsocket = strdup(current->fcgisocket);
 	}
+
+	if (!current->fcgipath)
+		return 0;
 
 	str = current->fcgipath;
 	for (ap = argv; (*ap = strsep(&str, " \t")) != NULL;)
