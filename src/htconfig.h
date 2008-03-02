@@ -49,6 +49,8 @@ extern struct virtual
 	char *		fcgipath;
 	char *		fcgisocket;
 	void *		fcgiserver;
+	unsigned int	phpfcgichildren;
+	unsigned int	phpfcgirequests;
 	char **		indexfiles;
 	char **		aliases;
 	char **		uidscripts;

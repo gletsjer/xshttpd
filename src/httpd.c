@@ -1229,7 +1229,7 @@ standalone_socket(int id)
 	else if (!strcmp(cursock->port, "https"))
 		sport = 443;
 	else
-		sport = atoi(cursock->port) || 80;
+		sport = (unsigned short)strtoul(cursock->port, NULL, 10) || 80;
 	((struct sockaddr_in *)&saddr)->sin_port = htons(sport);
 
 	if (bind(sd, &saddr, sizeof(struct sockaddr)) == -1)
@@ -1547,7 +1547,7 @@ main(int argc, char **argv)
 		{
 			const struct group	*groupinfo;
 
-			if ((gid = atoi(optarg)) > 0)
+			if ((gid = strtoul(optarg, NULL, 10)) > 0)
 				break;
 			if (!(groupinfo = getgrnam(optarg)))
 				errx(1, "Invalid group ID");
@@ -1558,7 +1558,7 @@ main(int argc, char **argv)
 			strlcpy(message503, optarg, MYBUFSIZ);
 			break;
 		case 'n':	/* num. proceses */
-			if ((config.instances = atoi(optarg)) <= 0)
+			if (!(config.instances = strtoul(optarg, NULL, 10)))
 				errx(1, "Invalid number of processes");
 			break;
 		case 'p':	/* port */
@@ -1568,7 +1568,7 @@ main(int argc, char **argv)
 		{
 			const struct passwd	*userinfo;
 
-			if ((uid = atoi(optarg)) > 0)
+			if ((uid = strtoul(optarg, NULL, 10)) > 0)
 				break;
 			if (!(userinfo = getpwnam(optarg)))
 				errx(1, "Invalid user ID");

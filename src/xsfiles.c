@@ -278,7 +278,7 @@ check_allow_host(const char *hostname, char *pattern)
 		unsigned int		subnet;
 
 		*slash = '\0';
-		if ((subnet = atoi(slash + 1)) > 32)
+		if ((subnet = strtoul(slash + 1, NULL, 10)) > 32)
 			subnet = 32;
 		inet_aton(hostname, &remote);
 		inet_aton(pattern, &allow);
@@ -296,7 +296,7 @@ check_allow_host(const char *hostname, char *pattern)
 		unsigned int		subnet;
 
 		*slash = '\0';
-		if ((subnet = atoi(slash + 1)) > 128)
+		if ((subnet = strtoul(slash + 1, NULL, 10)) > 128)
 			subnet = 128;
 		inet_pton(AF_INET6, hostname, &remote);
 		inet_pton(AF_INET6, pattern, &allow);
@@ -310,8 +310,8 @@ check_allow_host(const char *hostname, char *pattern)
 #ifdef		HAVE_GETADDRINFO
 	if (':' == pattern[0])
 	{
-		int cport = atoi(hostname + 1);
-		int lport = atoi(getenv("SERVER_PORT"));
+		unsigned short cport = strtoul(hostname + 1, NULL, 10);
+		unsigned short lport = strtoul(getenv("SERVER_PORT"), NULL, 10);
 		struct	addrinfo	hints, *res;
 
 		memset(&hints, 0, sizeof(hints));
@@ -484,7 +484,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 		else if (!strcasecmp(name, "PutScript"))
 			cfvalues->putscript = strdup(value);
 		else if (!strcasecmp(name, "ScriptTimeout"))
-			config.scripttimeout = atoi(value);
+			config.scripttimeout = strtoul(value, NULL, 10);
 
 		/* ldap options */
 		else if (!strcasecmp(name, "LdapHost"))
@@ -512,7 +512,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 			ldap.dn = strdup(value);
 		}
 		else if (!strcasecmp(name, "LdapVersion"))
-			ldap.version = atoi(value);
+			ldap.version = strtoul(value, NULL, 10);
 		else if (!strcasecmp(name, "LdapGroups"))
 		{
 			if (ldap.groups)

@@ -369,6 +369,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		char		buffer[20];
 		const size_t	buflen = sizeof buffer;
 		char		*cbuf = NULL;
+		size_t		chunksz;
 
 		while (1)
 		{
@@ -380,7 +381,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			}
 			buffer[buflen-1] = '\0';
 
-			const size_t chunksz = (size_t)strtoul(buffer, NULL,16);
+			chunksz = (size_t)strtoul(buffer, NULL, 16);
 			if (!chunksz)
 			{
 				/* end of data marker */
@@ -522,7 +523,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				if (!strcasecmp(idx, "Status"))
 				{
 					status = true;
-					rstatus = atoi(val);
+					rstatus = strtoul(val, NULL, 10);
 					append(&head, true, "%s %s\r\n", httpver, val);
 					continue;
 				}

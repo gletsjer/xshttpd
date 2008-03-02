@@ -138,7 +138,7 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
 			ldap.dn = strdup(line + 7);
                 }
 		if (!strncasecmp ("ldapversion=", line, 12))
-			ldap.version = atoi (line + 12);
+			ldap.version = strtoul(line + 12, NULL, 10);
 		if (!strncasecmp ("ldapgroups=", line, 11))
                 {
                         if (ldap.groups)

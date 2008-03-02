@@ -249,7 +249,7 @@ main(int argc, char **argv)
 	while (*param == '/')
 		param++;
 	cl = getenv("CONTENT_LENGTH");
-	if (cl && ((length = atoi(cl)) > 0))
+	if (cl && ((length = strtoul(cl, NULL, 0)) > 0))
 		changepasswd(param, length);
 	else
 		generateform();

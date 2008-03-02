@@ -191,9 +191,9 @@ load_config()
 					else if (!strcasecmp("UsePut", key))
 						config.useput = !strcasecmp("true", value);
 					else if (!strcasecmp("ScriptCpuLimit", key))
-						config.scriptcpulimit = atoi(value);
+						config.scriptcpulimit = strtoul(value, NULL, 10);
 					else if (!strcasecmp("ScriptTimeout", key))
-						config.scripttimeout = atoi(value);
+						config.scripttimeout = strtoul(value, NULL, 10);
 					else if (!strcasecmp("ScriptEnvPath", key))
 						config.scriptpath = strdup(value);
 					else if (!current &&
@@ -201,9 +201,9 @@ load_config()
 							 !strcasecmp("GroupId", key)))
 						errx(1, "%s directive should be in <System> section", key);
 					else if (!strcasecmp("Priority", key))
-						config.priority = atoi(value);
+						config.priority = strtoul(value, NULL, 10);
 					else if (!strcasecmp("ScriptPriority", key))
-						config.scriptpriority = atoi(value);
+						config.scriptpriority = strtoul(value, NULL, 10);
 				}
 				else if (subtype == sub_socket)
 				{
@@ -223,7 +223,7 @@ load_config()
 					else if (!strcasecmp("Instances", key))
 					{
 						if (!lsock->instances)
-							lsock->instances = atoi(value);
+							lsock->instances = strtoul(value, NULL, 10);
 					}
 					else if (!strcasecmp("UseSSL", key))
 						if (!strcasecmp("true", value))
@@ -294,6 +294,10 @@ load_config()
 					current->fcgipath = strdup(value);
 				else if (!strcasecmp("FcgiSocket", key))
 					current->fcgisocket = strdup(value);
+				else if (!strcasecmp("PhpFcgiChildren", key))
+					current->phpfcgichildren = strtoul(value, NULL, 10);
+				else if (!strcasecmp("PhpFcgiRequests", key))
+					current->phpfcgirequests = strtoul(value, NULL, 10);
 				else if (!strcasecmp("IndexFiles", key))
 					string_to_arraypn(value, &current->indexfiles);
 				else if (!strcasecmp("LogStyle", key))
@@ -309,7 +313,7 @@ load_config()
 						errx(1, "illegal logstyle: '%s'", value);
 				else if (!strcasecmp("UserId", key))
 				{
-					if (!current->userid && !(current->userid = atoi(value)))
+					if (!current->userid && !(current->userid = strtoul(value, NULL, 10)))
 					{
 						struct passwd	*pwd;
 						if (!(pwd = getpwnam(value)))
@@ -319,7 +323,7 @@ load_config()
 				}
 				else if (!strcasecmp("GroupId", key))
 				{
-					if (!current->groupid && !(current->groupid = atoi(value)))
+					if (!current->groupid && !(current->groupid = strtoul(value, NULL, 10)))
 					{
 						struct group	*grp;
 						if (!(grp = getgrnam(value)))
@@ -487,7 +491,7 @@ load_config()
 	if (!config.system->logstyle)
 		config.system->logstyle = log_combined;
 	if (!config.system->userid &&
-		!(config.system->userid = atoi(HTTPD_USERID)))
+		!(config.system->userid = strtoul(HTTPD_USERID, NULL, 10)))
 	{
 		struct passwd	*pwd;
 
@@ -496,7 +500,7 @@ load_config()
 		config.system->userid = pwd->pw_uid;
 	}
 	if (!config.system->groupid &&
-		!(config.system->groupid = atoi(HTTPD_GROUPID)))
+		!(config.system->groupid = strtoul(HTTPD_GROUPID, NULL, 10)))
 	{
 		struct group	*grp;
 

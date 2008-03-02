@@ -46,16 +46,31 @@ run_fcgi(int fdin, int fdout, int fderr)
 {
 	fcgi_env	env;
 	int		request_ended = 0;
-	ssize_t		content_length = atoi(getenv("CONTENT_LENGTH"));
+	size_t		content_length = 0;
 	fcgi_server	*server = current->fcgiserver;
+	char		buf[16];
 
 	if (!server)
 		return -1;
 
+	if (getenv("CONTENT_LENGTH"))
+		content_length = strtoul(getenv("CONTENT_LENGTH"), NULL, 10);
 	init_env(&env);
 	setenv("FCGI_WEB_SERVER_ADDRS", "127.0.0.1", 1);
-	setenv("PHP_FCGI_CHILDREN", "16", 1);
-	setenv("PHP_FCGI_MAX_REQUESTS", "2000", 1);
+	if (current->phpfcgichildren)
+	{
+		snprintf(buf, sizeof buf, "%u", current->phpfcgichildren);
+		setenv("PHP_FCGI_CHILDREN", buf, 1);
+	}
+	else
+		setenv("PHP_FCGI_CHILDREN", "16", 1);
+	if (current->phpfcgirequests)
+	{
+		snprintf(buf, sizeof buf, "%u", current->phpfcgirequests);
+		setenv("PHP_FCGI_MAX_REQUESTS", buf, 1);
+	}
+	else
+		setenv("PHP_FCGI_MAX_REQUESTS", "2000", 1);
 	build_env(&env);
 	write(fdout, "X-FastCGI: 1\r\n", 14);
 
@@ -98,7 +113,7 @@ run_fcgi(int fdin, int fdout, int fderr)
 		{
 			ssize_t		n = send_stream(server, content_length, FCGI_STDIN, STDIN_FILENO);
 
-			if (n <= 0 || n > content_length)
+			if (n <= 0 || (size_t)n > content_length)
 			{
 			}
 			content_length -= n;
@@ -451,7 +466,7 @@ int
 handle_record(fcgi_server * server, int fdout, int fderr)
 {
 	FCGI_record	record_header;
-	ssize_t		content_length = 0;
+	size_t		content_length = 0;
 	char		padding   [255];
 	int		bytes;
 

@@ -1392,7 +1392,7 @@ do_proxy(const char *proxy, const char *params)
 	/* curl_easy_setopt(handle, CURLOPT_VERBOSE, 1); */
 	if (postonly)
 	{
-		curl_readlen = atoi(getenv("CONTENT_LENGTH"));
+		curl_readlen = strtoul(getenv("CONTENT_LENGTH"), NULL, 10);
 		curl_easy_setopt(handle, CURLOPT_POST, 1);
 		curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE, curl_readlen);
 		curl_easy_setopt(handle, CURLOPT_READDATA, stdin);
