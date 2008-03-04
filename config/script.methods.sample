@@ -13,7 +13,7 @@
 #  internal:exec	execute the file as if it were in cgi-bin directory
 #  internal:perl	interpret file through internal persistent perl daemon
 #			httpd must be compiled with --enable-perl for this
-#  internal:pyton       use python interpreter; requires --enable-python
+#  internal:python      use python interpreter; requires --enable-python
 #
 # The global settings may be overridden per directory by .xsscript files
 # that use the same syntax. These .xsscript files apply recursively.
