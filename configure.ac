@@ -88,8 +88,8 @@ fi
 dnl Main root directory, optionally supplied by user.
 dnl Set may be delayed untill 'make' stage, becasue ${prefix} is delayed.
 AC_ARG_WITH(rootdir,
-	AS_HELP_STRING(--with-rootdir=PATH,
-		[directory to install data files (LIBDIR/httpd)]),
+	AS_HELP_STRING(--with-rootdir=DIR,
+		[directory to install data files @<:@LIBDIR/httpd@:>@]),
 	rootdir="${withval}",
 	rootdir='${prefix}/lib/httpd')
 AC_SUBST(rootdir)
