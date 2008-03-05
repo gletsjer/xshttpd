@@ -6,6 +6,8 @@
 
 #include	"config.h"
 
+#define		PERL_NO_SHORT_NAMES
+
 #include	<inttypes.h>
 #include	<stdarg.h>
 #ifdef		HAVE_TIME_H

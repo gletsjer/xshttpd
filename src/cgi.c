@@ -31,7 +31,6 @@
 #endif		/* HAVE_MEMORY_H */
 #include	<stdarg.h>
 #ifdef		HAVE_PERL
-#define		PERL_NO_SHORT_NAMES	1
 #include	<EXTERN.h>
 #include	<perl.h>
 #endif		/* HAVE_PERL */

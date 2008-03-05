@@ -48,7 +48,6 @@
 #endif		/* HAVE_ERR_H */
 #include	<ctype.h>
 #ifdef		HAVE_PERL
-#define		PERL_NO_SHORT_NAMES	1
 #include	<EXTERN.h>
 #include	<perl.h>
 #endif		/* HAVE_PERL */
@@ -493,8 +492,7 @@ load_config()
 		config.system->logreferer = strdup(BITBUCKETNAME);
 	if (!config.system->logstyle)
 		config.system->logstyle = log_combined;
-	if (!config.system->userid &&
-		!(config.system->userid = strtoul(HTTPD_USERID, NULL, 10)))
+	if (!config.system->userid)
 	{
 		struct passwd	*pwd;
 
