@@ -169,6 +169,7 @@ fi
 XS_CHECK_WITH(python, Python interpreter, no)
 if test x${with_python} = xyes
 then
+	AC_DEFINE(HAVE_PYTHON,, [Define this to use python cgi environment])
 	XS_TRY_CONFIG([python2.5], httpd)
 fi
 
