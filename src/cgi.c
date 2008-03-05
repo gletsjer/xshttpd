@@ -117,10 +117,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	bool		nph, dossi;
 	unsigned int	left;
 	FILE		*logfile;
-#ifdef		HANDLE_SSL
 	int		q[2];
 	bool		ssl_post = false;
-#endif		/* HANDLE_SSL */
 	struct	sigaction	action;
 
 	child = (pid_t)-1;
@@ -170,7 +168,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 	}
 
-#ifdef		HANDLE_SSL
 	q[0] = q[1] = -1;
 	ssl_post = postonly;
 	if (ssl_post)
@@ -190,7 +187,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			goto END;
 		}
 	}
-#endif		/* HANDLE_SSL */
 
 	r[0] = r[1] = -1;
 	if (pipe(r))
@@ -244,11 +240,9 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		dup2(p[1], 1);
 		dup2(r[1], 2);
 
-#ifdef		HANDLE_SSL
 		/* Posting via SSL takes a lot of extra work */
 		if (ssl_post)
 			dup2(q[0], 0);
-#endif		/* HANDLE_SSL */
 
 #ifdef		HAVE_SETSID
 		if (setsid() == -1)
@@ -355,14 +349,11 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	default:
 		close(p[1]);
 		close(r[1]);
-#ifdef		HANDLE_SSL
 		if (ssl_post)
 			close(q[0]);
-#endif		/* HANDLE_SSL */
 		break;
 	}
 
-#ifdef		HANDLE_SSL
 	const char * const te = getenv("HTTP_TRANSFER_ENCODING");
 	if (ssl_post && te && !strcasecmp(te, "chunked"))
 	{
@@ -446,7 +437,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		postread = true;
 		close(q[1]);
 	}
-#endif		/* HANDLE_SSL */
 
 	if (logfile)
 	{
@@ -700,12 +690,10 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	END:
 	fflush(stdout); close(p[0]); close(p[1]);
 	fflush(stderr); close(r[0]); close(r[1]);
-#ifdef		HANDLE_SSL
 	if (ssl_post)
 	{
 		close(q[0]); close(q[1]);
 	}
-#endif		/* HANDLE_SSL */
 #ifdef		HAVE_SIGEMPTYSET
 	sigemptyset(&action.sa_mask);
 #else		/* Not HAVE_SIGEMPYSET */

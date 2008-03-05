@@ -129,8 +129,6 @@ then
 			AC_LIBOBJ(crypt)
 			libxs_ldflags="${libxs_ldflags} ${xssl_ldflags}"
 		fi
-	else
-		AC_MSG_ERROR([Cannot find libraries for --with-ssl])
 	fi
 fi
 
