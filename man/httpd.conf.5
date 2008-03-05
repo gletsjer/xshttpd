@@ -224,6 +224,10 @@ environment variable that should be presented to CGI
 binaries. This must be a colon seperated list of
 directories; no sanity checking is done. A reasonable
 default is provided.
+.It Sy PerlPersistentScript Aq contrib/persistent.pl
+Location of the script that is used for internal handling of
+Perl CGI's. This option is only available when the server is
+compiled with Perl support.
 .El
 .Ss Socket Options
 It is possible to bind to multiple sockets at the same time

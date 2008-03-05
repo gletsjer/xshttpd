@@ -297,7 +297,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 #endif		/* HAVE_SETPRIORITY */
 
 #ifdef		HAVE_PERL
-		if (engine && !strcmp(engine, "internal:perl"))
+		if (engine && !strcmp(engine, "internal:perl") && my_perl)
 		{
 			perlargs[0] = fullpath;
 			perl_call_argv("Embed::Persistent::eval_file",

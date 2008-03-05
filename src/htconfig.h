@@ -114,6 +114,7 @@ extern struct configuration
 	char *		virtualhostdir;
 	char *		defaultcharset;
 	char *		scriptpath;
+	char *		perlscript;
 	struct virtual *	system;
 	struct virtual *	users;
 	struct virtual *	virtual;

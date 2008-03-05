@@ -204,6 +204,8 @@ load_config()
 						config.priority = strtoul(value, NULL, 10);
 					else if (!strcasecmp("ScriptPriority", key))
 						config.scriptpriority = strtoul(value, NULL, 10);
+					else if (!strcasecmp("PerlPersistentScript", key))
+						config.perlscript = strdup(value);
 				}
 				else if (subtype == sub_socket)
 				{
@@ -574,22 +576,34 @@ remove_config()
 void
 loadperl()
 {
-	char *path, *embedding[] = { NULL, NULL };
-	int exitstatus = 0;
+	char	*path, *embedding[] = { NULL, NULL };
+	int	exitstatus = 0;
 
 	if (!(my_perl = perl_alloc()))
 		err(1, "No memory!");
 	perl_construct(my_perl);
 
 	/* perl_parse() doesn't like const arguments: pass dynamic */
-	path = strdup(HTTPD_ROOT "/persistent.pl");
-	embedding[0] = embedding[1] = path;
-	exitstatus = perl_parse(my_perl, NULL, 2, embedding, NULL);
-	free(path);
-	if (!exitstatus)
-		exitstatus = perl_run(my_perl);
+	if (config.perlscript)
+		path = strdup(calcpath(config.perlscript));
 	else
-		err(1, "No perl!");
+		path = strdup(calcpath("contrib/persistent.pl"));
+	if (!access(path, R_OK))
+	{
+		embedding[0] = embedding[1] = path;
+		exitstatus = perl_parse(my_perl, NULL, 2, embedding, NULL);
+		if (!exitstatus)
+		{
+			perl_run(my_perl);
+			free(path);
+			return;
+		}
+	}
+
+	warn("Perl module not available");
+	free(path);
+	perl_free(my_perl);
+	my_perl = NULL;
 }
 #endif		/* HAVE_PERL */
 
