@@ -48,6 +48,7 @@
 #endif		/* HAVE_ERR_H */
 #include	<ctype.h>
 #ifdef		HAVE_PERL
+#define		PERL_NO_SHORT_NAMES	1
 #include	<EXTERN.h>
 #include	<perl.h>
 #endif		/* HAVE_PERL */

@@ -31,6 +31,7 @@
 #endif		/* HAVE_MEMORY_H */
 #include	<stdarg.h>
 #ifdef		HAVE_PERL
+#define		PERL_NO_SHORT_NAMES	1
 #include	<EXTERN.h>
 #include	<perl.h>
 #endif		/* HAVE_PERL */
@@ -300,7 +301,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		if (engine && !strcmp(engine, "internal:perl") && my_perl)
 		{
 			perlargs[0] = fullpath;
-			perl_call_argv("Embed::Persistent::eval_file",
+			Perl_call_argv(aTHX_ "Embed::Persistent::eval_file",
 				G_DISCARD | G_EVAL, perlargs);
 			exit(0);
 		}
