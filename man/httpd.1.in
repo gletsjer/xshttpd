@@ -462,3 +462,11 @@ distribution and cleaned up. The current maintainer is Johan van Selst.
 Please use the general contact address
 .Aq xs-httpd@stack.nl
 for queries.
+.Sh BUGS
+Support for the alternative document processing methods using internal
+.Sy Perl ,
+.Sy Python
+or
+.Sy FastCGI
+hooks is still highly experimental and not very useful.
+These features should not be used in a production environment.

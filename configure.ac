@@ -164,6 +164,7 @@ then
 		httpd_cflags="${httpd_cflags} `${perlpath} -MExtUtils::Embed -e ccopts`"
 		httpd_ldflags="${httpd_ldflags} `${perlpath} -MExtUtils::Embed -e ldopts`"
 	fi
+	AC_MSG_WARN([Internal Perl interpreter is still EXPERIMENTAL])
 fi
 
 XS_CHECK_WITH(python, Python interpreter, no)
@@ -171,6 +172,7 @@ if test x${with_python} = xyes
 then
 	AC_DEFINE(HAVE_PYTHON,, [Define this to use python cgi environment])
 	XS_TRY_CONFIG([python2.5], httpd)
+	AC_MSG_WARN([Internal Python interpreter is still EXPERIMENTAL])
 fi
 
 XS_CHECK_WITH(preprocessor, optional configuration preprocessor, no)
