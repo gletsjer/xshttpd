@@ -96,7 +96,7 @@
 /* Define to 1 if you have the Linux-style `sendfile' function */
 #undef HAVE_LINUX_SENDFILE
 
-/* Define to 1 if you have the `MD5' function (from libmd or openssl) */
+/* Define to 1 if you have the MD5 function (from libmd or openssl) */
 #undef HAVE_MD5
 
 /* Define to 1 if you have the `memmem' function. */
@@ -285,7 +285,7 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/* Define to 1 if you have openssl, but no `MD5Data' function */
+/* Define to 1 if you have openssl, but no MD5Data function */
 #undef USE_OPENSSL_MD5
 
 /* Number of bits in a file offset, on hosts where this is settable. */

@@ -10,10 +10,8 @@ AC_CONFIG_HEADERS([config.h])
 
 dnl Checks for programs.
 AC_PROG_CC_C99
-if test "$ac_cv_prog_cc_c99" = no
-then
-	AC_MSG_ERROR([ISO C99 capable compiler required])
-fi
+AS_IF([test x$ac_cv_prog_cc_c99 = xno],
+	AC_MSG_FAILURE([ISO C99 capable compiler required]))
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_PATH_PROG(ppmtogif, ppmtogif, /bin/true)
@@ -57,10 +55,9 @@ XS_FUNC_IN_LIB(getaddrinfo, HAVE_GETADDRINFO, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(getnameinfo, HAVE_GETNAMEINFO, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
 XS_FUNC_IN_LIB(MD5Data, HAVE_LIBMD, md, libxs)
-if test "$ac_cv_search_MD5Data" != no
-then
-	AC_DEFINE(HAVE_MD5, [], [Define to 1 if you have the `MD5' function (from libmd or openssl)])
-fi
+AS_IF([test "$ac_cv_search_MD5Data" != no],
+	AC_DEFINE(HAVE_MD5, [],
+		[Define to 1 if you have the MD5 function (from libmd or openssl)]))
 
 AS_IF([test "$ac_cv_search_inet_aton" = no], [AC_LIBOBJ(inet_aton)])
 AC_CHECK_FUNC(asprintf,, [AC_LIBOBJ(snprintf)])
@@ -69,12 +66,10 @@ AC_REPLACE_FUNCS(closefrom err killpg memmem mkstemp setenv seteuid setgroups se
 
 dnl Check in6_addr layout; must follow socket library check.
 AC_CHECK_TYPES(struct in6_addr,,, [#include <netinet/in.h>])
-if test "$ac_cv_type_struct_in6_addr" = yes
-then
+AS_IF([test x$ac_cv_type_struct_in6_addr = xyes], [
 	AC_CHECK_MEMBER([struct in6_addr.s6_addr32],,,
 		[#include <netinet/in.h>])
-	if test "$ac_cv_member_struct_in6_addr_s6_addr32" = no
-	then
+	AS_IF([test x$ac_cv_member_struct_in6_addr_s6_addr32 = xno], [
 		AH_TEMPLATE(s6_addr32, [in6_addr elements, 32-bit version])
 		AC_CHECK_MEMBER([struct in6_addr._S6_un._S6_u32],
 			AC_DEFINE(s6_addr32, _S6_un._S6_u32),,
@@ -82,13 +77,90 @@ then
 		AC_CHECK_MEMBER([struct in6_addr.__u6_addr.__u6_addr32],
 			AC_DEFINE(s6_addr32, __u6_addr.__u6_addr32),,
 			[#include <netinet/in.h>])
-	fi
-fi
+		])
+	])
+
+dnl Test runs for required global variables.
+AC_CHECK_DECLS_ONCE([sys_errlist, optarg, environ])
+
+dnl User specified additional (non-system) libraries.
+XS_CHECK_WITH(ssl, SSL crypto support, yes)
+AS_IF([test x$with_ssl = xyes], [
+	XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, xssl, -lcrypto)
+	AS_IF([test "$ac_cv_search_SSL_version" != no], [
+		XS_FUNC_IN_LIB(OPENSSL_config, HAVE_OPENSSL_CONFIG, ssl, xssl, -lcrypto)
+		httpd_cflags="${httpd_cflags} -I/usr/local/ssl/include"
+		httpd_ldflags="${httpd_ldflags} ${xssl_ldflags}"
+		AC_DEFINE(HANDLE_SSL,, [Enable OpenSSL support])
+		AS_IF([test "$ac_cv_search_MD5Datax" = no], [
+			AC_DEFINE(HAVE_MD5)
+			AC_DEFINE(USE_OPENSSL_MD5,,
+				[Define to 1 if you have openssl, but no MD5Data function])
+			AC_LIBOBJ(MD5Data)
+			libxs_ldflags="${libxs_ldflags} ${xssl_ldflags}"
+			])
+		AS_IF([test "$ac_cv_search_crypt" = no],
+			[AC_DEFINE(HAVE_CRYPT)
+			 AC_LIBOBJ(crypt)
+			 libxs_ldflags="${libxs_ldflags} ${xssl_ldflags}"
+			])
+		])
+	])
+
+XS_CHECK_WITH(pcre, PCRE support, yes)
+AS_IF([test x$with_pcre = xyes], [
+	XS_FUNC_IN_LIB(pcre_exec, HAVE_PCRE, pcre, httpd)
+	XS_TRY_CONFIG(pcre, httpd)
+	])
+
+XS_CHECK_WITH(ldap, LDAP authentication support, no)
+AS_IF([test x$with_ldap = xyes],
+	[XS_FUNC_IN_LIB(ldap_initialize, AUTH_LDAP, ldap, httpd)])
+
+XS_CHECK_WITH(curl, CURL transfer support, no)
+AS_IF([test x$with_curl = xyes], [
+	XS_FUNC_IN_LIB(curl_version, HAVE_CURL, curl, httpd)
+	XS_TRY_CONFIG(curl, httpd)
+	])
+
+XS_CHECK_WITH(perl, PERL persistent interpreter, no)
+AS_IF([test x$with_perl = xyes], [
+	AC_PATH_PROG(perlpath, perl)
+	AS_IF([test -n "${perlpath}"], [
+		AC_DEFINE(HAVE_PERL,, [Define this to use perl cgi environment])
+		httpd_cflags="${httpd_cflags} `${perlpath} -MExtUtils::Embed -e ccopts`"
+		httpd_ldflags="${httpd_ldflags} `${perlpath} -MExtUtils::Embed -e ldopts`"
+		])
+	AC_MSG_WARN([Internal Perl interpreter is still EXPERIMENTAL])
+	])
+
+XS_CHECK_WITH(python, Python interpreter, no)
+AS_IF([test x$with_python = xyes], [
+	AC_DEFINE(HAVE_PYTHON,, [Define this to use python cgi environment])
+	XS_TRY_CONFIG([python2.5], httpd)
+	AC_MSG_WARN([Internal Python interpreter is still EXPERIMENTAL])
+	])
+
+AC_MSG_CHECKING([if you want configuration preprocessing])
+AC_ARG_WITH(preprocessor, [
+Extra options:
+]AS_HELP_STRING([--with-preprocessor],
+		[optional configuration preprocessor (none)]),
+	[AC_MSG_RESULT($withval)
+	 AS_IF([test x$withval = xyes], [withval=m4])
+	 AS_IF([test x$withval != xno], [
+		 AC_PATH_PROG(preprocessor, $withval)
+		 AS_IF([test x$preprocessor != x],
+			[AC_DEFINE_UNQUOTED(PATH_PREPROCESSOR, "${preprocessor}",
+				[preprocessor used to parse configuration files])],
+			[AC_MSG_FAILURE([--with-preprocessor was given, but command not found])])
+		])
+	 ], AC_MSG_RESULT(${withval:-no}))
 
 dnl Main root directory, optionally supplied by user.
 dnl Set may be delayed untill 'make' stage, becasue ${prefix} is delayed.
 AC_ARG_WITH(rootdir,
-	AS_HELP_STRING(--with-rootdir=DIR,
+	AS_HELP_STRING([--with-rootdir=DIR],
 		[directory to install data files @<:@LIBDIR/httpd@:>@]),
 	rootdir="${withval}",
 	rootdir='${prefix}/lib/httpd')
@@ -104,104 +176,16 @@ XS_ARG_DIR(html,    HTML_DIR,   [htdocs])
 XS_ARG_DIR(icon,    ICON_DIR,   [icons])
 XS_ARG_DIR(log,     LOG_DIR,    [logs])
 
-dnl User specified additional (non-system) libraries.
-XS_CHECK_WITH(ssl, SSL crypto support, yes)
-if test x${with_ssl} = xyes
-then
-	XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, xssl, -lcrypto)
-	if test "$ac_cv_search_SSL_version" != no
-	then
-		XS_FUNC_IN_LIB(OPENSSL_config, HAVE_OPENSSL_CONFIG, ssl, xssl, -lcrypto)
-		httpd_cflags="${httpd_cflags} -I/usr/local/ssl/include"
-		httpd_ldflags="${httpd_ldflags} ${xssl_ldflags}"
-		AC_DEFINE(HANDLE_SSL,, [Enable OpenSSL support])
-		if test "$ac_cv_search_MD5Data" = no
-		then
-			AC_DEFINE(HAVE_MD5)
-			AC_DEFINE(USE_OPENSSL_MD5,,
-				[Define to 1 if you have openssl, but no `MD5Data' function])
-			AC_LIBOBJ(MD5Data)
-			libxs_ldflags="${libxs_ldflags} ${xssl_ldflags}"
-		fi
-		if test "$ac_cv_search_crypt" = no
-		then
-			AC_DEFINE(HAVE_CRYPT)
-			AC_LIBOBJ(crypt)
-			libxs_ldflags="${libxs_ldflags} ${xssl_ldflags}"
-		fi
-	fi
-fi
-
-XS_CHECK_WITH(pcre, PCRE support, yes)
-if test x${with_pcre} = xyes
-then
-	XS_FUNC_IN_LIB(pcre_exec, HAVE_PCRE, pcre, httpd)
-	XS_TRY_CONFIG(pcre, httpd)
-fi
-
-XS_CHECK_WITH(ldap, LDAP authentication support, no)
-if test x${with_ldap} = xyes
-then
-	XS_FUNC_IN_LIB(ldap_initialize, AUTH_LDAP, ldap, httpd)
-fi
-
-XS_CHECK_WITH(curl, CURL transfer support, no)
-if test x${with_curl} = xyes
-then
-	XS_FUNC_IN_LIB(curl_version, HAVE_CURL, curl, httpd)
-	XS_TRY_CONFIG(curl, httpd)
-fi
-
-XS_CHECK_WITH(perl, PERL persistent interpreter, no)
-if test x${with_perl} = xyes
-then
-	AC_PATH_PROG(perlpath, perl)
-	if test -n "${perlpath}"
-	then
-		AC_DEFINE(HAVE_PERL,, [Define this to use perl cgi environment])
-		httpd_cflags="${httpd_cflags} `${perlpath} -MExtUtils::Embed -e ccopts`"
-		httpd_ldflags="${httpd_ldflags} `${perlpath} -MExtUtils::Embed -e ldopts`"
-	fi
-	AC_MSG_WARN([Internal Perl interpreter is still EXPERIMENTAL])
-fi
-
-XS_CHECK_WITH(python, Python interpreter, no)
-if test x${with_python} = xyes
-then
-	AC_DEFINE(HAVE_PYTHON,, [Define this to use python cgi environment])
-	XS_TRY_CONFIG([python2.5], httpd)
-	AC_MSG_WARN([Internal Python interpreter is still EXPERIMENTAL])
-fi
-
-XS_CHECK_WITH(preprocessor, optional configuration preprocessor, no)
-if test x${with_preprocessor} = xyes
-then
-	with_preprocessor=m4
-fi
-if test x${with_preprocessor} != xno
-then
-	AC_PATH_PROG(preprocessor, ${with_preprocessor})
-	if test  -n "${preprocessor}"
-	then
-		AC_DEFINE_UNQUOTED(PATH_PREPROCESSOR, "${preprocessor}",
-			[preprocessor used to parse configuration files])
-	fi
-fi
-
 dnl User may tweak compilation behaviour.
 XS_ARG_DEFAULT(warnings, DUMMY, no, [enable extra compiler warnings])
-if test x${enable_warnings} != xno
-then
+AS_IF([test x${enable_warnings} != xno], [
 	CFLAGS="${CFLAGS} -g -ggdb -O2 -fsigned-char -fshort-enums -funroll-loops -pedantic -trigraphs -pipe -Wall -W -Wpointer-arith -Wshadow -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wformat -Wformat-security -Wcomment -Wchar-subscripts -Wcast-align -Waggregate-return -Wnested-externs -Winline -Wundef -Wmissing-noreturn -Wmissing-format-attribute -Wpacked -Wunreachable-code"
-	if test x${enable_warnings} = xextra
-	then
-		CFLAGS="${CFLAGS} -Wconversion -Wpadded"
-	fi
-fi
+	AS_IF([test x${enable_warnings} = xextra],
+		[CFLAGS="${CFLAGS} -Wconversion -Wpadded"])
+	])
 
 XS_ARG_DEFAULT(ssp, DUMMY, no, [enable stack smashing protector])
-if test x${enable_ssp} = xyes
-then
+AS_IF([test x${enable_ssp} = xyes], [
 	AC_MSG_CHECKING([whether ${CC%% *} supports stack protection...])
 	TCFLAGS="${CFLAGS}"
 	CFLAGS="${CFLAGS} -fstack-protector-all -Wstack-protector"
@@ -209,10 +193,7 @@ then
 		AC_MSG_RESULT([yes]),
 		AC_MSG_RESULT([no])
 		CFLAGS="${TCFLAGS}")
-fi
-
-dnl Test runs for required global variables.
-AC_CHECK_DECLS_ONCE([sys_errlist, optarg, environ])
+	])
 
 dnl Generate configure output.
 AC_SUBST(libxs_ldflags)
