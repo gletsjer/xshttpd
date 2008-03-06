@@ -2,7 +2,6 @@
 /* Copyright (C) 1998-2008 by Johan van Selst (johans@stack.nl) */
 
 #include	"config.h"
-#include	"malloc.h"
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
@@ -17,6 +16,8 @@
 #ifdef		HAVE_ERR_H
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
+
+#include	"malloc.h"
 #include	"path.h"
 
 typedef	struct	mime

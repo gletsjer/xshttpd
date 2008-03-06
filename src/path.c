@@ -2,6 +2,7 @@
 /* Copyright (C) 1998-2008 by Johan van Selst (johans@stack.nl) */
 
 #include	"config.h"
+
 #include	<string.h>
 #include	<stdlib.h>
 

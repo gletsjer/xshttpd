@@ -1,5 +1,7 @@
-/* Copyright (C) 2006 by Remco van der Vossen (wich@stack.nl) */
+/* Copyright (C) 2006 by Remko van der Vossen (wich@stack.nl) */
 /* Copyright (C) 2006 by Johan van Selst (johans@stack.nl) */
+
+#include "config.h"
 
 #include <stdio.h>
 #include <stddef.h>
@@ -13,12 +15,12 @@
 #include <unistd.h>
 #include <signal.h>
 
-#include "config.h"
 #include "ssl.h"
 #include "fcgi_api.h"
 #include "fcgi.h"
 #include "htconfig.h"
 #include "malloc.h"
+#include "alternative.h"
 
 #ifndef		PF_LOCAL
 #define	PF_LOCAL	PF_UNIX

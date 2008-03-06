@@ -24,12 +24,12 @@ extern	char	**environ;
 #if		!HAVE_DECL_OPTARG
 extern	char	*optarg;
 extern	int	optind;
-#endif          /* HAVE_DECL_OPTARG */
+#endif	/* HAVE_DECL_OPTARG */
 
-#ifndef             HAVE_DECL_SYS_ERRLIST
+#if		!HAVE_DECL_SYS_ERRLIST
 extern	char		*sys_errlist[];
 extern	const int	sys_nerr;
-#endif          /* HAVE_DECL_SYS_ERRLIST */
+#endif		/* HAVE_DECL_SYS_ERRLIST */
 
 #ifndef		HAVE_SOCKLEN_T
 typedef	size_t		socklen_t;
