@@ -177,14 +177,14 @@ XS_ARG_DIR(icon,    ICON_DIR,   [icons])
 XS_ARG_DIR(log,     LOG_DIR,    [logs])
 
 dnl User may tweak compilation behaviour.
-XS_ARG_DEFAULT(warnings, DUMMY, no, [enable extra compiler warnings])
+XS_ARG_DEFAULT(warnings, HAVE_GDB, no, [enable extra compiler warnings])
 AS_IF([test x${enable_warnings} != xno], [
 	CFLAGS="${CFLAGS} -g -ggdb -O2 -fsigned-char -fshort-enums -funroll-loops -pedantic -trigraphs -pipe -Wall -W -Wpointer-arith -Wshadow -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wformat -Wformat-security -Wcomment -Wchar-subscripts -Wcast-align -Waggregate-return -Wnested-externs -Winline -Wundef -Wmissing-noreturn -Wmissing-format-attribute -Wpacked -Wunreachable-code"
 	AS_IF([test x${enable_warnings} = xextra],
 		[CFLAGS="${CFLAGS} -Wconversion -Wpadded"])
 	])
 
-XS_ARG_DEFAULT(ssp, DUMMY, no, [enable stack smashing protector])
+XS_ARG_DEFAULT(ssp, HAVE_SSP, no, [enable stack smashing protector])
 AS_IF([test x${enable_ssp} = xyes], [
 	AC_MSG_CHECKING([whether ${CC%% *} supports stack protection...])
 	TCFLAGS="${CFLAGS}"

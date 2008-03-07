@@ -21,9 +21,6 @@
 /* contrib directory with opt. trailing slash */
 #undef CONTRIB_DIRT
 
-/* enable stack smashing protector */
-#undef DUMMY
-
 /* font directory */
 #undef FONT_DIR
 
@@ -65,6 +62,9 @@
 
 /* Define to 1 if you have the <err.h> header file. */
 #undef HAVE_ERR_H
+
+/* enable extra compiler warnings */
+#undef HAVE_GDB
 
 /* Define to 1 if you have the `getaddrinfo' function */
 #undef HAVE_GETADDRINFO
@@ -173,6 +173,9 @@
 
 /* Define to 1 if you have the `SSL_version' function */
 #undef HAVE_SSL
+
+/* enable stack smashing protector */
+#undef HAVE_SSP
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
