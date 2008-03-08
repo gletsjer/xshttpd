@@ -17,6 +17,8 @@
 #include	<sys/stat.h>
 #include	<arpa/inet.h>
 
+/***** External variables *****/
+
 #if		!HAVE_DECL_ENVIRON
 extern	char	**environ;
 #endif		/* HAVE_DECL_ENVIRON */
@@ -31,21 +33,29 @@ extern	char		*sys_errlist[];
 extern	const int	sys_nerr;
 #endif		/* HAVE_DECL_SYS_ERRLIST */
 
+/***** Common types *****/
+
 #ifndef		HAVE_SOCKLEN_T
 typedef	size_t		socklen_t;
 #endif		/* HAVE_SOCKLEN_T */
+
 #ifndef		HAVE_SA_FAMILY_T
 typedef unsigned char	sa_family_t;
 #endif		/* HAVE_SA_FAMILY_T */
+
 #ifndef		HAVE_IN_ADDR_T
 typedef uint32_t	in_addr_t;
 #endif		/* HAVE_IN_ADDR_T */
+
 #ifndef		HAVE_IN_PORT_T
 typedef uint16_t	in_port_t;
 #endif		/* HAVE_IN_PORT_T */
+
 #ifndef		HAVE_TIME_T
 typedef int64_t		time_t;
 #endif		/* HAVE_TIME_T */
+
+/***** Printable types *****/
 
 #if		defined(SIZEOF_PID_T) && SIZEOF_PID_T > 4
 # define	PRIpid	PRId64
@@ -73,6 +83,8 @@ typedef int64_t		time_t;
 # define	PRIts	PRIx32
 #endif		/* SIZEOF_TIME_T */
 
+/***** Useful defines *****/
+
 #ifndef		S_ISREG
 #define		S_ISREG(m)	(((m)&(S_IFMT)) == (S_IFREG))
 #endif		/* S_ISREG */
@@ -81,6 +93,8 @@ typedef int64_t		time_t;
 #undef		NULL
 #endif		/* NULL */
 #define		NULL		((void *)0)
+
+/***** Libcompat functions *****/
 
 #ifndef		HAVE_CLOSEFROM
 int	closefrom	(int);
