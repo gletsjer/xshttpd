@@ -73,7 +73,7 @@ AC_DEFUN([XS_FUNC_SENDFILE], [
 		[sendfile(0, 0, 0, 0, (void *)0, (void *)0, 0);]),
 		[AC_MSG_RESULT([yes])
 		 AC_DEFINE(HAVE_BSD_SENDFILE, [],
-			 [Define to 1 if you have the BSD-style `sendfile' function])
+			 [Define to 1 if you have the BSD-style 'sendfile' function])
 		 ],
 		[AC_COMPILE_IFELSE(AC_LANG_PROGRAM([#include <sys/types.h>
 #ifdef	HAVE_SYS_SENDFILE_H
@@ -84,8 +84,25 @@ AC_DEFUN([XS_FUNC_SENDFILE], [
 			[sendfile(0, 0, (void *)0, 0);]),
 			AC_MSG_RESULT([yes (Linux-style)])
 			AC_DEFINE(HAVE_LINUX_SENDFILE, [],
-				[Define to 1 if you have the Linux-style `sendfile' function]),
+				[Define to 1 if you have the Linux-style 'sendfile' function]),
 			AC_MSG_RESULT([no])
 			)]
 		)
 	])
+
+dnl XS_PRINT_AS(type, define)
+AC_DEFUN([XS_PRINT_TYPE], [
+	AC_MSG_CHECKING([how to print $1])
+	AC_RUN_IFELSE(AC_LANG_PROGRAM([#include <sys/types.h>],
+		[return 8 * sizeof($1);]),
+		[sz=0],
+		[sz=$?])
+	AC_RUN_IFELSE(AC_LANG_PROGRAM([#include <sys/types.h>],
+		[$1 x = ($1)-1; return x < ($1)0;]),
+		[val=PRIu$sz],
+		[val=PRId$sz])
+	AC_DEFINE_UNQUOTED($2, [$val], [Define how to print `$1'])
+	AC_DEFINE_UNQUOTED($2x, [PRIx$sz], [Define how to print `$1' in hex])
+	AC_MSG_RESULT([$val])
+	])
+

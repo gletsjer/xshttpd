@@ -30,7 +30,7 @@
 /* Enable OpenSSL support */
 #undef HANDLE_SSL
 
-/* Define to 1 if you have the BSD-style `sendfile' function */
+/* Define to 1 if you have the BSD-style 'sendfile' function */
 #undef HAVE_BSD_SENDFILE
 
 /* Define to 1 if you have the `closefrom' function. */
@@ -99,7 +99,7 @@
 /* Define to 1 if you have the `MD5Data' function */
 #undef HAVE_LIBMD
 
-/* Define to 1 if you have the Linux-style `sendfile' function */
+/* Define to 1 if you have the Linux-style 'sendfile' function */
 #undef HAVE_LINUX_SENDFILE
 
 /* Define to 1 if you have the MD5 function (from libmd or openssl) */
@@ -291,20 +291,32 @@
 /* phexec directory with opt. trailing slash */
 #undef PHEXEC_DIRT
 
+/* Define how to print `off_t' */
+#undef PRIoff
+
+/* Define how to print `off_t' in hex */
+#undef PRIoffx
+
+/* Define how to print `pid_t' */
+#undef PRIpid
+
+/* Define how to print `pid_t' in hex */
+#undef PRIpidx
+
+/* Define how to print `time_t' */
+#undef PRItime
+
+/* Define how to print `time_t' in hex */
+#undef PRItimex
+
+/* Define how to print `uid_t' */
+#undef PRIuid
+
+/* Define how to print `uid_t' in hex */
+#undef PRIuidx
+
 /* Server version */
 #undef SERVER_IDENT
-
-/* The size of `off_t', as computed by sizeof. */
-#undef SIZEOF_OFF_T
-
-/* The size of `pid_t', as computed by sizeof. */
-#undef SIZEOF_PID_T
-
-/* The size of `time_t', as computed by sizeof. */
-#undef SIZEOF_TIME_T
-
-/* The size of `uid_t', as computed by sizeof. */
-#undef SIZEOF_UID_T
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
@@ -337,6 +349,9 @@
 
 /* Define to `int' if <sys/types.h> does not define. */
 #undef ssize_t
+
+/* What time looks like */
+#undef time_t
 
 /* Define to `int' if <sys/types.h> doesn't define. */
 #undef uid_t

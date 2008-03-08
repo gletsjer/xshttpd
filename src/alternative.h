@@ -10,6 +10,7 @@
 
 #include	<inttypes.h>
 #include	<stdarg.h>
+#include	<stdint.h>
 #ifdef		HAVE_TIME_H
 #include	<time.h>
 #endif		/* HAVE_TIME_H */
@@ -50,38 +51,6 @@ typedef uint32_t	in_addr_t;
 #ifndef		HAVE_IN_PORT_T
 typedef uint16_t	in_port_t;
 #endif		/* HAVE_IN_PORT_T */
-
-#ifndef		HAVE_TIME_T
-typedef int64_t		time_t;
-#endif		/* HAVE_TIME_T */
-
-/***** Printable types *****/
-
-#if		defined(SIZEOF_PID_T) && SIZEOF_PID_T > 4
-# define	PRIpid	PRId64
-#else		/* SIZEOF_PID_T */
-# define	PRIpid	PRId32
-#endif		/* SIZEOF_PID_T */
-
-#if		defined(SIZEOF_UID_T) && SIZEOF_UID_T > 4
-# define	PRIuid	PRIu64
-#else		/* SIZEOF_UID_T */
-# define	PRIuid	PRIu32
-#endif		/* SIZEOF_UID_T */
-
-#if		!defined(SIZEOF_OFF_T) || SIZEOF_OFF_T > 4
-# define	PRIoff	PRId64
-#else		/* SIZEOF_OFF_T */
-# define	PRIoff	PRId32
-#endif		/* SIZEOF_OFF_T */
-
-#if		defined(SIZEOF_TIME_T) && SIZEOF_TIME_T > 4
-# define	PRItime	PRId64
-# define	PRIts	PRIx64
-#else		/* SIZEOF_TIME_T */
-# define	PRItime	PRId32
-# define	PRIts	PRIx32
-#endif		/* SIZEOF_TIME_T */
 
 /***** Useful defines *****/
 
