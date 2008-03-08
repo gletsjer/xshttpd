@@ -412,7 +412,10 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			int	offset, result;
 			size_t	tobewritten;
 
-			tobewritten = writetodo > RWBUFSIZE ? RWBUFSIZE : writetodo;
+			if (writetodo > RWBUFSIZE)
+				tobewritten = RWBUFSIZE;
+			else
+				tobewritten = (size_t)writetodo;
 			result = secread(0, inbuf, tobewritten);
 			if (result < 0)
 				goto END;

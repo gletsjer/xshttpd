@@ -14,6 +14,7 @@
 #include <netdb.h>
 #include <unistd.h>
 #include <signal.h>
+#include <limits.h>
 
 #include "ssl.h"
 #include "fcgi_api.h"
@@ -473,7 +474,7 @@ int
 handle_record(fcgi_server * server, int fdout, int fderr)
 {
 	FCGI_record	record_header;
-	size_t		content_length = 0;
+	off_t		content_length = 0;
 	char		padding   [255];
 	int		bytes;
 
@@ -568,17 +569,17 @@ send_stream(fcgi_server * server, off_t length, unsigned char stream_id, int fd)
 }
 
 ssize_t 
-recv_stream(fcgi_server * server, ssize_t length, int fd)
+recv_stream(fcgi_server * server, off_t length, int fd)
 {
 	char		*buffer = NULL;
-	ssize_t		n = length;
+	ssize_t		n;
 
-	if (length == 0)
+	if (length <= 0 || length > INT_MAX)
 		return 0;
 
-	MALLOC(buffer, char, n);
+	MALLOC(buffer, char, length);
 
-	n = read(server->socket, buffer, n);
+	n = read(server->socket, buffer, length);
 
 	if (n <= 0)
 	{
