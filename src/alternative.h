@@ -43,7 +43,6 @@ typedef uint32_t	in_addr_t;
 #ifndef		HAVE_IN_PORT_T
 typedef uint16_t	in_port_t;
 #endif		/* HAVE_IN_PORT_T */
-
 #ifndef		HAVE_TIME_T
 typedef int64_t		time_t;
 #endif		/* HAVE_TIME_T */
@@ -56,6 +55,12 @@ typedef int64_t		time_t;
 #endif		/* PRIuid */
 #ifndef		PRIoff
 #define		PRIoff	PRId64
+#endif		/* PRIoff */
+#ifndef		PRItime
+#define		PRItime	PRId64
+#endif		/* PRIoff */
+#ifndef		PRIts
+#define		PRIts	PRIx64
 #endif		/* PRIoff */
 
 #ifndef		S_ISREG

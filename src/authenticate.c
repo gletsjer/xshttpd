@@ -363,11 +363,12 @@ fresh_nonce(void)
 	char	*buf;
 	size_t	len;
 
-	len = asprintf(&buf, "%lx:%lu:%s", ts, secret, getenv("REMOTE_ADDR"));
+	len = asprintf(&buf, "%" PRIts ":%lu:%s",
+		ts, secret, getenv("REMOTE_ADDR"));
 	MD5Data((unsigned char *)buf, len, bufhex);
 	free(buf);
 
-	snprintf(nonce, MAX_NONCE_LENGTH, "%lx:%s", ts, bufhex);
+	snprintf(nonce, MAX_NONCE_LENGTH, "%" PRIts ":%s", ts, bufhex);
 	return nonce;
 }
 
@@ -387,7 +388,8 @@ valid_nonce(const char *nonce)
 	ptr++;
 	ts = strtol(nonce, NULL, 16);
 
-	len = asprintf(&buf, "%lx:%lu:%s", ts, secret, getenv("REMOTE_ADDR"));
+	len = asprintf(&buf, "%" PRIts ":%lu:%s",
+		ts, secret, getenv("REMOTE_ADDR"));
 	MD5Data((unsigned char *)buf, len, bufhex);
 	free(buf);
 

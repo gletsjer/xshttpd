@@ -427,7 +427,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			{
 				if ((result < 0) && (errno != EINTR))
 				{
-					xserror(500, "Connection closed (fd = %d, todo = %ld",
+					xserror(500, "Connection closed (fd = %d, todo = %" PRIoff,
 						q[1], writetodo);
 					goto END;
 				}
@@ -658,7 +658,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 				if (written < 0)
 				{
-					secprintf("[Connection closed: %s (fd = %d, temp = %p, todo = %ld]\n",
+					secprintf("[Connection closed: %s (fd = %d, temp = %p, todo = %" PRIoff "]\n",
 						strerror(errno), fileno(stdout), temp,
 						writetodo);
 					goto END;
