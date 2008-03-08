@@ -40,15 +40,15 @@ int		set_env(fcgi_env * env, const char *name, const char *value);
 void		build_env(fcgi_env * env);
 int		send_env(fcgi_server * server, fcgi_env * env);
 int		handle_record(fcgi_server * server, int, int);
-ssize_t		send_stream(fcgi_server * server, ssize_t length, unsigned char stream_id, int fd);
-ssize_t		recv_stream(fcgi_server * server, ssize_t length, int fd);
+ssize_t		send_stream(fcgi_server * server, off_t length, unsigned char stream_id, int fd);
+ssize_t		recv_stream(fcgi_server * server, off_t length, int fd);
 
 int
 run_fcgi(int fdin, int fdout, int fderr)
 {
 	fcgi_env	env;
 	int		request_ended = 0;
-	size_t		content_length = 0;
+	off_t		content_length = 0;
 	fcgi_server	*server = current->fcgiserver;
 	char		buf[16];
 
@@ -56,7 +56,8 @@ run_fcgi(int fdin, int fdout, int fderr)
 		return -1;
 
 	if (getenv("CONTENT_LENGTH"))
-		content_length = strtoul(getenv("CONTENT_LENGTH"), NULL, 10);
+		content_length = (off_t)strtoull(getenv("CONTENT_LENGTH"),
+			NULL, 10);
 	init_env(&env);
 	setenv("FCGI_WEB_SERVER_ADDRS", "127.0.0.1", 1);
 	if (current->phpfcgichildren)
@@ -113,15 +114,16 @@ run_fcgi(int fdin, int fdout, int fderr)
 		}
 		if (FD_ISSET(STDIN_FILENO, &set))
 		{
-			ssize_t		n = send_stream(server, content_length, FCGI_STDIN, STDIN_FILENO);
+			ssize_t		n;
+			n = send_stream(server, content_length, FCGI_STDIN, STDIN_FILENO);
 
-			if (n <= 0 || (size_t)n > content_length)
+			if (n <= 0 || n > content_length)
 			{
 			}
 			content_length -= n;
 			if (!content_length)
 			{
-				send_stream(server, 0, FCGI_STDIN, STDIN_FILENO);
+				send_stream(server, (off_t)0, FCGI_STDIN, STDIN_FILENO);
 			}
 		}
 		/*
@@ -517,7 +519,7 @@ handle_record(fcgi_server * server, int fdout, int fderr)
 }
 
 ssize_t 
-send_stream(fcgi_server * server, ssize_t length, unsigned char stream_id, int fd)
+send_stream(fcgi_server * server, off_t length, unsigned char stream_id, int fd)
 {
 	FCGI_record	record_header;
 	char		*buffer = NULL;

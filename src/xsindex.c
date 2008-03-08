@@ -43,7 +43,7 @@ static	const char	*mimefile;
 static	void	usage			(void) NORETURN;
 static	void	loadmime		(const char *);
 static	const	char	*encode		(const char *) WARNUNUSED;
-static	const	char	*neatsize	(long) WARNUNUSED;
+static	const	char	*neatsize	(off_t) WARNUNUSED;
 static	const	mime	*findmime	(const char *) WARNUNUSED;
 
 static	void
@@ -136,7 +136,7 @@ encode(const char *what)
 }
 
 static	const	char	*
-neatsize(long size)
+neatsize(off_t size)
 {
 	static	char	buffer1[BUFSIZ];
 	char		buffer2[BUFSIZ];
@@ -144,13 +144,13 @@ neatsize(long size)
 	buffer1[0] = 0;
 	while (size)
 	{
-		const long temp = size / 1000;
+		const off_t temp = size / 1000;
 		if (temp)
-			snprintf(buffer2, BUFSIZ, "%03d,%s",
-				(int)(size % 1000), buffer1);
+			snprintf(buffer2, BUFSIZ, "%03" PRIoff ",%s",
+				size % 1000, buffer1);
 		else
-			snprintf(buffer2, BUFSIZ, "%d,%s",
-				(int)(size % 1000), buffer1);
+			snprintf(buffer2, BUFSIZ, "%" PRIoff ",%s",
+				size % 1000, buffer1);
 		strlcpy(buffer1, buffer2, BUFSIZ);
 		size = temp;
 	}
@@ -337,7 +337,7 @@ main(int argc, char **argv)
 		}
 		if (show_size && (statbuf.st_mode & S_IFREG))
 			fprintf(output, "   %11.11s",
-				neatsize((long)(statbuf.st_size)));
+				neatsize(statbuf.st_size));
 		fprintf(output, "\n");
 	}
 	fprintf(output, "</pre></body></html>\n");

@@ -403,9 +403,9 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	}
 	else if (ssl_post)
 	{
-		unsigned long		writetodo;
+		off_t		writetodo;
 
-		writetodo = strtoul(getenv("CONTENT_LENGTH"), NULL, 10);
+		writetodo = (off_t)strtoull(getenv("CONTENT_LENGTH"), NULL, 10);
 		while (writetodo > 0)
 		{
 			char	inbuf[RWBUFSIZE];
@@ -645,8 +645,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 		while ((result = secread(p[0], input, RWBUFSIZE)) > 0)
 		{
-			unsigned long	writetodo = result;
-			char		*temp = input;
+			off_t	writetodo = result;
+			char	*temp = input;
 
 			while (writetodo > 0)
 			{

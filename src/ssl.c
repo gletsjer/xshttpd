@@ -396,7 +396,7 @@ secread_internal(int fd, void *buf, size_t count)
 
 		while ((ret = SSL_read(cursock->ssl, buf, count)) <= 0)
 		{
-			unsigned long	s_err = SSL_get_error(cursock->ssl, ret);
+			int	s_err = SSL_get_error(cursock->ssl, ret);
 
 			switch (s_err)
 			{
@@ -491,7 +491,7 @@ secwrite(const char *buf, size_t count)
 #ifdef		HANDLE_SSL
 		if (cursock->usessl)
 		{
-			unsigned long	s_err;
+			int		s_err;
 			ssize_t		ret;
 
 			while ((ret = SSL_write(cursock->ssl, message[i], len[i])) <= 0)

@@ -359,7 +359,7 @@ fresh_nonce(void)
 {
 	static char	nonce[MAX_NONCE_LENGTH];
 	char		bufhex[MD5_DIGEST_STRING_LENGTH];
-	const long	ts = (long)time(NULL);
+	const time_t	ts = time(NULL);
 	char	*buf;
 	size_t	len;
 
@@ -377,7 +377,7 @@ valid_nonce(const char *nonce)
 	char	bufhex[MD5_DIGEST_LENGTH];
 	const char	*ptr;
 	char	*buf;
-	long	ts;
+	time_t	ts;
 	size_t	len;
 
 	if (!nonce)
@@ -395,6 +395,6 @@ valid_nonce(const char *nonce)
 		return false;
 
 	/* fresh for 1 hour */
-	return ts + 3600 > (long)time(NULL);
+	return ts + 3600 > time(NULL);
 }
 #endif		/* HAVE_MD5 */

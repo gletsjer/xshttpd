@@ -221,7 +221,7 @@ open_logs(int sig)
 
 		if ((pidlog = fopen(calcpath(config.pidfile), "w")))
 		{
-			fprintf(pidlog, "%ld\n", (long)getpid());
+			fprintf(pidlog, "%" PRIpid "\n", getpid());
 			fprintf(pidlog, "%s\n", startparams);
 			fclose(pidlog);
 		}
@@ -418,8 +418,8 @@ core_handler(int sig)
 
 	alarm(0); setcurrenttime();
 	env = getenv("QUERY_STRING");
-	errx(1, "[%s] httpd(pid %ld): FATAL SIGNAL %d [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']",
-		currenttime, (long)getpid(), sig,
+	errx(1, "[%s] httpd(pid % " PRIpid "): FATAL SIGNAL %d [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']",
+		currenttime, getpid(), sig,
 		remotehost[0] ? remotehost : "(none)",
 		orig[0] ? orig : "(none)", env ? env : "(none)",
 		current ? current->hostname : config.system->hostname,
@@ -494,8 +494,8 @@ xserror(int code, const char *format, ...)
 	setcurrenttime();
 	env = getenv("QUERY_STRING");
 	fprintf((current && current->openerror) ? current->openerror : stderr,
-		"[%s] httpd(pid %ld): %03d %s [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']\n",
-		currenttime, (long)getpid(), code, message,
+		"[%s] httpd(pid %" PRIpid "): %03d %s [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']\n",
+		currenttime, getpid(), code, message,
 		remotehost[0] ? remotehost : "(none)",
 		orig[0] ? orig : "(none)", env ? env : "(none)",
 		current ? current->hostname : config.system->hostname,
@@ -640,8 +640,8 @@ server_error(int code, const char *readable, const char *cgi)
 	}
 	setcurrenttime();
 	fprintf((current && current->openerror) ? current->openerror : stderr,
-		"[%s] httpd(pid %ld): %03d %s [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']\n",
-		currenttime, (long)getpid(), code, readable,
+		"[%s] httpd(pid %" PRIpid "): %03d %s [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']\n",
+		currenttime, getpid(), code, readable,
 		remotehost[0] ? remotehost : "(none)",
 		orig[0] ? orig : "(none)", env ? env : "(none)",
 		current ? current->hostname : config.system->hostname,
@@ -685,12 +685,12 @@ logrequest(const char *request, off_t size)
 		FILE	*rlog = current->openreferer
 			? current->openreferer
 			: config.system->openreferer;
-		fprintf(alog, "%s - - [%s] \"%s %s %s\" %03d %" PRId64 "\n",
+		fprintf(alog, "%s - - [%s] \"%s %s %s\" %03d %" PRIoff "\n",
 			remotehost,
 			buffer,
 			getenv("REQUEST_METHOD"), dynrequest, httpver,
 			rstatus,
-			size > 0 ? (int64_t)size : (int64_t)0);
+			size > 0 ? size : 0);
 		if (rlog &&
 			(!current->thisdomain || !strcasestr(referer, current->thisdomain)))
 			fprintf(rlog, "%s -> %s\n", referer, request);
@@ -698,25 +698,25 @@ logrequest(const char *request, off_t size)
 		break;
 	case log_virtual:
 		/* this is combined format + virtual hostname */
-		fprintf(alog, "%s %s - - [%s] \"%s %s %s\" %03d %" PRId64
+		fprintf(alog, "%s %s - - [%s] \"%s %s %s\" %03d %" PRIoff
 				" \"%s\" \"%s\"\n",
 			current ? current->hostname : config.system->hostname,
 			remotehost,
 			buffer,
 			getenv("REQUEST_METHOD"), dynrequest, httpver,
 			rstatus,
-			size > 0 ? (int64_t)size : (int64_t)0,
+			size > 0 ? size : 0,
 			referer,
 			dynagent);
 		break;
 	case log_combined:
-		fprintf(alog, "%s - - [%s] \"%s %s %s\" %03d %" PRId64
+		fprintf(alog, "%s - - [%s] \"%s %s %s\" %03d %" PRIoff
 				" \"%s\" \"%s\"\n",
 			remotehost,
 			buffer,
 			getenv("REQUEST_METHOD"), dynrequest, httpver,
 			rstatus,
-			size > 0 ? (int64_t)size : (int64_t)0,
+			size > 0 ? size : 0,
 			referer,
 			dynagent);
 		break;
@@ -1166,10 +1166,10 @@ standalone_socket(int id)
 	struct	sockaddr_storage	saddr;
 #else		/* HAVE_GETADDRINFO */
 	struct	sockaddr	saddr;
-	unsigned	short	sport;
+	in_port_t		sport;
 #endif		/* HAVE_GETADDRINFO */
 #ifndef		HAVE_GETNAMEINFO
-	unsigned	long	laddr;
+	in_addr_t		laddr;
 #endif		/* HAVE_GETNAMEINFO */
 	pid_t			*childs;
 
@@ -1229,7 +1229,7 @@ standalone_socket(int id)
 	else if (!strcmp(cursock->port, "https"))
 		sport = 443;
 	else
-		sport = (unsigned short)strtoul(cursock->port, NULL, 10) || 80;
+		sport = (in_port_t)strtoul(cursock->port, NULL, 10) || 80;
 	((struct sockaddr_in *)&saddr)->sin_port = htons(sport);
 
 	if (bind(sd, &saddr, sizeof(struct sockaddr)) == -1)
@@ -1338,8 +1338,8 @@ standalone_socket(int id)
 			const	char	*env;
 
 			env = getenv("QUERY_STRING");
-			errx(1, "[%s] httpd(pid %ld): MEMORY CORRUPTION [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']",
-				currenttime, (long)getpid(),
+			errx(1, "[%s] httpd(pid %" PRIpid "): MEMORY CORRUPTION [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']",
+				currenttime, getpid(),
 				remotehost[0] ? remotehost : "(none)",
 				orig[0] ? orig : "(none)", env ? env : "(none)",
 				current ? current->hostname : config.system->hostname,
@@ -1349,9 +1349,9 @@ standalone_socket(int id)
 		setproctitle("xs(%c%d): [Reqs: %06d] Setting up myself to accept a connection",
 			id, count + 1, reqs);
 		if (!origeuid && (seteuid(origeuid) == -1))
-			err(1, "seteuid(%ld) failed", (long)origeuid);
+			err(1, "seteuid(%" PRIuid ") failed", origeuid);
 		if (!origeuid && (setegid(origegid) == -1))
-			err(1, "setegid(%ld) failed", (long)origegid);
+			err(1, "setegid(%" PRIuid ") failed", origegid);
 		filedescrs();
 		setproctitle("xs(%c%d): [Reqs: %06d] Waiting for a connection...",
 			id, count + 1, reqs);

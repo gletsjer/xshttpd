@@ -327,7 +327,7 @@ sendheaders(int fd, off_t size)
 #endif		/* HAVE_MD5 */
 		char	modified[32];
 
-		secprintf("Content-length: %" PRId64 "\r\n", (int64_t)size);
+		secprintf("Content-length: %" PRIoff "\r\n", size);
 #ifdef		HAVE_LIBMD
 		if (config.usecontentmd5)
 		{
@@ -464,10 +464,10 @@ senduncompressed(int fd)
 				if ((written = secwrite(buffer, (size_t)readtotal))
 						!= readtotal)
 				{
-					xserror(599, "Aborted for `%s' (No mmap) (%" PRId64
-							" of %" PRId64 " bytes sent)",
+					xserror(599, "Aborted for `%s' (No mmap) (%" PRIoff
+							" of %" PRIoff " bytes sent)",
 						remotehost[0] ? remotehost : "(none)",
-						(int64_t)writetotal + written, size);
+						writetotal + written, size);
 					size = writetotal;
 					goto DONE;
 				}
@@ -1266,12 +1266,12 @@ do_post(char *params)
 	/* flush data buffer if posting was never read */
 	if (!postread && cl)
 	{
-		size_t	rlen;
+		off_t	rlen;
 		char	*rbuf;
 			
 		errno = 0;
-		rlen = strtoul(cl, NULL, 10);
-		if (ERANGE == errno)
+		rlen = (off_t)strtoull(cl, NULL, 10);
+		if (ERANGE == errno || rlen > INT_MAX)
 		{
 			server_error(413, "Request Entity Too Large",
 				"ENTITY_TOO_LARGE");

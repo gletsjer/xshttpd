@@ -310,8 +310,8 @@ check_allow_host(const char *hostname, char *pattern)
 #ifdef		HAVE_GETADDRINFO
 	if (':' == pattern[0])
 	{
-		unsigned short cport = strtoul(hostname + 1, NULL, 10);
-		unsigned short lport = strtoul(getenv("SERVER_PORT"), NULL, 10);
+		in_port_t	cport = strtoul(hostname + 1, NULL, 10);
+		in_port_t	lport = strtoul(getenv("SERVER_PORT"), NULL, 10);
 		struct	addrinfo	hints, *res;
 
 		memset(&hints, 0, sizeof(hints));

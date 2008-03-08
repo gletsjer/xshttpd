@@ -87,6 +87,12 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define to 1 if the system has the type `in_addr_t'. */
+#undef HAVE_IN_ADDR_T
+
+/* Define to 1 if the system has the type `in_port_t'. */
+#undef HAVE_IN_PORT_T
+
 /* Define to 1 if you have the `killpg' function. */
 #undef HAVE_KILLPG
 
@@ -230,6 +236,9 @@
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if the system has the type `time_t'. */
+#undef HAVE_TIME_T
 
 /* Define to 1 if you have the `uname' function. */
 #undef HAVE_UNAME

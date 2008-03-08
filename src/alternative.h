@@ -37,6 +37,26 @@ typedef	size_t		socklen_t;
 #ifndef		HAVE_SA_FAMILY_T
 typedef unsigned char	sa_family_t;
 #endif		/* HAVE_SA_FAMILY_T */
+#ifndef		HAVE_IN_ADDR_T
+typedef uint32_t	in_addr_t;
+#endif		/* HAVE_IN_ADDR_T */
+#ifndef		HAVE_IN_PORT_T
+typedef uint16_t	in_port_t;
+#endif		/* HAVE_IN_PORT_T */
+
+#ifndef		HAVE_TIME_T
+typedef int64_t		time_t;
+#endif		/* HAVE_TIME_T */
+
+#ifndef		PRIpid
+#define		PRIpid	PRId32
+#endif		/* PRIpid */
+#ifndef		PRIuid
+#define		PRIuid	PRIu32
+#endif		/* PRIuid */
+#ifndef		PRIoff
+#define		PRIoff	PRId64
+#endif		/* PRIoff */
 
 #ifndef		S_ISREG
 #define		S_ISREG(m)	(((m)&(S_IFMT)) == (S_IFREG))
