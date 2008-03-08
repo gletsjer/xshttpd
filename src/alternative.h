@@ -47,21 +47,31 @@ typedef uint16_t	in_port_t;
 typedef int64_t		time_t;
 #endif		/* HAVE_TIME_T */
 
-#ifndef		PRIpid
-#define		PRIpid	PRId32
-#endif		/* PRIpid */
-#ifndef		PRIuid
-#define		PRIuid	PRIu32
-#endif		/* PRIuid */
-#ifndef		PRIoff
-#define		PRIoff	PRId64
-#endif		/* PRIoff */
-#ifndef		PRItime
-#define		PRItime	PRId64
-#endif		/* PRIoff */
-#ifndef		PRIts
-#define		PRIts	PRIx64
-#endif		/* PRIoff */
+#if		defined(SIZEOF_PID_T) && SIZEOF_PID_T > 4
+# define	PRIpid	PRId64
+#else		/* SIZEOF_PID_T */
+# define	PRIpid	PRId32
+#endif		/* SIZEOF_PID_T */
+
+#if		defined(SIZEOF_UID_T) && SIZEOF_UID_T > 4
+# define	PRIuid	PRIu64
+#else		/* SIZEOF_UID_T */
+# define	PRIuid	PRIu32
+#endif		/* SIZEOF_UID_T */
+
+#if		!defined(SIZEOF_OFF_T) || SIZEOF_OFF_T > 4
+# define	PRIoff	PRId64
+#else		/* SIZEOF_OFF_T */
+# define	PRIoff	PRId32
+#endif		/* SIZEOF_OFF_T */
+
+#if		defined(SIZEOF_TIME_T) && SIZEOF_TIME_T > 4
+# define	PRItime	PRId64
+# define	PRIts	PRIx64
+#else		/* SIZEOF_TIME_T */
+# define	PRItime	PRId32
+# define	PRIts	PRIx32
+#endif		/* SIZEOF_TIME_T */
 
 #ifndef		S_ISREG
 #define		S_ISREG(m)	(((m)&(S_IFMT)) == (S_IFREG))

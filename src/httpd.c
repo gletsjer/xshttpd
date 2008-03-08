@@ -1547,7 +1547,7 @@ main(int argc, char **argv)
 		{
 			const struct group	*groupinfo;
 
-			if ((gid = strtol(optarg, NULL, 10)) > 0)
+			if ((gid = strtoul(optarg, NULL, 10)) > 0)
 				break;
 			if (!(groupinfo = getgrnam(optarg)))
 				errx(1, "Invalid group ID");
@@ -1568,7 +1568,7 @@ main(int argc, char **argv)
 		{
 			const struct passwd	*userinfo;
 
-			if ((uid = strtol(optarg, NULL, 10)) > 0)
+			if ((uid = strtoul(optarg, NULL, 10)) > 0)
 				break;
 			if (!(userinfo = getpwnam(optarg)))
 				errx(1, "Invalid user ID");

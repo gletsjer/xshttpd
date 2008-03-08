@@ -29,15 +29,19 @@ libxs_ldlags="${LDLAGS}"
 dnl Checks for header files.
 AC_GNU_SOURCE
 AC_SYS_LARGEFILE
-AC_CHECK_HEADERS([crypt.h err.h getopt.h memory.h sys/mman.h sys/param.h sys/resource.h sys/select.h sys/sendfile.h], [], [], [[]])
+AC_CHECK_HEADERS([crypt.h err.h getopt.h sys/mman.h sys/param.h sys/resource.h sys/select.h sys/sendfile.h], [], [], [[]])
 AC_CHECK_HEADERS([sys/syslimits.h], [], [], [#include <sys/cdefs.h>
 ])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_UID_T
 AC_TYPE_PID_T
-AC_TYPE_SSIZE_T
 AC_TYPE_OFF_T
+AC_TYPE_SSIZE_T
+AC_CHECK_SIZEOF(pid_t)
+AC_CHECK_SIZEOF(uid_t)
+AC_CHECK_SIZEOF(off_t)
+AC_CHECK_SIZEOF(time_t)
 AC_CHECK_TYPES([socklen_t, sa_family_t, in_addr_t, in_port_t, time_t],,,
 	[#include <sys/types.h>
 #include <sys/socket.h>])
