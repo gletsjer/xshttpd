@@ -115,7 +115,7 @@ int	setgroups	(int ngroups, const gid_t *gidset);
 
 #ifndef		HAVE_SETPROCTITLE
 void	setproctitle	(const char *, ...) PRINTF_LIKE(1, 2);
-void	initproctitle	(int, char **);
+void	initproctitle	(int, char **, char **);
 #endif		/* HAVE_SETPROCTITLE */
 
 #ifndef		HAVE_ASPRINTF

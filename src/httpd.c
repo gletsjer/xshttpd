@@ -1496,7 +1496,7 @@ setup_environment()
 }
 
 int
-main(int argc, char **argv)
+main(int argc, char **argv, char **envp)
 {
 	int			option;
 	size_t		num;
@@ -1702,7 +1702,7 @@ main(int argc, char **argv)
 		config.system->groupid = gid;
 
 #ifndef		HAVE_SETPROCTITLE
-	initproctitle(argc, argv);
+	initproctitle(argc, argv, envp);
 #endif		/* HAVE_SETPROCTITLE */
 	initnonce();
 	initfcgi();

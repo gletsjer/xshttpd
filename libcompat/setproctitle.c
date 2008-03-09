@@ -72,10 +72,13 @@ setproctitle(const char *name, ...)
 }
 
 void
-initproctitle(int argc, char **argv)
+initproctitle(int argc, char **argv, char **envp)
 {
 #ifndef		PS_STRINGS
-	procnameend = argv[argc - 1] + strlen(argv[argc - 1]);
+	procnameend = argv[argc - 1];
+	for (int i = 0; envp[i]; i++)
+		procnameend = envp[i];
+	procnameend += strlen(procnameend);
 	procnamestart = argv[0];
 	argv[1] = NULL;
 	setproctitle("xs: Process name initialized...");
