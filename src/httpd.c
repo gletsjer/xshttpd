@@ -207,8 +207,6 @@ write_pidfile(void)
 
 	if (!mainhttpd)
 		return;
-	if (pidlock >= 0)
-		flock(pidlock, LOCK_UN);
 
 #ifdef		O_EXLOCK
 	pidlock = open(calcpath(config.pidfile),
