@@ -15,6 +15,7 @@
 #include	<sys/signal.h>
 #include	<sys/stat.h>
 #include	<sys/utsname.h>
+#include	<sys/file.h>
 #ifdef		HAVE_SYS_SELECT_H
 #include	<sys/select.h>
 #endif		/* HAVE_SYS_SELECT_H */
@@ -88,6 +89,7 @@ char		remotehost[NI_MAXHOST], remoteaddr[NI_MAXHOST],
 		currenttime[80], httpver[16], dateformat[MYBUFSIZ],
 		real_path[XS_PATH_MAX], currentdir[XS_PATH_MAX],
 		orig_filename[XS_PATH_MAX];
+static	int	pidlock = -1;
 static	char	browser[MYBUFSIZ], referer[MYBUFSIZ],
 		message503[MYBUFSIZ], orig[MYBUFSIZ],
 		*startparams;
@@ -101,6 +103,7 @@ static	void	filedescrs		(void);
 static	void	detach			(void);
 static	void	child_handler		(int);
 static	void	term_handler		(int)	NORETURN;
+static	void	write_pidfile		(void);
 static	void	open_logs		(int);
 static	void	core_handler		(int)	NORETURN;
 static	void	set_signals		(void);
@@ -180,19 +183,46 @@ child_handler(int sig)
 static	void
 term_handler(int sig)
 {
-	if (mainhttpd)
-	{
-		setcurrenttime();
-		fprintf(stderr, "[%s] Received signal %d, shutting down...\n",
-			currenttime, sig);
-		fflush(stderr);
-		close(sd);
-		killfcgi();
-		mainhttpd = false;
-		killpg(0, SIGTERM);
-	}
+	if (!mainhttpd)
+		exit(0);
+
+	setcurrenttime();
+	fprintf(stderr, "[%s] Received signal %d, shutting down...\n",
+		currenttime, sig);
+	fflush(stderr);
+	close(sd);
+	killfcgi();
+	mainhttpd = false;
+	killpg(0, SIGTERM);
+
 	(void)sig;
 	exit(0);
+	/* NOTREACHED */
+}
+
+static	void
+write_pidfile(void)
+{
+	FILE		*pidlog;
+
+	if (!mainhttpd)
+		return;
+	if (pidlock >= 0)
+		flock(pidlock, LOCK_UN);
+
+#ifdef		O_EXLOCK
+	pidlock = open(calcpath(config.pidfile),
+		O_WRONLY | O_TRUNC | O_CREAT | O_NONBLOCK | O_EXLOCK);
+	if ((pidlock < 0) && (EOPNOTSUPP == errno))
+#endif		/* O_EXLOCK */
+		pidlock = open(calcpath(config.pidfile),
+			O_WRONLY | O_TRUNC | O_CREAT);
+
+	if ((pidlock < 0) || !(pidlog = fdopen(pidlock, "w")))
+		errx(1, "Cannot open pidfile `%s'", config.pidfile);
+
+	fprintf(pidlog, "%" PRIpid "\n%s\n", getpid(), startparams);
+	fflush(pidlog);
 }
 
 static	void
@@ -217,16 +247,6 @@ open_logs(int sig)
 	}
 	if (mainhttpd)
 	{
-		FILE		*pidlog;
-
-		if ((pidlog = fopen(calcpath(config.pidfile), "w")))
-		{
-			fprintf(pidlog, "%" PRIpid "\n", getpid());
-			fprintf(pidlog, "%s\n", startparams);
-			fclose(pidlog);
-		}
-		else
-			warn("fopen(`%s')", config.pidfile);
 		/* the master reloads, the children die */
 		signal(SIGHUP, SIG_IGN);
 		killpg(0, SIGHUP);
@@ -1129,6 +1149,7 @@ standalone_main()
 	char			id = 'B';
 
 	detach();
+	write_pidfile();
 	open_logs(0);
 
 	/* start with second socket - the first will be last */
@@ -1710,5 +1731,6 @@ main(int argc, char **argv, char **envp)
 
 	standalone_main();
 	/* NOTREACHED */
+	(void)envp;
 	(void)copyright;
 }

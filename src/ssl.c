@@ -223,7 +223,7 @@ sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 		return preverify_ok && validated;
 
 	/* sslauth optional */
-	(void) x509_ctx;
+	(void)x509_ctx;
 	return validated;
 }
 #endif		/* HANDLE_SSL */
@@ -240,8 +240,8 @@ pem_passwd_cb(char *buf, int size, int rwflag, void *userdata)
 	strlcpy(buf, passphrase, (size_t)size);
 	memset(passphrase, 0, strlen(passphrase));
 
-	(void) rwflag;
-	(void) userdata;
+	(void)rwflag;
+	(void)userdata;
 	return strlen(buf);
 }
 
@@ -363,7 +363,7 @@ loadssl(struct socket_config *lsock)
 		EC_KEY_free(ecdh);
 	}
 #endif		/* OPENSSL_EC_NAMED_CURVE */
-	(void) SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2);
+	(void)SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2);
 
 	switch (lsock->sslauth)
 	{
