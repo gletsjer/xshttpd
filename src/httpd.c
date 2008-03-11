@@ -3,6 +3,7 @@
 
 #include	"config.h"
 
+#include	<sys/types.h>
 #include	<inttypes.h>
 #ifdef		HAVE_SYS_RESOURCE_H
 #include	<sys/resource.h>
@@ -212,11 +213,13 @@ write_pidfile(void)
 
 #ifdef		O_EXLOCK
 	pidlock = open(calcpath(config.pidfile),
-		O_WRONLY | O_TRUNC | O_CREAT | O_NONBLOCK | O_EXLOCK);
+		O_WRONLY | O_TRUNC | O_CREAT | O_NONBLOCK | O_EXLOCK,
+		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 	if ((pidlock < 0) && (EOPNOTSUPP == errno))
 #endif		/* O_EXLOCK */
 		pidlock = open(calcpath(config.pidfile),
-			O_WRONLY | O_TRUNC | O_CREAT);
+			O_WRONLY | O_TRUNC | O_CREAT,
+			S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 
 	if ((pidlock < 0) || !(pidlog = fdopen(pidlock, "w")))
 		errx(1, "Cannot open pidfile `%s'", config.pidfile);
