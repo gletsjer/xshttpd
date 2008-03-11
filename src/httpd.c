@@ -1684,7 +1684,10 @@ main(int argc, char **argv, char **envp)
 				);
 			return 0;
 		default:
-			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number]\n[-d rootdir] [-m service-message] [-v]");
+			errx(1,
+	"Usage: httpd [-c configfile] [-P preprocessor] [-d rootdir]\n"
+	"\t[-u username] [-g group] [-p port] [-a address] [-n number]\n"
+	"\t[-m service-message] [-N] [-v]");
 		}
 	}
 	load_config();

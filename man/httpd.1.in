@@ -96,13 +96,9 @@ is
 .It Fl a Ar address
 Uses
 .Sy address
-as the internet address to listen on. This is very handy on
-"multi\-homing" server with multiple interfaces.
-Uses this option, you can place servers with different
-functionality on different interfaces. This name is also used for
-redirecting requests back to this host. Therefore, you must use
-a "full" (complete with the host's name and the domain) internet
-address, otherwise remote hosts will not be able to resolve the name.
+as the internet address to listen on. This name may be used in
+redirects, so the fully qualified domain name for this address
+should be used.
 .El
 .Pp
 .Ss Server design
@@ -448,6 +444,7 @@ The project homepage:
 .%T The Transport Layer Security (TLS) Protocol Version 1.1
 .%D April 2006
 .Re
+.It
 .Rs
 .%R http://www.fastcgi.com/devkit/doc/fcgi-spec.html
 .%T FastCGI Specification Version 1.0
