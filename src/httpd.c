@@ -1672,9 +1672,6 @@ main(int argc, char **argv, char **envp)
 #else		/* HAVE_SSP */
 				"-SSP "
 #endif		/* HAVE_SSP */
-#ifdef		HAVE_GDB
-				"+GDB "
-#endif		/* HAVE_GDB */
 				"\nDefault configuration file:\n"
 #ifdef		PATH_PREPROCESSOR
 				"\t%s %s\n", config_preprocessor, config_path

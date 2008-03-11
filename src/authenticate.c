@@ -343,6 +343,7 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 	}
 	secputs(errmsg);
 	free(errmsg);
+	(void)stale;
 	return false;
 }
 
