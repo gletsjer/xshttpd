@@ -225,7 +225,7 @@ check_digest_auth(const char *authfile, bool *stale)
 #endif		/* HAVE_MD5 */
 
 bool
-check_auth(const char *authfile, const struct ldap_auth *ldap)
+check_auth(const char *authfile, const struct ldap_auth *ldap, bool quiet)
 {
 	char		*errmsg;
 	bool		digest, stale;
@@ -233,15 +233,19 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 
 	if (!authfile && !ldap)
 	{
-		server_error(403, "Authentication information is not available",
-			"NOT_AVAILABLE");
+		if (!quiet)
+			server_error(403,
+				"Authentication information is not available",
+				"NOT_AVAILABLE");
 		return false;
 	}
 
 	if (authfile && !(af = fopen(authfile, "r")))
 	{
-		server_error(403, "Authentication file is not available",
-			"NOT_AVAILABLE");
+		if (!quiet)
+			server_error(403,
+				"Authentication file is not available",
+				"NOT_AVAILABLE");
 		return false;
 	}
 
@@ -264,6 +268,9 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 		(strncasecmp(authentication, "Basic", 5) &&
 		 strncasecmp(authentication, "Digest", 6)))
 	{
+		if (quiet)
+			return false;
+
 		asprintf(&errmsg,
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 			"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
@@ -310,6 +317,9 @@ check_auth(const char *authfile, const struct ldap_auth *ldap)
 		if (check_basic_auth(authfile, ldap))
 			return true;
 	}
+
+	if (quiet)
+		return false;
 
 	asprintf(&errmsg,
 		"\r\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"

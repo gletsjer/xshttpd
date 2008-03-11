@@ -27,6 +27,7 @@
 #include	"pcre.h"
 #include	"authenticate.h"
 #include	"xsfiles.h"
+#include	"malloc.h"
 
 #ifdef		HAVE_STRUCT_IN6_ADDR
 # ifndef	IN6_ARE_MASKED_ADDR_EQUAL
@@ -428,7 +429,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 			continue;
 
 		/* strip leading/trailing whitespace from value */
-		while (isspace(*++p))
+		for ( ; isspace(*p); p++)
 			/* do nothing */;
 		value = p;
 		if ((p = strchr(value, '#')))
@@ -447,27 +448,38 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 			!strcasecmp(name, "AuthFiles"))
 		{
 			const char	*slash = strrchr(cffile, '/');
+			char		*temp;
 
+			if (num_authfiles)
+				/* ignore previous lines */
+				free_string_array(authfiles, num_authfiles);
 			num_authfiles = string_to_arrayp(value, &authfiles);
 
 			for (size_t i = 0; i < num_authfiles; i++)
 				if (slash && authfiles[i] &&
 					authfiles[i][0] != '/')
 				{
-					free(authfiles[i]);
-					authfiles[i] = NULL;
-					asprintf(&authfiles[i], "%.*s/%s",
+					temp = NULL;
+					asprintf(&temp, "%.*s/%s",
 						(int)(slash - cffile),
-						cffile, value);
+						cffile, authfiles[i]);
+					free(authfiles[i]);
+					authfiles[i] = temp;
 				}
 		}
 		else if (!strcasecmp(name, "Restrict"))
 		{
 			const char	*remoteaddr = getenv("REMOTE_ADDR");
+			char		**restrictions = NULL;
+			size_t		i, sz;
 
 			restrictcheck = true;
-			if (remoteaddr && *value)
-				restrictallow |= check_allow_host(remoteaddr, value);
+			sz = string_to_arrayp(value, &restrictions);
+
+			for (i = 0; i < sz; i++)
+				restrictallow |= check_allow_host
+					(remoteaddr, restrictions[i]);
+			free_string_array(restrictions, sz);
 		}
 		else if (!strcasecmp(name, "MimeType"))
 			cfvalues->mimetype = strdup(value);
@@ -557,21 +569,30 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 	if ((restrictcheck && !restrictallow) ||
 		(sslcheck && !sslallow))
 	{
-		server_error(403, "File is not available", "NOT_AVAILABLE");
 		free_string_array(authfiles, num_authfiles);
+		server_error(403, "File is not available", "NOT_AVAILABLE");
 		return true;
 	}
 	/* return err if authentication fails */
 	for (size_t i = 0; i < num_authfiles; i++)
-		if (!check_auth(authfiles[i], NULL))
+	{
+		if (i + 1 < num_authfiles)
 		{
-			free_string_array(authfiles, num_authfiles);
+			/* suppress errors from check_auth() */
+			if (check_auth(authfiles[i], NULL, true))
+				/* access granted */
+				break;
+		}
+		else if (!check_auth(authfiles[i], NULL, false))
+		{
 			/* a 401 response has been sent */
+			free_string_array(authfiles, num_authfiles);
 			return true;
 		}
+	}
 	free_string_array(authfiles, num_authfiles);
 
-	if (ldap.dn && !check_auth(NULL, &ldap))
+	if (ldap.dn && !check_auth(NULL, &ldap, false))
 		/* a 401 response has been sent */
 		return true;
 
