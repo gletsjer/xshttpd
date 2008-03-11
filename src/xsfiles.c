@@ -399,6 +399,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 	while (fgets(line, LINEBUFSIZE, fp))
 	{
 		char    *p, *name, *value;
+		const char	*method = getenv("REQUEST_METHOD");
 
 		p = line;
 		while ((name = strsep(&p, " \t\r\n")) && !*name)
@@ -418,6 +419,13 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 				continue;
 			*p = '\0';
 
+			if ((p = strchr(name, '/')))
+			{
+				*p++ = '\0';
+				if (!method || strcasecmp(name, method))
+					continue;
+				name = p;
+			}
 			/* try simple matching */
 			state = !strcmp(name, "*") ||
 				fnmatch(name, filename, 0) != FNM_NOMATCH;

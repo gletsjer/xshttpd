@@ -23,6 +23,12 @@ These patterns are standard
 patterns. The special case
 .Li [*]
 will match every file in a directory.
+.Pp
+The filename may be prefixed by a method name and a slash
+to indicate that the following block only applies when the
+specified method is used. For instance
+.Li [POST/*.cgi]
+would only match post requests for .cgi files.
 .Ss Configuration Directives
 All directives can only be used once in a block, unless
 explicitly mentioned otherwise (e.g. Restrict).

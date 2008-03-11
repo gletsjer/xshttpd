@@ -1,13 +1,11 @@
 - Get rid of environment vars (at least reading)
 - Get rid of global vars (rw) - use a session struct
 
-- Redo Perl/Python support: current implementation is crippled
+- Redo Perl/Python/FastCGI support: current implementation is crippled
   because of closed fds and permission drop (setuid)
 
 - digauth support in xschpass
 - fix/cleanup xschpass (it'll overwrite half of .xsauth on error)
-- Config file layout/parsing
-- Allow multiple AuthFile directives in .xsconf
 
 - User configurable decompress options
 - More intelligent http header (qvalue) parsing => sorted mapping

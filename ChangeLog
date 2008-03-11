@@ -5,6 +5,7 @@ Changes since 3.6 beta 7
 - Extend characters available for alternative setproctitle()
 - Lock pidfile and don't start if somebody holds a lock
 - Allow multiple arguments to Restrict and AuthFile
+- Allow method selector in .xsconf blocks (e.g. only match POST)
 
 Changes since 3.6 beta 6
 - Improve configuration checks
