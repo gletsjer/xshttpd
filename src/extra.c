@@ -321,3 +321,26 @@ qstring_to_array(char *value, char **array)
 	return num;
 }
 
+void
+free_string_array(char **array, size_t num)
+{
+	int	i;
+
+	if (!array)
+		return;
+	for (i = 0; i < num; i++)
+		free(array[i]);
+	free(array);
+}
+
+void
+free_string_arrayp(char **array)
+{
+	char	*p;
+
+	if (!array)
+		return;
+	for (p = *array; p; p++)
+		free(p);
+	free(array);
+}

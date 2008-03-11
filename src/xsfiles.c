@@ -377,14 +377,15 @@ bool
 check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 {
 	char	line[LINEBUFSIZE];
-	char    *authfile;
+	char    **authfiles;
+	size_t	num_authfiles = 0;
 	bool	state = 0;
 	bool	restrictcheck = 0, restrictallow = 0;
 	bool	sslcheck = 0, sslallow = 0;
 	FILE    *fp;
 	struct ldap_auth	ldap;
 
-	authfile = NULL;
+	authfiles = NULL;
 	memset(&ldap, 0, sizeof(ldap));
 
 	if (!(fp = fopen(cffile, "r")))
@@ -442,20 +443,23 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 
 		/* AuthFilename => $file does .xsauth-type authentication */
 		if (!strcasecmp(name, "AuthFilename") ||
-			!strcasecmp(name, "AuthFile"))
+			!strcasecmp(name, "AuthFile") ||
+			!strcasecmp(name, "AuthFiles"))
 		{
-			authfile = NULL;
-			if (value[0] != '/')
-			{
-				char	*slash = strrchr(cffile, '/');
+			const char	*slash = strrchr(cffile, '/');
 
-				if (slash)
-					asprintf(&authfile, "%.*s/%s",
+			num_authfiles = string_to_arrayp(value, &authfiles);
+
+			for (size_t i = 0; i < num_authfiles; i++)
+				if (slash && authfiles[i] &&
+					authfiles[i][0] != '/')
+				{
+					free(authfiles[i]);
+					authfiles[i] = NULL;
+					asprintf(&authfiles[i], "%.*s/%s",
 						(int)(slash - cffile),
 						cffile, value);
-			}
-			if (!authfile)
-				authfile = strdup(value);
+				}
 		}
 		else if (!strcasecmp(name, "Restrict"))
 		{
@@ -554,17 +558,19 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 		(sslcheck && !sslallow))
 	{
 		server_error(403, "File is not available", "NOT_AVAILABLE");
+		free_string_array(authfiles, num_authfiles);
 		return true;
 	}
 	/* return err if authentication fails */
-	if (authfile && !check_auth(authfile, NULL))
-	{
-		free(authfile);
-		/* a 401 response has been sent */
-		return true;
-	}
-	if (authfile)
-		free(authfile);
+	for (size_t i = 0; i < num_authfiles; i++)
+		if (!check_auth(authfiles[i], NULL))
+		{
+			free_string_array(authfiles, num_authfiles);
+			/* a 401 response has been sent */
+			return true;
+		}
+	free_string_array(authfiles, num_authfiles);
+
 	if (ldap.dn && !check_auth(NULL, &ldap))
 		/* a 401 response has been sent */
 		return true;
