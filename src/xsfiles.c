@@ -27,6 +27,7 @@
 #include	"pcre.h"
 #include	"authenticate.h"
 #include	"xsfiles.h"
+#include	"malloc.h"
 
 #ifdef		HAVE_STRUCT_IN6_ADDR
 # ifndef	IN6_ARE_MASKED_ADDR_EQUAL
@@ -377,14 +378,15 @@ bool
 check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 {
 	char	line[LINEBUFSIZE];
-	char    *authfile;
+	char    **authfiles;
+	size_t	num_authfiles = 0;
 	bool	state = 0;
 	bool	restrictcheck = 0, restrictallow = 0;
 	bool	sslcheck = 0, sslallow = 0;
 	FILE    *fp;
 	struct ldap_auth	ldap;
 
-	authfile = NULL;
+	authfiles = NULL;
 	memset(&ldap, 0, sizeof(ldap));
 
 	if (!(fp = fopen(cffile, "r")))
@@ -397,6 +399,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 	while (fgets(line, LINEBUFSIZE, fp))
 	{
 		char    *p, *name, *value;
+		const char	*method = getenv("REQUEST_METHOD");
 
 		p = line;
 		while ((name = strsep(&p, " \t\r\n")) && !*name)
@@ -416,6 +419,13 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 				continue;
 			*p = '\0';
 
+			if ((p = strchr(name, '/')))
+			{
+				*p++ = '\0';
+				if (!method || strcasecmp(name, method))
+					continue;
+				name = p;
+			}
 			/* try simple matching */
 			state = !strcmp(name, "*") ||
 				fnmatch(name, filename, 0) != FNM_NOMATCH;
@@ -427,7 +437,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 			continue;
 
 		/* strip leading/trailing whitespace from value */
-		while (isspace(*++p))
+		for ( ; isspace(*p); p++)
 			/* do nothing */;
 		value = p;
 		if ((p = strchr(value, '#')))
@@ -442,28 +452,42 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 
 		/* AuthFilename => $file does .xsauth-type authentication */
 		if (!strcasecmp(name, "AuthFilename") ||
-			!strcasecmp(name, "AuthFile"))
+			!strcasecmp(name, "AuthFile") ||
+			!strcasecmp(name, "AuthFiles"))
 		{
-			authfile = NULL;
-			if (value[0] != '/')
-			{
-				char	*slash = strrchr(cffile, '/');
+			const char	*slash = strrchr(cffile, '/');
+			char		*temp;
 
-				if (slash)
-					asprintf(&authfile, "%.*s/%s",
+			if (num_authfiles)
+				/* ignore previous lines */
+				free_string_array(authfiles, num_authfiles);
+			num_authfiles = string_to_arrayp(value, &authfiles);
+
+			for (size_t i = 0; i < num_authfiles; i++)
+				if (slash && authfiles[i] &&
+					authfiles[i][0] != '/')
+				{
+					temp = NULL;
+					asprintf(&temp, "%.*s/%s",
 						(int)(slash - cffile),
-						cffile, value);
-			}
-			if (!authfile)
-				authfile = strdup(value);
+						cffile, authfiles[i]);
+					free(authfiles[i]);
+					authfiles[i] = temp;
+				}
 		}
 		else if (!strcasecmp(name, "Restrict"))
 		{
 			const char	*remoteaddr = getenv("REMOTE_ADDR");
+			char		**restrictions = NULL;
+			size_t		i, sz;
 
 			restrictcheck = true;
-			if (remoteaddr && *value)
-				restrictallow |= check_allow_host(remoteaddr, value);
+			sz = string_to_arrayp(value, &restrictions);
+
+			for (i = 0; i < sz; i++)
+				restrictallow |= check_allow_host
+					(remoteaddr, restrictions[i]);
+			free_string_array(restrictions, sz);
 		}
 		else if (!strcasecmp(name, "MimeType"))
 			cfvalues->mimetype = strdup(value);
@@ -553,19 +577,30 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 	if ((restrictcheck && !restrictallow) ||
 		(sslcheck && !sslallow))
 	{
+		free_string_array(authfiles, num_authfiles);
 		server_error(403, "File is not available", "NOT_AVAILABLE");
 		return true;
 	}
 	/* return err if authentication fails */
-	if (authfile && !check_auth(authfile, NULL))
+	for (size_t i = 0; i < num_authfiles; i++)
 	{
-		free(authfile);
-		/* a 401 response has been sent */
-		return true;
+		if (i + 1 < num_authfiles)
+		{
+			/* suppress errors from check_auth() */
+			if (check_auth(authfiles[i], NULL, true))
+				/* access granted */
+				break;
+		}
+		else if (!check_auth(authfiles[i], NULL, false))
+		{
+			/* a 401 response has been sent */
+			free_string_array(authfiles, num_authfiles);
+			return true;
+		}
 	}
-	if (authfile)
-		free(authfile);
-	if (ldap.dn && !check_auth(NULL, &ldap))
+	free_string_array(authfiles, num_authfiles);
+
+	if (ldap.dn && !check_auth(NULL, &ldap, false))
 		/* a 401 response has been sent */
 		return true;
 

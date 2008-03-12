@@ -23,6 +23,12 @@ These patterns are standard
 patterns. The special case
 .Li [*]
 will match every file in a directory.
+.Pp
+The filename may be prefixed by a method name and a slash
+to indicate that the following block only applies when the
+specified method is used. For instance
+.Li [POST/*.cgi]
+would only match post requests for .cgi files.
 .Ss Configuration Directives
 All directives can only be used once in a block, unless
 explicitly mentioned otherwise (e.g. Restrict).
@@ -74,23 +80,30 @@ which will be replaced by the filename. If
 is present, then the filename won't be appended at the end
 of the command line.
 .It Sy Restrict
-The argument to a restrict block should be an IP address, IP
-prefix or IP subnet (in CIDR) notation. A block may contain
-multiple
-.Sy Restrict
-commands, but every line can only include one IP address
-specification. Access to the matching file will only be
-granted if the IP of the visitor matches one of the restrict
-address blocks. All other visitors will be presented with a
-.Ql 403 Permission Denied error .
+The argument to a restrict command should be a list containing
+one of more IP addresses, prefixes or IP subnets (in CIDR)
+notation. Access to the matching files will only be granted if
+the IP of the visitor matches one of the restrict address
+blocks. All other visitors will be presented with a
+.Ql 403 Permission Denied
+error.
 .It Sy AuthFile
 Specify a password file that should be used to decide who is
-granted access to the matching file. Users that cannot
-produces the required credentials will be presented with a
-.Ql 401 Permission Denied
+granted access to the matching file. Users who cannot
+produce the required credentials will be presented with a
+.Ql 401 Access Denied
 error. See
 .Xr xsauth 5
 for the layout of such a file.
+.Pp
+Multiple filenames may be given and if any contains a matching
+username/password combination, access will be granted.
+Never combine
+.Sy basic
+and
+.Sy digest
+authentication files, as browsers will not be able to deal
+with this.
 .It Sy IndexFile
 Set an alternative index file to be displayed if the default
 .Pa index.html

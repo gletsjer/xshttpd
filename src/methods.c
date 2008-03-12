@@ -198,12 +198,8 @@ sendheaders(int fd, off_t size)
 				break;
 		}
 		m = i;
-		if (list)
-		{
-			for (i = 0; i < sz; i++)
-				free(list[i]);
-			free(list);
-		}
+		free_string_array(list, sz);
+
 		if ((abort_wo_match && (m >= sz)) ||
 			(!abort_wo_match && (m < sz)))
 		{
@@ -262,15 +258,12 @@ sendheaders(int fd, off_t size)
 					len - 1))
 				break;
 		}
-		if (acceptlist)
+		free_string_array(acceptlist, acsz);
+
+		if (acsz > 0 && i >= acsz)
 		{
-			free(acceptlist);
-			if (i >= acsz)
-			{
-				server_error(406, "Not acceptable",
-					"NOT_ACCEPTABLE");
-				return false;
-			}
+			server_error(406, "Not acceptable", "NOT_ACCEPTABLE");
+			return false;
 		}
 	}
 	if (getenv("HTTP_ACCEPT_CHARSET") && cfvalues.charset)
@@ -285,15 +278,13 @@ sendheaders(int fd, off_t size)
 				break;
 			else if (!strcasecmp(acceptlist[i], cfvalues.charset))
 				break;
-		if (acceptlist)
+		free_string_array(acceptlist, acsz);
+
+		if (acsz > 0 && i >= acsz)
 		{
-			free(acceptlist);
-			if (i >= acsz)
-			{
-				server_error(406, "Charset not acceptable",
-					"NOT_ACCEPTABLE");
-				return false;
-			}
+			server_error(406, "Charset not acceptable",
+				"NOT_ACCEPTABLE");
+			return false;
 		}
 	}
 
@@ -957,7 +948,8 @@ do_get(char *params)
 	/* These should all send there own error messages when appropriate */
 	if ((xsfile = find_file(orgbase, base, NOXS_FILE)) && check_noxs(xsfile))
 		return;
-	if ((xsfile = find_file(orgbase, base, AUTH_FILE)) && !check_auth(xsfile, NULL))
+	if ((xsfile = find_file(orgbase, base, AUTH_FILE)) &&
+			!check_auth(xsfile, NULL, false))
 		return;
 	if (check_file_redirect(base, filename))
 		return;

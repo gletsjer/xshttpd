@@ -3,6 +3,7 @@
 
 #include	"config.h"
 
+#include	<sys/types.h>
 #include	<inttypes.h>
 #ifdef		HAVE_SYS_RESOURCE_H
 #include	<sys/resource.h>
@@ -210,11 +211,13 @@ write_pidfile(void)
 
 #ifdef		O_EXLOCK
 	pidlock = open(calcpath(config.pidfile),
-		O_WRONLY | O_TRUNC | O_CREAT | O_NONBLOCK | O_EXLOCK);
+		O_WRONLY | O_TRUNC | O_CREAT | O_NONBLOCK | O_EXLOCK,
+		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 	if ((pidlock < 0) && (EOPNOTSUPP == errno))
 #endif		/* O_EXLOCK */
 		pidlock = open(calcpath(config.pidfile),
-			O_WRONLY | O_TRUNC | O_CREAT);
+			O_WRONLY | O_TRUNC | O_CREAT,
+			S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 
 	if ((pidlock < 0) || !(pidlog = fdopen(pidlock, "w")))
 		errx(1, "Cannot open pidfile `%s'", config.pidfile);
@@ -1670,9 +1673,6 @@ main(int argc, char **argv, char **envp)
 #else		/* HAVE_SSP */
 				"-SSP "
 #endif		/* HAVE_SSP */
-#ifdef		HAVE_GDB
-				"+GDB "
-#endif		/* HAVE_GDB */
 				"\nDefault configuration file:\n"
 #ifdef		PATH_PREPROCESSOR
 				"\t%s %s\n", config_preprocessor, config_path
@@ -1682,7 +1682,10 @@ main(int argc, char **argv, char **envp)
 				);
 			return 0;
 		default:
-			errx(1, "Usage: httpd [-u username] [-g group] [-p port] [-n number]\n[-d rootdir] [-m service-message] [-v]");
+			errx(1,
+	"Usage: httpd [-c configfile] [-P preprocessor] [-d rootdir]\n"
+	"\t[-u username] [-g group] [-p port] [-a address] [-n number]\n"
+	"\t[-m service-message] [-N] [-v]");
 		}
 	}
 	load_config();
