@@ -324,7 +324,7 @@ qstring_to_array(char *value, char **array)
 void
 free_string_array(char **array, size_t num)
 {
-	int	i;
+	size_t	i;
 
 	if (!array)
 		return;

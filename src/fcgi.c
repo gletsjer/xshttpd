@@ -149,7 +149,8 @@ fcgi_child_init(void)
 {
 	pid_t		child;
 	const int	argv_sz = 32;
-	char		*sep, *str, **ap, *argv[argv_sz];
+	char		*argv[32];
+	char		*sep, *str, **ap;
 	fcgi_server	*fsrv;
 
 	MALLOC(fsrv, fcgi_server, 1);
