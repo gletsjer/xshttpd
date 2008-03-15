@@ -22,6 +22,7 @@ extern	int		headers, rstatus;
 extern	bool		headonly, postonly, postread, chunked, persistent, trailers;
 extern	gid_t	origegid;
 extern	uid_t	origeuid;
+extern	pid_t	childpid;
 
 void	stdheaders		(bool, bool, bool);
 void	alarm_handler		(int);

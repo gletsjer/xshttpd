@@ -86,6 +86,7 @@ static	int	sd, reqs, reqsc;
 static	bool	mainhttpd = true, in_progress = false;
 gid_t		origegid;
 uid_t		origeuid;
+pid_t		childpid = 0;
 char		remotehost[NI_MAXHOST], remoteaddr[NI_MAXHOST],
 		currenttime[80], httpver[16], dateformat[MYBUFSIZ],
 		real_path[XS_PATH_MAX], currentdir[XS_PATH_MAX],
@@ -426,6 +427,12 @@ alarm_handler(int sig)
 		close(0);
 		close(1);
 		persistent = false;
+		if (childpid)
+		{
+			kill(childpid, SIGTERM);
+			kill(childpid, SIGKILL);
+			childpid = 0;
+		}
 		return;
 	}
 	(void)sig;

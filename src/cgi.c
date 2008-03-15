@@ -707,5 +707,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	sigaction(SIGALRM, &action, NULL);
 	alarm(left);
 	if (child > 0)
+	{
+		childpid = child;
 		waitpid(child, &chldstat, 0);
+	}
 }
