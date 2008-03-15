@@ -14,6 +14,7 @@
 #ifdef		HAVE_TIME_H
 #include	<time.h>
 #endif		/* HAVE_TIME_H */
+#include	<limits.h>
 #include	<sys/socket.h>
 #include	<sys/stat.h>
 #include	<arpa/inet.h>
@@ -57,6 +58,10 @@ typedef uint16_t	in_port_t;
 #ifndef		S_ISREG
 #define		S_ISREG(m)	(((m)&(S_IFMT)) == (S_IFREG))
 #endif		/* S_ISREG */
+
+#ifndef		INT_MAX
+#define		INT_MAX		0x7fffffff
+#endif		/* INT_MAX */
 
 #ifdef		NULL
 #undef		NULL

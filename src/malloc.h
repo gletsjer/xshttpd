@@ -1,9 +1,13 @@
 #ifndef		MALLOC_H
 #define		MALLOC_H
 
-#include	"htconfig.h"
 #include	<stdlib.h>
+#ifdef		HAVE_ERR_H
 #include	<err.h>
+#endif		/* HAVE_ERR_H */
+
+#include	"htconfig.h"
+#include	"alternative.h"
 
 #define		MALLOC(var,type,num)					\
 		do							\
