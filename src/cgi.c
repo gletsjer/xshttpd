@@ -452,6 +452,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			break;
 		case 0:
 			/* handle stderr */
+			close(p[0]);
 			initreadmode(true);
 			while (true)
 			{
@@ -479,6 +480,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 	}
 
+	close(r[0]);
 	initreadmode(true);
 	if (!nph)
 	{
@@ -691,21 +693,10 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		free(request);
 	}
 	END:
-	fflush(stdout); close(p[0]); close(p[1]);
-	fflush(stderr); close(r[0]); close(r[1]);
+	fflush(stdout); close(p[0]);
+	fflush(stderr); close(r[0]);
 	if (ssl_post)
-	{
-		close(q[0]); close(q[1]);
-	}
-#ifdef		HAVE_SIGEMPTYSET
-	sigemptyset(&action.sa_mask);
-#else		/* Not HAVE_SIGEMPYSET */
-	action.sa_mask = 0;
-#endif		/* HAVE_SIGEMPTYSET */
-	action.sa_handler = alarm_handler;
-	action.sa_flags = 0;
-	sigaction(SIGALRM, &action, NULL);
-	alarm(left);
+		close(q[0]);
 	if (child > 0)
 		waitpid(child, &chldstat, 0);
 }
