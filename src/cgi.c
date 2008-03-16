@@ -158,17 +158,29 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		dossi = (!strncmp(file, "ssi-", 4) || strstr(file, "/ssi-"));
 	else
 		dossi = false;
+
 	p[0] = p[1] = -1;
+	q[0] = q[1] = -1;
+	r[0] = r[1] = -1;
+
+#define	CLOSEFD	do { \
+		if (p[0] >= 0) close(p[0]); \
+		if (p[1] >= 0) close(p[1]); \
+		if (r[0] >= 0) close(r[0]); \
+		if (r[1] >= 0) close(r[1]); \
+		if (q[0] >= 0) close(q[0]); \
+		if (q[1] >= 0) close(q[1]); \
+	} while(0)
+
 	if (1 /* !nph || do_ssl */)
 	{
 		if (pipe(p))
 		{
 			xserror(500, "pipe(): %s", strerror(errno));
-			goto END;
+			return;
 		}
 	}
 
-	q[0] = q[1] = -1;
 	ssl_post = postonly;
 	if (ssl_post)
 	{
@@ -177,27 +189,43 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		if (pipe(q))
 		{
 			xserror(500, "pipe(): %s", strerror(errno));
-			goto END;
+			CLOSEFD;
+			return;
 		}
 		if (expect && strcasestr(expect, "100-continue"))
 			secprintf("%s 100 Continue\r\n\r\n", httpver);
 		else if (expect)
 		{
 			xserror(417, "Expectation failed");
-			goto END;
+			CLOSEFD;
+			return;
 		}
-	}
-
-	r[0] = r[1] = -1;
-	if (pipe(r))
-	{
-		xserror(500, "pipe(): %s", strerror(errno));
-		goto END;
 	}
 
 	logfile = current->openscript
 		? current->openscript
 		: config.system->openscript;
+
+	if (logfile)
+	{
+		if (pipe(r) < 0)
+		{
+			xserror(500, "pipe(): %s", strerror(errno));
+			CLOSEFD;
+			return;
+		}
+	}
+	else
+	{
+		r[0] = -1;
+		r[1] = open(BITBUCKETNAME, O_WRONLY);
+		if (r[1] < 0)
+		{
+			xserror(500, "open(): %s", strerror(errno));
+			CLOSEFD;
+			return;
+		}
+	}
 
 	/* Special case: don't fork */
 	if (engine && !strcmp(engine, "internal:fcgi") &&
@@ -207,12 +235,14 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		if (run_fcgi(q[0], p[1], r[1]) < 0)
 		{
 			xserror(500, "run_fcgi()");
-			goto END;
+			CLOSEFD;
+			return;
 		}
 		if (ssl_post)
 			close(q[0]);
 		close(p[1]);
 		close(r[1]);
+		q[0] = p[1] = r[1] = -1;
 	}
 	else
 
@@ -220,7 +250,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	{
 	case -1:
 		xserror(500, "fork(): %s", strerror(errno));
-		goto END;
+		CLOSEFD;
+		return;
 	case 0:
 #ifdef		HAVE_SETRLIMIT
 		{
@@ -347,10 +378,11 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		xserror(500, "execl(): %s", strerror(errno));
 		exit(1);
 	default:
-		close(p[1]);
-		close(r[1]);
 		if (ssl_post)
 			close(q[0]);
+		close(p[1]);
+		close(r[1]);
+		q[0] = p[1] = r[1] = -1;
 		break;
 	}
 
@@ -368,7 +400,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			{
 				if (cbuf)
 					free(cbuf);
-				goto END;
+				CLOSEFD;
+				return;
 			}
 			buffer[buflen-1] = '\0';
 
@@ -382,17 +415,19 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			}
 			/* two bytes extra for trailing \r\n */
 			REALLOC(cbuf, char, chunksz + 2);
-			if (!cbuf)
-				goto END;
-			if (secread(0, cbuf, chunksz + 2) < 0)
-				goto END;
+			if (!cbuf || (secread(0, cbuf, chunksz + 2) < 0))
+			{
+				CLOSEFD;
+				return;
+			}
 
 			if ((write(q[1], cbuf, chunksz) < 0) &&
 				(errno != EINTR))
 			{
 				xserror(500, "Connection closed (fd = %d, todo = %zu",
 					q[1], chunksz);
-				goto END;
+				CLOSEFD;
+				return;
 			}
 		}
 
@@ -400,6 +435,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			free(cbuf);
 		postread = true;
 		close(q[1]);
+		q[1] = -1;
 	}
 	else if (ssl_post)
 	{
@@ -418,7 +454,10 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				tobewritten = (size_t)writetodo;
 			result = secread(0, inbuf, tobewritten);
 			if (result < 0)
-				goto END;
+			{
+				CLOSEFD;
+				return;
+			}
 			else if (!result)
 				break;
 			tobewritten = result;
@@ -429,7 +468,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				{
 					xserror(500, "Connection closed (fd = %d, todo = %" PRIoff,
 						q[1], writetodo);
-					goto END;
+					CLOSEFD;
+					return;
 				}
 				else if (result > 0)
 					offset += result;
@@ -439,6 +479,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 		postread = true;
 		close(q[1]);
+		q[1] = -1;
 	}
 
 	if (logfile)
@@ -477,10 +518,12 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					fprintf(logfile, "%s\n", line);
 			}
 			exit(0);
+		default:
+			close(r[0]);
+			r[0] = -1;
 		}
 	}
 
-	close(r[0]);
 	initreadmode(true);
 	if (!nph)
 	{
@@ -505,7 +548,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					"503 Script did not end header\n");
 			}
 			xserror(503, "Script did not end header");
-			goto END;
+			CLOSEFD;
+			return;
 		}
 		for (size_t sz = 0; sz < http_headers.size; sz++)
 		{
@@ -623,7 +667,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			if (readline(p[0], line, sizeof(line)) != ERR_NONE)
 			{
 				xserror(503, "Script did not end header");
-				goto END;
+				CLOSEFD;
+				return;
 			}
 			if (headers >= 10)
 				secputs(line);
@@ -663,12 +708,14 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					secprintf("[Connection closed: %s (fd = %d, temp = %p, todo = %" PRIoff "]\n",
 						strerror(errno), fileno(stdout), temp,
 						writetodo);
-					goto END;
+					CLOSEFD;
+					return;
 				}
 				else if (!written)
 				{
 					secprintf("[Connection closed: couldn't write]\n");
-					goto END;
+					CLOSEFD;
+					return;
 				}
 				else
 				{
@@ -679,6 +726,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			totalwritten += result;
 		}
 	}
+
+#undef	CLOSEFD
 
 	if (!getenv("ERROR_CODE"))
 	{
@@ -693,10 +742,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		free(request);
 	}
 	END:
-	fflush(stdout); close(p[0]);
-	fflush(stderr); close(r[0]);
-	if (ssl_post)
-		close(q[0]);
+	fflush(stdout);
+	close(p[0]);
 	if (child > 0)
 		waitpid(child, &chldstat, 0);
 }
