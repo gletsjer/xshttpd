@@ -51,7 +51,6 @@ run_fcgi(int fdin, int fdout, int fderr)
 	int		request_ended = 0;
 	off_t		content_length = 0;
 	fcgi_server	*server = current->fcgiserver;
-	char		buf[16];
 
 	if (!server)
 		return -1;
@@ -60,21 +59,6 @@ run_fcgi(int fdin, int fdout, int fderr)
 		content_length = (off_t)strtoull(getenv("CONTENT_LENGTH"),
 			NULL, 10);
 	init_env(&env);
-	setenv("FCGI_WEB_SERVER_ADDRS", "127.0.0.1", 1);
-	if (current->phpfcgichildren)
-	{
-		snprintf(buf, sizeof buf, "%u", current->phpfcgichildren);
-		setenv("PHP_FCGI_CHILDREN", buf, 1);
-	}
-	else
-		setenv("PHP_FCGI_CHILDREN", "16", 1);
-	if (current->phpfcgirequests)
-	{
-		snprintf(buf, sizeof buf, "%u", current->phpfcgirequests);
-		setenv("PHP_FCGI_MAX_REQUESTS", buf, 1);
-	}
-	else
-		setenv("PHP_FCGI_MAX_REQUESTS", "2000", 1);
 	build_env(&env);
 	write(fdout, "X-FastCGI: 1\r\n", 14);
 
@@ -149,7 +133,7 @@ fcgi_child_init(void)
 {
 	pid_t		child;
 	const int	argv_sz = 32;
-	char		*argv[32];
+	char		*argv[32], buf[16];
 	char		*sep, *str, **ap;
 	fcgi_server	*fsrv;
 
@@ -198,8 +182,22 @@ fcgi_child_init(void)
 		seteuid(current->userid);
 		setuid(current->userid);
 		setenv("FCGI_WEB_SERVER_ADDRS", "127.0.0.1", 1);
-		setenv("PHP_FCGI_CHILDREN", "16", 1);
-		setenv("PHP_FCGI_MAX_REQUESTS", "2000", 1);
+		if (current->phpfcgichildren)
+		{
+			snprintf(buf, sizeof buf, "%u",
+				current->phpfcgichildren);
+			setenv("PHP_FCGI_CHILDREN", buf, 1);
+		}
+		else
+			setenv("PHP_FCGI_CHILDREN", "16", 1);
+		if (current->phpfcgirequests)
+		{
+			snprintf(buf, sizeof buf, "%u",
+				current->phpfcgirequests);
+			setenv("PHP_FCGI_MAX_REQUESTS", buf, 1);
+		}
+		else
+			setenv("PHP_FCGI_MAX_REQUESTS", "2000", 1);
 
 		execv(argv[0], argv);
 		/* this should not happen */
