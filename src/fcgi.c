@@ -200,9 +200,7 @@ fcgi_child_init(void)
 			setenv("PHP_FCGI_MAX_REQUESTS", "2000", 1);
 
 		execv(argv[0], argv);
-		/* this should not happen */
-		current->fcgisocket = NULL;
-		return -1;
+		exit(1);
 	default:
 		return child;
 	}
