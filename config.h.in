@@ -126,7 +126,7 @@
 /* Define this to use perl cgi environment */
 #undef HAVE_PERL
 
-/* Define this to use python cgi environment */
+/* Define to 1 if you have the `Py_Initialize' function */
 #undef HAVE_PYTHON
 
 /* Define to 1 if the system has the type `sa_family_t'. */

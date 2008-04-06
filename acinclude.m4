@@ -5,7 +5,7 @@ AC_DEFUN([XS_ARG_DEFAULT], [
 	AC_ARG_ENABLE($1,
 		AC_HELP_STRING([--enable-$1], [$4 ($3)]),
 		AC_MSG_RESULT(${enable_$1}),
-		enable_$1=$3
+		AS_TR_SH(enable_$1)=$3
 		AC_MSG_RESULT($3))
 	AS_IF([test "${enable_$1}" = yes], AC_DEFINE($2,, [$4]))
 	])
@@ -48,7 +48,7 @@ AC_DEFUN([XS_CHECK_WITH], [
 	AC_ARG_WITH($1,
 		AC_HELP_STRING([--with-$1], [$2 ($3)]),
 		AC_MSG_RESULT(${with_$1}),
-		with_$1=$3
+		AS_TR_SH(with_$1)=$3
 		AC_MSG_RESULT($3))
 	])
 
@@ -56,10 +56,10 @@ AC_DEFUN([XS_CHECK_WITH], [
 AC_DEFUN([XS_TRY_CONFIG], [
 	unset progpath ac_cv_path_progpath
 	AC_PATH_PROG(progpath, $1-config)
+	AS_TR_SH(xs_$1_path)="$progpath"
 	AS_IF([test -n "${progpath}"],
 		[$2_cflags="${$2_cflags} `${progpath} --cflags`"
-		 $2_ldflags="${$2_ldflags} `${progpath} --libs`"]
-		[$2_ldflags="${$2_ldflags} -l$1"])
+		 $2_ldflags="${$2_ldflags} `${progpath} --libs`"])
 	])
 
 AC_DEFUN([XS_FUNC_SENDFILE], [

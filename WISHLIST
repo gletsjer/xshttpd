@@ -4,8 +4,4 @@
   because of closed fds and permission drop (setuid)
 - Make FastCGI usable
 
-- digauth support in xschpass
-- fix/cleanup xschpass (it'll overwrite half of .xsauth on error)
-
-- User configurable decompress options
 - More intelligent http header (qvalue) parsing => sorted mapping
