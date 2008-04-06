@@ -106,3 +106,21 @@ AC_DEFUN([XS_PRINT_TYPE], [
 	AC_MSG_RESULT([$val])
 	])
 
+dnl XS_DEF_MAX(type, define)
+AC_DEFUN([XS_DEF_MAX], [
+	AC_MSG_CHECKING([max value of $1])
+	AC_RUN_IFELSE(AC_LANG_PROGRAM([#include <sys/types.h>
+#include <sys/limits.h>],
+		[return !$2_MAX;]),
+		AC_MSG_RESULT([$2_MAX]), [
+		AC_RUN_IFELSE(AC_LANG_PROGRAM([#include <sys/types.h>],
+			[$1 x = ($1)-1; int s = 8 * sizeof($1);
+			 return (x < ($1)0) ? s-1 : s;]),
+			[sz=0],
+			[sz=$?])
+		AC_DEFINE_UNQUOTED([$2_MAX], [((1 << $sz) - 1)],
+			[Max value of `$1'])
+		AC_MSG_RESULT([(1 << $sz) - 1])
+		])
+	])
+

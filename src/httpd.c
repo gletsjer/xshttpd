@@ -1415,7 +1415,7 @@ standalone_socket(int id)
 #else		/* HAVE_GETNAMEINFO */
 		/* I don't need libnsl for this... */
 		laddr = ntohl(((struct sockaddr_in *)&saddr)->sin_addr.s_addr);
-		snprintf(remoteaddr, NI_MAXHOST, "%d.%d.%d.%d",
+		snprintf(remoteaddr, NI_MAXHOST, "%u.%u.%u.%u",
 			(laddr & 0xff000000) >> 24,
 			(laddr & 0x00ff0000) >> 16,
 			(laddr & 0x0000ff00) >> 8,
@@ -1616,7 +1616,7 @@ main(int argc, char **argv, char **envp)
 			}
 #endif		/* HAVE_UNAME */
 #ifdef		OPENSSL_VERSION_NUMBER
-			printf(" OpenSSL/%d.%d.%d",
+			printf(" OpenSSL/%u.%u.%u",
 				(int)(OPENSSL_VERSION_NUMBER >> 28 & 0xf),
 				(int)(OPENSSL_VERSION_NUMBER >> 20 & 0xff),
 				(int)(OPENSSL_VERSION_NUMBER >> 12 & 0xff));

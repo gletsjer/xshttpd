@@ -59,10 +59,6 @@ typedef uint16_t	in_port_t;
 #define		S_ISREG(m)	(((m)&(S_IFMT)) == (S_IFREG))
 #endif		/* S_ISREG */
 
-#ifndef		INT_MAX
-#define		INT_MAX		0x7fffffff
-#endif		/* INT_MAX */
-
 #ifdef		NULL
 #undef		NULL
 #endif		/* NULL */

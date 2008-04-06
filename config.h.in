@@ -258,11 +258,17 @@
 /* icon directory with opt. trailing slash */
 #undef ICON_DIRT
 
+/* Max value of `int' */
+#undef INT_MAX
+
 /* log directory */
 #undef LOG_DIR
 
 /* log directory with opt. trailing slash */
 #undef LOG_DIRT
+
+/* Max value of `off_t' */
+#undef OFF_MAX
 
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
@@ -317,6 +323,9 @@
 
 /* Server version */
 #undef SERVER_IDENT
+
+/* Max value of `size_t' */
+#undef SIZE_T_MAX
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS

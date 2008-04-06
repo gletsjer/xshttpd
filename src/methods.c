@@ -390,7 +390,14 @@ senduncompressed(int fd)
 	UNPARSED:
 	if (!dynamic)
 	{
+		const bool valid_size_t_size =
+#if		OFF_MAX > SIZE_T_MAX
+			size < SIZE_T_MAX;
+#else		/* OFF_MAX <= SIZE_T_MAX */
+			true;
+#endif		/* OFF_MAX > SIZE_T_MAX */
 		ssize_t		written;
+
 		alarm((size / MINBYTESPERSEC) + 20);
 
 		fflush(stdout);
@@ -400,7 +407,7 @@ senduncompressed(int fd)
 #endif		/* TCP_NOPUSH */
 
 #ifdef		HAVE_BSD_SENDFILE
-		if (!cursock->usessl && !chunked)
+		if (!cursock->usessl && !chunked && valid_size_t_size)
 		{
 			if (sendfile(fd, 1, 0, size, NULL, NULL, 0) < 0)
 				xserror(599, "Aborted sendfile for `%s'",
@@ -409,7 +416,7 @@ senduncompressed(int fd)
 		else
 #endif		/* HAVE_BSD_SENDFILE */
 #ifdef		HAVE_LINUX_SENDFILE	/* cannot have both */
-		if (!cursock->usessl && !chunked)
+		if (!cursock->usessl && !chunked && valid_size_t_size)
 		{
 			if (sendfile(1, fd, NULL, size) < 0)
 				xserror(599, "Aborted sendfile for `%s'",
@@ -419,7 +426,7 @@ senduncompressed(int fd)
 #endif		/* HAVE_LINUX_SENDFILE */
 #ifdef		HAVE_MMAP
 		/* don't use mmap() for files >12Mb to avoid hogging memory */
-		if (size < 12 * 1048576)
+		if (size < 12 * 1048576 && valid_size_t_size)
 		{
 			char		*buffer;
 			size_t		msize = (size_t)size;
