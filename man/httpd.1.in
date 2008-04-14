@@ -350,7 +350,7 @@ however instead of a temporary redirection (302) a permanent redirection
 If this file is present in a certain directory, then all files
 requested from that directory will get an extra HTTP header which
 indicates the character set used, as specified by the contents
-of the .charset file. Usefull settings are e.g. UTF-8, ISO-8859-1,
+of the .charset file. Useful settings are e.g. UTF-8, ISO-8859-1,
 KOI8-R.
 .It *.charset
 Sets the character set for a specific file (see *.redir).
