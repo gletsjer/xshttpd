@@ -960,9 +960,14 @@ do_get(char *params)
 		return;
 	if (check_file_redirect(base, filename))
 		return;
-	if ((xsfile = find_file(orgbase, base, REDIR_FILE)) &&
-			check_redirect(xsfile, real_path))
-		return;
+	if ((xsfile = find_file(orgbase, base, REDIR_FILE)))
+	{
+		/* try original url first */
+		if (!*file && check_redirect(xsfile, params))
+			return;
+		if (check_redirect(xsfile, real_path))
+			return;
+	}
 	if ((xsfile = find_file(orgbase, base, CONFIG_FILE)) &&
 			check_xsconf(xsfile, filename, &cfvalues))
 		return;
