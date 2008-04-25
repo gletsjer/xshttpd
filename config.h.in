@@ -297,6 +297,12 @@
 /* phexec directory with opt. trailing slash */
 #undef PHEXEC_DIRT
 
+/* phicon directory */
+#undef PHICON_DIR
+
+/* phicon directory with opt. trailing slash */
+#undef PHICON_DIRT
+
 /* Define how to print `off_t' */
 #undef PRIoff
 

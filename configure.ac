@@ -193,6 +193,7 @@ XS_ARG_DIR(contrib, CONTRIB_DIR,[contrib])
 XS_ARG_DIR(font,    FONT_DIR,   [gfxcount])
 XS_ARG_DIR(html,    HTML_DIR,   [htdocs])
 XS_ARG_DIR(icon,    ICON_DIR,   [icons])
+XS_ARG_DIR(phicon,  PHICON_DIR, [icons])
 XS_ARG_DIR(log,     LOG_DIR,    [logs])
 
 dnl User may tweak compilation behaviour.

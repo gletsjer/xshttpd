@@ -41,6 +41,7 @@ extern struct virtual
 	char *		execdir;
 	char *		phexecdir;
 	char *		icondir;
+	char *		phicondir;
 	char *		logaccess;
 	char *		logerror;
 	char *		logreferer;

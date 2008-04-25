@@ -282,6 +282,8 @@ load_config()
 					current->phexecdir = strdup(value);
 				else if (!strcasecmp("IconDir", key))
 					current->icondir = strdup(calcpath(value));
+				else if (!strcasecmp("PhIconDir", key))
+					current->phicondir = strdup(calcpath(value));
 				else if (!strcasecmp("LogAccess", key))
 					current->logaccess = strdup(value);
 				else if (!strcasecmp("LogError", key))
@@ -484,6 +486,8 @@ load_config()
 		config.system->phexecdir = strdup(PHEXEC_DIR);
 	if (!config.system->icondir)
 		config.system->icondir = strdup(ICON_DIR);
+	if (!config.system->phicondir)
+		config.system->phicondir = strdup(PHICON_DIR);
 	if (!config.system->logaccess)
 		config.system->logaccess = strdup(BITBUCKETNAME);
 	if (!config.system->logerror)
@@ -553,6 +557,8 @@ load_config()
 			current->phexecdir = strdup(PHEXEC_DIR);
 		if (!current->icondir)
 			current->icondir = strdup(calcpath(ICON_DIR));
+		if (!current->phicondir)
+			current->phicondir = strdup(calcpath(PHICON_DIR));
 		if (!current->logstyle)
 			current->logstyle = config.system->logstyle;
 		if (!current->userid)

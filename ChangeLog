@@ -4,6 +4,7 @@ is not complete. Refer to cvs comments for more information.
 Changes since 3.6 beta 8
 - Close unused CGI pipes (could block execution), by jilles
 - Use original URL in rewriting rules before trying index.html
+- Add PhIconDir option, analogous to PhExecDir
 
 Changes since 3.6 beta 7
 - Extend characters available for alternative setproctitle()

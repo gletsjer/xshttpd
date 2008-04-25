@@ -430,6 +430,17 @@ it is easy to get confused.
 .It Sy IconDir Ar directory Aq icons
 Location where the icons used by
 .Xr xsindex 1
+are to be found. When encountered in an URL path
+prefix, files will be retreived from the
+.Sy PhIconDir
+directory rather than the normal path.
+Beware that changing this setting only affects the
+behaviour of the webserver and not the
+.Xr xsindex 1
+program.
+.It Sy PhIconDir Ar directory Aq icons
+Location where the icons used by
+.Xr xsindex 1
 are to be stored on disk.
 This may be an absolute path or a path relative to
 .Sy SystemRoot .
