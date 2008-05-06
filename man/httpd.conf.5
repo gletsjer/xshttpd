@@ -499,6 +499,18 @@ The
 format is basically a combined log with an extra first
 field indicating the virtual hostname that was accessed on
 the webserver.
+.It Sy RedirFile Ar filename
+Redirect all requests for this host according to the rules
+listed in
+.Ar filename .
+This file uses the regular expression mathing rules detailed in
+.Xr xsredir 5 .
+If this command is present,
+.Sy HtmlDir
+must not be set.
+All requests are redirected; if none of the rules match, a
+.Ql 404 not found
+error will be returned.
 .It Sy IndexFiles Ar filename Oo Ar filename ... Oc Aq index.html index.htm index.php
 Defines the filename(s) that should be used when the user
 asks for a directory. The webserver will never autogenerate

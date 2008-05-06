@@ -294,6 +294,8 @@ load_config()
 					current->logreferer = strdup(value);
 				else if (!strcasecmp("LogRefererIgnoreDomain", key))
 					current->thisdomain = strdup(value);
+				else if (!strcasecmp("RedirFile", key))
+					current->redirfile = strdup(calcpath(value));
 				else if (!strcasecmp("FcgiPath", key))
 					current->fcgipath = strdup(value);
 				else if (!strcasecmp("FcgiSocket", key))
@@ -549,8 +551,8 @@ load_config()
 	{
 		if (!current->hostname)
 			errx(1, "illegal virtual block without hostname");
-		if (!current->htmldir)
-			errx(1, "illegal virtual block without directory");
+		if (!(!!current->htmldir ^ !!current->redirfile))
+			errx(1, "virtual block must contain either htmldir or redirfile");
 		if (!current->execdir)
 			current->execdir = strdup(CGI_DIR);
 		if (!current->phexecdir)

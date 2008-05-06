@@ -47,6 +47,7 @@ extern struct virtual
 	char *		logreferer;
 	char *		logscript;
 	char *		thisdomain;
+	char *		redirfile;
 	char *		fcgipath;
 	char *		fcgisocket;
 	void *		fcgiserver;

@@ -660,6 +660,16 @@ do_get(char *params)
 	if (!origeuid)
 		seteuid(origeuid);
 
+	/* eheck for redirect only host */
+	if (current->redirfile)
+	{
+		if (check_redirect(current->redirfile, params))
+			return;
+		xserror(404, "Requested URL not found");
+		return;
+	}
+
+	/* check for user path */
 	if (params[1] == '~')
 	{
 		if ((temp = strchr(params + 2, '/')))
