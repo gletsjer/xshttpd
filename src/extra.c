@@ -18,8 +18,8 @@
 #include	"httpd.h"
 #include	"malloc.h"
 
-static size_t	internal_xstring_to_arrayp(char *, char ***, size_t (*)(char *, char **)) WARNUNUSED;
-static size_t	internal_xstring_to_arraypn(char *, char ***, size_t (*)(char *, char **)) WARNUNUSED;
+static size_t	internal_xstring_to_arrayp(const char *, char ***, size_t (*)(const char *, char **)) WARNUNUSED;
+static size_t	internal_xstring_to_arraypn(const char *, char ***, size_t (*)(const char *, char **)) WARNUNUSED;
 static int		qcmp(const char **, const char **);
 
 bool
@@ -168,7 +168,7 @@ eqstring_to_array(char *string, struct mapping *map)
 
 /* like string_to_array, but malloc's data */
 static size_t
-internal_xstring_to_arrayp(char *value, char ***array, size_t (*xstring_to_array)(char *, char **))
+internal_xstring_to_arrayp(const char *value, char ***array, size_t (*xstring_to_array)(const char *, char **))
 {
 	size_t	sz;
 
@@ -179,7 +179,7 @@ internal_xstring_to_arrayp(char *value, char ***array, size_t (*xstring_to_array
 }
 
 static size_t
-internal_xstring_to_arraypn(char *value, char ***array, size_t (*xstring_to_array)(char *, char **))
+internal_xstring_to_arraypn(const char *value, char ***array, size_t (*xstring_to_array)(const char *, char **))
 {
 	size_t	sz;
 
@@ -193,38 +193,44 @@ internal_xstring_to_arraypn(char *value, char ***array, size_t (*xstring_to_arra
 }
 
 size_t
-string_to_arrayp(char *value, char ***array)
+string_to_arrayp(const char *value, char ***array)
 {
 	return internal_xstring_to_arrayp(value, array, &string_to_array);
 }
 
 size_t
-qstring_to_arrayp(char *value, char ***array)
+qstring_to_arrayp(const char *value, char ***array)
 {
 	return internal_xstring_to_arrayp(value, array, &qstring_to_array);
 }
 
 size_t
-string_to_arraypn(char *value, char ***array)
+string_to_arraypn(const char *value, char ***array)
 {
 	return internal_xstring_to_arraypn(value, array, &string_to_array);
 }
 
 size_t
-qstring_to_arraypn(char *value, char ***array)
+qstring_to_arraypn(const char *value, char ***array)
 {
 	return internal_xstring_to_arraypn(value, array, &qstring_to_array);
 }
 
 /* Convert whitespace/comma-seperated string into array (config) */
 size_t
-string_to_array(char *value, char **array)
+string_to_array(const char *value, char **array)
 {
 	size_t	num, len;
-	char	*prev = NULL, *next = value, *p;
+	char	*valuecopy;
+	char	*prev = NULL, *next;
+
+	if (!value)
+		return 0;
+
+	next = valuecopy = strdup(value);
 
 	num = 0;
-	len = strlen(value);
+	len = strlen(valuecopy);
 
 	while ((prev = strsep(&next, ", \t")))
 		if (*prev)
@@ -234,10 +240,7 @@ string_to_array(char *value, char **array)
 			num++;
 		}
 
-	/* restore orignal string */
-	for (p = value; p < value + len; p++)
-		if (!*p)
-			*p = ' ';
+	free(valuecopy);
 	return num;
 }
 
@@ -267,35 +270,43 @@ qcmp(const char **a, const char **b)
 
 /* Convert comma seperated http header into array */
 size_t
-qstring_to_array(char *value, char **array)
+qstring_to_array(const char *value, char **array)
 {
 	size_t		num = 0;
 	bool		has_qvalues = false;
-	const size_t	len = strlen(value);
-	char		*prev = NULL, *next = value;
+	char		*valuecopy;
+	char		*prev = NULL, *next;
+
+	if (!value)
+		return 0;
+
+	valuecopy = strdup(value);
+	next = valuecopy;
 
 	while ((prev = strsep(&next, ",")))
 		if (*prev)
 		{
 			char	*p, *q;
 			char	*term = NULL;
-			size_t	vlen;
-
-			/* strip leading/trailing whitespace */
-			for (p = prev; isspace(*p); p++)
-				/* DO NOTHING */;
-			for (q = p + strlen(p) - 1; isspace(*q); q--)
-				/* DO NOTHING */;
-
-			if (q < p)
-				continue;
-
-			vlen = q - p + 1;
 
 			if (array)
 			{
-				MALLOC(term, char, vlen + 1);
-				strlcpy(term, p, vlen + 1);
+				/* strip whitespace */
+				for (p = prev; isspace(*p); p++)
+					/* DO NOTHING */;
+				if (!*p)
+					continue;
+				p = term = strdup(p);
+				q = p + strlen(p);
+				while (isspace(*q--))
+					*q = '\0';
+				while (p++ < q)
+					if (isspace(*p))
+					{
+						memmove(p, p + 1, q - p + 1);
+						q--;
+						p--;
+					}
 			}
 			num++;
 
@@ -314,26 +325,23 @@ qstring_to_array(char *value, char **array)
 				array[num - 1] = term;
 		}
 
-	/* restore orignal string */
-	for (char *p = value; p < value + len; p++)
-		if (!*p)
-			*p = ',';
-
 	/* optional: fake qvalues */
 	if (array && !has_qvalues)
 		for (size_t i = 0; i < num; i++)
 			if (strstr(array[i], "/*"))
 			{
-				REALLOC(array[i], char, strlen(array[i]) + 9);
+				REALLOC(array[i], char, strlen(array[i]) + 8);
 				if (!strcmp(array[i], "*/*"))
-					strcat(array[i], "; q=0.01");
+					strcat(array[i], ";q=0.01");
 				else
-					strcat(array[i], "; q=0.02");
+					strcat(array[i], ";q=0.02");
 			}
 
 	if (array)
 		qsort(array, num, sizeof(char *),
 			(int (*)(const void *, const void *))qcmp);
+
+	free(valuecopy);
 	return num;
 }
 
