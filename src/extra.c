@@ -20,6 +20,7 @@
 
 static size_t	internal_xstring_to_arrayp(char *, char ***, size_t (*)(char *, char **)) WARNUNUSED;
 static size_t	internal_xstring_to_arraypn(char *, char ***, size_t (*)(char *, char **)) WARNUNUSED;
+static int		qcmp(const char **, const char **);
 
 bool
 mysleep(int sec)
@@ -240,84 +241,99 @@ string_to_array(char *value, char **array)
 	return num;
 }
 
+static int
+qcmp(const char **a, const char **b)
+{
+	char		*p;
+	double		qvala, qvalb;
+
+	qvala = qvalb = 1;
+	if ((p = strstr(*a, "q=")))
+		qvala = atof(p + 2);
+	if ((p = strstr(*b, "q=")))
+		qvalb = atof(p + 2);
+
+	if (qvala > 1)
+		qvala = 1;
+	else if (qvala < 0)
+		qvala = 0;
+	if (qvalb > 1)
+		qvalb = 1;
+	else if (qvalb < 0)
+		qvalb = 0;
+
+	return qvala < qvalb ? 1 : qvala > qvalb ? -1 : 0;
+}
+
 /* Convert comma seperated http header into array */
 size_t
 qstring_to_array(char *value, char **array)
 {
-	size_t			num = 0;
+	size_t		num = 0;
+	bool		has_qvalues = false;
 	const size_t	len = strlen(value);
-
-	char	*prev = NULL, *next = value;
+	char		*prev = NULL, *next = value;
 
 	while ((prev = strsep(&next, ",")))
 		if (*prev)
 		{
-			const size_t	slen = strlen(prev);
-
-			int		first = 1;
-			char	*sprev = NULL, *snext = prev;
+			char	*p, *q;
 			char	*term = NULL;
+			size_t	vlen;
 
-			while ((sprev = strsep(&snext, ";")))
-				if (*sprev)
-				{
-					size_t	vlen;
-					char	*p = sprev, *q;
+			/* strip leading/trailing whitespace */
+			for (p = prev; isspace(*p); p++)
+				/* DO NOTHING */;
+			for (q = p + strlen(p) - 1; isspace(*q); q--)
+				/* DO NOTHING */;
 
-					/* strip leading/trailing whitespace */
-					for (p = sprev; isspace(*p); p++)
-						/* DO NOTHING */;
-					for (q = p + strlen(p) - 1; isspace(*q); q--)
-						/* DO NOTHING */;
+			if (q < p)
+				continue;
 
-					if (q < p)
-						continue;
+			vlen = q - p + 1;
 
-					vlen = q - p + 1;
+			if (array)
+			{
+				MALLOC(term, char, vlen + 1);
+				strlcpy(term, p, vlen + 1);
+			}
+			num++;
 
-					/* store first (main) term w/o arguments */
-					if (first)
-					{
-						first = 0;
-						if (array)
-						{
-							MALLOC(term, char, vlen + 1);
-							strlcpy(term, p, vlen + 1);
-						}
-						num++;
-						continue;
-					}
-
-					/* q=0 means term should be ignored */
-					if (!strncasecmp(p, "q=0.000", vlen))
-					{
-						num--;
-						if (array)
-							free(term);
-						term = NULL;
-					}
-				}
+			/* q=0 means term should be ignored */
+			if ((p = strstr(prev, "q=")))
+				has_qvalues = true;
+			if (p && !strncmp(p, "q=0.000", strlen(p)))
+			{
+				num--;
+				if (array)
+					free(term);
+				term = NULL;
+			}
 
 			if (term)
 				array[num - 1] = term;
-			/* restore orignal string */
-			{
-				char	*p;
-
-				for (p = prev; p < prev + slen; p++)
-					if (!*p)
-						*p = ';';
-			}
 		}
 
 	/* restore orignal string */
-	{
-		char	*p;
+	for (char *p = value; p < value + len; p++)
+		if (!*p)
+			*p = ',';
 
-		for (p = value; p < value + len; p++)
-			if (!*p)
-				*p = ',';
-	}
+	/* optional: fake qvalues */
+	if (array && !has_qvalues)
+		for (size_t i = 0; i < num; i++)
+			if (strstr(array[i], "/*"))
+			{
+				REALLOC(array[i], char, strlen(array[i]) + 9);
+				if (!strcmp(array[i], "*/*"))
+					strcat(array[i], "; q=0.01");
+				else
+					strcat(array[i], "; q=0.02");
+			}
+
+	if (array)
+		qsort(array, num, sizeof(char *),
+			(int (*)(const void *, const void *))qcmp);
 	return num;
 }
 

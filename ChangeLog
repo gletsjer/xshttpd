@@ -3,6 +3,8 @@ is not complete. Refer to cvs comments for more information.
 
 Changes since 3.6 beta 10
 - Add RedirFile configuration option for light-weight vhosts
+- Sort qvalues in accept-* arrays
+- Fake qvalues for */* and type/* when qvalues are not used
 
 Changes since 3.6 beta 9
 - Use original URL in rewriting rules before trying index.html
