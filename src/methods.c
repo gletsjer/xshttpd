@@ -240,22 +240,27 @@ sendheaders(int fd, off_t size)
 	if (getenv("HTTP_ACCEPT"))
 	{
 		size_t		i, acsz, len;
-		char		*ac = getenv("HTTP_ACCEPT");
+		char		*p, *ac = getenv("HTTP_ACCEPT");
 		char 		**acceptlist = NULL;
 
 		acsz = qstring_to_arrayp(ac, &acceptlist);
 		for (i = 0; i < acsz; i++)
 		{
-			if (!strcmp(acceptlist[i], "*/*"))
+			/* ignore data after ; */
+			len = (p = strchr(acceptlist[i], ';'))
+				? (size_t)(p - acceptlist[i])
+				: strlen(acceptlist[i]);
+
+			if (!strncmp(acceptlist[i], "*/*", len))
 				break;
-			else if (!strcasecmp(acceptlist[i], cfvalues.mimetype))
+			else if (!strncasecmp(acceptlist[i],
+					cfvalues.mimetype, len))
 				break;
 
 			/* check for partial match */
-			len = strlen(acceptlist[i]);
-			if (!strcmp(&acceptlist[i][len - 2], "/*") &&
-				!strncasecmp(acceptlist[i], cfvalues.mimetype,
-					len - 1))
+			if (!strncmp(&acceptlist[i][len - 2], "/*", 2) &&
+				!strncasecmp(acceptlist[i],
+					cfvalues.mimetype, len - 1))
 				break;
 		}
 		free_string_array(acceptlist, acsz);
@@ -268,16 +273,24 @@ sendheaders(int fd, off_t size)
 	}
 	if (getenv("HTTP_ACCEPT_CHARSET") && cfvalues.charset)
 	{
-		size_t		i, acsz;
-		char		*ac = getenv("HTTP_ACCEPT_CHARSET");
+		size_t		i, acsz, len;
+		char		*p, *ac = getenv("HTTP_ACCEPT_CHARSET");
 		char 		**acceptlist = NULL;
 
 		acsz = qstring_to_arrayp(ac, &acceptlist);
 		for (i = 0; i < acsz; i++)
-			if (!strcmp(acceptlist[i], "*"))
+		{
+			/* ignore data after ; */
+			len = (p = strchr(acceptlist[i], ';'))
+				? (size_t)(p - acceptlist[i])
+				: strlen(acceptlist[i]);
+
+			if (!strncmp(acceptlist[i], "*", len))
 				break;
-			else if (!strcasecmp(acceptlist[i], cfvalues.charset))
+			else if (!strncasecmp(acceptlist[i],
+					cfvalues.charset, len))
 				break;
+		}
 		free_string_array(acceptlist, acsz);
 
 		if (acsz > 0 && i >= acsz)
