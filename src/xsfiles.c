@@ -39,13 +39,13 @@
 # endif		/* IN6_ARE_MASKED_ADDR_EQUAL */
 #endif		/* HAVE_STRUCT_IN6_ADDR */
 
-static char *	mknewurl		(const char *, const char *, int);
+static char *	mknewurl		(const char *, const char *);
 #ifdef		HAVE_STRUCT_IN6_ADDR
 static void	v6masktonum		(unsigned int, struct in6_addr *);
 #endif		/* HAVE_STRUCT_IN6_ADDR */
 
 static char    *
-mknewurl(const char *old, const char *new, int withproto)
+mknewurl(const char *old, const char *new)
 {
 	static char	result[XS_PATH_MAX];
 	char		*p;
@@ -56,27 +56,18 @@ mknewurl(const char *old, const char *new, int withproto)
 
 	if ((p = strstr(new, "://")))
 	{
-		if (withproto)
-			strlcpy(result, new, XS_PATH_MAX);
-		else if ((p = strchr(p + 3, '/')))
-			/* strip unused info */
-			strlcpy(result, p, XS_PATH_MAX);
-		else
-			strlcpy(result, "/", XS_PATH_MAX);
+		strlcpy(result, new, XS_PATH_MAX);
 		return result;
 	}
-	if (withproto)
-	{
-		/* add protocol and hostname */
-		if (cursock->usessl)
-			strlcpy(result, "https://", XS_PATH_MAX);
-		else
-			strlcpy(result, "http://", XS_PATH_MAX);
-		if ((p = getenv("HTTP_HOST")))
-			strlcat(result, p, XS_PATH_MAX);
-		else
-			strlcat(result, current->hostname, XS_PATH_MAX);
-	}
+	/* add protocol and hostname */
+	if (cursock->usessl)
+		strlcpy(result, "https://", XS_PATH_MAX);
+	else
+		strlcpy(result, "http://", XS_PATH_MAX);
+	if ((p = getenv("HTTP_HOST")))
+		strlcat(result, p, XS_PATH_MAX);
+	else
+		strlcat(result, current->hostname, XS_PATH_MAX);
 	if (new[0] != '/')
 	{
 		/* add path */
@@ -204,7 +195,7 @@ check_redirect(const char *cffile, const char *filename)
 			if ((subst = pcre_subst(request, orig, repl)) &&
 					*subst)
 			{
-				newloc = mknewurl(request, subst, 1);
+				newloc = mknewurl(request, subst);
 				redirect(newloc, 'R' == command[0], 0);
 				free(subst);
 				fclose(fp);
@@ -220,8 +211,7 @@ check_redirect(const char *cffile, const char *filename)
 			if ((subst = pcre_subst(request, orig, repl)) &&
 					*subst)
 			{
-				newloc = mknewurl(request, subst, 0);
-				do_get(newloc);
+				do_get(subst);
 				free(subst);
 				fclose(fp);
 				return true;
@@ -238,7 +228,6 @@ check_redirect(const char *cffile, const char *filename)
 			if ((subst = pcre_subst(request, orig, repl)) &&
 					*subst)
 			{
-				newloc = mknewurl(request, subst, 1);
 				do_proxy(host, subst);
 				free(subst);
 				fclose(fp);
@@ -247,7 +236,7 @@ check_redirect(const char *cffile, const char *filename)
 		}
 		else /* no command: redir to url */
 		{
-			newloc = mknewurl(request, command, 1);
+			newloc = mknewurl(request, command);
 			redirect(newloc, false, true);
 			fclose(fp);
 			return true;
