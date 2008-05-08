@@ -3,6 +3,3 @@
 - Redo Perl/Python support: current implementation is crippled
   because of closed fds and permission drop (setuid)
 - Make FastCGI usable
-- Global vhost redir (in httpd.conf?)
-
-- More intelligent http header (qvalue) parsing => sorted mapping
