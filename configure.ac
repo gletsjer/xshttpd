@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT(xshttpd, 36b11)
+AC_INIT([xshttpd],[36b11])
 SERVER_IDENT="xs-httpd/3.6 beta/0.11"
 AS_SHELL_SANITIZE
 AC_CONFIG_SRCDIR(src/httpd.c)
@@ -27,7 +27,7 @@ httpd_ldlags="${LDLAGS}"
 libxs_ldlags="${LDLAGS}"
 
 dnl Checks for header files.
-AC_GNU_SOURCE
+AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
 AC_CHECK_HEADERS([crypt.h err.h getopt.h sys/mman.h sys/param.h sys/resource.h sys/select.h sys/sendfile.h], [], [], [[]])
 AC_CHECK_HEADERS([sys/syslimits.h], [], [], [#include <sys/cdefs.h>
