@@ -76,10 +76,14 @@ append(char **buffer, bool prepend, const char * const format, ...)
 	va_list		ap;
 	char		*newbuf;
 	size_t		slen, llen;
+	static char	*empty_string = NULL;
 
 	newbuf = NULL;
+	if (!empty_string)
+		empty_string = strdup("");
+
 	va_start(ap, format);
-	llen = vsnprintf("", 0, format, ap);
+	llen = vsnprintf(empty_string, 0, format, ap);
 	va_end(ap);
 	if (!llen || !buffer)
 		return false;
@@ -87,7 +91,10 @@ append(char **buffer, bool prepend, const char * const format, ...)
 	if (!*buffer)
 	{
 		MALLOC(newbuf, char, llen + 1);
+		newbuf[0] = '\0';
+		va_start(ap, format);
 		vsnprintf(newbuf, llen + 1, format, ap);
+		va_end(ap);
 		*buffer = newbuf;
 		return true;
 	}
@@ -102,6 +109,7 @@ append(char **buffer, bool prepend, const char * const format, ...)
 		char	ch = newbuf[0];
 
 		memmove(newbuf + llen, newbuf, slen + 1);
+		newbuf[0] = '\0';
 		vsnprintf(newbuf, llen + 1, format, ap);
 		newbuf[llen] = ch;
 	}
