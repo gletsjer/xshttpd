@@ -74,19 +74,21 @@ static	bool
 append(char **buffer, bool prepend, const char * const format, ...)
 {
 	va_list		ap;
-	char		*line, *newbuf;
+	char		*newbuf;
 	size_t		slen, llen;
 
-	line = NULL;
+	newbuf = NULL;
 	va_start(ap, format);
-	llen = vasprintf(&line, format, ap);
+	llen = vsnprintf("", 0, format, ap);
 	va_end(ap);
-	if (!line)
+	if (!llen || !buffer)
 		return false;
 
-	if (!buffer || !*buffer)
+	if (!*buffer)
 	{
-		*buffer = line;
+		MALLOC(newbuf, char, llen + 1);
+		vsnprintf(newbuf, llen + 1, format, ap);
+		*buffer = newbuf;
 		return true;
 	}
 
@@ -94,15 +96,22 @@ append(char **buffer, bool prepend, const char * const format, ...)
 	REALLOC(*buffer, char, slen + llen + 1);
 	newbuf = *buffer;
 
+	va_start(ap, format);
 	if (prepend)
 	{
+		char	ch = newbuf[0];
+
 		memmove(newbuf + llen, newbuf, slen + 1);
-		memmove(newbuf, line, llen);
+		vsnprintf(newbuf, llen + 1, format, ap);
+		newbuf[llen] = ch;
 	}
 	else
-		memmove(newbuf + slen, line, llen + 1);
+	{
+		newbuf += slen;
+		vsnprintf(newbuf, llen + 1, format, ap);
+	}
 
-	free(line);
+	va_end(ap);
 	return true;
 }
 
