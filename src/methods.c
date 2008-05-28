@@ -372,22 +372,17 @@ static void
 senduncompressed(int fd)
 {
 	off_t		size;
+	struct stat	statbuf;
 
 	alarm(180);
 
-	size = lseek(fd, 0, SEEK_END);
-	if (-1 == size)
+	if (fstat(fd, &statbuf) < 0)
 	{
-		xserror(500, "Cannot lseek() to end of file");
+		xserror(500, "Cannot fstat() file");
 		close(fd);
 		return;
 	}
-	if (lseek(fd, 0, SEEK_SET))
-	{
-		xserror(500, "Cannot lseek() to beginning of file");
-		close(fd);
-		return;
-	}
+	size = statbuf.st_size;
 	if (headers >= 10)
 	{
 		if (!sendheaders(fd, size))
