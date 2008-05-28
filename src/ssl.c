@@ -415,6 +415,7 @@ secread_internal(int fd, void *buf, size_t count)
 					ERR_error_string(s_err, NULL));
 				break;
 			}
+			persistent = false;
 			break;
 		}
 		return ret;
@@ -439,6 +440,7 @@ secread_internal(int fd, void *buf, size_t count)
 				warn("read()");
 				break;
 			}
+			persistent = false;
 			break;
 		}
 		return ret;
