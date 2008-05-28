@@ -514,6 +514,7 @@ secwrite(const char *buf, size_t count)
 						ERR_error_string(s_err, NULL));
 					break;
 				}
+				persistent = false;
 				break;
 			}
 		}
@@ -533,11 +534,15 @@ secwrite(const char *buf, size_t count)
 				else if (errno == EAGAIN || errno == EINTR)
 					usleep(200);
 				else if (errno == EPIPE)
+				{
 					/* remote host aborted connection */
+					persistent = false;
 					break;
+				}
 				else
 				{
 					warn("write()");
+					persistent = false;
 					break;
 				}
 			}
