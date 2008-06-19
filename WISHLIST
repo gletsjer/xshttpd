@@ -3,3 +3,4 @@
 - Redo Perl/Python support: current implementation is crippled
   because of closed fds and permission drop (setuid)
 - Make FastCGI usable
+- Implement mod_dav with full WebDAV commands (fs backend)
