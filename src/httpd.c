@@ -84,9 +84,8 @@ static	int	sd, reqs, reqsc;
 static	bool	mainhttpd = true, in_progress = false;
 gid_t		origegid;
 uid_t		origeuid;
-char		currenttime[80], dateformat[MYBUFSIZ],
-		real_path[XS_PATH_MAX], currentdir[XS_PATH_MAX],
-		orig_filename[XS_PATH_MAX];
+char		currenttime[80],
+		real_path[XS_PATH_MAX], currentdir[XS_PATH_MAX];
 static	int	pidlock = -1;
 static	char	remoteaddr[NI_MAXHOST], remotehost[NI_MAXHOST];
 static	char	referer[MYBUFSIZ], orig[MYBUFSIZ], *startparams;
@@ -102,6 +101,7 @@ struct	env		env;
 
 static	void	filedescrs		(void);
 static	void	detach			(void);
+static	void	setcurrenttime		(void);
 static	void	child_handler		(int);
 static	void	term_handler		(int)	NORETURN;
 static	void	write_pidfile		(void);
@@ -118,7 +118,6 @@ static	void	standalone_socket	(int)	NORETURN;
 void
 stdheaders(bool lastmod, bool texthtml, bool endline)
 {
-	setcurrenttime();
 	secprintf("Date: %s\r\nServer: %s\r\n", currenttime, SERVER_IDENT);
 	if (lastmod)
 		secprintf("Last-modified: %s\r\nExpires: %s\r\n",
@@ -159,7 +158,7 @@ detach()
 #endif		/* HAVE_SETSID */
 }
 
-void
+static void
 setcurrenttime()
 {
 	time_t		thetime;
@@ -509,7 +508,6 @@ xserror(int code, const char *format, ...)
 	va_end(ap);
 
 	/* log error */
-	setcurrenttime();
 	fprintf((current && current->openerror) ? current->openerror : stderr,
 		"[%s] httpd(pid %" PRIpid "): %03d %s [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']\n",
 		currenttime, getpid(), code, message,
@@ -656,7 +654,6 @@ server_error(int code, const char *readable, const char *cgi)
 		if (temp)
 			*temp = '\0';
 	}
-	setcurrenttime();
 	fprintf((current && current->openerror) ? current->openerror : stderr,
 		"[%s] httpd(pid %" PRIpid "): %03d %s [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']\n",
 		currenttime, getpid(), code, readable,
@@ -707,7 +704,7 @@ logrequest(const char *request, off_t size)
 		fprintf(alog, "%s - - [%s] \"%s %s %s\" %03d %" PRIoff "\n",
 			env.remote_host,
 			buffer,
-			getenv("REQUEST_METHOD"), dynrequest,
+			env.request_method, dynrequest,
 			env.server_protocol,
 			session.rstatus,
 			size > 0 ? size : 0);
@@ -723,7 +720,7 @@ logrequest(const char *request, off_t size)
 			current ? current->hostname : config.system->hostname,
 			env.remote_host,
 			buffer,
-			getenv("REQUEST_METHOD"), dynrequest,
+			env.request_method, dynrequest,
 			env.server_protocol,
 			session.rstatus,
 			size > 0 ? size : 0,
@@ -735,7 +732,7 @@ logrequest(const char *request, off_t size)
 				" \"%s\" \"%s\"\n",
 			env.remote_host,
 			buffer,
-			getenv("REQUEST_METHOD"), dynrequest,
+			env.request_method, dynrequest,
 			env.server_protocol,
 			session.rstatus,
 			size > 0 ? size : 0,
@@ -761,13 +758,14 @@ process_request()
 	session.headers = true;
 	session.httpversion = 11;
 	env.server_protocol = "HTTP/1.1";
-	strlcpy(dateformat, "%a %b %e %H:%M:%S %Y", MYBUFSIZ);
+	strlcpy(session.dateformat, "%a %b %e %H:%M:%S %Y", sizeof session.dateformat);
 
 	orig[0] = referer[0] = line[0] =
-		real_path[0] = browser[0] = authentication[0] = '\0';
+		real_path[0] = browser[0] = '\0';
 	session.headonly = session.postonly = false;
 	current = NULL;
 	setup_environment();
+	setcurrenttime();
 
 	http_host[0] = '\0';
 
@@ -871,16 +869,16 @@ process_request()
 			}
 			else if (!strcasecmp("Referer", idx))
 			{
-				size_t	sz = strlen(val);
+				size_t	lenval = strlen(val);
 				strlcpy(referer, val, MYBUFSIZ);
-				while (sz-- > 0 && referer[sz] <= ' ')
-					referer[sz] = '\0';
+				while (lenval-- > 0 && referer[lenval] <= ' ')
+					referer[lenval] = '\0';
 				setenv("HTTP_REFERER", referer, 1);
 			}
 			else if (!strcasecmp("Authorization", idx))
 			{
-				strlcpy(authentication, val, MYBUFSIZ);
 				setenv("HTTP_AUTHORIZATION", val, 1);
+				env.authorization = getenv("HTTP_AUTHORIZATION");
 			}
 			else if (!strcasecmp("Connection", idx))
 			{
@@ -1135,6 +1133,8 @@ process_request()
 METHOD:
 	setenv("REQUEST_METHOD", line, 1);
 	setenv("REQUEST_URI", params, 1);
+	env.request_method = getenv("REQUEST_METHOD");
+	env.request_uri = getenv("REQUEST_URI");
 	if (!strcasecmp("GET", line))
 		do_get(params);
 	else if (!strcasecmp("HEAD", line))

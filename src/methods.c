@@ -102,6 +102,7 @@ static	bool	dynamic = false;
 #ifdef		HAVE_CURL
 static	size_t	curl_readlen;
 #endif		/* HAVE_CURL */
+static	char	orig_filename[XS_PATH_MAX];
 static	char	orig_pathname[XS_PATH_MAX];
 
 static char *
@@ -207,7 +208,7 @@ sendheaders(int fd, off_t size)
 			 * unless If-None-Match && method == GET
 			 */
 			if (abort_wo_match ||
-				strcmp(getenv("REQUEST_METHOD"), "GET"))
+				strcmp(env.request_method, "GET"))
 			{
 				server_error(412, "Precondition failed",
 					"PRECONDITION_FAILED");
@@ -622,7 +623,7 @@ find_file(const char *orgbase, const char *base, const char *file)
 void
 do_get(char *params)
 {
-	char			*temp, *file, *cgi, *question, *method,
+	char			*temp, *file, *cgi, *question,
 				base[XS_PATH_MAX], orgbase[XS_PATH_MAX],
 				total[XS_PATH_MAX], temppath[XS_PATH_MAX];
 	const	char		*filename, *http_host;
@@ -874,6 +875,7 @@ do_get(char *params)
 				*temp = '/';
 				setenv("PATH_INFO", temp, 1);
 				setenv("PATH_TRANSLATED", convertpath(temp), 1);
+				env.path_info = getenv("PATH_INFO");
 				if ((slash = strrchr(fullpath, '/')))
 					*slash = '\0';
 				setenv("PWD", fullpath, 1);
@@ -914,16 +916,14 @@ do_get(char *params)
 		file = temp + 1;
 		*temp = '/';
 	}
-	strlcpy(currentdir, base, XS_PATH_MAX);
 
 	if ((!*file) && (wasdir) && current->indexfiles)
 	{
 		char	*newpath;
 
-		setenv("PWD", currentdir, 1);
+		setenv("PWD", base, 1);
 		filename = current->indexfiles[0];
 		strlcat(real_path, filename, XS_PATH_MAX);
-		strlcat(currentdir, filename, XS_PATH_MAX);
 		asprintf(&newpath, "%s%s", base, real_path);
 		setenv("SCRIPT_FILENAME", newpath, 1);
 		free(newpath);
@@ -993,19 +993,18 @@ do_get(char *params)
 		return;
 
 	/* PUT and DELETE are handled by CGI scripts */
-	method = getenv("REQUEST_METHOD");
-	if (!strcasecmp(method, "PUT") || !strcasecmp(method, "DELETE"))
+	if (!strcasecmp(env.request_method, "PUT") ||
+		!strcasecmp(env.request_method, "DELETE"))
 	{
-		const char	*path;
-
-		if ((path = getenv("REQUEST_URI")))
+		if (env.request_uri)
 		{
-			setenv("PATH_INFO", path, 1);
-			setenv("PATH_TRANSLATED", convertpath(path), 1);
+			setenv("PATH_INFO", env.request_uri, 1);
+			setenv("PATH_TRANSLATED", convertpath(env.request_uri), 1);
+			env.path_info = env.request_uri;
 		}
 		if (cfvalues.putscript)
 		{
-			if (!strcasecmp(method, "PUT"))
+			if (!strcasecmp(env.request_method, "PUT"))
 				do_script(params, base, file, cfvalues.putscript);
 			else
 				do_script(params, base, file, cfvalues.delscript);
@@ -1071,8 +1070,6 @@ do_get(char *params)
 		}
 		else
 		{
-			char	*path_info = getenv("PATH_INFO");
-
 			http_host = getenv("HTTP_HOST");
 			if (strlen(params) > 1 &&
 				'/' == params[strlen(params)-2] &&
@@ -1089,7 +1086,7 @@ do_get(char *params)
 				strncmp(cursock->port, "http", 4) ? cursock->port : "",
 				params,
 				delay_redir ? "" : "/",
-				path_info ? path_info : "",
+				env.path_info ? env.path_info : "",
 				question ? "?" : "",
 				question ? question : "");
 

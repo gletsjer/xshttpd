@@ -520,12 +520,11 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 				if (!printerr)
 				{
-					setcurrenttime();
 					fprintf(logfile, "%% [%s] %s %s %s\n%% 200 %s\n"
 						"%%stderr\n",
 						currenttime,
-						getenv("REQUEST_METHOD"),
-						getenv("REQUEST_URI"),
+						env.request_method,
+						env.request_uri,
 						env.server_protocol,
 						fullpath);
 					printerr = 1;
@@ -555,12 +554,11 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			/* Script header read error */
 			if (logfile)
 			{
-				setcurrenttime();
 				fprintf(logfile, "%% [%s] %s %s %s\n%% 503 %s\n",
 					currenttime,
-					getenv("REQUEST_METHOD"),
-					getenv("REQUEST_URI"),
-					getenv("SERVER_PROTOCOL"),
+					env.request_method,
+					env.request_uri,
+					env.server_protocol,
 					fullpath);
 				fprintf(logfile, "%%%%error\n"
 					"503 Script did not end header\n");
@@ -663,7 +661,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					env.server_protocol);
 			if (!ctype)
 				append(&head, false, "Content-type: text/html\r\n");
-			setcurrenttime();
 			if (!lastmod)
 				append(&head, false, "Last-modified: %s\r\n",
 					currenttime);
@@ -753,14 +750,15 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 	if (!getenv("ERROR_CODE"))
 	{
-		char	*request, *pi;
+		char	*request;
 
-		pi = getenv("PATH_INFO");
 		if (env.query_string)
-			asprintf(&request, "%s%s?%s", path, pi ? pi : "",
+			asprintf(&request, "%s%s?%s", path,
+				env.path_info ? env.path_info : "",
 				env.query_string);
 		else
-			asprintf(&request, "%s%s", path, pi ? pi : "");
+			asprintf(&request, "%s%s", path,
+				env.path_info ? env.path_info : "");
 		logrequest(request, totalwritten);
 		free(request);
 	}

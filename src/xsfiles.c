@@ -387,7 +387,6 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 	while (fgets(line, LINEBUFSIZE, fp))
 	{
 		char    *p, *name, *value;
-		const char	*method = getenv("REQUEST_METHOD");
 
 		p = line;
 		while ((name = strsep(&p, " \t\r\n")) && !*name)
@@ -410,7 +409,8 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 			if ((p = strchr(name, '/')))
 			{
 				*p++ = '\0';
-				if (!method || strcasecmp(name, method))
+				if (!env.request_method ||
+					strcasecmp(name, env.request_method))
 					continue;
 				name = p;
 			}

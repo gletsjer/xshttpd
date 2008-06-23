@@ -22,7 +22,6 @@
 #include	"extra.h"
 #include	"malloc.h"
 
-char		authentication[MYBUFSIZ];
 static unsigned long	secret;
 static const bool	rfc2617_digest = true;
 
@@ -88,7 +87,7 @@ check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 	bool		allow;
 
 	/* basic auth */
-	strlcpy(line, authentication, MYBUFSIZ);
+	strlcpy(line, env.authorization, MYBUFSIZ);
 	find = line + strlen(line);
 	while ((find > line) && (*(find - 1) < ' '))
 		*(--find) = 0;
@@ -140,9 +139,9 @@ check_digest_auth(const char *authfile, bool *stale)
 	*stale = false;
 
 	/* digest auth, rfc 2069 */
-	if (strncmp(authentication, "Digest ", 7))
+	if (strncmp(env.authorization, "Digest ", 7))
 		return false; /* fail */
-	strlcpy(line, authentication + 7, MYBUFSIZ);
+	strlcpy(line, env.authorization + 7, MYBUFSIZ);
 	if (!*line)
 		return false;
 
@@ -195,7 +194,7 @@ check_digest_auth(const char *authfile, bool *stale)
 	}
 
 	/* calculate h(a2) */
-	len = asprintf(&a2, "%s:%s", getenv("REQUEST_METHOD"), uri);
+	len = asprintf(&a2, "%s:%s", env.request_method, uri);
 	MD5Data((unsigned char *)a2, len, ha2);
 	free(a2);
 
@@ -264,9 +263,9 @@ check_auth(const char *authfile, const struct ldap_auth *ldap, bool quiet)
 	else
 		digest = false;
 
-	if (!authentication[0] ||
-		(strncasecmp(authentication, "Basic", 5) &&
-		 strncasecmp(authentication, "Digest", 6)))
+	if (!env.authorization ||
+		(strncasecmp(env.authorization, "Basic", 5) &&
+		 strncasecmp(env.authorization, "Digest", 6)))
 	{
 		if (quiet)
 			return false;
@@ -307,7 +306,7 @@ check_auth(const char *authfile, const struct ldap_auth *ldap, bool quiet)
 	}
 #ifdef		HAVE_MD5
 	stale = false;
-	if ('d' == authentication[0] || 'D' == authentication[0])
+	if ('d' == env.authorization[0] || 'D' == env.authorization[0])
 	{
 		if (check_digest_auth(authfile, &stale))
 			return true;

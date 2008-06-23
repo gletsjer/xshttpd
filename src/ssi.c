@@ -567,7 +567,7 @@ dir_date_format(int argc, char **argv, off_t *size)
 	if (zone)
 		setenv("TZ", zone, 1);
 	if (format)
-		strlcpy(dateformat, format, MYBUFSIZ);
+		strlcpy(session.dateformat, format, sizeof session.dateformat);
 	(void)size;
 	return(ERR_NONE);
 }
@@ -579,7 +579,7 @@ dir_date(int argc, char **argv, off_t *size)
 	char		buffer[MYBUFSIZ];
 	char		*format, *zone, *ozone;
 
-	format = dateformat;
+	format = session.dateformat;
 	zone = ozone = NULL;
 	for (i = 0; i < argc; i += 2)
 		if (!strcmp(argv[i], "format"))
@@ -696,7 +696,7 @@ dir_last_mod(int argc, char **argv, off_t *size)
 			thetime = localtimenow();
 	}
 
-	strftime(buffer, MYBUFSIZ - 1, dateformat, thetime);
+	strftime(buffer, MYBUFSIZ - 1, session.dateformat, thetime);
 	*size += strlen(buffer);
 	return(secputs(buffer) == EOF ? ERR_QUIT : ERR_NONE);
 }
@@ -775,9 +775,9 @@ dir_run_cgi(int argc, char **argv, off_t *size)
 		setenv("QUERY_STRING", querystring, 1);
 		env.query_string = getenv("QUERY_STRING");
 	}
-	if (getenv("ORIG_PATH_INFO"))
+	if ((env.path_info = getenv("ORIG_PATH_INFO")))
 	{
-		setenv("PATH_INFO", getenv("ORIG_PATH_INFO"), 1);
+		setenv("PATH_INFO", env.path_info, 1);
 		unsetenv("ORIG_PATH_INFO");
 	}
 	if (getenv("ORIG_PATH_TRANSLATED"))

@@ -15,8 +15,7 @@
 
 #define		MINBYTESPERSEC	32
 
-extern	char	dateformat[], currentdir[],
-		currenttime[], real_path[], orig_filename[];
+extern	char	currenttime[], real_path[];
 extern	gid_t	origegid;
 extern	uid_t	origeuid;
 
@@ -27,6 +26,5 @@ void	redirect		(const char *, bool, bool) NONNULL;
 xs_error_t	readline	(int, char *, size_t) NONNULL WARNUNUSED;
 void	server_error		(int, const char *, const char *) NONNULL;
 void	logrequest		(const char *, off_t) NONNULL;
-void	setcurrenttime		(void);
 
 #endif		/* HTTPD_H */

@@ -125,11 +125,7 @@ extern struct configuration
 
 extern struct session
 {
-	char *		currenttime;	/* TDB */
-	char *		dateformat;	/* TDB */
-	char *		currentdir;	/* TDB */
-	char *		real_path;	/* TDB */
-	char *		orig_filename;	/* TDB */
+	char		dateformat[512];
 	unsigned int	httpversion;	/* 9, 10, 11 */
 	unsigned int	rstatus;	/* 200, 301, .. */
 	bool		headers;
@@ -143,11 +139,15 @@ extern struct session
 
 extern struct env
 {
-	off_t		content_length;
-	const char *	server_protocol;
+	const char *	authorization;
+	const char *	path_info;
 	const char *	query_string;
 	const char *	remote_addr;
 	const char *	remote_host;
+	const char *	request_method;
+	const char *	request_uri;
+	const char *	server_protocol;
+	off_t		content_length;
 } env;
 
 #endif		/* HTCONFIG_H */

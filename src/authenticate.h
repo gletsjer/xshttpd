@@ -28,8 +28,6 @@
 #define		REALM		"this page"
 #define		MAX_NONCE_LENGTH	60
 
-extern char	authentication[];
-
 void	initnonce	(void);
 bool	check_auth	(const char *, const struct ldap_auth *, bool)	WARNUNUSED;
 

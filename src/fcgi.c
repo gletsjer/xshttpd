@@ -35,11 +35,11 @@ int		fcgi_connect(fcgi_server * server);
 void		fcgi_disconnect(fcgi_server * server);
 void		begin_request(fcgi_server * server);
 int		fcgi_child_init(void);
-int		init_env(fcgi_env * env);
-void		free_env(fcgi_env * env);
-int		set_env(fcgi_env * env, const char *name, const char *value);
-void		build_env(fcgi_env * env);
-int		send_env(fcgi_server * server, fcgi_env * env);
+int		init_env(fcgi_env * fenv);
+void		free_env(fcgi_env * fenv);
+int		set_env(fcgi_env * fenv, const char *name, const char *value);
+void		build_env(fcgi_env * fenv);
+int		send_env(fcgi_server * server, fcgi_env * fenv);
 int		handle_record(fcgi_server * server, int, int);
 ssize_t		send_stream(fcgi_server * server, off_t length, unsigned char stream_id, int fd);
 ssize_t		recv_stream(fcgi_server * server, off_t length, int fd);
@@ -47,7 +47,7 @@ ssize_t		recv_stream(fcgi_server * server, off_t length, int fd);
 int
 run_fcgi(int fdin, int fdout, int fderr)
 {
-	fcgi_env	env;
+	fcgi_env	fenv;
 	int		request_ended = 0;
 	off_t		content_length = 0;
 	fcgi_server	*server = current->fcgiserver;
@@ -58,13 +58,13 @@ run_fcgi(int fdin, int fdout, int fderr)
 	if (getenv("CONTENT_LENGTH"))
 		content_length = (off_t)strtoull(getenv("CONTENT_LENGTH"),
 			NULL, 10);
-	init_env(&env);
-	build_env(&env);
+	init_env(&fenv);
+	build_env(&fenv);
 	write(fdout, "X-FastCGI: 1\r\n", 14);
 
 	fcgi_connect(server);
 	begin_request(server);
-	send_env(server, &env);
+	send_env(server, &fenv);
 	if (!content_length)
 		send_stream(server, 0, FCGI_STDIN, STDIN_FILENO);
 	/*
@@ -124,7 +124,7 @@ run_fcgi(int fdin, int fdout, int fderr)
 	}
 
 	fcgi_disconnect(server);
-	free_env(&env);
+	free_env(&fenv);
 	return 0;
 }
 
@@ -319,25 +319,25 @@ begin_request(fcgi_server * server)
 }
 
 int 
-init_env(fcgi_env * env)
+init_env(fcgi_env * fenv)
 {
-	env->buffer_size = 1024;
-	env->env_size = 0;
-	MALLOC(env->buffer, char, env->buffer_size);
+	fenv->buffer_size = 1024;
+	fenv->env_size = 0;
+	MALLOC(fenv->buffer, char, fenv->buffer_size);
 	return 0;
 }
 
 void 
-free_env(fcgi_env * env)
+free_env(fcgi_env * fenv)
 {
-	free(env->buffer);
-	env->buffer = NULL;
-	env->buffer_size = 0;
-	env->env_size = 0;
+	free(fenv->buffer);
+	fenv->buffer = NULL;
+	fenv->buffer_size = 0;
+	fenv->env_size = 0;
 }
 
 int 
-set_env(fcgi_env * env, const char *name, const char *value)
+set_env(fcgi_env * fenv, const char *name, const char *value)
 {
 	size_t		name_len = strlen(name);
 	size_t		value_len = strlen(value);
@@ -352,13 +352,13 @@ set_env(fcgi_env * env, const char *name, const char *value)
 	if (value_len > 127)
 		pair_type |= FCGI_PAIR_LONG_VALUE;
 
-	if (env->env_size + 8 + name_len + value_len < env->buffer_size)
+	if (fenv->env_size + 8 + name_len + value_len < fenv->buffer_size)
 	{
-		env->buffer_size += MAX(1024, 8 + name_len + value_len);
-		REALLOC(env->buffer, char, env->buffer_size);
+		fenv->buffer_size += MAX(1024, 8 + name_len + value_len);
+		REALLOC(fenv->buffer, char, fenv->buffer_size);
 	}
 
-	p = env->buffer + env->env_size;
+	p = fenv->buffer + fenv->env_size;
 
 	switch (pair_type)
 	{
@@ -405,12 +405,12 @@ set_env(fcgi_env * env, const char *name, const char *value)
 	memcpy(p, value, value_len);
 	p += value_len;
 
-	env->env_size = p - env->buffer;
+	fenv->env_size = p - fenv->buffer;
 	return 0;
 }
 
 void 
-build_env(fcgi_env * env)
+build_env(fcgi_env * fenv)
 {
 	char	*c, **p;
 
@@ -418,19 +418,19 @@ build_env(fcgi_env * env)
 		if ((c = strchr(*p, '=')))
 		{
 			*c = '\0';
-			set_env(env, *p, c + 1);
+			set_env(fenv, *p, c + 1);
 			*c = '=';
 		}
 	/* FIXME - return values not handled */
 }
 
 int 
-send_env(fcgi_server * server, fcgi_env * env)
+send_env(fcgi_server * server, fcgi_env * fenv)
 {
 	FCGI_record	record_header;
 
-	char	*p = env->buffer;
-	char	*q = env->buffer + env->env_size;
+	char	*p = fenv->buffer;
+	char	*q = fenv->buffer + fenv->env_size;
 
 	memset(&record_header, 0, sizeof(record_header));
 

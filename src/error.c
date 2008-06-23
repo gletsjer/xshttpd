@@ -206,10 +206,10 @@ no_relative_urls()
 static	void
 bad_request()
 {
-	const	char	*env;
+	const	char	*temp;
 
-	env = getenv("SERVER_PROTOCOL");
-	printf("<p>Your browser has made a <em>%s</em> request to\n", env);
+	temp = getenv("SERVER_PROTOCOL");
+	printf("<p>Your browser has made a <em>%s</em> request to\n", temp);
 	printf("this server, which is not valid according to the\n");
 	printf ("specification. The server can not possibly give you a\n");
 	printf ("sensible answer.</p>\n");
@@ -219,13 +219,13 @@ bad_request()
 static	void
 unknown_method()
 {
-	const	char	*env;
+	const	char	*temp;
 
-	env = getenv("REQUEST_METHOD");
+	temp = getenv("REQUEST_METHOD");
 	printf("<p>Your browser has used a retrieval method other than\n");
 	printf("<b>GET</b>, <b>POST</b>, <b>HEAD</b> and <b>OPTIONS</b>.\n");
 	printf("In fact it used the method <b>%s</b>,\n",
-		env ? env : "(unknown)");
+		temp ? temp : "(unknown)");
 	printf("which this server does not understand.</p>\n");
 	printf("<p><a href=\"/\">Get out of here!</a></p>\n");
 }
@@ -265,7 +265,6 @@ entity_too_large()
 static	void
 local_no_page()
 {
-	const	char	*env;
 	char		filename[XS_PATH_MAX], *temp;
 
 	strlcpy(buffer, error_url_escaped + 2, BUFSIZ);
@@ -274,7 +273,7 @@ local_no_page()
 	printf("<p>The user <b>%s</b>, whom you specified in your URL,\n",
 		buffer);
 	printf("exists on this system, but has no home page.\n");
-	if ((env = getenv("REMOTE_ADDR")) && !strncmp(env, "131.155.140.", 12))
+	if ((temp = getenv("REMOTE_ADDR")) && !strncmp(temp, "131.155.140.", 12))
 	{
 		printf("If you would like to start a home page,\n");
 		printf("please mail to <a href=\"mailto:");
