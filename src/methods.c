@@ -145,7 +145,7 @@ make_etag(struct stat *sb)
 static bool
 sendheaders(int fd, off_t size)
 {
-	char		*env, *etag;
+	char		*qenv, *etag;
 	time_t		modtime;
 	struct tm	reqtime;
 
@@ -180,14 +180,14 @@ sendheaders(int fd, off_t size)
 	}
 
 	if (etag &&
-		((env = getenv("HTTP_IF_MATCH")) ||
-		 (env = getenv("HTTP_IF_NONE_MATCH"))))
+		((qenv = getenv("HTTP_IF_MATCH")) ||
+		 (qenv = getenv("HTTP_IF_NONE_MATCH"))))
 	{
 		size_t	i, m, sz;
 		char	**list = NULL;
 		int	abort_wo_match = !!getenv("HTTP_IF_MATCH");
 
-		sz = qstring_to_arrayp(env, &list);
+		sz = qstring_to_arrayp(qenv, &list);
 		for (i = 0; i < sz; i++)
 		{
 			if (!list[i] || list[i][0])
@@ -215,19 +215,20 @@ sendheaders(int fd, off_t size)
 			}
 		}
 	}
-	if ((env = getenv("HTTP_IF_MODIFIED_SINCE")))
+	if ((qenv = getenv("HTTP_IF_MODIFIED_SINCE")))
 	{
-		strptime(env, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
+		strptime(qenv, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
 		if (!dynamic && (mktime(&reqtime) >= modtime))
 		{
-			headonly = true;
-			rstatus = 304;
-			secprintf("%s 304 Not modified\r\n", httpver);
+			session.headonly = true;
+			session.rstatus = 304;
+			secprintf("%s 304 Not modified\r\n",
+				env.server_protocol);
 		}
 	}
-	else if ((env = getenv("HTTP_IF_UNMODIFIED_SINCE")))
+	else if ((qenv = getenv("HTTP_IF_UNMODIFIED_SINCE")))
 	{
-		strptime(env, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
+		strptime(qenv, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
 		if (dynamic || (mktime(&reqtime) >= modtime))
 		{
 			server_error(412, "Precondition failed",
@@ -302,7 +303,7 @@ sendheaders(int fd, off_t size)
 	}
 
 	/* All preconditions satisfied */
-	secprintf("%s 200 OK\r\n", httpver);
+	secprintf("%s 200 OK\r\n", env.server_protocol);
 	stdheaders(false, false, false);
 	if (cfvalues.charset)
 		secprintf("Content-type: %s; charset=%s\r\n",
@@ -312,11 +313,11 @@ sendheaders(int fd, off_t size)
 
 	if (dynamic)
 	{
-		if (headers >= 11)
+		if (session.httpversion >= 11)
 		{
 			secprintf("Cache-control: no-cache\r\n");
 			secputs("Transfer-encoding: chunked\r\n");
-			if (config.usecontentmd5 && trailers)
+			if (config.usecontentmd5 && session.trailers)
 				secprintf("Trailer: Content-MD5\r\n");
 		}
 		else
@@ -383,7 +384,7 @@ senduncompressed(int fd)
 		return;
 	}
 	size = statbuf.st_size;
-	if (headers >= 10)
+	if (session.headers)
 	{
 		if (!sendheaders(fd, size))
 		{
@@ -392,7 +393,7 @@ senduncompressed(int fd)
 		}
 	}
 
-	if (headonly)
+	if (session.headonly)
 		goto DONE;
 
 	UNPARSED:
@@ -415,20 +416,20 @@ senduncompressed(int fd)
 #endif		/* TCP_NOPUSH */
 
 #ifdef		HAVE_BSD_SENDFILE
-		if (!cursock->usessl && !chunked && valid_size_t_size)
+		if (!cursock->usessl && !session.chunked && valid_size_t_size)
 		{
 			if (sendfile(fd, 1, 0, size, NULL, NULL, 0) < 0)
 				xserror(599, "Aborted sendfile for `%s'",
-					remotehost[0] ? remotehost : "(none)");
+					env.remote_host ? env.remote_host : "(none)");
 		}
 		else
 #endif		/* HAVE_BSD_SENDFILE */
 #ifdef		HAVE_LINUX_SENDFILE	/* cannot have both */
-		if (!cursock->usessl && !chunked && valid_size_t_size)
+		if (!cursock->usessl && !session.chunked && valid_size_t_size)
 		{
 			if (sendfile(1, fd, NULL, size) < 0)
 				xserror(599, "Aborted sendfile for `%s'",
-					remotehost[0] ? remotehost : "(none)");
+					env.remote_host ? env.remote_host : "(none)");
 		}
 		else
 #endif		/* HAVE_LINUX_SENDFILE */
@@ -446,11 +447,11 @@ senduncompressed(int fd)
 			{
 				if (written != -1)
 					xserror(599, "Aborted for `%s' (%zu of %zu bytes sent)",
-						remotehost[0] ? remotehost : "(none)",
+						env.remote_host ? env.remote_host : "(none)",
 						written, msize);
 				else
 					xserror(599, "Aborted for `%s'",
-						remotehost[0] ? remotehost : "(none)");
+						env.remote_host ? env.remote_host : "(none)");
 			}
 			(void) munmap(buffer, msize);
 			size = written;
@@ -472,7 +473,7 @@ senduncompressed(int fd)
 				{
 					xserror(599, "Aborted for `%s' (No mmap) (%" PRIoff
 							" of %" PRIoff " bytes sent)",
-						remotehost[0] ? remotehost : "(none)",
+						env.remote_host ? env.remote_host : "(none)",
 						writetotal + written, size);
 					size = writetotal;
 					goto DONE;
@@ -488,11 +489,11 @@ senduncompressed(int fd)
 		off_t		usize = 0;
 		int		errval;
 
-		if (headers >= 11)
+		if (session.httpversion >= 11)
 		{
-			chunked = true;
+			session.chunked = true;
 #ifdef		HAVE_LIBMD
-			if (config.usecontentmd5 && trailers)
+			if (config.usecontentmd5 && session.trailers)
 			{
 				MALLOC(md5context, MD5_CTX, 1);
 				MD5Init(md5context);
@@ -508,7 +509,7 @@ senduncompressed(int fd)
 		{
 		case ERR_QUIT:
 			xserror(599, "Aborted for `%s' (ERR_QUIT)",
-				remotehost[0] ? remotehost : "(none)");
+				env.remote_host ? env.remote_host : "(none)");
 			break;
 		case ERR_CONT:
 			goto UNPARSED;
@@ -662,7 +663,7 @@ do_get(char *params)
 
 	strlcpy(real_path, params, XS_PATH_MAX);
 	setproctitle("xs: Handling `%s %s' from `%s'",
-		postonly ? "POST" : "GET", real_path, remotehost);
+		session.postonly ? "POST" : "GET", real_path, env.remote_host);
 	userinfo = NULL;
 
 	if (!origeuid)
@@ -798,6 +799,7 @@ do_get(char *params)
 			? question[0] = '=', question
 			: question + 1;
 		setenv("QUERY_STRING", qs, 1);
+		env.query_string = getenv("QUERY_STRING");
 		qs = shellencode(qs);
 		setenv("QUERY_STRING_UNESCAPED", qs, 1);
 		free(qs);
@@ -1189,7 +1191,7 @@ do_get(char *params)
 		}
 	}
 
-	if (postonly)
+	if (session.postonly)
 	{
 		setenv("HTTP_ALLOW", "GET, HEAD", 1);
 		server_error(405, "Method not allowed", "METHOD_NOT_ALLOWED");
@@ -1266,10 +1268,10 @@ do_get(char *params)
 
 	/* add original arguments back to real_path */
 	setenv("SCRIPT_FILENAME", convertpath(real_path), 1);
-	if (getenv("QUERY_STRING"))
+	if (env.query_string)
 	{
 		strlcat(real_path, "?", XS_PATH_MAX);
-		strlcat(real_path, getenv("QUERY_STRING"), XS_PATH_MAX);
+		strlcat(real_path, env.query_string, XS_PATH_MAX);
 	}
 	params = real_path;
 	wasdir = false;
@@ -1279,28 +1281,26 @@ do_get(char *params)
 void
 do_post(char *params)
 {
-	const	char	* const cl = getenv("CONTENT_LENGTH");
+	off_t cl = env.content_length;
 
-	postonly = true;	/* const: this is a post */
-	postread = false;	/* var: modified when data buffer is read */
+	session.postonly = true;	/* const: this is a post */
+	session.postread = false;	/* var: modified when data buffer is read */
 	do_get(params);
 
 	/* flush data buffer if posting was never read */
-	if (!postread && cl)
+	if (!session.postread && cl)
 	{
-		off_t	rlen;
 		char	*rbuf;
 			
 		errno = 0;
-		rlen = (off_t)strtoull(cl, NULL, 10);
-		if (ERANGE == errno || rlen > INT_MAX)
+		if (ERANGE == errno || cl > INT_MAX)
 		{
 			server_error(413, "Request Entity Too Large",
 				"ENTITY_TOO_LARGE");
 			return;
 		}
-		MALLOC(rbuf, char, rlen + 1);
-		secread(0, rbuf, rlen);
+		MALLOC(rbuf, char, cl + 1);
+		secread(0, rbuf, cl);
 		free(rbuf);
 	}
 }
@@ -1332,14 +1332,14 @@ do_delete(char *params)
 void
 do_head(char *params)
 {
-	headonly = true;
+	session.headonly = true;
 	do_get(params);
 }
 
 void
 do_options(const char *params)
 {
-	secprintf("%s 200 OK\r\n", httpver);
+	secprintf("%s 200 OK\r\n", env.server_protocol);
 	stdheaders(false, false, false);
 	secputs("Content-length: 0\r\n"
 		"Allow: GET, HEAD, POST, PUT, DELETE, OPTIONS, TRACE\r\n"
@@ -1369,7 +1369,7 @@ do_trace(const char *params)
 			http_headers.elements[1].value);
 	else
 		outlen = snprintf(output, mlen, "TRACE %s %s\r\n",
-			params, httpver);
+			params, env.server_protocol);
 
 	for (size_t i = 0; i < http_headers.size; i++)
 	{
@@ -1385,7 +1385,7 @@ do_trace(const char *params)
 	}
 	
 	freeheaders(&http_headers);
-	secprintf("%s 200 OK\r\n", httpver);
+	secprintf("%s 200 OK\r\n", env.server_protocol);
 	stdheaders(false, false, false);
 	secprintf("Content-length: %zu\r\n", outlen);
 	secputs("Content-type: message/http\r\n\r\n");
@@ -1412,9 +1412,9 @@ do_proxy(const char *proxy, const char *params)
 		asprintf(&request, "http://%s%s", proxy, params);
 	curl_easy_setopt(handle, CURLOPT_URL, request);
 	/* curl_easy_setopt(handle, CURLOPT_VERBOSE, 1); */
-	if (postonly)
+	if (session.postonly)
 	{
-		curl_readlen = strtoul(getenv("CONTENT_LENGTH"), NULL, 10);
+		curl_readlen = env.content_length;
 		curl_easy_setopt(handle, CURLOPT_POST, 1);
 		curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE, curl_readlen);
 		curl_easy_setopt(handle, CURLOPT_READDATA, stdin);
@@ -1424,7 +1424,8 @@ do_proxy(const char *proxy, const char *params)
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, stdout);
 	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, secfwrite);
 	curl_easy_setopt(handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
-	persistent = false; headers = 10; /* force HTTP/1.0 */
+	session.persistent = false;
+	session.httpversion = 10; /* force HTTP/1.0 */
 
 	if (curl_easy_perform(handle))
 		xserror(500, "Internal forwarding error");

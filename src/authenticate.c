@@ -280,9 +280,10 @@ check_auth(const char *authfile, const struct ldap_auth *ldap, bool quiet)
 			"<body><h1>Unauthorized</h1><p>Your client does \n"
 			"not understand %s authentication</p></body></html>\n",
 			digest ? "digest" : "basic");
-		if (headers)
+		if (session.headers)
 		{
-			secprintf("%s 401 Unauthorized\r\n", httpver);
+			secprintf("%s 401 Unauthorized\r\n",
+				env.server_protocol);
 #ifdef		HAVE_MD5
 			if (digest)
 			{
@@ -330,9 +331,10 @@ check_auth(const char *authfile, const struct ldap_auth *ldap, bool quiet)
 		"<body><h1>Wrong user/password combination</h1>\n"
 		"You don't have permission to view this page.\n"
 		"</body></html>\n");
-	if (headers)
+	if (session.headers)
 	{
-		secprintf("%s 401 Wrong user/password combination\r\n", httpver);
+		secprintf("%s 401 Wrong user/password combination\r\n",
+			env.server_protocol);
 #ifdef		HAVE_MD5
 		if (digest)
 		{
@@ -375,7 +377,7 @@ fresh_nonce(void)
 	size_t	len;
 
 	len = asprintf(&buf, "%" PRItimex ":%lu:%s",
-		ts, secret, getenv("REMOTE_ADDR"));
+		ts, secret, env.remote_addr);
 	MD5Data((unsigned char *)buf, len, bufhex);
 	free(buf);
 
@@ -400,7 +402,7 @@ valid_nonce(const char *nonce)
 	ts = strtol(nonce, NULL, 16);
 
 	len = asprintf(&buf, "%" PRItimex ":%lu:%s",
-		ts, secret, getenv("REMOTE_ADDR"));
+		ts, secret, env.remote_addr);
 	MD5Data((unsigned char *)buf, len, bufhex);
 	free(buf);
 

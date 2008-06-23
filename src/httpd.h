@@ -15,11 +15,8 @@
 
 #define		MINBYTESPERSEC	32
 
-extern	char	remotehost[], dateformat[], currentdir[],
-		currenttime[], httpver[], real_path[],
-		orig_filename[];
-extern	int		headers, rstatus;
-extern	bool		headonly, postonly, postread, chunked, persistent, trailers;
+extern	char	dateformat[], currentdir[],
+		currenttime[], real_path[], orig_filename[];
 extern	gid_t	origegid;
 extern	uid_t	origeuid;
 

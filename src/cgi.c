@@ -129,7 +129,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	off_t		totalwritten;
 	char		fullpath[XS_PATH_MAX], input[RWBUFSIZE],
 			line[LINEBUFSIZE];
-	char		*argv1;
+	const char	*argv1;
 	int		p[2], r[2], chldstat;
 	bool		nph, dossi;
 	unsigned int	left;
@@ -198,7 +198,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 	}
 
-	ssl_post = postonly;
+	ssl_post = session.postonly;
 	if (ssl_post)
 	{
 		char	*expect = getenv("HTTP_EXPECT");
@@ -210,7 +210,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			return;
 		}
 		if (expect && strcasestr(expect, "100-continue"))
-			secprintf("%s 100 Continue\r\n\r\n", httpver);
+			secprintf("%s 100 Continue\r\n\r\n",
+				env.server_protocol);
 		else if (expect)
 		{
 			xserror(417, "Expectation failed");
@@ -329,7 +330,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			secprintf("[Cannot change directory]\n");
 			exit(1);
 		}
-		argv1 = getenv("QUERY_STRING");
+		argv1 = env.query_string;
 		if (argv1 && strchr(argv1, '='))
 			argv1 = NULL;
 
@@ -450,7 +451,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 		if (cbuf)
 			free(cbuf);
-		postread = true;
+		session.postread = true;
 		close(q[1]);
 		q[1] = -1;
 	}
@@ -458,7 +459,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	{
 		off_t		writetodo;
 
-		writetodo = (off_t)strtoull(getenv("CONTENT_LENGTH"), NULL, 10);
+		writetodo = env.content_length;
 		while (writetodo > 0)
 		{
 			char	inbuf[RWBUFSIZE];
@@ -494,7 +495,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			writetodo -= tobewritten;
 		}
 
-		postread = true;
+		session.postread = true;
 		close(q[1]);
 		q[1] = -1;
 	}
@@ -525,7 +526,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 						currenttime,
 						getenv("REQUEST_METHOD"),
 						getenv("REQUEST_URI"),
-						getenv("SERVER_PROTOCOL"),
+						env.server_protocol,
 						fullpath);
 					printerr = 1;
 				}
@@ -579,15 +580,17 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				if (!strcasecmp(idx, "Status"))
 				{
 					status = true;
-					rstatus = strtoul(val, NULL, 10);
-					append(&head, true, "%s %s\r\n", httpver, val);
+					session.rstatus = strtoul(val, NULL, 10);
+					append(&head, true, "%s %s\r\n",
+						env.server_protocol, val);
 					continue;
 				}
 				else if (!strcasecmp(idx, "Location"))
 				{
 					status = true;
-					rstatus = 302;
-					append(&head, true, "%s 302 Moved\r\n", httpver);
+					session.rstatus = 302;
+					append(&head, true, "%s 302 Moved\r\n",
+						env.server_protocol);
 				}
 			}
 
@@ -625,7 +628,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			}
 			else if (!strcasecmp(idx, "Cache-control"))
 			{
-				if (headers >= 11)
+				if (session.httpversion >= 11)
 					append(&head, false, "Cache-control: %s\r\n", val);
 				else if (!pragma)
 					append(&head, false, "Pragma: no-cache\r\n");
@@ -633,7 +636,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			}
 			else if (!strcasecmp(idx, "Pragma"))
 			{
-				if (headers < 11 && !pragma)
+				if (session.httpversion < 11 && !pragma)
 					append(&head, false, "Pragma: %s\r\n", val);
 				pragma = true;
 			}
@@ -653,10 +656,11 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			else
 				append(&head, false, "%s: %s\r\n", idx, val);
 		}
-		if (headers >= 10)
+		if (session.headers)
 		{
 			if (!status)
-				append(&head, true, "%s 200 OK\r\n", httpver);
+				append(&head, true, "%s 200 OK\r\n",
+					env.server_protocol);
 			if (!ctype)
 				append(&head, false, "Content-type: text/html\r\n");
 			setcurrenttime();
@@ -665,15 +669,16 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					currenttime);
 			if (!server)
 				append(&head, false, "Server: %s\r\n", SERVER_IDENT);
-			if (headers >= 11)
+			if (session.httpversion >= 11)
 				append(&head, false, "Transfer-encoding: chunked\r\n");
 			append(&head, false, "Date: %s\r\n", currenttime);
 			secprintf("%s\r\n", head);
 			if (head)
 				free(head);
 			/* 304 pages don't even get an empty body */
-			if (rstatus != 204 && rstatus != 304 && headers >= 11)
-				chunked = true;
+			if (session.rstatus != 204 && session.rstatus != 304 &&
+					session.httpversion >= 11)
+				session.chunked = true;
 		}
 		freeheaders(&http_headers);
 	}
@@ -687,7 +692,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				CLOSEFD;
 				return;
 			}
-			if (headers >= 10)
+			if (session.headers)
 				secputs(line);
 			if (!line[0])
 				break;
@@ -695,7 +700,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	}
 	fflush(stdout);
 
-	if (headonly)
+	if (session.headonly)
 		goto END;
 
 	totalwritten = 0;
@@ -748,11 +753,12 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 	if (!getenv("ERROR_CODE"))
 	{
-		char	*request, *qs, *pi;
+		char	*request, *pi;
 
 		pi = getenv("PATH_INFO");
-		if ((qs = getenv("QUERY_STRING")))
-			asprintf(&request, "%s%s?%s", path, pi ? pi : "", qs);
+		if (env.query_string)
+			asprintf(&request, "%s%s?%s", path, pi ? pi : "",
+				env.query_string);
 		else
 			asprintf(&request, "%s%s", path, pi ? pi : "");
 		logrequest(request, totalwritten);

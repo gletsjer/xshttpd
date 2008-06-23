@@ -123,4 +123,31 @@ extern struct configuration
 	struct socket_config *	sockets;
 } config;
 
+extern struct session
+{
+	char *		currenttime;	/* TDB */
+	char *		dateformat;	/* TDB */
+	char *		currentdir;	/* TDB */
+	char *		real_path;	/* TDB */
+	char *		orig_filename;	/* TDB */
+	unsigned int	httpversion;	/* 9, 10, 11 */
+	unsigned int	rstatus;	/* 200, 301, .. */
+	bool		headers;
+	bool		headonly;
+	bool		postonly;
+	bool		postread;
+	bool		chunked;
+	bool		persistent;
+	bool		trailers;
+} session;
+
+extern struct env
+{
+	off_t		content_length;
+	const char *	server_protocol;
+	const char *	query_string;
+	const char *	remote_addr;
+	const char *	remote_host;
+} env;
+
 #endif		/* HTCONFIG_H */

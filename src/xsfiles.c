@@ -325,7 +325,6 @@ check_allow_host(const char *hostname, char *pattern)
 bool
 check_noxs(const char *cffile)
 {
-	char	*remoteaddr;
 	char	allowhost[256];
 	FILE	*rfile;
 
@@ -336,7 +335,7 @@ check_noxs(const char *cffile)
 		return true; /* access denied */
 	}
 
-	if (!(remoteaddr = getenv("REMOTE_ADDR")))
+	if (!env.remote_addr)
 	{
 		server_error(403, "File is not available", "NOT_AVAILABLE");
 		return true; /* access denied */
@@ -351,7 +350,7 @@ check_noxs(const char *cffile)
 		if (!allowhost[0] || '#' == allowhost[0])
 			continue;
 
-		if (check_allow_host(remoteaddr, allowhost))
+		if (check_allow_host(env.remote_addr, allowhost))
 		{
 			fclose(rfile);
 			return false; /* access granted */
@@ -466,7 +465,6 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 		}
 		else if (!strcasecmp(name, "Restrict"))
 		{
-			const char	*remoteaddr = getenv("REMOTE_ADDR");
 			char		**restrictions = NULL;
 			size_t		i, sz;
 
@@ -475,7 +473,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 
 			for (i = 0; i < sz; i++)
 				restrictallow |= check_allow_host
-					(remoteaddr, restrictions[i]);
+					(env.remote_addr, restrictions[i]);
 			free_string_array(restrictions, sz);
 		}
 		else if (!strcasecmp(name, "MimeType"))

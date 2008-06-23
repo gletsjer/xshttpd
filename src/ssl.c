@@ -415,7 +415,7 @@ secread_internal(int fd, void *buf, size_t count)
 					ERR_error_string(s_err, NULL));
 				break;
 			}
-			persistent = false;
+			session.persistent = false;
 			break;
 		}
 		return ret;
@@ -440,7 +440,7 @@ secread_internal(int fd, void *buf, size_t count)
 				warn("read()");
 				break;
 			}
-			persistent = false;
+			session.persistent = false;
 			break;
 		}
 		return ret;
@@ -464,7 +464,7 @@ secwrite(const char *buf, size_t count)
 	if (!count)
 		return 0;
 
-	if (chunked)
+	if (session.chunked)
 	{
 		static char	head[20];
 
@@ -514,7 +514,7 @@ secwrite(const char *buf, size_t count)
 						ERR_error_string(s_err, NULL));
 					break;
 				}
-				persistent = false;
+				session.persistent = false;
 				break;
 			}
 		}
@@ -536,13 +536,13 @@ secwrite(const char *buf, size_t count)
 				else if (errno == EPIPE)
 				{
 					/* remote host aborted connection */
-					persistent = false;
+					session.persistent = false;
 					break;
 				}
 				else
 				{
 					warn("write()");
-					persistent = false;
+					session.persistent = false;
 					break;
 				}
 			}

@@ -80,21 +80,21 @@ static char copyright[] = "Copyright 1995-2008 Sven Berkvens, Johan van Selst";
 
 /* Global variables */
 
-int		headers, rstatus;
-bool		headonly, postonly, postread, chunked, persistent, trailers;
 static	int	sd, reqs, reqsc;
 static	bool	mainhttpd = true, in_progress = false;
 gid_t		origegid;
 uid_t		origeuid;
-char		remotehost[NI_MAXHOST], remoteaddr[NI_MAXHOST],
-		currenttime[80], httpver[16], dateformat[MYBUFSIZ],
+char		currenttime[80], dateformat[MYBUFSIZ],
 		real_path[XS_PATH_MAX], currentdir[XS_PATH_MAX],
 		orig_filename[XS_PATH_MAX];
 static	int	pidlock = -1;
-static	char	browser[MYBUFSIZ], referer[MYBUFSIZ],
-		message503[MYBUFSIZ], orig[MYBUFSIZ],
-		*startparams;
+static	char	remoteaddr[NI_MAXHOST], remotehost[NI_MAXHOST];
+static	char	referer[MYBUFSIZ], orig[MYBUFSIZ], *startparams;
+static	const char	*message503;
+struct	session		session;
+struct	env		env;
 #define CLEANENV do { \
+	memset(&env, 0, sizeof(struct env));\
 	MALLOC(environ, char *, 1);\
 	*environ = NULL; } while (0)
 
@@ -425,7 +425,7 @@ alarm_handler(int sig)
 		endssl();
 		close(0);
 		close(1);
-		persistent = false;
+		session.persistent = false;
 		return;
 	}
 	(void)sig;
@@ -435,14 +435,12 @@ alarm_handler(int sig)
 static	void
 core_handler(int sig)
 {
-	const	char	*env;
-
 	alarm(0); setcurrenttime();
-	env = getenv("QUERY_STRING");
 	errx(1, "[%s] httpd(pid % " PRIpid "): FATAL SIGNAL %d [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']",
 		currenttime, getpid(), sig,
-		remotehost[0] ? remotehost : "(none)",
-		orig[0] ? orig : "(none)", env ? env : "(none)",
+		env.remote_host ? env.remote_host : "(none)",
+		orig[0] ? orig : "(none)",
+		env.query_string ? env.query_string : "(none)",
 		current ? current->hostname : config.system->hostname,
 		referer[0] ? referer : "(none)");
 }
@@ -501,7 +499,6 @@ set_signals()
 void
 xserror(int code, const char *format, ...)
 {
-	const	char	*env;
 	char		*errmsg = NULL;
 	va_list		ap;
 	char		*message;
@@ -513,12 +510,12 @@ xserror(int code, const char *format, ...)
 
 	/* log error */
 	setcurrenttime();
-	env = getenv("QUERY_STRING");
 	fprintf((current && current->openerror) ? current->openerror : stderr,
 		"[%s] httpd(pid %" PRIpid "): %03d %s [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']\n",
 		currenttime, getpid(), code, message,
-		remotehost[0] ? remotehost : "(none)",
-		orig[0] ? orig : "(none)", env ? env : "(none)",
+		env.remote_host ? env.remote_host : "(none)",
+		orig[0] ? orig : "(none)",
+		env.query_string ? env.query_string : "(none)",
 		current ? current->hostname : config.system->hostname,
 		referer[0] ? referer : "(none)");
 	fflush(stderr);
@@ -528,7 +525,7 @@ xserror(int code, const char *format, ...)
 		return;
 
 	/* display error */
-	if (!headonly)
+	if (!session.headonly)
 	{
 		asprintf(&errmsg,
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -540,16 +537,16 @@ xserror(int code, const char *format, ...)
 			code, message,
 			code, message);
 	}
-	if (headers)
+	if (session.headers)
 	{
-		secprintf("%s %03d %s\r\n", httpver, code, message);
+		secprintf("%s %03d %s\r\n", env.server_protocol, code, message);
 		secprintf("Content-length: %zu\r\n",
 			errmsg ? strlen(errmsg) : 0);
-		if ((env = getenv("HTTP_ALLOW")))
-			secprintf("Allow: %s\r\n", env);
+		if ((getenv("HTTP_ALLOW")))
+			secprintf("Allow: %s\r\n", getenv("HTTP_ALLOW"));
 		stdheaders(true, true, true);
 	}
-	if (!headonly)
+	if (!session.headonly)
 	{
 		secputs(errmsg);
 		free(errmsg);
@@ -559,12 +556,12 @@ xserror(int code, const char *format, ...)
 void
 redirect(const char *redir, bool permanent, bool pass_env)
 {
-	const	char	*env = NULL;
+	const	char	*qs = NULL;
 	char		*errmsg = NULL;
 
 	if (pass_env)
-		env = getenv("QUERY_STRING");
-	if (!headonly)
+		qs = env.query_string;
+	if (!session.headonly)
 	{
 		asprintf(&errmsg,
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -576,21 +573,23 @@ redirect(const char *redir, bool permanent, bool pass_env)
 			"<p>This document has %s moved to "
 			"<a href=\"%s%s%s\">%s</a>.</p></body></html>\n",
 			permanent ?  "permanently" : "",
-			redir, env ? "?" : "", env ? env : "", redir);
+			redir, qs ? "?" : "", qs ? qs : "", redir);
 	}
-	if (headers)
+	if (session.headers)
 	{
-		if (env)
-			secprintf("%s %s moved\r\nLocation: %s?%s\r\n", httpver,
-				permanent ? "301 Permanently" : "302 Temporarily", redir, env);
+		if (qs)
+			secprintf("%s %s moved\r\nLocation: %s?%s\r\n",
+				env.server_protocol,
+				permanent ? "301 Permanently" : "302 Temporarily", redir, qs);
 		else
-			secprintf("%s %s moved\r\nLocation: %s\r\n", httpver,
+			secprintf("%s %s moved\r\nLocation: %s\r\n",
+				env.server_protocol,
 				permanent ? "301 Permanently" : "302 Temporarily", redir);
 		secprintf("Content-length: %zu\n", errmsg ? strlen(errmsg) : 0);
 		stdheaders(true, true, true);
 	}
-	rstatus = permanent ? 301 : 302;
-	if (!headonly)
+	session.rstatus = permanent ? 301 : 302;
+	if (!session.headonly)
 	{
 		secputs(errmsg);
 		free(errmsg);
@@ -604,11 +603,10 @@ server_error(int code, const char *readable, const char *cgi)
 	char		cgipath[XS_PATH_MAX],
 			errmsg[LINEBUFSIZE];
 	const char	filename[] = "/error";
-	const char	*env;
 
 	if (!current)
 		current = config.system;
-	if (headonly || getenv("ERROR_CODE"))
+	if (session.headonly || getenv("ERROR_CODE"))
 	{
 		xserror(code, "%s", readable);
 		return;
@@ -619,7 +617,6 @@ server_error(int code, const char *readable, const char *cgi)
 	setenv("ERROR_URL", orig, 1);
 	setenv("ERROR_URL_EXPANDED", convertpath(orig), 1);
 	setenv("ERROR_URL_ESCAPED", *orig ? escape(orig) : "", 1);
-	env = getenv("QUERY_STRING");
 	/* Look for user-defined error script */
 	if (current == config.users)
 	{
@@ -663,8 +660,9 @@ server_error(int code, const char *readable, const char *cgi)
 	fprintf((current && current->openerror) ? current->openerror : stderr,
 		"[%s] httpd(pid %" PRIpid "): %03d %s [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']\n",
 		currenttime, getpid(), code, readable,
-		remotehost[0] ? remotehost : "(none)",
-		orig[0] ? orig : "(none)", env ? env : "(none)",
+		env.remote_host ? env.remote_host : "(none)",
+		orig[0] ? orig : "(none)",
+		env.query_string ? env.query_string : "(none)",
 		current ? current->hostname : config.system->hostname,
 		referer[0] ? referer : "(none)");
 	do_script(orig, cgipath, filename, NULL);
@@ -707,10 +705,11 @@ logrequest(const char *request, off_t size)
 			? current->openreferer
 			: config.system->openreferer;
 		fprintf(alog, "%s - - [%s] \"%s %s %s\" %03d %" PRIoff "\n",
-			remotehost,
+			env.remote_host,
 			buffer,
-			getenv("REQUEST_METHOD"), dynrequest, httpver,
-			rstatus,
+			getenv("REQUEST_METHOD"), dynrequest,
+			env.server_protocol,
+			session.rstatus,
 			size > 0 ? size : 0);
 		if (rlog &&
 			(!current->thisdomain || !strcasestr(referer, current->thisdomain)))
@@ -722,10 +721,11 @@ logrequest(const char *request, off_t size)
 		fprintf(alog, "%s %s - - [%s] \"%s %s %s\" %03d %" PRIoff
 				" \"%s\" \"%s\"\n",
 			current ? current->hostname : config.system->hostname,
-			remotehost,
+			env.remote_host,
 			buffer,
-			getenv("REQUEST_METHOD"), dynrequest, httpver,
-			rstatus,
+			getenv("REQUEST_METHOD"), dynrequest,
+			env.server_protocol,
+			session.rstatus,
 			size > 0 ? size : 0,
 			referer,
 			dynagent);
@@ -733,10 +733,11 @@ logrequest(const char *request, off_t size)
 	case log_combined:
 		fprintf(alog, "%s - - [%s] \"%s %s %s\" %03d %" PRIoff
 				" \"%s\" \"%s\"\n",
-			remotehost,
+			env.remote_host,
 			buffer,
-			getenv("REQUEST_METHOD"), dynrequest, httpver,
-			rstatus,
+			getenv("REQUEST_METHOD"), dynrequest,
+			env.server_protocol,
+			session.rstatus,
 			size > 0 ? size : 0,
 			referer,
 			dynagent);
@@ -753,27 +754,29 @@ logrequest(const char *request, off_t size)
 static	void
 process_request()
 {
-	char		line[LINEBUFSIZE],
+	char		line[LINEBUFSIZE], browser[MYBUFSIZ],
 			http_host[NI_MAXHOST], http_host_long[NI_MAXHOST],
 			*params, *url, *ver;
 
-	headers = 11;
-	strlcpy(httpver, "HTTP/1.1", sizeof(httpver));
+	session.headers = true;
+	session.httpversion = 11;
+	env.server_protocol = "HTTP/1.1";
 	strlcpy(dateformat, "%a %b %e %H:%M:%S %Y", MYBUFSIZ);
 
 	orig[0] = referer[0] = line[0] =
 		real_path[0] = browser[0] = authentication[0] = '\0';
-	headonly = postonly = false;
+	session.headonly = session.postonly = false;
 	current = NULL;
 	setup_environment();
 
 	http_host[0] = '\0';
 
-	rstatus = 200;
+	session.rstatus = 200;
 	errno = 0;
-	chunked = false;
-	persistent = false;
-	trailers = false;
+	session.chunked = false;
+	session.persistent = false;
+	session.trailers = false;
+	env.content_length = 0;
 #ifdef		HAVE_LIBMD
 	md5context = NULL;
 #endif		/* HAVE_LIBMD */
@@ -818,16 +821,16 @@ process_request()
 	{
 		if (!strncmp(ver + 5, "1.0", 3))
 		{
-			strlcpy(httpver, "HTTP/1.0", sizeof(httpver));
-			headers = 10;
+			setenv("SERVER_PROTOCOL", "HTTP/1.0", 1);
+			session.httpversion = 10;
 		}
 		else
 		{
-			strlcpy(httpver, "HTTP/1.1", sizeof(httpver));
-			headers = 11;
-			persistent = true;
+			setenv("SERVER_PROTOCOL", "HTTP/1.1", 1);
+			session.httpversion = 11;
+			session.persistent = true;
 		}
-		setenv("SERVER_PROTOCOL", httpver, 1);
+		env.server_protocol = getenv("SERVER_PROTOCOL");
 		if (!strcasecmp(line, "TRACE"))
 		{
 			params = url;
@@ -846,7 +849,11 @@ process_request()
 			const char	*val = http_headers.elements[sz].value;
 
 			if (!strcasecmp("Content-length", idx))
+			{
+				env.content_length =
+					(off_t)strtoull(val, NULL, 10);
 				setenv("CONTENT_LENGTH", val, 1);
+			}
 			else if (!strcasecmp("Content-type", idx))
 				setenv("CONTENT_TYPE", val, 1);
 			else if (!strcasecmp("User-agent", idx))
@@ -864,10 +871,10 @@ process_request()
 			}
 			else if (!strcasecmp("Referer", idx))
 			{
+				size_t	sz = strlen(val);
 				strlcpy(referer, val, MYBUFSIZ);
-				while (referer[0] &&
-					referer[strlen(referer) - 1] <= ' ')
-					referer[strlen(referer) - 1] = 0;
+				while (sz-- > 0 && referer[sz] <= ' ')
+					referer[sz] = '\0';
 				setenv("HTTP_REFERER", referer, 1);
 			}
 			else if (!strcasecmp("Authorization", idx))
@@ -878,13 +885,13 @@ process_request()
 			else if (!strcasecmp("Connection", idx))
 			{
 				if (strcasestr(val, "close"))
-					persistent = false;
+					session.persistent = false;
 				setenv("HTTP_CONNECTION", val, 1);
 			}
 			else if (!strcasecmp("TE", idx))
 			{
 				if (strcasestr(val, "trailers"))
-					trailers = true;
+					session.trailers = true;
 				setenv("HTTP_TE", val, 1);
 			}
 			else if (!strcasecmp("X-Forwarded-For", idx))
@@ -915,23 +922,25 @@ process_request()
 	}
 	else if (!strncasecmp(ver, "HTCPCP/", 7))
 	{
-		headers = 10;
-		strlcpy(httpver, "HTCPCP/1.0", sizeof(httpver));
+		session.httpversion = 10;
+		setenv("SERVER_PROTOCOL", "HTCPCP/1.0", 1);
+		env.server_protocol = getenv("SERVER_PROTOCOL");
 		xserror(418, "Duh... I'm a webserver Jim, not a coffeepot!");
 		return;
 	}
 	else
 	{
-		headers = 0;
-		strlcpy(httpver, "HTTP/0.9", sizeof(httpver));
-		setenv("SERVER_PROTOCOL", httpver, 1);
+		session.headers = false;
+		session.httpversion = 9;
+		setenv("SERVER_PROTOCOL", "HTTP/0.9", 1);
+		env.server_protocol = getenv("SERVER_PROTOCOL");
 	}
 
 	if (!getenv("CONTENT_LENGTH"))
 	{
 		const char	*te = getenv("HTTP_TRANSFER_ENCODING");
 
-		if (headers >= 11 &&
+		if (session.httpversion >= 11 &&
 			(!strcasecmp("POST", line) || !strcasecmp("PUT", line)) &&
 			(!te || strcasecmp(te, "chunked")))
 		{
@@ -1020,7 +1029,7 @@ process_request()
 			setenv("SERVER_NAME", http_host, 1);
 		}
 	}
-	else if (headers >= 11)
+	else if (session.httpversion >= 11)
 	{
 		xserror(400, "Missing Host Header");
 		return;
@@ -1357,13 +1366,11 @@ standalone_socket(int id)
 		/* (in)sanity check */
 		if (count > cursock->instances)
 		{
-			const	char	*env;
-
-			env = getenv("QUERY_STRING");
 			errx(1, "[%s] httpd(pid %" PRIpid "): MEMORY CORRUPTION [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']",
 				currenttime, getpid(),
-				remotehost[0] ? remotehost : "(none)",
-				orig[0] ? orig : "(none)", env ? env : "(none)",
+				env.remote_host ? env.remote_host : "(none)",
+				orig[0] ? orig : "(none)",
+				env.query_string ? env.query_string : "(none)",
 				current ? current->hostname : config.system->hostname,
 				referer[0] ? referer : "(none)");
 		}
@@ -1455,7 +1462,7 @@ standalone_socket(int id)
 		alarm(20);
 		reqsc = 1;
 		in_progress = false;
-		if (message503[0])
+		if (message503)
 			secprintf("HTTP/1.1 503 Busy\r\n"
 				"Content-type: text/plain\r\n"
 				"Content-length: %zu\r\n\r\n%s",
@@ -1465,9 +1472,9 @@ standalone_socket(int id)
 			{
 				process_request();
 				alarm(10);
-				if (chunked)
+				if (session.chunked)
 				{
-					chunked = false;
+					session.chunked = false;
 #ifdef		HAVE_LIBMD
 					if (md5context)
 					{
@@ -1488,7 +1495,7 @@ standalone_socket(int id)
 					id, count + 1, ++reqsc, remotehost);
 				in_progress = false;
 			}
-			while (persistent && fflush(stdout) != EOF);
+			while (session.persistent && fflush(stdout) != EOF);
 		reqs++;
 		alarm(0);
 		endssl();
@@ -1512,8 +1519,16 @@ setup_environment()
 		!strcmp(cursock->port, "http") ? "80" :
 		!strcmp(cursock->port, "https") ? "443" :
 		cursock->port, 1);
-	setenv("REMOTE_ADDR", remoteaddr, 1);
-	setenv("REMOTE_HOST", remotehost, 1);
+	if (remoteaddr[0])
+	{
+		setenv("REMOTE_ADDR", remoteaddr, 1);
+		env.remote_addr = remoteaddr;
+	}
+	if (remotehost[0])
+	{
+		setenv("REMOTE_HOST", remotehost, 1);
+		env.remote_host = remotehost;
+	}
 	ssl_environment();
 }
 
@@ -1543,7 +1558,7 @@ main(int argc, char **argv, char **envp)
 			strlcat(startparams, " ", num);
 	}
 
-	message503[0] = '\0';
+	message503 = NULL;
 #ifdef		PATH_PREPROCESSOR
 	strlcpy(config_preprocessor, PATH_PREPROCESSOR, XS_PATH_MAX);
 #else		/* Not PATH_PREPROCESSOR */
@@ -1577,7 +1592,7 @@ main(int argc, char **argv, char **envp)
 			break;
 		}
 		case 'm':	/* message */
-			strlcpy(message503, optarg, MYBUFSIZ);
+			message503 = strdup(optarg);
 			break;
 		case 'n':	/* num. proceses */
 			if (!(config.instances = strtoul(optarg, NULL, 10)))

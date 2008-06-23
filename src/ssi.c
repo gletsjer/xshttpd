@@ -748,10 +748,10 @@ dir_exec(int argc, char **argv, off_t *size)
 static	int
 dir_run_cgi(int argc, char **argv, off_t *size)
 {
-	char	*querystring, *qs;
-	int	oldhead;
+	const char	*querystring, *qs;
+	bool	oldhead;
 
-	if ((qs = getenv("QUERY_STRING")))
+	if ((qs = env.query_string))
 		querystring = strdup(qs);
 	else
 		querystring = NULL;
@@ -761,10 +761,10 @@ dir_run_cgi(int argc, char **argv, off_t *size)
 		*size += secputs("[No parameter for run-cgi]\n");
 		return(ERR_CONT);
 	}
-	oldhead = headers;
-	headers = 0;
+	oldhead = session.headers;
+	session.headers = false;
 	do_get(argv[0]);
-	headers = oldhead;
+	session.headers = oldhead;
 
 	/* used to do something like this - which is way more efficient
 	 *
@@ -773,7 +773,7 @@ dir_run_cgi(int argc, char **argv, off_t *size)
 	if (querystring)
 	{
 		setenv("QUERY_STRING", querystring, 1);
-		free(querystring);
+		env.query_string = getenv("QUERY_STRING");
 	}
 	if (getenv("ORIG_PATH_INFO"))
 	{
@@ -870,13 +870,13 @@ dir_echo_obsolete(int argc, char **argv, off_t *size)
 
 	/* argv[0] = ssi name for ssi w/o arguments */
 	if (!strcmp(argv[0], "remote-host"))
-		value = remotehost;
+		value = env.remote_host;
 	else if (!strcmp(argv[0], "agent-long"))
 		value = getenv("USER_AGENT");
 	else if (!strcmp(argv[0], "agent-short"))
 		value = getenv("USER_AGENT_SHORT");
 	else if (!strcmp(argv[0], "argument"))
-		value = getenv("QUERY_STRING");
+		value = env.query_string;
 	else if (!strcmp(argv[0], "referer"))
 		value = getenv("HTTP_REFERER");
 
@@ -888,8 +888,8 @@ dir_echo_obsolete(int argc, char **argv, off_t *size)
 static	int
 dir_if(int argc, char **argv, off_t *size)
 {
-	int	i, b;
-	char	*keyword, *value;
+	int		i, b;
+	const char	*keyword, *value;
 
 	if (argc < 3 || !(keyword = argv[0]) || !(value = argv[2]))
 	{
@@ -904,13 +904,13 @@ dir_if(int argc, char **argv, off_t *size)
 	if (!strcasecmp(keyword, "browser"))
 		value = getenv("USER_AGENT");
 	else if (!strcasecmp(keyword, "remote-host"))
-		value = remotehost;
+		value = env.remote_host;
 	else if (!strcasecmp(keyword, "remote-name"))
-		value = getenv("REMOTE_HOST");
+		value = env.remote_host;
 	else if (!strcasecmp(keyword, "remote-addr"))
-		value = getenv("REMOTE_ADDR");
+		value = env.remote_addr;
 	else if (!strcasecmp(keyword, "argument"))
-		value = getenv("QUERY_STRING");
+		value = env.query_string;
 	else if (!strcasecmp(keyword, "referer"))
 		value = getenv("HTTP_REFERER");
 	else if (!strcasecmp(keyword, "var"))
