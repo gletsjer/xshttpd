@@ -926,6 +926,15 @@ process_request()
 		xserror(418, "Duh... I'm a webserver Jim, not a coffeepot!");
 		return;
 	}
+	else if (strlen(ver))
+	{
+		session.httpversion = 11;
+		setenv("SERVER_PROTOCOL", "HTTP/1.1", 1);
+		env.server_protocol = getenv("SERVER_PROTOCOL");
+		xserror(400, "Unknown protocol");
+		/* not persistent */
+		return;
+	}
 	else
 	{
 		session.headers = false;
