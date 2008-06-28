@@ -241,7 +241,11 @@ xsc_counter(countermode mode, const char *args, off_t *size)
 	static	countstr	counter;
 	char			*p, filename[sizeof(counter.filename)];
 
-	strlcpy(filename, real_path, sizeof(filename));
+	if (env.request_uri)
+		strlcpy(filename, env.request_uri, sizeof(filename));
+	else
+		*filename = '\0';
+
 	if ((p = strchr(filename, '?')))
 		*p = '\0';
 

@@ -84,8 +84,7 @@ static	int	sd, reqs, reqsc;
 static	bool	mainhttpd = true, in_progress = false;
 gid_t		origegid;
 uid_t		origeuid;
-char		currenttime[80],
-		real_path[XS_PATH_MAX], currentdir[XS_PATH_MAX];
+char		currenttime[80], currentdir[XS_PATH_MAX];
 static	int	pidlock = -1;
 static	char	remoteaddr[NI_MAXHOST], remotehost[NI_MAXHOST];
 static	char	referer[MYBUFSIZ], orig[MYBUFSIZ], *startparams;
@@ -760,8 +759,7 @@ process_request()
 	env.server_protocol = "HTTP/1.1";
 	strlcpy(session.dateformat, "%a %b %e %H:%M:%S %Y", sizeof session.dateformat);
 
-	orig[0] = referer[0] = line[0] =
-		real_path[0] = browser[0] = '\0';
+	orig[0] = referer[0] = line[0] = browser[0] = '\0';
 	session.headonly = session.postonly = false;
 	current = NULL;
 	setup_environment();

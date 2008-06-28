@@ -15,7 +15,7 @@
 
 #define		MINBYTESPERSEC	32
 
-extern	char	currenttime[], real_path[];
+extern	char	currenttime[];
 extern	gid_t	origegid;
 extern	uid_t	origeuid;
 

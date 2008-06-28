@@ -96,14 +96,14 @@ static	ftypes	*ftype = NULL, *lftype = NULL;
 static	ctypes	*ctype = NULL;
 static	ctypes	*itype = NULL, *litype = NULL, *ditype = NULL;
 static	ctypes	**isearches[] = { &litype, &itype, &ditype };
+static	cf_values	cfvalues;
 
-static	cf_values		cfvalues;
 static	bool	dynamic = false;
+static	char	real_path[XS_PATH_MAX], orig_filename[XS_PATH_MAX],
+		orig_pathname[XS_PATH_MAX];
 #ifdef		HAVE_CURL
 static	size_t	curl_readlen;
 #endif		/* HAVE_CURL */
-static	char	orig_filename[XS_PATH_MAX];
-static	char	orig_pathname[XS_PATH_MAX];
 
 static char *
 make_etag(struct stat *sb)
