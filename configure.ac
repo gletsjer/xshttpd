@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([xshttpd],[36b12])
-SERVER_IDENT="xs-httpd/3.6 beta/0.12"
+AC_INIT([xshttpd],[36b13])
+SERVER_IDENT="xs-httpd/3.6 beta/0.13"
 AS_SHELL_SANITIZE
 AC_CONFIG_SRCDIR(src/httpd.c)
 AC_CONFIG_LIBOBJ_DIR(libcompat)
