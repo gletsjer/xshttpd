@@ -190,7 +190,7 @@ buildpicture()
 		xserror("500 Could not fork()",
 			"Could not create new process to make GIF file");
 	case 0:
-		close(p[1]); dup2(p[0], 0);
+		close(p[1]); dup2(p[0], STDIN_FILENO);
 		if (p[0] != 0)
 			close(p[0]);
 		if ((fd = open(BITBUCKETNAME, O_WRONLY, S_IWUSR | S_IRUSR)) < 0)
@@ -198,7 +198,7 @@ buildpicture()
 				"Could not open temporary file");
 		if (fd != 2)
 		{
-			if (dup2(fd, 2) == -1)
+			if (dup2(fd, STDERR_FILENO) == -1)
 				xserror("500 dup2() failed",
 					"Could not duplicate file descriptor");
 			close(fd);

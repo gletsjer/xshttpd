@@ -390,11 +390,11 @@ secread_internal(int fd, void *buf, size_t count)
 		return 0;
 
 #ifdef		HANDLE_SSL
-	if (cursock->ssl && fd == 0)
+	if (cursock->ssl && STDIN_FILENO == fd)
 	{
 		int	ret;
 
-		while ((ret = SSL_read(cursock->ssl, buf, count)) <= 0)
+		while ((ret = SSL_read(cursock->ssl, buf, count)) < 0)
 		{
 			int	s_err = SSL_get_error(cursock->ssl, ret);
 
@@ -418,6 +418,9 @@ secread_internal(int fd, void *buf, size_t count)
 			session.persistent = false;
 			break;
 		}
+		if (!ret)
+			/* clean shutdown or forced shutdown */
+			session.persistent = false;
 		return ret;
 	}
 	else

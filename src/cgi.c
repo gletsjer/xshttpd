@@ -286,12 +286,12 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 #endif		/* HAVE_SETRLIMIT */
 
-		dup2(p[1], 1);
-		dup2(r[1], 2);
+		dup2(p[1], STDOUT_FILENO);
+		dup2(r[1], STDERR_FILENO);
 
 		/* Posting via SSL takes a lot of extra work */
 		if (ssl_post)
-			dup2(q[0], 0);
+			dup2(q[0], STDIN_FILENO);
 
 #ifdef		HAVE_SETSID
 		if (setsid() == -1)
@@ -391,7 +391,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		/* print error */
 		fprintf(stderr, "execl(`%s') failed: %s\n",
 			engine ? engine : fullpath, strerror(errno));
-		close(2);
+		close(STDERR_FILENO);
 		/* no need to give local path info to the visitor */
 		xserror(500, "execl(): %s", strerror(errno));
 		exit(1);

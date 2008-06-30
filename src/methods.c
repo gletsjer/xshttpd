@@ -568,7 +568,8 @@ sendcompressed(int fd, const char *method)
 			exit(1);
 		}
 #endif		/* HAVE_SETSID */
-		dup2(fd, 0); dup2(processed, 1);
+		dup2(fd, STDIN_FILENO);
+		dup2(processed, STDOUT_FILENO);
 
 		closefrom(3);
 		(void) execl(method, method, NULL);

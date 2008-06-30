@@ -130,10 +130,10 @@ stdheaders(bool lastmod, bool texthtml, bool endline)
 static	void
 filedescrs()
 {
-	close(0);
+	close(STDIN_FILENO);
 	if (open(BITBUCKETNAME, O_RDONLY, 0) != 0)
 		err(1, "Cannot open fd 0 (%s)", BITBUCKETNAME);
-	if (dup2(0, 1) != 1)
+	if (dup2(STDIN_FILENO, STDOUT_FILENO) != STDOUT_FILENO)
 		err(1, "Cannot dup2() fd 1");
 }
 
@@ -370,7 +370,7 @@ open_logs(int sig)
 	}
 
 	fflush(stderr);
-	close(2);
+	close(STDERR_FILENO);
 
 	/* local block */
 	{
@@ -379,7 +379,7 @@ open_logs(int sig)
 		tempfile = fileno(config.system->openerror);
 		if (tempfile != 2)
 		{
-			if (dup2(tempfile, 2) == -1)
+			if (dup2(tempfile, STDERR_FILENO) == -1)
 				err(1, "dup2() failed");
 		}
 		else
@@ -421,8 +421,8 @@ alarm_handler(int sig)
 	{
 		fflush(stdout); fflush(stdin); fflush(stderr);
 		endssl();
-		close(0);
-		close(1);
+		close(STDIN_FILENO);
+		close(STDOUT_FILENO);
 		session.persistent = false;
 		return;
 	}
@@ -1135,7 +1135,7 @@ process_request()
 
 	/* always set stderr to the appropriate logfile */
 	if (current->openerror)
-		dup2(fileno(current->openerror), 2);
+		dup2(fileno(current->openerror), STDERR_FILENO);
 
 METHOD:
 	setenv("REQUEST_METHOD", line, 1);
@@ -1410,7 +1410,8 @@ standalone_socket(int id)
 		if (setsockopt(csd, SOL_SOCKET, SO_LINGER, &sl, sizeof(sl)) < 0)
 			warnx("setsockopt(SOL_SOCKET)");
 
-		dup2(csd, 0); dup2(csd, 1);
+		dup2(csd, STDIN_FILENO);
+		dup2(csd, STDOUT_FILENO);
 		close(csd);
 
 		setvbuf(stdin, NULL, _IONBF, 0);
