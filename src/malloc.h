@@ -47,15 +47,14 @@
 #define		STRDUP(dst,str)						\
 		do							\
 		{							\
-			const char *_var = (char *)(str);		\
-			if ((_var) && !((dst) = strdup(_var)))		\
+			const char *_var = (str);			\
+			(dst) = NULL;					\
+			if (_var)					\
+				(dst) = strdup(_var);			\
+			if (!(dst))					\
 			{						\
 				err(1, "strdup for %s failed", #dst);	\
 				/* NOTREACHED */			\
-			}						\
-			else if (!(_var))				\
-			{						\
-				(dst) = NULL;				\
 			}						\
 		} while (0)
 
