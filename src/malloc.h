@@ -44,4 +44,19 @@
 			var = _var;					\
 		} while (0)
 
+#define		STRDUP(dst,str)						\
+		do							\
+		{							\
+			const char *_var = (char *)(str);		\
+			if ((_var) && !((dst) = strdup(_var)))		\
+			{						\
+				err(1, "strdup for %s failed", #dst);	\
+				/* NOTREACHED */			\
+			}						\
+			else if (!(_var))				\
+			{						\
+				(dst) = NULL;				\
+			}						\
+		} while (0)
+
 #endif		/* MALLOC_H */

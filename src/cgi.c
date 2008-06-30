@@ -80,7 +80,7 @@ append(char **buffer, bool prepend, const char * const format, ...)
 
 	newbuf = NULL;
 	if (!empty_string)
-		empty_string = strdup("");
+		STRDUP(empty_string, "");
 
 	va_start(ap, format);
 	llen = vsnprintf(empty_string, 0, format, ap);

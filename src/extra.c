@@ -227,7 +227,8 @@ string_to_array(const char *value, char **array)
 	if (!value)
 		return 0;
 
-	next = valuecopy = strdup(value);
+	STRDUP(valuecopy, value);
+	next = valuecopy;
 
 	num = 0;
 	len = strlen(valuecopy);
@@ -236,7 +237,7 @@ string_to_array(const char *value, char **array)
 		if (*prev)
 		{
 			if (array)
-				array[num] = strdup(prev);
+				STRDUP(array[num], prev);
 			num++;
 		}
 
@@ -280,7 +281,7 @@ qstring_to_array(const char *value, char **array)
 	if (!value)
 		return 0;
 
-	valuecopy = strdup(value);
+	STRDUP(valuecopy, value);
 	next = valuecopy;
 
 	while ((prev = strsep(&next, ",")))
@@ -296,7 +297,8 @@ qstring_to_array(const char *value, char **array)
 					/* DO NOTHING */;
 				if (!*p)
 					continue;
-				p = term = strdup(p);
+				STRDUP(term, p);
+				p = term;
 				q = p + strlen(p);
 				while (isspace(*q--))
 					*q = '\0';

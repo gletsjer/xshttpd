@@ -21,6 +21,7 @@
 #include	"httpd.h"
 #include	"decode.h"
 #include	"extra.h"
+#include	"malloc.h"
 #include	"authenticate.h"
 #include	"xscrypt.h"
 
@@ -67,12 +68,12 @@ main(int argc, char **argv)
 	argv += optind;
 
 	if (!filename)
-		filename = strdup(AUTH_FILE);
+		STRDUP(filename, AUTH_FILE);
 	printf("The information will be stored in %s\n\n", filename);
 	if (argc > 1)
 		errx(1, "Usage: xspasswd [-b|-d] [-l|-u] [user]");
 	else if (argc)
-		username = strdup(argv[0]);
+		STRDUP(username, argv[0]);
 	else
 	{
 		char	*u;
@@ -83,11 +84,12 @@ main(int argc, char **argv)
 		for (u = line; *u; u++)
 			if (isspace(*u))
 				*u = '\0';
-		username = strdup(line);
+		STRDUP(username, line);
 	}
 	if (strchr(username, ':'))
 		errx(1, "Username may not contain a colon");
-	if (!(passone = strdup(getpass("Please enter a password: "))))
+	STRDUP(passone, getpass("Please enter a password: "));
+	if (!passone)
 		errx(1, "Password input failed");
 	if (!(password = (const char *)getpass("Please reenter password: ")))
 		errx(1, "Password input failed");

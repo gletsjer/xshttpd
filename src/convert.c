@@ -11,6 +11,7 @@
 
 #include	"htconfig.h"
 #include	"httpd.h"
+#include	"malloc.h"
 #include	"path.h"
 #include	"convert.h"
 
@@ -25,7 +26,7 @@ convertpath(const char *org)
 		const	struct	passwd	*userinfo;
 		char			*slash, *userpos;
 
-		person = strdup(org + 2);
+		STRDUP(person, org + 2);
 		if ((slash = strchr(person, '/')))
 			*slash++ = '\0';
 		if ((slash = strchr(org + 2, '/')))

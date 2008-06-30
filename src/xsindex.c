@@ -246,8 +246,8 @@ main(int argc, char **argv)
 		if (buffer[0] && (buffer[strlen(buffer) - 1] < ' '))
 			buffer[strlen(buffer) - 1] = 0;
 		if (!strcmp(buffer, ".") || !strcmp(buffer, INDEX_HTML) ||
-			!strncmp(buffer, ".xs", 3) ||
-			!strcmp(buffer, NOXS_FILE))
+				!strncmp(buffer, ".xs", 3) ||
+				!strcmp(buffer, NOXS_FILE))
 			continue;
 		if ((strlen(buffer) >= 6) &&
 			(!strcmp(buffer + strlen(buffer) - 6, ".redir")))
@@ -263,8 +263,7 @@ main(int argc, char **argv)
 			}
 		if (skip)
 			continue;
-		if (!(listing[amount] = (char *)strdup(buffer)))
-			errx(1, "Out of memory");
+		STRDUP(listing[amount], buffer);
 		if (max_filename < strlen(listing[amount]))
 			max_filename = strlen(listing[amount]);
 		if (!((amount + 1) & 0xf))

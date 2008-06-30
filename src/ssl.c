@@ -256,9 +256,9 @@ loadssl(struct socket_config *lsock)
 		return;
 
 	if (!lsock->sslcertificate)
-		lsock->sslcertificate = strdup(CERT_FILE);
+		STRDUP(lsock->sslcertificate, CERT_FILE);
 	if (!lsock->sslprivatekey)
-		lsock->sslprivatekey = strdup(KEY_FILE);
+		STRDUP(lsock->sslprivatekey, KEY_FILE);
 	SSL_load_error_strings();
 #ifdef		HAVE_OPENSSL_CONFIG
 	OPENSSL_config(NULL);
@@ -718,8 +718,8 @@ readheaders(int rd, struct maplist *headlist)
 			{
 				REALLOC(headlist->elements,
 					struct mapping, sz + 1);
-				headlist->elements[sz].index = strdup(input);
-				headlist->elements[sz].value = strdup(value);
+				STRDUP(headlist->elements[sz].index, input);
+				STRDUP(headlist->elements[sz].value, value);
 				headlist->size++;
 			}
 		}
@@ -727,8 +727,8 @@ readheaders(int rd, struct maplist *headlist)
 		{
 			/* first 'status' line is special */
 			MALLOC(headlist->elements, struct mapping, 1);
-			headlist->elements[0].index = strdup("Status");
-			headlist->elements[0].value = strdup(input);
+			STRDUP(headlist->elements[0].index, "Status");
+			STRDUP(headlist->elements[0].value, input);
 			headlist->size = 1;
 		}
 	}

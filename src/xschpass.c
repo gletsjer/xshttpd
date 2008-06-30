@@ -20,6 +20,7 @@
 #include	"authenticate.h"
 #include	"decode.h"
 #include	"xscrypt.h"
+#include	"malloc.h"
 
 static	void	xserror			(int, const char *, ...)	PRINTF_LIKE(2,3) NORETURN;
 static	void	urldecode		(char *);
@@ -117,7 +118,7 @@ changepasswd(const char *param, int  cl)
 	for (search = new1; *search; search++)
 		if (*search < ' ')
 			xserror(403, "Your password contains an invalid character!");
-	cryptnew = strdup(crypt(new1, mksalt()));
+	STRDUP(cryptnew, crypt(new1, mksalt()));
 
 	if (stat(filename, &statbuf1))
 		xserror(403, "Could not stat directory '%s': %s",
@@ -165,7 +166,7 @@ changepasswd(const char *param, int  cl)
 				continue;
 			*eol = '\0';
 			opwent = buffer + 1 + strlen(new2);
-			cryptold = strdup(crypt(old, opwent));
+			STRDUP(cryptold, crypt(old, opwent));
 			if (strcmp(cryptold, opwent))
 			{
 				fclose(input); fclose(output);

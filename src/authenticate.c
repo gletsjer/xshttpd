@@ -70,9 +70,9 @@ get_crypted_password(const char *authfile, const char *user, char **passwd, char
 			*eol = '\0';
 
 		if (passwd)
-			*passwd = strdup(lpass);
+			STRDUP(*passwd, lpass);
 		if (hash)
-			*hash = lhash ? strdup(lhash) : NULL;
+			STRDUP(*hash, lhash);
 		fclose(af);
 		return true; /* found! */
 	}

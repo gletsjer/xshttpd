@@ -1129,7 +1129,7 @@ do_get(char *params)
 				lcharset[XS_PATH_MAX-1] = '\0';
 				if ((temp = strchr(lcharset, '\n')))
 					temp[0] = '\0';
-				cfvalues.charset = strdup(lcharset);
+				STRDUP(cfvalues.charset, lcharset);
 			}
 			fclose(charfile);
 		}
@@ -1204,7 +1204,7 @@ do_get(char *params)
 			(temp = getenv("HTTP_ACCEPT_ENCODING")) &&
 			strstr(temp, csearch->name))
 		{
-			cfvalues.encoding = strdup(csearch->name);
+			STRDUP(cfvalues.encoding, csearch->name);
 			senduncompressed(fd);
 		}
 		else
@@ -1659,7 +1659,7 @@ getfiletype(bool print)
 	{
 		if (!cfvalues.mimetype)
 		{
-			cfvalues.mimetype = strdup("application/octet-stream");
+			STRDUP(cfvalues.mimetype, "application/octet-stream");
 			return false;
 		}
 		else
@@ -1685,7 +1685,7 @@ getfiletype(bool print)
 					/* only force default charset for
 					 * textfiles
 					 */
-					cfvalues.charset = strdup(
+					STRDUP(cfvalues.charset,
 						config.defaultcharset
 						? config.defaultcharset
 						: "us-ascii");
@@ -1695,7 +1695,7 @@ getfiletype(bool print)
 		}
 	}
 	if (print)
-		cfvalues.mimetype = strdup("application/octet-stream");
+		STRDUP(cfvalues.mimetype, "application/octet-stream");
 	return false;
 }
 

@@ -157,23 +157,23 @@ load_config()
 					if (!strcasecmp("SystemRoot", key))
 					{
 						if (!config.systemroot)
-							config.systemroot = strdup(value);
+							STRDUP(config.systemroot, value);
 					}
 					else if (!strcasecmp("PidFile", key))
-						config.pidfile = strdup(value);
+						STRDUP(config.pidfile, value);
 					else if (!strcasecmp("ExecAsUser", key))
 						if (!strcasecmp("true", value))
 							config.execasuser = true;
 						else
 							config.execasuser = false;
 					else if (!strcasecmp("DefaultCharset", key))
-						config.defaultcharset = strdup(value);
+						STRDUP(config.defaultcharset, value);
 					else if (!strcasecmp("UseVirtualUid", key))
 						config.usevirtualuid = !strcasecmp("true", value);
 					else if (!strcasecmp("UseDnsLookup", key))
 						config.usednslookup = !strcasecmp("true", value);
 					else if (!strcasecmp("VirtualHostDir", key))
-						config.virtualhostdir = strdup(value);
+						STRDUP(config.virtualhostdir, value);
 					else if (!strcasecmp("UseLocalScript", key))
 						config.uselocalscript = !strcasecmp("true", value);
 					else if (!strcasecmp("UseAcceptFilter", key))
@@ -195,7 +195,7 @@ load_config()
 					else if (!strcasecmp("ScriptTimeout", key))
 						config.scripttimeout = strtoul(value, NULL, 10);
 					else if (!strcasecmp("ScriptEnvPath", key))
-						config.scriptpath = strdup(value);
+						STRDUP(config.scriptpath, value);
 					else if (!current &&
 							(!strcasecmp("UserId", key) ||
 							 !strcasecmp("GroupId", key)))
@@ -205,14 +205,14 @@ load_config()
 					else if (!strcasecmp("ScriptPriority", key))
 						config.scriptpriority = strtoul(value, NULL, 10);
 					else if (!strcasecmp("PerlPersistentScript", key))
-						config.perlscript = strdup(value);
+						STRDUP(config.perlscript, value);
 				}
 				else if (subtype == sub_socket)
 				{
 					if (!strcasecmp("ListenAddress", key))
-						lsock->address = strdup(value);
+						STRDUP(lsock->address, value);
 					else if (!strcasecmp("ListenPort", key))
-						lsock->port = strdup(value);
+						STRDUP(lsock->port, value);
 					else if (!strcasecmp("ListenFamily", key))
 						lsock->family =
 							!strcasecmp("IPv4", value) ? PF_INET :
@@ -221,7 +221,7 @@ load_config()
 #endif		/* PF_INET6 */
 							PF_UNSPEC;
 					else if (!strcasecmp("SocketName", key))
-						lsock->socketname = strdup(value);
+						STRDUP(lsock->socketname, value);
 					else if (!strcasecmp("Instances", key))
 					{
 						if (!lsock->instances)
@@ -235,23 +235,23 @@ load_config()
 					else if (!strcasecmp("SSLCertificate", key))
 					{
 						lsock->usessl = true;
-						lsock->sslcertificate =
-							strdup(calcpath(value));
+						STRDUP(lsock->sslcertificate,
+							calcpath(value));
 					}
 					else if (!strcasecmp("SSLPrivateKey", key))
 					{
 						lsock->usessl = true;
-						lsock->sslprivatekey =
-							strdup(calcpath(value));
+						STRDUP(lsock->sslprivatekey,
+							calcpath(value));
 					}
 					else if (!strcasecmp("SSLCAfile", key))
-						lsock->sslcafile = strdup(calcpath(value));
+						STRDUP(lsock->sslcafile, calcpath(value));
 					else if (!strcasecmp("SSLCApath", key))
-						lsock->sslcapath = strdup(calcpath(value));
+						STRDUP(lsock->sslcapath, calcpath(value));
 					else if (!strcasecmp("SSLMatchSDN", key))
-						lsock->sslmatchsdn = strdup(value);
+						STRDUP(lsock->sslmatchsdn, value);
 					else if (!strcasecmp("SSLMatchIDN", key))
-						lsock->sslmatchidn = strdup(value);
+						STRDUP(lsock->sslmatchidn, value);
 					else if (!strcasecmp("SSLAuthentication", key))
 					{
 						if (!strcasecmp(value, "optional"))
@@ -269,37 +269,37 @@ load_config()
 						subtype != sub_virtual)
 					errx(1, "illegal directive: '%s'", key);
 				else if (!strcasecmp("Hostname", key))
-					current->hostname = strdup(value);
+					STRDUP(current->hostname, value);
 				else if (!strcasecmp("HostAlias", key))
 					string_to_arraypn(value, &current->aliases);
 				else if (!strcasecmp("PathInfoScripts", key))
 					string_to_arraypn(value, &current->uidscripts);
 				else if (!strcasecmp("HtmlDir", key))
-					current->htmldir = strdup(value);
+					STRDUP(current->htmldir, value);
 				else if (!strcasecmp("ExecDir", key))
-					current->execdir = strdup(value);
+					STRDUP(current->execdir, value);
 				else if (!strcasecmp("PhExecDir", key))
-					current->phexecdir = strdup(value);
+					STRDUP(current->phexecdir, value);
 				else if (!strcasecmp("IconDir", key))
-					current->icondir = strdup(calcpath(value));
+					STRDUP(current->icondir, calcpath(value));
 				else if (!strcasecmp("PhIconDir", key))
-					current->phicondir = strdup(calcpath(value));
+					STRDUP(current->phicondir, calcpath(value));
 				else if (!strcasecmp("LogAccess", key))
-					current->logaccess = strdup(value);
+					STRDUP(current->logaccess, value);
 				else if (!strcasecmp("LogError", key))
-					current->logerror = strdup(value);
+					STRDUP(current->logerror, value);
 				else if (!strcasecmp("LogScript", key))
-					current->logscript = strdup(value);
+					STRDUP(current->logscript, value);
 				else if (!strcasecmp("LogReferer", key))
-					current->logreferer = strdup(value);
+					STRDUP(current->logreferer, value);
 				else if (!strcasecmp("LogRefererIgnoreDomain", key))
-					current->thisdomain = strdup(value);
+					STRDUP(current->thisdomain, value);
 				else if (!strcasecmp("RedirFile", key))
-					current->redirfile = strdup(calcpath(value));
+					STRDUP(current->redirfile, calcpath(value));
 				else if (!strcasecmp("FcgiPath", key))
-					current->fcgipath = strdup(value);
+					STRDUP(current->fcgipath, value);
 				else if (!strcasecmp("FcgiSocket", key))
-					current->fcgisocket = strdup(value);
+					STRDUP(current->fcgisocket, value);
 				else if (!strcasecmp("PhpFcgiChildren", key))
 					current->phpfcgichildren = strtoul(value, NULL, 10);
 				else if (!strcasecmp("PhpFcgiRequests", key))
@@ -338,7 +338,7 @@ load_config()
 					}
 				}
 				else if (!strcasecmp("SocketName", key))
-					current->socketname = strdup(value);
+					STRDUP(current->socketname, value);
 				else if (!strcasecmp("LocalMode", key) ||
 						!strcasecmp("UseCharset", key) ||
 						!strcasecmp("UseRestrictAddr", key) ||
@@ -447,13 +447,13 @@ load_config()
 
 	/* Fill in missing defaults */
 	if (!config.systemroot)
-		config.systemroot = strdup(HTTPD_ROOT);
+		STRDUP(config.systemroot, HTTPD_ROOT);
 	if (!config.sockets)
 		config.sockets = lsock;
 	for (lsock = config.sockets; lsock; lsock = lsock->next)
 	{
 		if (!lsock->port)
-			lsock->port = lsock->usessl ? strdup("https") : strdup("http");
+			STRDUP(lsock->port, lsock->usessl ? "https" : "http");
 		if (!lsock->instances)
 			lsock->instances = HTTPD_NUMBER;
 		if (lsock->usessl)
@@ -467,9 +467,9 @@ load_config()
 		}
 	}
 	if (!config.pidfile)
-		config.pidfile = strdup(PID_PATH);
+		STRDUP(config.pidfile, PID_PATH);
 	if (!config.scriptpath)
-		config.scriptpath = strdup(SCRIPT_PATH);
+		STRDUP(config.scriptpath, SCRIPT_PATH);
 
 	/* Set up system section */
 	if (!config.system)
@@ -478,24 +478,24 @@ load_config()
 	{
 		if (gethostname(thishostname, NI_MAXHOST) == -1)
 			errx(1, "gethostname() failed");
-		config.system->hostname = strdup(thishostname);
+		STRDUP(config.system->hostname, thishostname);
 	}
 	if (!config.system->htmldir)
-		config.system->htmldir = strdup(HTML_DIR);
+		STRDUP(config.system->htmldir, HTML_DIR);
 	if (!config.system->execdir)
-		config.system->execdir = strdup(CGI_DIR);
+		STRDUP(config.system->execdir, CGI_DIR);
 	if (!config.system->phexecdir)
-		config.system->phexecdir = strdup(PHEXEC_DIR);
+		STRDUP(config.system->phexecdir, PHEXEC_DIR);
 	if (!config.system->icondir)
-		config.system->icondir = strdup(ICON_DIR);
+		STRDUP(config.system->icondir, ICON_DIR);
 	if (!config.system->phicondir)
-		config.system->phicondir = strdup(PHICON_DIR);
+		STRDUP(config.system->phicondir, PHICON_DIR);
 	if (!config.system->logaccess)
-		config.system->logaccess = strdup(BITBUCKETNAME);
+		STRDUP(config.system->logaccess, BITBUCKETNAME);
 	if (!config.system->logerror)
-		config.system->logerror = strdup(BITBUCKETNAME);
+		STRDUP(config.system->logerror, BITBUCKETNAME);
 	if (!config.system->logreferer)
-		config.system->logreferer = strdup(BITBUCKETNAME);
+		STRDUP(config.system->logreferer, BITBUCKETNAME);
 	if (!config.system->logstyle)
 		config.system->logstyle = log_combined;
 	if (!config.system->userid)
@@ -522,8 +522,8 @@ load_config()
 
 		MALLOC(config.system->indexfiles, char *, sz);
 		for (i = 0; defaultindexfiles[i]; i++)
-			config.system->indexfiles[i] =
-				strdup(defaultindexfiles[i]);
+			STRDUP(config.system->indexfiles[i],
+				defaultindexfiles[i]);
 		config.system->indexfiles[i] = NULL;
 	}
 	if (!config.system->uidscripts)
@@ -533,17 +533,17 @@ load_config()
 
 		MALLOC(config.system->uidscripts, char *, sz);
 		for (i = 0; defaultuidscripts[i]; i++)
-			config.system->uidscripts[i] =
-				strdup(defaultuidscripts[i]);
+			STRDUP(config.system->uidscripts[i],
+				defaultuidscripts[i]);
 		config.system->uidscripts[i] = NULL;
 	}
 	/* Set up users section */
 	if (!config.users)
 		CALLOC(config.users, struct virtual, 1);
 	if (!config.users->hostname)
-		config.users->hostname = strdup(config.system->hostname);
+		STRDUP(config.users->hostname, config.system->hostname);
 	if (!config.users->htmldir)
-		config.users->htmldir = strdup(UHTML_DIR);
+		STRDUP(config.users->htmldir, UHTML_DIR);
 	config.system->next = config.users;
 	config.users->next = config.virtual;
 	/* Check users and virtual sections */
@@ -554,13 +554,13 @@ load_config()
 		if (!(!!current->htmldir ^ !!current->redirfile))
 			errx(1, "virtual block must contain either htmldir or redirfile");
 		if (!current->execdir)
-			current->execdir = strdup(CGI_DIR);
+			STRDUP(current->execdir, CGI_DIR);
 		if (!current->phexecdir)
-			current->phexecdir = strdup(PHEXEC_DIR);
+			STRDUP(current->phexecdir, PHEXEC_DIR);
 		if (!current->icondir)
-			current->icondir = strdup(calcpath(ICON_DIR));
+			STRDUP(current->icondir, calcpath(ICON_DIR));
 		if (!current->phicondir)
-			current->phicondir = strdup(calcpath(PHICON_DIR));
+			STRDUP(current->phicondir, calcpath(PHICON_DIR));
 		if (!current->logstyle)
 			current->logstyle = config.system->logstyle;
 		if (!current->userid)
@@ -592,9 +592,9 @@ loadperl()
 
 	/* perl_parse() doesn't like const arguments: pass dynamic */
 	if (config.perlscript)
-		path = strdup(calcpath(config.perlscript));
+		STRDUP(path, calcpath(config.perlscript));
 	else
-		path = strdup(calcpath("contrib/persistent.pl"));
+		STRDUP(path, calcpath("contrib/persistent.pl"));
 	if (!access(path, R_OK))
 	{
 		embedding[0] = embedding[1] = path;

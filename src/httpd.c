@@ -683,12 +683,14 @@ logrequest(const char *request, off_t size)
 	else
 		alog = current->openaccess;
 
-	dynrequest = dynagent = NULL;
-	if (request && (dynrequest = strdup(request)))
+	STRDUP(dynrequest, request);
+	if (dynrequest)
 		for (p = dynrequest; *p; p++)
 			if ('\"' == *p)
 				*p = '\'';
-	if (getenv("USER_AGENT") && (dynagent = strdup(getenv("USER_AGENT"))))
+
+	STRDUP(dynagent, getenv("USER_AGENT"));
+	if (dynagent)
 		for (p = dynagent; *p; p++)
 			if ('\"' == *p)
 				*p = '\'';
@@ -1600,7 +1602,7 @@ main(int argc, char **argv, char **envp)
 			break;
 		}
 		case 'm':	/* message */
-			message503 = strdup(optarg);
+			STRDUP(message503, optarg);
 			break;
 		case 'n':	/* num. proceses */
 			if (!(config.instances = strtoul(optarg, NULL, 10)))
@@ -1725,16 +1727,15 @@ main(int argc, char **argv, char **envp)
 	if (longopt[option]) { \
 		if (config) \
 			free(config); \
-		config = strdup(longopt[option]); \
+		STRDUP(config, longopt[option]); \
 	}
 
 	if (nolog)
 	{
-		config.pidfile =
-			config.system->logaccess =
-			config.system->logreferer =
-			config.system->logerror =
-			strdup(BITBUCKETNAME);
+		STRDUP(config.pidfile, BITBUCKETNAME);
+		STRDUP(config.system->logaccess, BITBUCKETNAME);
+		STRDUP(config.system->logreferer, BITBUCKETNAME);
+		STRDUP(config.system->logerror, BITBUCKETNAME);
 		config.system->logscript = NULL;
 	}
 	if (config.sockets)

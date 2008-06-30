@@ -429,7 +429,7 @@ parse_values(char *here, char **mapping, size_t maxsize)
 		return 0;
 	*end = '\0';
 
-	args = strdup(here);
+	STRDUP(args, here);
 	mapsize = 0;
 	expect = T_INDEX;
 	guard = true;
@@ -441,7 +441,7 @@ parse_values(char *here, char **mapping, size_t maxsize)
 			*p = '\0';
 			if (*word)
 				/* add index */
-				mapping[mapsize++] = strdup(word);
+				STRDUP(mapping[mapsize++], word);
 			else if (expect == T_INDEX)
 				/* equal without index */
 				mapping[mapsize++] = NULL;
@@ -459,7 +459,7 @@ parse_values(char *here, char **mapping, size_t maxsize)
 				/* word without equal: new index */
 					mapping[mapsize++] = NULL;
 				/* add index or value */
-				mapping[mapsize++] = strdup(word);
+				STRDUP(mapping[mapsize++], word);
 				word = p + 1;
 			}
 			if (expect == T_VALUE)
@@ -478,7 +478,7 @@ parse_values(char *here, char **mapping, size_t maxsize)
 				break;
 			}
 			/* add index or value */
-			mapping[mapsize++] = strdup(word);
+			STRDUP(mapping[mapsize++], word);
 			word = p + 1;
 			if (expect == T_VALUE)
 				expect = T_INDEX;
@@ -593,8 +593,7 @@ dir_date(int argc, char **argv, off_t *size)
 
 	if (zone)
 	{
-		if ((ozone = getenv("TZ")))
-			ozone = strdup(ozone);
+		STRDUP(ozone, getenv("TZ"));
 		setenv("TZ", zone, 1);
 	}
 	*size += strftime(buffer, MYBUFSIZ - 1, format, localtimenow());
@@ -752,13 +751,10 @@ dir_exec(int argc, char **argv, off_t *size)
 static	int
 dir_run_cgi(int argc, char **argv, off_t *size)
 {
-	const char	*querystring, *qs;
+	const char	*querystring;
 	bool	oldhead;
 
-	if ((qs = env.query_string))
-		querystring = strdup(qs);
-	else
-		querystring = NULL;
+	STRDUP(querystring, env.query_string);
 
 	if (!argc)
 	{
@@ -815,7 +811,7 @@ dir_set(int argc, char **argv, off_t *size)
 	}
 
 	for (int i = 0; i < argc; i++, setvarlen++)
-		setvars[setvarlen] = strdup(argv[i]);
+		STRDUP(setvars[setvarlen], argv[i]);
 	(void)size;
 	return ERR_NONE;
 }
@@ -985,7 +981,7 @@ dir_switch(int argc, char **argv, off_t *size)
 		return(ERR_CONT);
 	}
 	ssiarray[++ssioutput] = 0;
-	switchstr = strdup(argv[0]);
+	STRDUP(switchstr, argv[0]);
 	return(ERR_NONE);
 }
 

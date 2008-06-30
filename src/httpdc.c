@@ -16,6 +16,7 @@
 #include	<ctype.h>
 
 #include	"httpd.h"
+#include	"malloc.h"
 #include	"path.h"
 #include	"htconfig.h"
 
@@ -259,7 +260,7 @@ getpidfilename(char **pidfilename)
 			continue;
 		for (p = buffer + 7; *p && isspace((int)*p); p++)
 			/* DO NOTHING */;
-		*pidfilename = strdup(p);
+		STRDUP(*pidfilename, p);
 		for (p = *pidfilename; *p; p++)
 			if (isspace((int)*p))
 				*p = '\0';

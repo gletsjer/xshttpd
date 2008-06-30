@@ -477,23 +477,23 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 			free_string_array(restrictions, sz);
 		}
 		else if (!strcasecmp(name, "MimeType"))
-			cfvalues->mimetype = strdup(value);
+			STRDUP(cfvalues->mimetype, value);
 		else if (!strcasecmp(name, "Execute"))
-			cfvalues->scripttype = strdup(value);
+			STRDUP(cfvalues->scripttype, value);
 		else if (!strcasecmp(name, "Charset"))
-			cfvalues->charset = strdup(value);
+			STRDUP(cfvalues->charset, value);
 		else if (!strcasecmp(name, "Language"))
-			cfvalues->language = strdup(value);
+			STRDUP(cfvalues->language, value);
 		else if (!strcasecmp(name, "IndexFile"))
-			cfvalues->indexfile = strdup(value);
+			STRDUP(cfvalues->indexfile, value);
 		else if (!strcasecmp(name, "p3pReference"))
-			cfvalues->p3pref = strdup(value);
+			STRDUP(cfvalues->p3pref, value);
 		else if (!strcasecmp(name, "p3pCompactPolicy"))
-			cfvalues->p3pcp = strdup(value);
+			STRDUP(cfvalues->p3pcp, value);
 		else if (!strcasecmp(name, "DeleteScript"))
-			cfvalues->delscript = strdup(value);
+			STRDUP(cfvalues->delscript, value);
 		else if (!strcasecmp(name, "PutScript"))
-			cfvalues->putscript = strdup(value);
+			STRDUP(cfvalues->putscript, value);
 		else if (!strcasecmp(name, "ScriptTimeout"))
 			config.scripttimeout = strtoul(value, NULL, 10);
 
@@ -508,19 +508,19 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 		{
 			if (ldap.uri)
 				free(ldap.uri);
-			ldap.uri = strdup(value);
+			STRDUP(ldap.uri, value);
 		}
 		else if (!strcasecmp(name, "LdapAttr"))
 		{
 			if (ldap.attr)
 				free(ldap.attr);
-			ldap.attr = strdup(value);
+			STRDUP(ldap.attr, value);
 		}
 		else if (!strcasecmp(name, "LdapDN"))
 		{
 			if (ldap.dn)
 				free(ldap.dn);
-			ldap.dn = strdup(value);
+			STRDUP(ldap.dn, value);
 		}
 		else if (!strcasecmp(name, "LdapVersion"))
 			ldap.version = strtoul(value, NULL, 10);
@@ -528,7 +528,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 		{
 			if (ldap.groups)
 				free(ldap.groups);
-			ldap.groups = strdup(value);
+			STRDUP(ldap.groups, value);
 		}
 
 		/* SSL client cert options */

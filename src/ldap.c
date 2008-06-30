@@ -25,7 +25,7 @@ check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 	char		*attrs[] = { NULL, NULL };
 	bool		result = false;
 
-	attrs[0] = strdup("memberUid");
+	STRDUP(attrs[0], "memberUid");
 
 	/*
 	 * Search for the group first. Most directory have seperate branches
@@ -123,19 +123,19 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
                 {
                         if (ldap.attr)
                                 free(ldap.attr);
-			ldap.attr = strdup(line + 9);
+			STRDUP(ldap.attr, line + 9);
                 }
 		if (!strncasecmp ("ldapuri=", line, 8))
                 {
                         if (ldap.uri)
                                 free(ldap.uri);
-			ldap.uri = strdup(line + 8);
+			STRDUP(ldap.uri, line + 8);
                 }
 		if (!strncasecmp ("ldapdn=", line, 7))
                 {
                         if (ldap.dn)
                                 free(ldap.dn);
-			ldap.dn = strdup(line + 7);
+			STRDUP(ldap.dn, line + 7);
                 }
 		if (!strncasecmp ("ldapversion=", line, 12))
 			ldap.version = strtoul(line + 12, NULL, 10);
@@ -143,7 +143,7 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
                 {
                         if (ldap.groups)
                                 free(ldap.groups);
-			ldap.groups = strdup(line + 11);
+			STRDUP(ldap.groups, line + 11);
                 }
 	}
 	fclose(af);
@@ -176,7 +176,7 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 
 	/* copy password to rw variable */
 	cred.bv_len = strlen(pass);
-	cred.bv_val = cred.bv_len ? strdup(pass) : NULL;
+	STRDUP(cred.bv_val, cred.bv_len ? pass : NULL);
 
 	/*
 	 * This search may look confusing. Basically, we do a search for the

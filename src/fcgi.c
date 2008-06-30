@@ -146,14 +146,14 @@ fcgi_child_init(void)
 	{
 		*sep = '\0';
 		fsrv->type = FCGI_INET_SOCKET;
-		fsrv->host = strdup(current->fcgisocket);
-		fsrv->port = strdup(sep + 1);
+		STRDUP(fsrv->host, current->fcgisocket);
+		STRDUP(fsrv->port, sep + 1);
 		*sep = ':';
 	}
 	else
 	{
 		fsrv->type = FCGI_UNIX_SOCKET;
-		fsrv->unixsocket = strdup(current->fcgisocket);
+		STRDUP(fsrv->unixsocket, current->fcgisocket);
 	}
 
 	if (!current->fcgipath)
