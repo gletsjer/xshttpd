@@ -1,6 +1,10 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.6 beta 13
+- Always terminate SSL connection when reading from socket fails
+- Add contitional ifenv option to .redir files
+
 Changes since 3.6 beta 12
 - Don't install empty docdir
 - Shuffle internal structures (reduce global vars, getenv calls)

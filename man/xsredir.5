@@ -132,6 +132,28 @@ then SSL encryption will be applied.
 Note that forwarding unencrypted requests to a https location or
 encrypted requests to a plain-text http location may lead to a false
 sense of security. Use forwards with care.
+.It Sy ifenv Ar envvar Ar value
+The
+.Sy ifenv
+directive can be used to write conditional redirects. In this expression
+.Ar envvar
+should be the name of a CGI environment variable (e.g.
+.Ev REMOTE_HOST )
+and
+.Ar value
+is a regular expression to be matched.
+If the environment variable is set and actually matches the given value,
+then the following block of redirect statements will be executed.
+If there is no match, then everything up to the next empty line
+(or end of file) will be ignored.
+.Pp
+Refer to
+.Xr httpd_cgi 7
+for a list of all environment variables that may be checked in this way.
+Note that if a block contains multiple
+.Sy ifenv
+statements, then the following redirect rules will only be executed if
+all variables match their respective values.
 .El
 .Sh EXAMPLES
 A common way to show information from a database is to have a single

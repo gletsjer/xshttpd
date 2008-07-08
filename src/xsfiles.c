@@ -145,6 +145,7 @@ check_redirect(const char *cffile, const char *filename)
 {
 	char	line[XS_PATH_MAX], request[XS_PATH_MAX];
 	FILE	*fp;
+	bool	guard = true;
 
 	if (!(fp = fopen(cffile, "r")))
 		/* no redir */
@@ -156,17 +157,46 @@ check_redirect(const char *cffile, const char *filename)
 	{
 		char	*p, *command;
 		char	*subst, *orig, *repl, *newloc, *host;
+		char	*envvar, *value;
 
 		p = line;
 		while ((command = strsep(&p, " \t\r\n")) && !*command)
 			/* continue */;
 
 		/* skip comments and blank lines */
-		if (!command || !*command || '#' == *command)
+		if (!command || !*command)
+		{
+			/* block reset */
+			guard = true;
+			continue;
+		}
+
+		if (!guard)
+			continue;
+
+		if ('#' == *command)
 			continue;
 
 		/* use pcre matching */
-		if (!strcasecmp(command, "pass"))
+		if (!strcasecmp(command, "ifenv"))
+		{
+			while ((envvar = strsep(&p, " \t\r\n")) && !*envvar)
+				/* continue */;
+			while ((value = strsep(&p, " \t\r\n")) && !*value)
+				/* continue */;
+
+			if ('$' == *envvar)
+				envvar++;
+			if (!*envvar ||
+				!(envvar = getenv(envvar)) ||
+				(pcre_match(envvar, value) <= 0))
+			{
+				/* no match -> skip block */
+				guard = false;
+				continue;
+			}
+		}
+		else if (!strcasecmp(command, "pass"))
 		{
 			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
 				/* continue */;
