@@ -49,15 +49,11 @@ run_fcgi(int fdin, int fdout, int fderr)
 {
 	fcgi_env	fenv;
 	int		request_ended = 0;
-	off_t		content_length = 0;
 	fcgi_server	*server = current->fcgiserver;
 
 	if (!server)
 		return -1;
 
-	if (getenv("CONTENT_LENGTH"))
-		content_length = (off_t)strtoull(getenv("CONTENT_LENGTH"),
-			NULL, 10);
 	init_env(&fenv);
 	build_env(&fenv);
 	write(fdout, "X-FastCGI: 1\r\n", 14);
@@ -65,7 +61,7 @@ run_fcgi(int fdin, int fdout, int fderr)
 	fcgi_connect(server);
 	begin_request(server);
 	send_env(server, &fenv);
-	if (!content_length)
+	if (!env.content_length)
 		send_stream(server, 0, FCGI_STDIN, STDIN_FILENO);
 	/*
 	 * if (empty data file)
@@ -100,13 +96,14 @@ run_fcgi(int fdin, int fdout, int fderr)
 		if (FD_ISSET(STDIN_FILENO, &set))
 		{
 			ssize_t		n;
-			n = send_stream(server, content_length, FCGI_STDIN, STDIN_FILENO);
+			off_t		cl = env.content_length;
+			n = send_stream(server, cl, FCGI_STDIN, STDIN_FILENO);
 
-			if (n <= 0 || n > content_length)
+			if (n <= 0 || n > cl)
 			{
 			}
-			content_length -= n;
-			if (!content_length)
+			cl -= n;
+			if (!cl)
 			{
 				send_stream(server, (off_t)0, FCGI_STDIN, STDIN_FILENO);
 			}
