@@ -48,14 +48,15 @@
 		do							\
 		{							\
 			const char *_var = (str);			\
-			(dst) = NULL;					\
+			char *_dst = NULL;				\
 			if (_var)					\
-				(dst) = strdup(_var);			\
-			if (!(dst))					\
+				_dst = strdup(_var);			\
+			if (!_dst)					\
 			{						\
 				err(1, "strdup for %s failed", #dst);	\
 				/* NOTREACHED */			\
 			}						\
+			(dst) = _dst;					\
 		} while (0)
 
 #endif		/* MALLOC_H */
