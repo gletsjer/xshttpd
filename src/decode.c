@@ -105,35 +105,36 @@ uudecode(char *buffer)
 char	*
 escape(const char *what)
 {
-	size_t		len;
+	size_t		len, sz;
 	const char	*p;
 	char		*buffer;
 
 	if (!what || !*what)
 		return NULL;
 
-	MALLOC(buffer, char, BUFSIZ);
+	sz = strlen(what);
+	for (p = what; p[len = strcspn(p, "<>&\"")]; p += len + 1)
+		sz += 10;
+
+	MALLOC(buffer, char, sz);
 
 	buffer[0] = '\0';
 	for (p = what; p[len = strcspn(p, "<>&\"")]; p += len + 1)
 	{
-		if (strlen(buffer) + len < BUFSIZ)
-			strncat(buffer, p, len);
-		if (!p[len])
-			break;
+		strncat(buffer, p, len);
 		switch (p[len])
 		{
 		case '<':
-			strlcat(buffer, "&lt;", BUFSIZ);
+			strcat(buffer, "&lt;");
 			break;
 		case '>':
-			strlcat(buffer, "&gt;", BUFSIZ);
+			strcat(buffer, "&gt;");
 			break;
 		case '&':
-			strlcat(buffer, "&amp;", BUFSIZ);
+			strcat(buffer, "&amp;");
 			break;
 		case '"':
-			strlcat(buffer, "&quot;", BUFSIZ);
+			strcat(buffer, "&quot;");
 			break;
 		default:
 			/* do nothing */;
