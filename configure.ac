@@ -121,7 +121,7 @@ AS_IF([test x$with_ssl = xyes], [
 
 XS_CHECK_WITH(pcre, PCRE support, yes)
 AS_IF([test x$with_pcre = xyes], [
-	XS_TRY_CONFIG(pcre, httpd)
+	XS_TRY_CONFIG(pcre, libxs)
 	AS_IF([test -z "${xs_pcre_path}"],
 		[XS_FUNC_IN_LIB(pcre_exec, HAVE_PCRE, pcre, httpd)],
 		[AC_DEFINE(HAVE_PCRE)])
