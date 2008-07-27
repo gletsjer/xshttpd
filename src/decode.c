@@ -109,10 +109,13 @@ escape(const char *what)
 	const char	*p;
 	char		*buffer;
 
+	if (!what || !*what)
+		return NULL;
+
 	MALLOC(buffer, char, BUFSIZ);
 
 	buffer[0] = '\0';
-	for (p = what; (len = strcspn(p, "<>&\"")); p += len + 1)
+	for (p = what; p[len = strcspn(p, "<>&\"")]; p += len + 1)
 	{
 		if (strlen(buffer) + len < BUFSIZ)
 			strncat(buffer, p, len);
