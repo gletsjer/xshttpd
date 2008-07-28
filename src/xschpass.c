@@ -32,17 +32,20 @@ static	void
 xserror(int code, const char *format, ...)
 {
 	va_list		ap;
-	char		*msg;
+	char		*msg, *htmlmsg;
 
 	va_start(ap, format);
 	vasprintf(&msg, format, ap);
 	va_end(ap);
 
+	/* error message should not contain any html */
+	htmlmsg = escape(msg);
+
 	printf("Status: %d Password change failed\n"
 		"Content-type: text/html\n\n"
 		"<HTML><HEAD><TITLE>%s</TITLE></HEAD>\n"
 		"<BODY><H1>%s</H1>\n%s</BODY></HTML>\n",
-		code, msg, msg, msg);
+		code, htmlmsg, htmlmsg, htmlmsg);
 	exit(1);
 }
 
@@ -224,11 +227,13 @@ changepasswd(const char *param, int  cl)
 static	void
 generateform()
 {
+	char	*name = urlencode(getenv("SCRIPT_NAME"));
+	char	*info = urlencode(getenv("PATH_INFO"));
+
 	printf("Content-type: text/html\n\n");
 	printf("<HTML><HEAD><TITLE>Change password</TITLE></HEAD>\n");
 	printf("<BODY><H1>Change password</H1><PRE>\n");
-	printf("<FORM METHOD=\"POST\" ACTION=\"%s%s\">\n",
-		getenv("SCRIPT_NAME"), getenv("PATH_INFO"));
+	printf("<FORM METHOD=\"POST\" ACTION=\"%s%s\">\n", name, info);
 	printf("User name:      <INPUT NAME=\"username\" TYPE=\"text\" MAXLENGTH=16 SIZE=16><P>\n");
 	printf("Old password:   <INPUT NAME=\"old\" TYPE=\"password\" MAXLENGTH=16 SIZE=16><P>\n");
 	printf("New password:   <INPUT NAME=\"new1\" TYPE=\"password\" MAXLENGTH=16 SIZE=16><P>\n");
@@ -236,6 +241,8 @@ generateform()
 	printf("<INPUT TYPE=\"submit\" VALUE=\"Change password\"> |\n");
 	printf("<INPUT TYPE=\"reset\" VALUE=\"Clear form\">\n</FORM>");
 	printf("</PRE></BODY></HTML>\n");
+	free(name);
+	free(info);
 }
 
 int

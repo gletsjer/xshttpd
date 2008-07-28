@@ -499,12 +499,15 @@ xserror(int code, const char *format, ...)
 {
 	char		*errmsg = NULL;
 	va_list		ap;
-	char		*message;
+	char		*message, *htmlmessage;
 
 	alarm(180);
 	va_start(ap, format);
 	vasprintf(&message, format, ap);
 	va_end(ap);
+
+	/* message should not contain html */
+	htmlmessage = escape(message);
 
 	/* log error */
 	fprintf((current && current->openerror) ? current->openerror : stderr,
@@ -518,8 +521,12 @@ xserror(int code, const char *format, ...)
 	fflush(stderr);
 
 	if (599 == code)
+	{
 		/* connection closed: don't send error */
+		free(message);
+		free(htmlmessage);
 		return;
+	}
 
 	/* display error */
 	if (!session.headonly)
@@ -531,8 +538,8 @@ xserror(int code, const char *format, ...)
 			"<html xmlns=\"http://www.w3.org/1999/xhtml\">\n\n"
 			"<head><title>%03d %s</title></head>\n"
 			"<body><h1>%03d %s</h1></body></html>\n",
-			code, message,
-			code, message);
+			code, htmlmessage,
+			code, htmlmessage);
 	}
 	if (session.headers)
 	{
@@ -548,6 +555,8 @@ xserror(int code, const char *format, ...)
 		secputs(errmsg);
 		free(errmsg);
 	}
+	free(message);
+	free(htmlmessage);
 }
 
 void

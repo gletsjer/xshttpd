@@ -15,6 +15,7 @@
 #endif		/* HAVE_MEMORY_H */
 #include	<errno.h>
 #include	<fcntl.h>
+#include	"decode.h"
 #include	"path.h"
 #include	"malloc.h"
 
@@ -41,7 +42,7 @@ xserror(const char *status, const char *message)
 	printf("Status: %s\r\n", status);
 	printf("Content-type: text/html\r\n\r\n");
 	printf("<HTML><HEAD><TITLE>%s</TITLE></HEAD>\n", status);
-	printf("<BODY><H1>%s</H1>\n%s\n", status, message);
+	printf("<BODY><H1>%s</H1>\n%s\n", status, escape(message));
 	printf("</BODY></HTML>\n");
 	exit(1);
 }

@@ -25,6 +25,8 @@
 #include	<sys/stat.h>
 #include	<string.h>
 
+#include	"decode.h"
+
 #define		MYBUFSIZ	1024
 #define		MAXVERTS	1000
 #define		X		0
@@ -282,7 +284,7 @@ servererr(const char *msg)
 	printf("<HTML><HEAD><TITLE>Mapping server error</TITLE></HEAD>\n");
 	printf("<BODY><H1>Mapping server error</H1>\n");
 	printf("The mapping server encountered an error:<P>\n");
-	printf("%s", msg);
+	printf("%s", escape(msg));
 	printf("</BODY></HTML>\n");
 	exit(1);
 }
