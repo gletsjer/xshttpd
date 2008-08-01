@@ -83,7 +83,8 @@ load_config()
 	char	line[LINEBUFSIZE], thishostname[NI_MAXHOST];
 	struct socket_config	*lsock;
 	static const char	*defaultindexfiles[] =
-		{ INDEX_HTML, "index.htm", "index.php", NULL };
+		{ INDEX_HTML, "index.htm", "index.xhtml", "index.xml",
+		  "index.php", NULL };
 	static const char	*defaultuidscripts[] =
 		{ "/cgi-bin/imagemap", "/cgi-bin/xschpass", NULL };
 

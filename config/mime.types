@@ -162,6 +162,7 @@ application/x-x509-ca-cert			crt
 application/x-xcf				xcf
 application/x-xfig				fig
 application/x-xpinstall				xpi
+application/xhtml+xml				xhtml
 application/xml					xml
 application/zip					zip
 audio/basic					au
@@ -288,7 +289,6 @@ text/x-setext					etx
 text/x-sh					sh
 text/x-vcalendar				vcs
 text/x-vcard					vcf
-text/xml					xhtml
 video/3gpp					3gp
 video/dl					dl
 video/fli					fli

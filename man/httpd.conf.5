@@ -511,7 +511,7 @@ must not be set.
 All requests are redirected; if none of the rules match, a
 .Ql 404 not found
 error will be returned.
-.It Sy IndexFiles Ar filename Oo Ar filename ... Oc Aq index.html index.htm index.php
+.It Sy IndexFiles Ar filename Oo Ar filename ... Oc Aq index.html index.htm index.xhtml index.xml index.php
 Defines the filename(s) that should be used when the user
 asks for a directory. The webserver will never autogenerate
 a directory index: you can use
@@ -526,7 +526,8 @@ will only be tried if
 is not present, etc.
 .Pp
 If this option is omitted for the
-.Sy Virtual or
+.Sy Virtual
+or
 .Sy Users
 section, it will default to the definition in the
 .Sy System
