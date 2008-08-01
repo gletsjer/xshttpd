@@ -140,6 +140,7 @@ escape(const char *what)
 			/* do nothing */;
 		}
 	}
+	strncat(buffer, p, len);
 	return buffer;
 }
 

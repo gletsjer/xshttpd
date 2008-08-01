@@ -13,6 +13,7 @@
 #include	<pwd.h>
 
 #include	"path.h"
+#include	"decode.h"
 #include	"htconfig.h"
 
 static	void	error			(const char *)	NORETURN;
@@ -56,13 +57,13 @@ error(const char *what)
 static	void
 user_unknown()
 {
+	int		len = 0;
 	char		filename[XS_PATH_MAX], *temp;
 
-	strlcpy(buffer, error_url_escaped + 2, BUFSIZ);
-	if ((temp = strchr(buffer, '/')))
-		*temp = 0;
-	printf("<p>The user <b>%s</b> is unknown to this system.</p>\n",
-		buffer);
+	if ((temp = strchr(error_url_escaped + 2, '/')))
+		len = temp - error_url_escaped - 2;
+	printf("<p>The user <b>%*.*s</b> is unknown to this system.</p>\n",
+		len, len, error_url_escaped + 2);
 	printf("<p>You may look at the <a href=\"/\">main index page</a>");
 	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTML_DIR);
 	if (!access(calcpath(filename), F_OK))
@@ -152,10 +153,13 @@ not_found()
 	}
 	if ((len >= 0) && strcmp(buffer, error_url) && strcmp(buffer, "/"))
 	{
+		char	*escurl = escape(buffer);
+
 		printf("<p>The path does seem to partially exist.\n");
 		printf("Perhaps the path <a href=\"%s\">%s</a> will\n",
-			buffer, buffer);
+			buffer, escurl);
 		printf ("help.</p>\n<p>Alternatively, y");
+		free(escurl);
 	} else
 		printf("<p>Y");
 	printf("ou may take a look at <a href=\"/\">the main index</a>");

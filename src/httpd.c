@@ -622,7 +622,7 @@ server_error(int code, const char *readable, const char *cgi)
 	setenv("ERROR_READABLE", errmsg, 1);
 	setenv("ERROR_URL", orig, 1);
 	setenv("ERROR_URL_EXPANDED", convertpath(orig), 1);
-	if (*orig)
+	if (orig[0])
 	{
 		char	*url = escape(orig);
 		setenv("ERROR_URL_ESCAPED", url, 1);
@@ -630,6 +630,7 @@ server_error(int code, const char *readable, const char *cgi)
 	}
 	else
 		setenv("ERROR_URL_ESCAPED", "", 1);
+fprintf(stderr, "url '%s' esc '%s' exp '%s'\n", getenv("ERROR_URL"), getenv("ERROR_URL_ESCAPED"), getenv("ERROR_URL_EXPANDED"));
 	/* Look for user-defined error script */
 	if (current == config.users)
 	{
