@@ -1622,6 +1622,10 @@ loadscripttypes(char *orgbase, char *base)
 		if (!strncmp(line, "internal:python", 15))
 			continue;
 #endif		/* HAVE_PYTHON */
+#ifndef		HAVE_RUBY
+		if (!strncmp(line, "internal:ruby", 13))
+			continue;
+#endif		/* HAVE_RUBY */
 		MALLOC(new, ctypes, 1);
 		if (sscanf(line, "%s %s", new->prog, new->ext) != 2)
 			errx(1, "Unable to parse `%s' in script types", line);

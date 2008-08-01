@@ -54,6 +54,10 @@
 #ifdef		HAVE_PYTHON
 #include	<python2.5/Python.h>
 #endif		/* HAVE_PYTHON */
+#ifdef		HAVE_RUBY
+#include	<ruby.h>
+#endif		/* HAVE_RUBY */
+
 
 #include	"htconfig.h"
 #include	"httpd.h"
@@ -623,4 +627,12 @@ loadpython()
 }
 #endif		/* HAVE_PYTHON */
 
+#ifdef		HAVE_RUBY
+void
+loadruby()
+{
+	ruby_init();
+	ruby_script("embedded");
+}
+#endif		/* HAVE_RUBY */
 

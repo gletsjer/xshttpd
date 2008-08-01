@@ -37,6 +37,9 @@
 #ifdef		HAVE_PYTHON
 #include	<python2.5/Python.h>
 #endif		/* HAVE_PYTHON */
+#ifdef		HAVE_RUBY
+#include	RUBY_HDR
+#endif		/* HAVE_RUBY */
 
 #include	"httpd.h"
 #include	"ssi.h"
@@ -359,6 +362,14 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 		else
 #endif		/* HAVE_PERL */
+#ifdef		HAVE_RUBY
+		if (engine && !strcmp(engine, "internal:ruby"))
+		{
+			rb_load_file(fullpath);
+			ruby_run();
+			exit(0);
+		}
+#endif		/* HAVE_RUBY */
 		if (engine)
 		{
 			const char	meta[] = " \t&();<>|{}$%";

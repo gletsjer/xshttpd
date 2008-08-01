@@ -400,6 +400,9 @@ open_logs(int sig)
 #ifdef		HAVE_PYTHON
 	loadpython();
 #endif		/* HAVE_PYTHON */
+#ifdef		HAVE_RUBY
+	loadruby();
+#endif		/* HAVE_RUBY */
 #ifdef		HAVE_CURL
 	curl_global_init(CURL_GLOBAL_ALL);
 #endif		/* HAVE_CURL */
@@ -1699,6 +1702,11 @@ main(int argc, char **argv, char **envp)
 #else		/* HAVE_PYTHON */
 				"-PYTHON "
 #endif		/* HAVE_PYTHON */
+#ifdef		HAVE_RUBY
+				"+RUBY "
+#else		/* HAVE_RUBY */
+				"-RUBY "
+#endif		/* HAVE_RUBY */
 #ifdef		AUTH_LDAP
 				"+LDAP "
 #else		/* AUTH_LDAP */
