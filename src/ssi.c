@@ -646,8 +646,10 @@ dir_include_file(int argc, char **argv, off_t *size)
 	fd = open(path, O_RDONLY, 0);
 	if (fd < 0)
 	{
+		char	*escpath = escape(path);
 		*size += secprintf("[Error opening file `%s': %s]\n",
-			path, strerror(errno));
+			escpath, strerror(errno));
+		free(escpath);
 		return(ERR_CONT);
 	}
 	if (ssi)
@@ -673,7 +675,7 @@ static	int
 dir_last_mod(int argc, char **argv, off_t *size)
 {
 	const	char	*path;
-	char		buffer[MYBUFSIZ];
+	char		buffer[MYBUFSIZ], *escpath;
 	struct	stat	statbuf;
 	struct	tm	*thetime;
 
@@ -682,8 +684,10 @@ dir_last_mod(int argc, char **argv, off_t *size)
 		path = convertpath(argv[0]);
 		if (stat(path, &statbuf))
 		{
+			escpath = escape(path);
 			*size += secprintf("[Cannot stat file '%s': %s]\n",
-				path, strerror(errno));
+				escpath, strerror(errno));
+			free(escpath);
 			return(ERR_CONT);
 		}
 		thetime = localtime(&statbuf.st_mtime);
@@ -792,10 +796,15 @@ dir_run_cgi(int argc, char **argv, off_t *size)
 static	int
 dir_printenv(int argc, char **argv, off_t *size)
 {
-	char **p, *c;
+	char **p, *c, *v;
 
 	for (p = environ; (c = *p); ++p)
-		*size += secprintf("%s<br>\n", c);
+	{
+		/* print as html */
+		v = escape(c);
+		*size += secprintf("%s<br>\n", v);
+		free(v);
+	}
 	(void)argc;
 	(void)argv;
 	return(ERR_NONE);
