@@ -18,8 +18,7 @@
 # The global settings may be overridden per directory by .xsscript files
 # that use the same syntax. These .xsscript files apply recursively.
 
-/usr/local/bin/php	.php
-/usr/local/bin/php3	.php3
+/usr/local/bin/php-cgi	.php
 internal:404		.htmli
 #internal:exec		.cgi
 #internal:perl		.pl

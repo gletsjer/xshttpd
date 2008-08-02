@@ -21,6 +21,7 @@ application/x-tar	tar	/icons/xs-tar.gif	TAR	TAR file
 application/x-ustar	ustar	/icons/xs-tar.gif	TAR	TAR file
 application/x-compress	Z	/icons/xs-zip.gif	COMP	Compressed file
 application/x-gzip	gz	/icons/xs-zip.gif	GZIP	GNU zipped file
+application/xhtml+xml	xhtml	/icons/xs-html.gif	XHTML	XHTML text
 audio/basic		au	/icons/xs-audio.gif	AUDIO	Basic audio file
 audio/basic		snd	/icons/xs-audio.gif	AUDIO	Basic audio file
 audio/x-aiff		aif	/icons/xs-audio.gif	AUDIO	AIFF audio file

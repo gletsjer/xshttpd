@@ -30,4 +30,4 @@
 
 /usr/bin/uncompress	.Z	compress
 /usr/bin/gunzip		.gz	gzip
-#/usr/local/bin/bunzip2	.bz2	bzip2
+/usr/bin/bunzip2	.bz2	bzip2
