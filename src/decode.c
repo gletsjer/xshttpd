@@ -145,7 +145,7 @@ escape(const char *what)
 }
 
 char	*
-urlencode(const char *what)
+urlencode(const char *what, bool delimenc)
 {
 	const char	*p;
 	char		*q, *buffer;
@@ -156,13 +156,14 @@ urlencode(const char *what)
 	MALLOC(buffer, char, strlen(what) * 3 + 1);
 	q = buffer;
 	/* don't urlencode host-info */
-	if ((p = strstr(what, "://")))
+	if ((p = strstr(what, "://")) && !delimenc)
 	{
-		bool		hashost = true;
+		bool		hashost = isalpha(what[0]);
 		const char	*s;
 
-		for (s = what; s < p; s++)
-			hashost &= isalpha(*s);
+		for (s = what + 1; s < p; s++)
+			hashost &= isalnum(*s) ||
+				'+' == *s || '-' == *s || '.' == *s;
 		if (hashost)
 		{
 			if ((p = strchr(p + 3, '/')))
@@ -175,9 +176,18 @@ urlencode(const char *what)
 		else
 			p = NULL;
 	}
-	/* start encoding past past host-info (if any) */
+
+	/* start encoding past host-info (if any) */
+	const char	mark[] =
+		{ '-', '_', '.', '!', '~', '*', '\'', '(', ')' };
+	const char	delim[] =
+		{ ';', '/', '?', '@', '&', '=', '+', '$', ',' };
 	for (p = p ? p : what; *p; p++)
-		if (isalnum(*p) || '/' == *p || '.' == *p)
+		if (' ' == *p)
+			*q++ = '+';
+		else if (isalnum(*p) || strchr(mark, *p))
+			*q++ = *p;
+		else if (!delimenc && strchr(delim, *p))
 			*q++ = *p;
 		else
 			q += sprintf(q, "%%%02hhx", (unsigned char)*p);

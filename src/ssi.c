@@ -859,7 +859,7 @@ dir_echo(int argc, char **argv, off_t *size)
 		*size += secputs(value);
 	else if (enc && !strcmp(enc, "url"))
 	{
-		var = urlencode(value);
+		var = urlencode(value, false);
 		*size += secputs(var);
 		free(var);
 	}

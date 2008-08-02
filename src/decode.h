@@ -9,7 +9,7 @@
 bool	decode		(char *) NONNULL;
 void	uudecode	(char *) NONNULL;
 char	*escape		(const char *) MALLOC_FUNC NONNULL;
-char	*urlencode	(const char *) MALLOC_FUNC NONNULL;
+char	*urlencode	(const char *, bool) MALLOC_FUNC NONNULL;
 char	*shellencode	(const char *) MALLOC_FUNC NONNULL;
 int	hexdigit	(char) CONST_FUNC NONNULL;
 void	hex_encode	(const char *bin, size_t len, char *hex) NONNULL;

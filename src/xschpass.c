@@ -227,8 +227,8 @@ changepasswd(const char *param, int  cl)
 static	void
 generateform()
 {
-	char	*name = urlencode(getenv("SCRIPT_NAME"));
-	char	*info = urlencode(getenv("PATH_INFO"));
+	char	*name = urlencode(getenv("SCRIPT_NAME"), false);
+	char	*info = urlencode(getenv("PATH_INFO"), true);
 
 	printf("Content-type: text/html\n\n");
 	printf("<HTML><HEAD><TITLE>Change password</TITLE></HEAD>\n");
