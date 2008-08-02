@@ -147,12 +147,37 @@ escape(const char *what)
 char	*
 urlencode(const char *what)
 {
+	const char	*p;
 	char		*q, *buffer;
+
+	if (!what)
+		return NULL;
 
 	MALLOC(buffer, char, strlen(what) * 3 + 1);
 	q = buffer;
-	for (const char *p = what; *p; p++)
-		if (isalnum(*p))
+	/* don't urlencode host-info */
+	if ((p = strstr(what, "://")))
+	{
+		bool		hashost = true;
+		const char	*s;
+
+		for (s = what; s < p; s++)
+			hashost &= isalpha(*s);
+		if (hashost)
+		{
+			if ((p = strchr(p + 3, '/')))
+				p++;
+			else
+				p = strchr(p, '\0');
+			strlcpy(buffer, what, p - what + 1);
+			q = strchr(buffer, '\0');
+		}
+		else
+			p = NULL;
+	}
+	/* start encoding past past host-info (if any) */
+	for (p = p ? p : what; *p; p++)
+		if (isalnum(*p) || '/' == *p || '.' == *p)
 			*q++ = *p;
 		else
 			q += sprintf(q, "%%%02hhx", (unsigned char)*p);
