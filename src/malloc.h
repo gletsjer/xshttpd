@@ -50,11 +50,13 @@
 			const char *_var = (str);			\
 			char *_dst = NULL;				\
 			if (_var)					\
-				_dst = strdup(_var);			\
-			if (!_dst)					\
 			{						\
-				err(1, "strdup for %s failed", #dst);	\
-				/* NOTREACHED */			\
+				_dst = strdup(_var);			\
+				if (!_dst)				\
+				{					\
+					err(1, "strdup for %s failed", #dst);\
+					/* NOTREACHED */		\
+				}					\
 			}						\
 			(dst) = _dst;					\
 		} while (0)
