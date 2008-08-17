@@ -165,9 +165,8 @@ AS_IF([test x$with_ruby = xyes], [
 	AC_DEFINE(HAVE_RUBY,, [Define this to use ruby cgi environment])
 	XS_FUNC_IN_LIB(ruby_run, HAVE_RUBY, [ruby18], httpd)
 	AC_MSG_WARN([Internal Ruby interpreter is still EXPERIMENTAL])
-	rubyhdr="`ruby -r mkmf -e 'print ($hdrdir)'`/ruby.h"
-	AC_DEFINE_UNQUOTED(RUBY_HDR, "${rubyhdr}", [Ruby include file])
-	AC_MSG_FAILURE([Compiling with Ruby interpreter doesn't work yet])
+dnl	rubyhdr="`ruby -r mkmf -e 'print ($hdrdir)'`/ruby.h"
+dnl	AC_DEFINE_UNQUOTED(RUBY_HDR, "${rubyhdr}", [Ruby include file])
 	])
 
 AC_MSG_CHECKING([if you want configuration preprocessing])

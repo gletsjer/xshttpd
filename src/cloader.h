@@ -13,5 +13,8 @@ void	loadperl	(void);
 #ifdef		HAVE_PYTHON
 void	loadpython	(void);
 #endif		/* HAVE_PYTHON */
+#ifdef		HAVE_RUBY
+void	loadruby	(void);
+#endif		/* HAVE_RUBY */
 
 #endif		/* CLOADER_H */

@@ -37,9 +37,6 @@
 #ifdef		HAVE_PYTHON
 #include	<python2.5/Python.h>
 #endif		/* HAVE_PYTHON */
-#ifdef		HAVE_RUBY
-#include	RUBY_HDR
-#endif		/* HAVE_RUBY */
 
 #include	"httpd.h"
 #include	"ssi.h"
@@ -52,6 +49,11 @@
 
 static	void		time_is_up(int)	NORETURN;
 static	bool		append(char **, bool, const char * const format, ...)	PRINTF_LIKE(3,4);
+
+#ifdef		HAVE_RUBY
+extern void	ruby_run(void);
+extern void	rb_load_file(const char *);
+#endif		/* HAVE_RUBY */
 
 #ifdef		HAVE_PERL
 char *	perlargs[] = { NULL, NULL };

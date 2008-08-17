@@ -54,9 +54,6 @@
 #ifdef		HAVE_PYTHON
 #include	<python2.5/Python.h>
 #endif		/* HAVE_PYTHON */
-#ifdef		HAVE_RUBY
-#include	<ruby.h>
-#endif		/* HAVE_RUBY */
 
 
 #include	"htconfig.h"
@@ -79,6 +76,11 @@ struct virtual		*current;
 #ifdef		HAVE_PERL
 PerlInterpreter *	my_perl = NULL;
 #endif		/* HAVE_PERL */
+
+#ifdef		HAVE_RUBY
+extern void	ruby_init(void);
+extern void	ruby_script(const char *);
+#endif		/* HAVE_RUBY */
 
 void
 load_config()
