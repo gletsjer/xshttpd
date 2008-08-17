@@ -12,8 +12,9 @@
 #  internal:text	display file source rather than interpreting it as CGI
 #  internal:exec	execute the file as if it were in cgi-bin directory
 #  internal:perl	interpret file through internal persistent perl daemon
-#			httpd must be compiled with --enable-perl for this
-#  internal:python      use python interpreter; requires --enable-python
+#			httpd must be compiled with --with-perl for this
+#  internal:python      use python interpreter; requires --with-python
+#  internal:ruby        use ruby interpreter; requires --with-ruby
 #
 # The global settings may be overridden per directory by .xsscript files
 # that use the same syntax. These .xsscript files apply recursively.

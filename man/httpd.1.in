@@ -462,7 +462,8 @@ for queries.
 .Sh BUGS
 Support for the alternative document processing methods using internal
 .Sy Perl ,
-.Sy Python
+.Sy Python ,
+.Sy Ruby
 or
 .Sy FastCGI
 hooks is still highly experimental and not very useful.
