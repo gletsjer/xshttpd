@@ -37,7 +37,7 @@ are fall-back defaults for all options: you are not required
 to use a configuration file and leaving out an option does
 not mean it will be automatically disabled.
 .Pp
-Options names and their values must be seperated by whitespace.
+Option names and their values must be separated by whitespace.
 Option values in the configuration file should not be quoted
 using single or double quotation marks.
 Note that a
@@ -65,7 +65,7 @@ The main httpd directory which contains all the data subdirectories
 The file to store the current pid and the last startup
 command line. This will be used by
 .Xr httpdc 1
-for restarting and other maintainance commands.
+for restarting and other maintenance commands.
 .It Sy UserId Ar username Aq nobody
 The username or numeric uid that will be used to process all
 requests. This must not be the
@@ -82,7 +82,7 @@ all requests.
 If enabled then filenames and CGI's in a user directory will
 be read and executed with the permissions of that user.
 .It Sy DefaultCharset Ar charset Aq us-ascii
-The chacterset in which text documents will be displayed by
+The character set in which text documents will be displayed by
 default. This can be overridden locally by
 .Pa .charset
 files. The
@@ -92,7 +92,7 @@ set that is used for all text files in that directory (and
 any subdirectories).
 .It Sy UseVirtualUid Ar boolean Aq false
 If enabled, files in virtual host directories will be
-retreived with the permissions of the owner over the virtual
+retrieved with the permissions of the owner over the virtual
 host rootdir. This can be useful if different users maintain
 different sites.
 .It Sy VirtualHostDir Ar directory Ao . Ac
@@ -162,7 +162,7 @@ system has indeed such a system.
 .It Sy UseETag Ar boolean Aq false
 If this option is enabled, entity tags will be used for static
 documents (anything that is not a CGI binary or contains
-server-side include directives). Browsers and webproxies can
+server-side include directives). Browsers and web-proxies can
 use this tag to determine if their cached entries are still
 up-to-date. Entity tag information is based on the file
 properties (such as size and modification time) rather than
@@ -176,7 +176,7 @@ or similar fatal error condition. Whether the core image is indeed
 created will depend on other factors as well: write access for
 the actual uid in the working directory (often
 .Pa / ) ,
-available diskspace and system preferences about the desirability
+available disk space and system preferences about the desirability
 of uid-shifting programs dumping their state on disk.
 .It Sy UseContentMD5 Ar boolean Aq false
 HTTP supports checksums to validate content integrity. At the moment
@@ -221,7 +221,7 @@ time should be specified in minutes.
 The
 .Ev PATH
 environment variable that should be presented to CGI
-binaries. This must be a colon seperated list of
+binaries. This must be a colon separated list of
 directories; no sanity checking is done. A reasonable
 default is provided.
 .It Sy PerlPersistentScript Aq contrib/persistent.pl
@@ -259,7 +259,7 @@ the family unspecified - which means that your operating
 system can choose: in this case the httpd can even listen to
 both IPv4 and IPv6 addresses. Note that most operation
 systems don't allow binding to multi-family sockets, in
-which case you will need seperate
+which case you will need separate
 .Sy Socket
 blocks for IPv4 and IPv6.
 .It Sy SocketName Ar key Aq
@@ -274,7 +274,7 @@ section, but instead use the settings from the
 section(s) with a matching
 .Sy HostName .
 .It Sy Instances Ar number Aq 20
-The number of parallell services to run.
+The number of parallel services to run.
 .It Sy UseSSL Ar boolean Aq false
 If enabled, use SSL instead of plain text. This can only be
 used if SSL support is enabled at compile time. If this
@@ -516,7 +516,7 @@ Defines the filename(s) that should be used when the user
 asks for a directory. The webserver will never autogenerate
 a directory index: you can use
 .Xr xsindex 1
-for that. You can specify multiple filenames seperated by
+for that. You can specify multiple filenames separated by
 commas or whitespace. The default value of
 .Ql index.html index.htm index.php
 means that

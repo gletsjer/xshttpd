@@ -18,7 +18,7 @@ The general format of such a directive is as follows:
 .D1 <!--# Ns Nm name Cm opt Ns = Ns Ar arg Oo Cm opt Ns = Ns Ar arg Cm ... Oc Ns -->
 .Nm name
 is the name of the directive. Options may sometimes be omitted.
-Option and argument pairs should be seperated each other 
+Option and argument pairs should be separated each other 
 nd from the command name by a single space.
 If the argument contains spaces or other special characters
 (such as the equals sign), it must be contained in double quotes (").
@@ -51,7 +51,7 @@ ever been retrieved.
 If
 .Ar location
 is specified, it will be used as a base location for the font.
-A font has 10 digits in it, each in a seperate file, all PPM's.
+A font has 10 digits in it, each in a separate file, all PPM's.
 Say
 .Ar location
 is
@@ -124,7 +124,7 @@ The optional
 argument defaults to html encoding.
 Selecting
 .Cm none
-will do no rewriting at all and is therfore useful in text/plain files.
+will do no rewriting at all and is therefore useful in text/plain files.
 Selecting
 .Cm html
 replaces special html symbols (such as
@@ -172,7 +172,7 @@ argument.
 .Pp
 Binary files are copied directly: without SSI handling or
 other special (text) parsing taking place.
-Virtual files are handled as if these were seperate webserver
+Virtual files are handled as if these were separate webserver
 (GET) requests: full parsing is done and it is even possible
 to call CGI binaries which will be interpreted as well this way.
 .Pp
@@ -194,9 +194,9 @@ Standard
 .Ev PATH_INFO
 and 
 .Ev PATH_TRANSLATED
-parsing is done, so you can give argumens to the CGI binary.
+parsing is done, so you can give arguments to the CGI binary.
 All standard CGI environment variables will be set up
-appriopriately.
+appropriately.
 See
 .Xr httpd_cgi 7
 for more details on CGI's.

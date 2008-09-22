@@ -32,7 +32,7 @@ interpreted as a program, rather than being confined to the
 /cgi-bin directory, which is more typing and a also clear
 indication to any visitor that it is a program.
 .Pp
-Users can include the interpretion settings through a
+Users can include the interpretation settings through a
 .Pa .xsscripts
 file which may be placed in any html directory. The settings
 apply recursively to all subdirectories. The system
@@ -44,7 +44,7 @@ be parsed by a PHP interpreter.
 .Pp
 Additional command line options may not be specified in the
 configuration file. In order to supply extra parameters to
-the interpreter, one must write a wapper script that handles
+the interpreter, one must write a wrapper script that handles
 these options. The interpreter will be executed from the
 directory containing the requested file; with the
 appropriate filename as the single argument.
@@ -88,7 +88,7 @@ directly. Give these a special extension like
 .It Sy internal:text
 Treat as a normal document rather than an executable CGI.
 This allows you to present HTML documents in a cgi-bin
-directory. The directive can also be used to overrided
+directory. The directive can also be used to overridden
 global settings or more general matching rules.
 .It Sy internal:exec
 Directly execute the program, without an interpreter. The
@@ -99,11 +99,11 @@ set with
 .Sh FILES
 .Bl -tag -width Ds
 .It Pa script.methods
-Global configation file with interpreter directives,
+Global configuration file with interpreter directives,
 located in
 .Sy SystemRoot Ns Pa /conf/ .
 .It Pa .xsscripts
-Local configation file with interpreter directives,
+Local configuration file with interpreter directives,
 located in any html data directory.
 .El
 .Sh SEE ALSO

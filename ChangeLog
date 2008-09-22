@@ -123,7 +123,7 @@ Changes since 3.5 beta 23
 
 Changes since 3.5 beta 22
 - Flush POST data buffer when CGI did not read it
-- Move configuration file handling functions to seperated files
+- Move configuration file handling functions to separated files
 - Don't send (zero length) body when CGI produces 304 status
 - Fix timeout handling during blocking SSL_read
 - Fix error handling on HEAD requests

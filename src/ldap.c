@@ -28,7 +28,7 @@ check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 	STRDUP(attrs[0], "memberUid");
 
 	/*
-	 * Search for the group first. Most directory have seperate branches
+	 * Search for the group first. Most directory have separate branches
 	 * for users/groups.
 	 */
 	snprintf (filter, MYBUFSIZ, "(cn=%s)", group);

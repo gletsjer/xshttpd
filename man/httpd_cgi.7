@@ -12,7 +12,7 @@ The WWW server supports running system and user CGI binaries.
 This means any user can run their own CGI binaries.
 Any CGI binary runnig for a user run as the user.
 As a consequence these CGI binaries are allowed to read, write,
-update and delete files owned or accessable by the user.
+update and delete files owned or accessible by the user.
 .Pp
 CGI binaries must be in the directory named
 .Pa cgi-bin
@@ -34,7 +34,7 @@ programs can be used just as well. It is important that the
 executable bit (chmod u+x) is set for a CGI binary.
 .Pp
 The CGI binary should output HTTP headers and content,
-seperated by an empty line. The following headers are
+separated by an empty line. The following headers are
 frequently set by CGI binaries
 .Bl -tag -width Ds -compact
 .It Li Content-type:
@@ -144,7 +144,7 @@ Format: CGI/revision
 The name and version of the httpd that started the binary.
 Format: xs-httpd/version branch/subversion ...
 .It Ev SERVER_PROTOCOL
-The name and revision of the information protcol this request
+The name and revision of the information protocol this request
 came in with.
 Format: protocol/revision
 .It Ev SERVER_NAME
@@ -207,10 +207,10 @@ If the server supports user authentication, and the script is
 protected, this is the protocol-specific authentication method
 used to validate the user.
 .It Ev REMOTE_USER
-If the the script is protected, this is the username the remote
+If the script is protected, this is the username the remote
 user has authenticated with.
 .It Ev REMOTE_PASSWORD
-If the the script is protected with basic authentication,
+If the script is protected with basic authentication,
 this is the password the remote user used.
 .It Ev CONTENT_TYPE
 For queries which have attached information, such as
@@ -302,13 +302,13 @@ A
 .Sy POST
 request was attempted to a non-CGI binary.
 .It Sq Sy PRECONDITION_FAILED
-The client sent a conditional request (If-...) dor which the
+The client sent a conditional request (If-...) of which the
 condition is not met.
 .El
 .It Ev ERROR_READABLE
 This variable contains the text that the server would normally
 send to the remote client.
-This can be used in case you do not want to genereate your own
+This can be used in case you do not want to generate your own
 error message.
 .It Ev ERROR_URL
 The URL that was requested (without the server name) when the

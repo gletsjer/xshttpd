@@ -99,7 +99,7 @@ match_list(char *list, const char *browser)
 	return false;
 }
 
-/* Convert whitespace/comma-seperated index=value string into mapping */
+/* Convert whitespace/comma-separated index=value string into mapping */
 #define ISALNUM(p) (((p) >= '0' && (p) <= '9') || ((p) >= 'a' && (p) <= 'z') ||\
 		((p) >= 'A' && (p) <= 'Z') || (p) == '-' || (p) == '_')
 size_t
@@ -216,7 +216,7 @@ qstring_to_arraypn(const char *value, char ***array)
 	return internal_xstring_to_arraypn(value, array, &qstring_to_array);
 }
 
-/* Convert whitespace/comma-seperated string into array (config) */
+/* Convert whitespace/comma-separated string into array (config) */
 size_t
 string_to_array(const char *value, char **array)
 {
@@ -269,7 +269,7 @@ qcmp(const char **a, const char **b)
 	return qvala < qvalb ? 1 : qvala > qvalb ? -1 : 0;
 }
 
-/* Convert comma seperated http header into array */
+/* Convert comma separated http header into array */
 size_t
 qstring_to_array(const char *value, char **array)
 {

@@ -103,20 +103,20 @@ should be used.
 .Pp
 .Ss Server design
 XS-httpd has some important features that distinguishes it from other
-well-know webservers. The following list highlights the main concepts:
+well-known webservers. The following list highlights the main concepts:
 .Bl -tag -width 2m
 .It Sy \(hy Small and fast
 The webserver was designed to be small and fast. Although it should be
 fully standards-compliant, it does lack some of the more elaborate
 features that other servers offer. 
 .Pp
-An imortant design choice is to run with pre-forked processes: which
+An important design choice is to run with pre-forked processes: which
 means it doesn't start up a new client process for every connection to
 the webserver. This has advantages and disadvantages, but in general
 leads to a faster response and less overhead.
 .It Sy \(hy Multi-user environment
 The server can be used on a multi-user system where every user has their
-own website(s). The webpages will be retreived under the user's uid, so
+own website(s). The webpages will be retrieved under the user's uid, so
 there is no need to make documents with sensitive data (such as database
 passwords) readable to other users on the same server.
 .Pp
@@ -141,7 +141,7 @@ usernames and passwords. Users can choose for Basic or Digest
 authentication, or even configure access using SSL client-certificates,
 or blocking/allowing certain IP ranges.
 .Pp
-Ofcourse the amount of control a user actually has can be limited by the
+Of course the amount of control a user actually has can be limited by the
 webserver administrator. It is for instance possible to set resource
 limits on user scripts, or even disable the feature completely in the
 global configuration file.
@@ -157,7 +157,7 @@ WWW server. It works very simply: if somebody asks for (for example)
 and this file does not exist, but
 .Pa index.html.gz
 does exist, then
-.Pa ndex.html
+.Pa index.html
 will be `generated' out of
 .Pa index.html.gz
 using the method specified with
@@ -167,7 +167,7 @@ Note that this process does not actually create
 in that same directory. It creates a file in the temporary directory,
 which is removed immediately after usage.
 .Pp
-In the case that the browsers accepts certain document encodigings (gzip
+In the case that the browsers accepts certain document encodings (gzip
 is quite common) and the document is stored on disk in an acceptable
 format, then the server won't even bother to decompress the document
 himself, but will send it to the client compressed as it is, so that the
@@ -207,7 +207,7 @@ worried about other parties intercepting your communications, you should
 configure
 .Sy SSL
 (as explained below).
-More information about setting up authentication paswords can be found
+More information about setting up authentication passwords can be found
 in the manual pages of
 .Xr xspasswd 1
 and
@@ -221,7 +221,7 @@ available CGI variables in
 .Xr httpd_cgi 7 .
 .Ss Secure Sockets Layer
 The webserver supports secure https connections as well as normal http.
-However if you want to do both, you will need to run seperate instances,
+However if you want to do both, you will need to run separate instances,
 one with
 .Sy UseSSL
 (or the command line option
@@ -232,7 +232,7 @@ To use SSL you will need an x509 certificate
 .Pa ( cert.pem )
 and the corresponding private key
 .Pa ( key.pem ) .
-If you don't have certificates -or a certificiate authority to give
+If you don't have certificates -or a certificate authority to give
 these to you- then you can create the required files yourself using
 .Xr openssl 1 .
 .Pp
@@ -268,9 +268,9 @@ Content entity tags (ETag) and digests (MD5 checksum)
 XS-httpd configuration files, server-side includes and several
 additional programs make certain tedious tasks a lot simpler for the
 common user. Examples are:
-.Bl -bullet
+.Bl -bullet -compact
 .It
-Pagecounters served using server-side includes: daily or total
+Page counters served using server-side includes: daily or total
 pageviews can be included in text or in graphical fonts.
 .It
 Easy configuration of headers that describe the content: the
@@ -278,7 +278,7 @@ mime-type, character set and language of documents can be set per file,
 file extension or directory tree by the user.
 .It
 Allow user-settable redirects (HTTP 301, 302 code), server-side
-filename rewriting rules or proxying to have the server retreive
+filename rewriting rules or proxying to have the server retrieve
 contents from another backend server.
 .El
 .Sh ENVIRONMENT
@@ -303,7 +303,7 @@ subdirectories).
 .It .xsconf
 This file provides a generic interface to set a lot of the options
 mentioned below, specifically for a certain file or group of files.
-It allows you to set file-specific mimetype, character set, passwords
+It allows you to set file-specific mime type, character set, passwords
 and other access restrictions. See
 .Xr xsconf 5
 for full details.
@@ -378,7 +378,7 @@ for more information.
 .Sh DIAGNOSTICS
 The
 .Sy httpd
-returns status 0 when it starts succesfully and the daemon will continue
+returns status 0 when it starts successfully and the daemon will continue
 to run in the background. If any fatal error occurs, additional
 information should be available in the logfile
 .Pa logs/error_log .

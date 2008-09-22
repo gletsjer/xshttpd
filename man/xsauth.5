@@ -29,7 +29,7 @@ as well as in cgi-bin script directories
 So there is no need to implement authentication support in
 CGI scripts.
 .Pp
-If you want to disallow access through the webinterface completely, or
+If you want to disallow access through the web-interface completely, or
 you want to restrict access based on IP addresses, use a
 .Pa .noxs
 file instead.
@@ -39,7 +39,7 @@ Normal password entries consist of a
 (locked) or
 .Ql U
 (unlocked), indicating if the password entry may be modified
-through the webinterface, using the
+through the web-interface, using the
 .Xr xschpass 1
 CGI binary (which is no longer installed by default). This
 letter is immediately followed by the username, a colon and
@@ -49,7 +49,7 @@ for digest access authentication.
 .Pp
 On systems that don't have a standard
 .Xr crypt 3
-function available, all passwords will be stored unencryped
+function available, all passwords will be stored unencrypted
 instead.
 .Ss LDAP Authentication
 If LDAP support is enabled at compile time, then special
