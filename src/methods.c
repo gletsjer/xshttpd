@@ -402,7 +402,7 @@ senduncompressed(int fd)
 	{
 		const bool valid_size_t_size =
 #if		OFF_MAX > SIZE_T_MAX
-			size < SIZE_T_MAX;
+			size <= SIZE_T_MAX;
 #else		/* OFF_MAX <= SIZE_T_MAX */
 			true;
 #endif		/* OFF_MAX > SIZE_T_MAX */

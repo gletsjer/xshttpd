@@ -49,9 +49,9 @@ XS_PRINT_TYPE(pid_t, PRIpid)
 XS_PRINT_TYPE(off_t, PRIoff)
 XS_PRINT_TYPE(time_t, PRItime)
 
-XS_DEF_MAX(int, INT)
-XS_DEF_MAX(size_t, SIZE_T)
-XS_DEF_MAX(off_t, OFF)
+XS_DEF_MAX(int, INT_MAX)
+XS_DEF_MAX(size_t, SIZE_T_MAX)
+XS_DEF_MAX(off_t, OFF_MAX)
 
 dnl Checks for library functions.
 AC_FUNC_MMAP
