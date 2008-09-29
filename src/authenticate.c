@@ -174,22 +174,31 @@ check_digest_auth(const char *authfile, bool *stale)
 			nc = val;
 		/* not interested in other keywords */
 	}
-	free(authreq);
 
 	if (!user || !realm || !nonce || !uri || !response)
+	{
+		free(authreq);
 		return false; /* fail */
+	}
 	passwd = ha1 = NULL;
 	if (!get_crypted_password(authfile, user, &passwd, &ha1) || !passwd)
+	{
+		free(authreq);
 		return false; /* not found */
+	}
 
 	free(passwd);
 	if (!ha1)
+	{
+		free(authreq);
 		return false;
+	}
 
 	/* obtain h(a1) from file */
 	if (strlen(ha1) > MD5_DIGEST_STRING_LENGTH)
 	{
 		free(ha1);
+		free(authreq);
 		return false; /* no valid hash */
 	}
 
@@ -209,16 +218,21 @@ check_digest_auth(const char *authfile, bool *stale)
 	free(ha1);
 
 	if (strcmp(response, digest))
+	{
+		free(authreq);
 		return false; /* no match */
+	}
 
 	if (!valid_nonce(nonce))
 	{
 		*stale = true;
+		free(authreq);
 		return false; /* invalid nonce */
 	}
 
 	setenv("AUTH_TYPE", "Digest", 1);
 	setenv("REMOTE_USER", user, 1);
+	free(authreq);
 	return true;
 }
 #endif		/* HAVE_MD5 */
@@ -387,7 +401,7 @@ fresh_nonce(void)
 static bool
 valid_nonce(const char *nonce)
 {
-	char	bufhex[MD5_DIGEST_LENGTH];
+	char	bufhex[MD5_DIGEST_STRING_LENGTH];
 	const char	*ptr;
 	char	*buf;
 	time_t	ts;
