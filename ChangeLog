@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.6 beta 20
+- Add UseSendfile option in httpd.conf to disable sendfile(2)
+
 Changes since 3.6 beta 19
 - Fix memory mismanagement in digest authentication verification
 

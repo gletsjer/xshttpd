@@ -110,6 +110,7 @@ extern struct configuration
 	bool		useacceptfilter;
 	bool		usessi;
 	bool		usecoredump;
+	bool		usesendfile;
 	bool		useetag;
 	bool		usecontentmd5;
 	bool		useput;

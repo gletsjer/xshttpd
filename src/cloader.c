@@ -104,6 +104,9 @@ load_config()
 	config.usessi = true;
 	config.useput = true;
 	config.execasuser = true;
+#ifdef		HAVE_SENDFILE
+	config.usesendfile = true;
+#endif		/* HAVE_SENDFILE */
 	config.scriptcpulimit = 2;
 	config.scripttimeout = 6;
 	config.sockets = NULL;
@@ -191,6 +194,8 @@ load_config()
 						config.usestricthostname = !strcasecmp("true", value);
 					else if (!strcasecmp("UseCoreDump", key))
 						config.usecoredump = !strcasecmp("true", value);
+					else if (!strcasecmp("UseSendfile", key))
+						config.usesendfile = !strcasecmp("true", value);
 					else if (!strcasecmp("UseETag", key))
 						config.useetag = !strcasecmp("true", value);
 					else if (!strcasecmp("UseContentMD5", key))

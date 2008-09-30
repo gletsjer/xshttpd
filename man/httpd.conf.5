@@ -178,6 +178,14 @@ the actual uid in the working directory (often
 .Pa / ) ,
 available disk space and system preferences about the desirability
 of uid-shifting programs dumping their state on disk.
+.It Sy UseSendfile Ar boolean Aq true
+Specify if
+.Xr sendfile 2
+should be used to transfer (binary) datafiles over an unencrypted
+connection (images, stylesheets, etc). This may speed-up transfers
+of such files. However on some systems it hinders rather than
+improves performance, so it is possible to turn this off. This
+option has no effect when sendfile is not available on your system.
 .It Sy UseContentMD5 Ar boolean Aq false
 HTTP supports checksums to validate content integrity. At the moment
 only MD5 checksums are supported in HTTP/1.1. If this option is

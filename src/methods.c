@@ -417,7 +417,8 @@ senduncompressed(int fd)
 #endif		/* TCP_NOPUSH */
 
 #ifdef		HAVE_BSD_SENDFILE
-		if (!cursock->usessl && !session.chunked && valid_size_t_size)
+		if (config.usesendfile && !cursock->usessl &&
+			!session.chunked && valid_size_t_size)
 		{
 			if (sendfile(fd, 1, 0, size, NULL, NULL, 0) < 0)
 				xserror(599, "Aborted sendfile for `%s'",
@@ -426,7 +427,8 @@ senduncompressed(int fd)
 		else
 #endif		/* HAVE_BSD_SENDFILE */
 #ifdef		HAVE_LINUX_SENDFILE	/* cannot have both */
-		if (!cursock->usessl && !session.chunked && valid_size_t_size)
+		if (config.usesendfile && !cursock->usessl &&
+			!session.chunked && valid_size_t_size)
 		{
 			if (sendfile(1, fd, NULL, size) < 0)
 				xserror(599, "Aborted sendfile for `%s'",
