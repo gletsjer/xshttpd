@@ -26,6 +26,10 @@
 #  define	NONNULL1
 #  define	WARNUNUSED
 # endif		/* __GNUC__ < 3 */
+  /* Check specific defines rather than gcc version */
+# ifdef  __GNUC_GNU_INLINE__
+#  define       inline			__attribute__ ((gnu_inline)) inline
+# endif  /* __GNUC_GNU_INLINE__ */
 #else		/* Not __GNUC__ */
 # define	PRINTF_LIKE(f, p)
 # define	CONST_FUNC

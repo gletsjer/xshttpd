@@ -83,14 +83,22 @@ static size_t	curl_readhack		(void *, size_t, size_t, FILE *);
 typedef	struct	ftypes
 {
 	struct	ftypes	*next;
-	char		name[32], ext[16];
+	char		*name;
+	char		*ext;
 } ftypes;
 
 typedef	struct	ctypes
 {
 	struct	ctypes	*next;
-	char		prog[XS_PATH_MAX], ext[16], name[16];
+	char		*prog;
+	char		*ext;
+	char		*name;
 } ctypes;
+
+static inline void	free_ftype		(struct ftypes *);
+static inline void	free_ctype		(struct ctypes *);
+
+/* Global variables */
 
 static	ftypes	*ftype = NULL, *lftype = NULL;
 static	ctypes	*ctype = NULL;
@@ -104,6 +112,28 @@ static	char	real_path[XS_PATH_MAX], orig_filename[XS_PATH_MAX],
 #ifdef		HAVE_CURL
 static	size_t	curl_readlen;
 #endif		/* HAVE_CURL */
+
+inline void
+free_ftype(ftypes *f)
+{
+	if (!f)
+		return;
+	free(f->name);
+	free(f->ext);
+	free(f);
+}
+
+inline void
+free_ctype(ctypes *c)
+{
+	if (!c)
+		return;
+	free(c->prog);
+	free(c->ext);
+	if (c->name)
+		free(c->name);
+	free(c);
+}
 
 static char *
 make_etag(struct stat *sb)
@@ -1147,7 +1177,7 @@ do_get(char *params)
 	{
 	for (isearch = *isearches[i]; isearch; isearch = isearch->next)
 	{
-		if (!*isearch->ext ||
+		if (!isearch->ext ||
 			cfvalues.scripttype ||
 			((temp = strstr(filename, isearch->ext)) &&
 			 strlen(temp) == strlen(isearch->ext)))
@@ -1466,7 +1496,7 @@ loadfiletypes(char *orgbase, char *base)
 			ftypes	*temp;
 
 			temp = ftype->next;
-			free(ftype);
+			free_ftype(ftype);
 			ftype = temp;
 		}
 	while (lftype)
@@ -1474,7 +1504,7 @@ loadfiletypes(char *orgbase, char *base)
 		ftypes	*temp;
 
 		temp = lftype->next;
-		free(lftype);
+		free_ftype(lftype);
 		lftype = temp;
 	}
 	lftype = NULL;
@@ -1516,8 +1546,8 @@ loadfiletypes(char *orgbase, char *base)
 			else
 				ftype = new;
 			prev = new;
-			strlcpy(new->name, name, sizeof(new->name));
-			strlcpy(new->ext,  ext,  sizeof(new->ext));
+			STRDUP(new->name, name);
+			STRDUP(new->ext, ext);
 			new->next = NULL;
 		}
 	}
@@ -1535,7 +1565,7 @@ loadcompresstypes()
 		ctypes	*temp;
 
 		temp = ctype->next;
-		free(ctype);
+		free_ctype(ctype);
 		ctype = temp;
 	}
 	path = calcpath(COMPRESS_METHODS);
@@ -1567,9 +1597,22 @@ loadcompresstypes()
 		else
 			ctype = new;
 		prev = new; new->next = NULL;
-		if (sscanf(line, "%s %s %s", new->prog, new->ext, new->name) != 3 &&
-			sscanf(line, "%s %s", new->prog, new->ext) != 2)
+
+		/* parse line */
+		char	*p, *q;
+
+		p = line;
+		STRDUP(new->prog, strsep(&p, " \t\n"));
+		while ((q = strsep(&p, " \t\n")))
+			if (*q)
+			{
+				STRDUP(new->ext, q);
+				break;
+			}
+		if (!q)
 			errx(1, "Unable to parse `%s' in `%s'", line, path);
+		STRDUP(new->name, strsep(&p, " \t\n"));
+
 	}
 	fclose(methods);
 }
@@ -1584,9 +1627,17 @@ loadscripttypes(char *orgbase, char *base)
 		char	*cffile;
 
 		while (litype)
-			{ ctypes *n = litype->next; free(litype); litype = n; }
+		{
+			ctypes	*n = litype->next;
+
+			free_ctype(litype);
+			litype = n;
+		}
 		if (ditype)
-			{ free(ditype); ditype = NULL; }
+		{
+			free_ctype(ditype);
+			ditype = NULL;
+		}
 		if (!(cffile = find_file(orgbase, base, ".xsscripts")) ||
 				!(methods = fopen(cffile, "r")))
 			return;
@@ -1594,7 +1645,12 @@ loadscripttypes(char *orgbase, char *base)
 	else
 	{
 		while (itype)
-			{ ctypes *n = itype->next; free(itype); itype = n; }
+		{
+			ctypes	*n = itype->next;
+
+			free_ctype(itype);
+			itype = n;
+		}
 		if (!(methods = fopen(calcpath(SCRIPT_METHODS), "r")))
 			/* missing script.methods is not fatal */
 			return;
@@ -1628,16 +1684,30 @@ loadscripttypes(char *orgbase, char *base)
 		if (!strncmp(line, "internal:ruby", 13))
 			continue;
 #endif		/* HAVE_RUBY */
+
 		MALLOC(new, ctypes, 1);
-		if (sscanf(line, "%s %s", new->prog, new->ext) != 2)
-			errx(1, "Unable to parse `%s' in script types", line);
+		/* parse line */
+		char	*p, *q;
+
+		p = line;
+		STRDUP(new->prog, strsep(&p, " \t\n"));
+		while ((q = strsep(&p, " \t\n")))
+			if (*q)
+			{
+				STRDUP(new->ext, q);
+				break;
+			}
+		if (!q)
+			errx(1, "Unable to parse `%s' in script methods", line);
+		STRDUP(new->name, strsep(&p, " \t\n"));
 		new->next = NULL;
 		if (!strcmp(new->ext, "*"))
 		{
 			/* there can be only one default */
 			if (ditype)
-				free(ditype);
-			new->ext[0] = '\0';
+				free_ctype(ditype);
+			free(new->ext);
+			STRDUP(new->ext, "");
 			ditype = new;
 		}
 		else

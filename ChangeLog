@@ -1,6 +1,10 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.6 beta 21
+- Remove arbitrary string length limits on script.methods, mime.types
+  and the local versions .xsscripts and .mimetypes
+
 Changes since 3.6 beta 20
 - Add UseSendfile option in httpd.conf to disable sendfile(2)
 
