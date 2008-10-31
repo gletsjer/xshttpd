@@ -61,4 +61,15 @@
 			(dst) = _dst;					\
 		} while (0)
 
+#define		FREE(var)						\
+		do							\
+		{							\
+			if (var)					\
+			{						\
+				free(var);				\
+				var = NULL;				\
+			}						\
+		} while(0)
+
+
 #endif		/* MALLOC_H */

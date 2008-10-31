@@ -188,7 +188,7 @@ sendheaders(int fd, off_t size)
 		char input[RWBUFSIZE];
 
 		/* fgets is better: read() may split HTML tags! */
-		while (read(fd, input, RWBUFSIZE))
+		while (read(fd, input, sizeof(input)))
 			if (strstr(input, "<!--#"))
 			{
 				dynamic = true;
@@ -666,7 +666,6 @@ do_get(char *params)
 	size_t			size;
 	struct	stat		statbuf;
 	const	struct	passwd	*userinfo;
-	FILE			*charfile;
 	char			*xsfile;
 	const	ctypes		*csearch = NULL, *isearch = NULL;
 
@@ -754,7 +753,7 @@ do_get(char *params)
 	else
 	{
 		file = params;
-		*base = 0;
+		*base = '\0';
 		if (current == config.system &&
 			(http_host = getenv("HTTP_HOST")))
 		{
@@ -837,7 +836,7 @@ do_get(char *params)
 		qs = shellencode(qs);
 		setenv("QUERY_STRING_UNESCAPED", qs, 1);
 		free(qs);
-		*question = 0;
+		*question = '\0';
 	}
 
 	if (*file)
@@ -897,7 +896,7 @@ do_get(char *params)
 		{
 			char fullpath[XS_PATH_MAX], *slash;
 
-			*temp = 0;
+			*temp = '\0';
 			snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
 			if (stat(fullpath, &statbuf))
 				break; /* error later */
@@ -941,9 +940,9 @@ do_get(char *params)
 
 	if ((temp = strrchr(file, '/')))
 	{
-		*temp = 0;
+		*temp = '\0';
 		size = strlen(base);
-		file[XS_PATH_MAX - (temp - file + 1 + size)] = 0;
+		file[XS_PATH_MAX - (temp - file + 1 + size)] = '\0';
 		strlcat(base, file, XS_PATH_MAX);
 		strlcat(base, "/", XS_PATH_MAX);
 		file = temp + 1;
@@ -1147,24 +1146,37 @@ do_get(char *params)
 	strlcpy(orig_pathname, total, XS_PATH_MAX);
 
 	/* Check for *.charset preferences */
-	if (!cfvalues.charset)
+	while (!cfvalues.charset)
 	{
-		char	lcharset[XS_PATH_MAX];
+		struct stat	sb;
+		int		cfd, ret;
 
 		snprintf(total, XS_PATH_MAX, "%s%s.charset", base, filename);
-		if ((charfile = fopen(total, "r")) ||
-			((xsfile = find_file(orgbase, base, ".charset")) &&
-			 (charfile = fopen(xsfile, "r"))))
+		ret = stat(total, &sb);
+		if (ret < 0 || !sb.st_size || (cfd = open(total, O_RDONLY)) < 0)
 		{
-			if (fread(lcharset, 1, XS_PATH_MAX, charfile))
-			{
-				lcharset[XS_PATH_MAX-1] = '\0';
-				if ((temp = strchr(lcharset, '\n')))
-					temp[0] = '\0';
-				STRDUP(cfvalues.charset, lcharset);
-			}
-			fclose(charfile);
+			xsfile = find_file(orgbase, base, ".charset");
+			ret = stat(xsfile, &sb);
+			if (ret < 0 || !sb.st_size ||
+					(cfd = open(xsfile, O_RDONLY)) < 0)
+				break;
 		}
+
+		MALLOC(cfvalues.charset, char, sb.st_size + 1);
+		if (read(cfd, cfvalues.charset, sb.st_size) < 0)
+		{
+			free(cfvalues.charset);
+			cfvalues.charset = NULL;
+		}
+		else
+		{
+			char	*p = cfvalues.charset + sb.st_size;
+			for (*p = '\0'; --p > cfvalues.charset; )
+				if (*p < ' ')
+					*p = '\0';
+		}
+		close(cfd);
+		break;
 	}
 
 	/* check for local file type */
@@ -1538,7 +1550,7 @@ loadfiletypes(char *orgbase, char *base)
 			continue;
 		*p = '\0';
 		if ((p = strchr(line, '#')))
-			*p = 0;
+			*p = '\0';
 		for (p = line, name = strsep(&p, " \t\r\n");
 				(ext = strsep(&p, " \t\r\n"));
 				)
@@ -1681,7 +1693,7 @@ loadscripttypes(char *orgbase, char *base)
 		else
 			end = line + sz;
 		while ((end > line) && (*(end - 1) <= ' '))
-			*(--end) = 0;
+			*(--end) = '\0';
 		if (line == end || line + sz == end)
 			/* skip empty/non-terminated lines */
 			continue;

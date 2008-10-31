@@ -84,10 +84,10 @@ static	int	sd, reqs, reqsc;
 static	bool	mainhttpd = true, in_progress = false;
 gid_t		origegid;
 uid_t		origeuid;
-char		currenttime[80], currentdir[XS_PATH_MAX];
+char		currenttime[80];
 static	int	pidlock = -1;
 static	char	remoteaddr[NI_MAXHOST], remotehost[NI_MAXHOST];
-static	char	referer[MYBUFSIZ], orig[MYBUFSIZ], *startparams;
+static	char	*referer, *orig, *startparams;
 static	const char	*message503;
 struct	session		session;
 struct	env		env;
@@ -440,10 +440,10 @@ core_handler(int sig)
 	errx(1, "[%s] httpd(pid % " PRIpid "): FATAL SIGNAL %d [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']",
 		currenttime, getpid(), sig,
 		env.remote_host ? env.remote_host : "(none)",
-		orig[0] ? orig : "(none)",
+		orig ? orig : "(none)",
 		env.query_string ? env.query_string : "(none)",
 		current ? current->hostname : config.system->hostname,
-		referer[0] ? referer : "(none)");
+		referer ? referer : "(none)");
 }
 
 static	void
@@ -517,10 +517,10 @@ xserror(int code, const char *format, ...)
 		"[%s] httpd(pid %" PRIpid "): %03d %s [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']\n",
 		currenttime, getpid(), code, message,
 		env.remote_host ? env.remote_host : "(none)",
-		orig[0] ? orig : "(none)",
+		orig ? orig : "(none)",
 		env.query_string ? env.query_string : "(none)",
 		current ? current->hostname : config.system->hostname,
-		referer[0] ? referer : "(none)");
+		referer ? referer : "(none)");
 	fflush(stderr);
 
 	if (599 == code)
@@ -623,11 +623,12 @@ server_error(int code, const char *readable, const char *cgi)
 	asprintf(&errmsg, "%03d %s", code, readable);
 	setenv("ERROR_READABLE", errmsg, 1);
 	free(errmsg);
-	setenv("ERROR_URL", orig, 1);
-	setenv("ERROR_URL_EXPANDED", convertpath(orig), 1);
-	if (orig[0])
+	if (orig)
 	{
 		char	*url = escape(orig);
+
+		setenv("ERROR_URL", orig, 1);
+		setenv("ERROR_URL_EXPANDED", convertpath(orig), 1);
 		setenv("ERROR_URL_ESCAPED", url, 1);
 		free(url);
 	}
@@ -680,10 +681,10 @@ server_error(int code, const char *readable, const char *cgi)
 		"[%s] httpd(pid %" PRIpid "): %03d %s [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']\n",
 		currenttime, getpid(), code, readable,
 		env.remote_host ? env.remote_host : "(none)",
-		orig[0] ? orig : "(none)",
+		orig ? orig : "(none)",
 		env.query_string ? env.query_string : "(none)",
 		current ? current->hostname : config.system->hostname,
-		referer[0] ? referer : "(none)");
+		referer ? referer : "(none)");
 	do_script(orig, cgipath, filename, NULL);
 	free(cgipath);
 }
@@ -735,7 +736,8 @@ logrequest(const char *request, off_t size)
 			session.rstatus,
 			size > 0 ? size : 0);
 		if (rlog &&
-			(!current->thisdomain || !strcasestr(referer, current->thisdomain)))
+			(!current->thisdomain ||
+			 (referer && !strcasestr(referer, current->thisdomain))))
 			fprintf(rlog, "%s -> %s\n", referer, request);
 		}
 		break;
@@ -750,7 +752,7 @@ logrequest(const char *request, off_t size)
 			env.server_protocol,
 			session.rstatus,
 			size > 0 ? size : 0,
-			referer,
+			referer ? referer : "-",
 			dynagent);
 		break;
 	case log_combined:
@@ -762,7 +764,7 @@ logrequest(const char *request, off_t size)
 			env.server_protocol,
 			session.rstatus,
 			size > 0 ? size : 0,
-			referer,
+			referer ? referer : "-",
 			dynagent);
 		break;
 	case log_none:
@@ -786,10 +788,12 @@ process_request()
 	env.server_protocol = "HTTP/1.1";
 	strlcpy(session.dateformat, "%a %b %e %H:%M:%S %Y", sizeof session.dateformat);
 
-	orig[0] = referer[0] = line[0] = '\0';
+	line[0] = '\0';
 	session.headonly = session.postonly = false;
 	current = NULL;
 	browser = NULL;
+	FREE(orig);
+	FREE(referer);
 	setup_environment();
 	setcurrenttime();
 
@@ -882,6 +886,8 @@ process_request()
 				setenv("CONTENT_TYPE", val, 1);
 			else if (!strcasecmp("User-agent", idx))
 			{
+				if (browser)
+					free(browser);
 				STRDUP(browser, val);
 				setenv("USER_AGENT", browser, 1);
 				setenv("HTTP_USER_AGENT", browser, 1);
@@ -896,7 +902,9 @@ process_request()
 			else if (!strcasecmp("Referer", idx))
 			{
 				size_t	lenval = strlen(val);
-				strlcpy(referer, val, MYBUFSIZ);
+				if (referer)
+					free(referer);
+				STRDUP(referer, val);
 				while (lenval-- > 0 && referer[lenval] <= ' ')
 					referer[lenval] = '\0';
 				setenv("HTTP_REFERER", referer, 1);
@@ -1001,7 +1009,7 @@ process_request()
 		return;
 	}
 
-	strlcpy(orig, params, MYBUFSIZ);
+	STRDUP(orig, params);
 
 	if (strlen(orig) < NI_MAXHOST)
 	{
@@ -1015,7 +1023,7 @@ process_request()
 			 */
 			setenv("HTTP_HOST", http_host, 1);
 			params += strlen(http_host) + 7;
-			strlcpy(orig, params, MYBUFSIZ);
+			strlcpy(orig, params, strlen(orig));
 		}
 	}
 	else if (params[0] != '/' && strcasecmp("OPTIONS", line))
@@ -1408,10 +1416,10 @@ standalone_socket(int id)
 			errx(1, "[%s] httpd(pid %" PRIpid "): MEMORY CORRUPTION [from: `%s' req: `%s' params: `%s' vhost: '%s' referer: `%s']",
 				currenttime, getpid(),
 				env.remote_host ? env.remote_host : "(none)",
-				orig[0] ? orig : "(none)",
+				orig ? orig : "(none)",
 				env.query_string ? env.query_string : "(none)",
 				current ? current->hostname : config.system->hostname,
-				referer[0] ? referer : "(none)");
+				referer ? referer : "(none)");
 		}
 
 		setproctitle("xs(%c%d): [Reqs: %06d] Setting up myself to accept a connection",
