@@ -67,8 +67,8 @@
 #define		PRIO_MAX	20
 #endif
 
-char			config_path[XS_PATH_MAX];
-char			config_preprocessor[XS_PATH_MAX];
+char			*config_path;
+char			*config_preprocessor;
 
 struct configuration	config;
 struct virtual		*current;
@@ -86,7 +86,7 @@ void
 load_config()
 {
 	FILE	*confd;
-	char	line[LINEBUFSIZE], thishostname[NI_MAXHOST];
+	char	thishostname[NI_MAXHOST];
 	struct socket_config	*lsock;
 	static const char	*defaultindexfiles[] =
 		{ INDEX_HTML, "index.htm", "index.xhtml", "index.xml",
@@ -114,7 +114,7 @@ load_config()
 	config.scriptpriority = PRIO_MAX;
 	config.virtualhostdir = NULL;
 
-	if (*config_preprocessor)
+	if (config_preprocessor)
 	{
 		char	*preproccmd;
 
@@ -131,18 +131,20 @@ load_config()
 					sub_virtual, sub_users } subtype_t;
 		subtype_t	subtype = sub_none;
 		struct virtual	*last = NULL;
+		char		*line;
+		size_t		sz;
 
 		/* parse config file */
-		while (fgets(line, LINEBUFSIZE, confd))
+		while ((line = fgetln(confd, &sz)))
 		{
 			char	*key, *value, *comment, *end;
 
 			if ((comment = strchr(line, '#')))
-				*comment = 0;
-			end = line + strlen(line);
+				*comment = '\0';
+			end = line + sz;
 			while ((end > line) && (*(end - 1) <= ' '))
-				*(--end) = 0;
-			if (end == line)
+				*(--end) = '\0';
+			if (end == line || end == line + sz)
 				continue;
 			key = line;
 
@@ -449,7 +451,7 @@ load_config()
 			else
 				errx(1, "illegal directive: '%s'", line);
 		}
-		if (*config_preprocessor)
+		if (config_preprocessor)
 			pclose(confd);
 		else
 			fclose(confd);

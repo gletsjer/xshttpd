@@ -1177,8 +1177,9 @@ parsedirectives(char *parse, off_t *size)
 static	int
 sendwithdirectives_internal(int fd, off_t *size)
 {
-	char		line[LINEBUFSIZE];
+	char		*line;
 	FILE		*parse;
+	size_t		sz;
 
 	alarm(360);
 	if (!(parse = fdopen(fd, "r")))
@@ -1186,29 +1187,47 @@ sendwithdirectives_internal(int fd, off_t *size)
 		warn("fdopen(`%d')", fd);
 		return(ERR_CONT);
 	}
-	while (fgets(line, LINEBUFSIZE, parse))
+	while ((line = fgetln(parse, &sz)))
 	{
-		if (!strstr(line, "<!--#"))
+		if (!memmem(line, sz, "<!--#", 5))
 		{
 			if (print_enabled())
 			{
-				if (secputs(line) == EOF)
+				if (secwrite(line, sz) == EOF)
 				{
 					alarm(0);
 					fclose(parse);
 					return(ERR_QUIT);
 				}
-				*size += strlen(line) + 1;
+				*size += sz;
 			}
 		}
 		else
 		{
-			if (parsedirectives(line, size) == ERR_QUIT)
+			char	*p, *linecopy = NULL;
+			int	ret;
+
+			if (!(p = memchr(line, '\n', sz)))
+			{
+				/* only if this is the last line */
+				MALLOC(linecopy, char, sz + 1);
+				memcpy(linecopy, line, sz);
+				linecopy[sz] = '\0';
+			}
+			else
+				*p = '\0';
+
+			ret = parsedirectives(linecopy ? linecopy : line, size);
+			if (ERR_QUIT == ret)
 			{
 				alarm(0);
 				fclose(parse);
+				if (linecopy)
+					free(linecopy);
 				return(ERR_QUIT);
 			}
+			if (linecopy)
+				free(linecopy);
 		}
 	}
 	alarm(0);

@@ -143,21 +143,26 @@ check_file_redirect(const char *base, const char *filename)
 bool
 check_redirect(const char *cffile, const char *filename)
 {
-	char	line[XS_PATH_MAX], request[XS_PATH_MAX];
+	char	*line, *request;
 	FILE	*fp;
 	bool	guard = true;
+	size_t	sz;
 
 	if (!(fp = fopen(cffile, "r")))
 		/* no redir */
 		return false;
 
-	strlcpy(request, filename, XS_PATH_MAX);
+	STRDUP(request, filename);
 
-	while (fgets(line, XS_PATH_MAX, fp))
+	while ((line = fgetln(fp, &sz)))
 	{
 		char	*p, *command;
 		char	*subst, *orig, *repl, *newloc, *host;
 		char	*envvar, *value;
+
+		if (!(p = memchr(line, '\n', sz)))
+			continue;
+		*p = '\0';
 
 		p = line;
 		while ((command = strsep(&p, " \t\r\n")) && !*command)
@@ -355,8 +360,9 @@ check_allow_host(const char *hostname, char *pattern)
 bool
 check_noxs(const char *cffile)
 {
-	char	allowhost[256];
+	char	*allowhost, *p;
 	FILE	*rfile;
+	size_t	sz;
 
 	if (!(rfile = fopen(cffile, "r")))
 	{
@@ -371,13 +377,13 @@ check_noxs(const char *cffile)
 		return true; /* access denied */
 	}
 
-	while (fgets(allowhost, 256, rfile))
+	while ((allowhost = fgetln(rfile, &sz)))
 	{
-		if (strlen(allowhost) &&
-			allowhost[strlen(allowhost) - 1] == '\n')
-		    allowhost[strlen(allowhost) - 1] = '\0';
+		if (!(p = memchr(allowhost, '\n', sz)))
+			continue;
+		*p = '\0';
 
-		if (!allowhost[0] || '#' == allowhost[0])
+		if (!*allowhost || '#' == *allowhost)
 			continue;
 
 		if (check_allow_host(env.remote_addr, allowhost))
@@ -395,9 +401,9 @@ check_noxs(const char *cffile)
 bool
 check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 {
-	char	line[LINEBUFSIZE];
+	char	*line;
 	char    **authfiles;
-	size_t	num_authfiles = 0;
+	size_t	sz, num_authfiles = 0;
 	bool	state = 0;
 	bool	restrictcheck = 0, restrictallow = 0;
 	bool	sslcheck = 0, sslallow = 0;
@@ -414,9 +420,13 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 		return true; /* access denied */
 	}
 
-	while (fgets(line, LINEBUFSIZE, fp))
+	while ((line = fgetln(fp, &sz)))
 	{
 		char    *p, *name, *value;
+
+		if (!(p = memchr(line, '\n', sz)))
+			continue;
+		*p = '\0';
 
 		p = line;
 		while ((name = strsep(&p, " \t\r\n")) && !*name)
@@ -496,15 +506,15 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 		else if (!strcasecmp(name, "Restrict"))
 		{
 			char		**restrictions = NULL;
-			size_t		i, sz;
+			size_t		i, asz;
 
 			restrictcheck = true;
-			sz = string_to_arrayp(value, &restrictions);
+			asz = string_to_arrayp(value, &restrictions);
 
-			for (i = 0; i < sz; i++)
+			for (i = 0; i < asz; i++)
 				restrictallow |= check_allow_host
 					(env.remote_addr, restrictions[i]);
-			free_string_array(restrictions, sz);
+			free_string_array(restrictions, asz);
 		}
 		else if (!strcasecmp(name, "MimeType"))
 			STRDUP(cfvalues->mimetype, value);

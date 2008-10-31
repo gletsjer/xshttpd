@@ -105,13 +105,16 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
  	 * won't clash with that (since check_auth() will happily skip
  	 * over them)
  	 */
-	while (fgets(line, LINEBUFSIZE, af))
+	while ((line = fgetln(af, &sz)))
 	{
 		char	*ptr;
 
 		/* kill newlines and such, they confuse ldap */
-		while ((ptr = strchr (line, '\r')) != NULL)
-			*ptr = 0;
+		if (!(ptr = memchr(line, '\n', sz)))
+			continue;
+		*ptr = '\0';
+		if ((ptr = strchr(line, '\r')))
+			*ptr = '\0';
 		if (!strncasecmp ("ldaphost=", line, 9))
                 {
                         if (ldap.uri)

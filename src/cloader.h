@@ -3,7 +3,7 @@
 
 #include	"config.h"
 
-extern char	config_path[XS_PATH_MAX], config_preprocessor[XS_PATH_MAX];
+extern char	*config_path, *config_preprocessor;
 
 void	load_config	(void);
 void	remove_config	(void);

@@ -609,8 +609,7 @@ redirect(const char *redir, bool permanent, bool pass_env)
 void
 server_error(int code, const char *readable, const char *cgi)
 {
-	char		cgipath[XS_PATH_MAX],
-			errmsg[LINEBUFSIZE];
+	char		*cgipath = NULL, *errmsg = NULL;
 	const char	filename[] = "/error";
 
 	if (!current)
@@ -621,8 +620,9 @@ server_error(int code, const char *readable, const char *cgi)
 		return;
 	}
 	setenv("ERROR_CODE", cgi, 1);
-	snprintf(errmsg, LINEBUFSIZE, "%03d %s", code, readable);
+	asprintf(&errmsg, "%03d %s", code, readable);
 	setenv("ERROR_READABLE", errmsg, 1);
+	free(errmsg);
 	setenv("ERROR_URL", orig, 1);
 	setenv("ERROR_URL_EXPANDED", convertpath(orig), 1);
 	if (orig[0])
@@ -640,14 +640,17 @@ server_error(int code, const char *readable, const char *cgi)
 
 		if (username)
 		{
-			snprintf(cgipath, XS_PATH_MAX, "/~%s/%s%s",
+			char	*tpath = NULL;
+
+			asprintf(&tpath, "/~%s/%s%s",
 				username, current->execdir, filename);
-			strlcpy(cgipath, convertpath(cgipath), XS_PATH_MAX);
+			STRDUP(cgipath, convertpath(tpath));
+			free(tpath);
 		}
 	}
 	else	/* Look for virtual host error script */
 	{
-		snprintf(cgipath, XS_PATH_MAX, "%s%s",
+		asprintf(&cgipath, "%s%s",
 			calcpath(current->phexecdir), filename);
 	}
 
@@ -663,6 +666,7 @@ server_error(int code, const char *readable, const char *cgi)
 			if (stat(cgipath, &statbuf))
 			{
 				xserror(code, "%s", readable);
+				free(cgipath);
 				return;
 			}
 		}
@@ -681,6 +685,7 @@ server_error(int code, const char *readable, const char *cgi)
 		current ? current->hostname : config.system->hostname,
 		referer[0] ? referer : "(none)");
 	do_script(orig, cgipath, filename, NULL);
+	free(cgipath);
 }
 
 void
@@ -689,7 +694,8 @@ logrequest(const char *request, off_t size)
 	char		buffer[90], *dynrequest, *dynagent, *p;
 	FILE		*alog;
 
-	strftime(buffer, 80, "%d/%b/%Y:%H:%M:%S +0000", localtimenow());
+	strftime(buffer, sizeof(buffer),
+		"%d/%b/%Y:%H:%M:%S +0000", localtimenow());
 
 	if (!current->openaccess)
 		if (!config.system->openaccess)
@@ -771,18 +777,19 @@ logrequest(const char *request, off_t size)
 static	void
 process_request()
 {
-	char		line[LINEBUFSIZE], browser[MYBUFSIZ],
+	char		line[LINEBUFSIZE],
 			http_host[NI_MAXHOST], http_host_long[NI_MAXHOST],
-			*params, *url, *ver;
+			*params, *browser, *url, *ver;
 
 	session.headers = true;
 	session.httpversion = 11;
 	env.server_protocol = "HTTP/1.1";
 	strlcpy(session.dateformat, "%a %b %e %H:%M:%S %Y", sizeof session.dateformat);
 
-	orig[0] = referer[0] = line[0] = browser[0] = '\0';
+	orig[0] = referer[0] = line[0] = '\0';
 	session.headonly = session.postonly = false;
 	current = NULL;
+	browser = NULL;
 	setup_environment();
 	setcurrenttime();
 
@@ -875,7 +882,7 @@ process_request()
 				setenv("CONTENT_TYPE", val, 1);
 			else if (!strcasecmp("User-agent", idx))
 			{
-				strlcpy(browser, val, MYBUFSIZ);
+				STRDUP(browser, val);
 				setenv("USER_AGENT", browser, 1);
 				setenv("HTTP_USER_AGENT", browser, 1);
 				(void) strtok(browser, "/");
@@ -971,16 +978,20 @@ process_request()
 			(!te || strcasecmp(te, "chunked")))
 		{
 			xserror(411, "Length Required");
+			if (browser)
+				free(browser);
 			return;
 		}
 		setenv("CONTENT_LENGTH", "0", 1);
 	}
-	if (!browser[0])
+	if (!browser)
 	{
 		setenv("USER_AGENT", "UNKNOWN", 1);
 		setenv("HTTP_USER_AGENT", "UNKNOWN", 1);
 		setenv("USER_AGENT_SHORT", "UNKNOWN", 1);
 	}
+	else
+		free(browser);
 
 	alarm(0);
 	params = url;
@@ -1589,11 +1600,11 @@ main(int argc, char **argv, char **envp)
 
 	message503 = NULL;
 #ifdef		PATH_PREPROCESSOR
-	strlcpy(config_preprocessor, PATH_PREPROCESSOR, XS_PATH_MAX);
+	STRDUP(config_preprocessor, PATH_PREPROCESSOR);
 #else		/* Not PATH_PREPROCESSOR */
-	config_preprocessor[0] = '\0';
+	config_preprocessor = NULL;
 #endif		/* PATH_PREPROCESSOR */
-	strlcpy(config_path, calcpath(HTTPD_CONF), XS_PATH_MAX);
+	STRDUP(config_path, calcpath(HTTPD_CONF));
 	while ((option = getopt(argc, argv, "a:c:d:g:m:n:p:u:NP:v")) != EOF)
 	{
 		switch(option)
@@ -1602,7 +1613,8 @@ main(int argc, char **argv, char **envp)
 			longopt[opt_host] = optarg;
 			break;
 		case 'c':	/* configfile */
-			strlcpy(config_path, optarg, XS_PATH_MAX);
+			free(config_path);
+			STRDUP(config_path, optarg);
 			break;
 		case 'd':	/* rootdir */
 			if (*optarg != '/')
@@ -1643,10 +1655,13 @@ main(int argc, char **argv, char **envp)
 		}
 		case 'N':	/* nolog */
 			nolog = true;
-			strlcpy(config_path, BITBUCKETNAME, XS_PATH_MAX);
+			free(config_path);
+			STRDUP(config_path, BITBUCKETNAME);
 			break;
 	 	case 'P':	/* preprocessor */
-			strlcpy(config_preprocessor, optarg, XS_PATH_MAX);
+			if (config_preprocessor)
+				free(config_preprocessor);
+			STRDUP(config_preprocessor, optarg);
 			break;
 		case 'v':	/* version */
 			printf("%s", SERVER_IDENT);

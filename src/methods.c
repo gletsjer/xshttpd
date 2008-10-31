@@ -1525,16 +1525,23 @@ loadfiletypes(char *orgbase, char *base)
 
 	/* DECL */
 	ftypes		*prev = NULL, *new = NULL;
-	char		line[LINEBUFSIZE];
+	char		*line;
+	size_t		sz;
 
-	while (fgets(line, LINEBUFSIZE, mime))
+	while ((line = fgetln(mime, &sz)))
 	{
-		char	*name, *ext, *comment, *p;
+		char	*name, *ext, *p;
 
-		if ((comment = strchr(line, '#')))
-			*comment = 0;
-		p = line;
-		for (name = strsep(&p, " \t\n"); (ext = strsep(&p, " \t\n")); )
+		p = line + sz - 1;
+		if (sz < 1 || (*p != '\r' && *p != '\n'))
+			/* skip empty/non-terminated lines */
+			continue;
+		*p = '\0';
+		if ((p = strchr(line, '#')))
+			*p = 0;
+		for (p = line, name = strsep(&p, " \t\r\n");
+				(ext = strsep(&p, " \t\r\n"));
+				)
 		{
 			if (!*ext)
 				continue;
@@ -1577,19 +1584,22 @@ loadcompresstypes()
 
 	/* DECL */
 	ctypes		*prev, *new;
-	char		line[LINEBUFSIZE];
+	char		*line;
+	size_t		sz;
 
 	prev = NULL;
-	while (fgets(line, LINEBUFSIZE, methods))
+	while ((line = fgetln(methods, &sz)))
 	{
-		char	*end, *comment;
+		char	*end;
 
-		if ((comment = strchr(line, '#')))
-			*comment = 0;
-		end = line + strlen(line);
+		if ((end = memchr(line, '#', sz)))
+			*end = '\0';
+		else
+			end = line + sz;
 		while ((end > line) && (*(end - 1) <= ' '))
-			*(--end) = 0;
-		if (line == end)
+			*(--end) = '\0';
+		if (line == end || line + sz == end)
+			/* skip empty/non-terminated lines */
 			continue;
 		MALLOC(new, ctypes, 1);
 		if (prev)
@@ -1658,19 +1668,22 @@ loadscripttypes(char *orgbase, char *base)
 
 	/* DECL */
 	ctypes		*prev, *new;
-	char		line[LINEBUFSIZE];
+	char		*line;
+	size_t		sz;
 
 	prev = NULL;
-	while (fgets(line, LINEBUFSIZE, methods))
+	while ((line = fgetln(methods, &sz)))
 	{
-		char	*end, *comment;
+		char	*end;
 
-		if ((comment = strchr(line, '#')))
-			*comment = 0;
-		end = line + strlen(line);
+		if ((end = memchr(line, '#', sz)))
+			*end = '\0';
+		else
+			end = line + sz;
 		while ((end > line) && (*(end - 1) <= ' '))
 			*(--end) = 0;
-		if (line == end)
+		if (line == end || line + sz == end)
+			/* skip empty/non-terminated lines */
 			continue;
 #ifndef		HAVE_PERL
 		if (!strncmp(line, "internal:perl", 13))
