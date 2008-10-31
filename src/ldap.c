@@ -20,7 +20,7 @@ check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 	LDAPMessage	*res = NULL;
 	LDAPMessage	*e;
 	BerElement	*ber = NULL;
-	char		filter[MYBUFSIZ];
+	char		*filter;
 	char		*a;
 	char		*attrs[] = { NULL, NULL };
 	bool		result = false;
@@ -31,7 +31,7 @@ check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 	 * Search for the group first. Most directory have separate branches
 	 * for users/groups.
 	 */
-	snprintf (filter, MYBUFSIZ, "(cn=%s)", group);
+	asprintf(&filter, "(cn=%s)", group);
 
 	if (ldap_search_ext_s (ld, ldapdn, LDAP_SCOPE_SUBTREE, filter, attrs,
 			0, NULL, NULL, NULL, 0, &res) != LDAP_SUCCESS)
@@ -68,6 +68,7 @@ check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 	}
 
 leave:
+	free(filter);
 	free(attrs[0]);
 
 	if (res)
@@ -156,7 +157,7 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
 bool
 check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth *ldap)
 {
-	char	filter[MYBUFSIZ];
+	char	*filter;
 	char	*dn = NULL;
 	LDAP	*ld;
 	LDAPMessage	*res = NULL;
@@ -185,7 +186,7 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 	 * This search may look confusing. Basically, we do a search for the
 	 * user in the tree given, _including all subtrees_.
 	 */
-	snprintf (filter, MYBUFSIZ - 1, "(%s=%s)", ldap->attr, user);
+	asprintf (&filter, "(%s=%s)", ldap->attr, user);
 
 	if (ldap_search_ext_s (ld, ldap->dn, LDAP_SCOPE_SUBTREE, filter, NULL, 0, NULL, NULL, NULL, 0, &res) != LDAP_SUCCESS)
 		goto leave;
@@ -236,6 +237,7 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 	}
 
 leave:
+	free(filter);
 	if (cred.bv_len)
 		free(cred.bv_val);
 	if (dn)

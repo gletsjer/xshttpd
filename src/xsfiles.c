@@ -108,7 +108,8 @@ v6masktonum(unsigned int mask, struct in6_addr *addr6)
 bool
 check_file_redirect(const char *base, const char *filename)
 {
-	int	fd, size;
+	int	fd;
+	ssize_t	size;
 	bool	permanent = false;
 	char	total[XS_PATH_MAX];
 

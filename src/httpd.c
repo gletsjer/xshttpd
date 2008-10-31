@@ -661,7 +661,8 @@ server_error(int code, const char *readable, const char *cgi)
 		if (stat(cgipath, &statbuf))
 		{
 			/* Last resort: try system error script */
-			snprintf(cgipath, XS_PATH_MAX, "%s%s",
+			free(cgipath);
+			asprintf(&cgipath, "%s%s",
 				calcpath(config.system->phexecdir), filename);
 			if (stat(cgipath, &statbuf))
 			{
