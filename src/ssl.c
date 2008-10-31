@@ -129,26 +129,66 @@ ssl_environment()
 	if ((xs = SSL_get_peer_certificate(cursock->ssl)))
 	{
 		X509_NAME	*xsname = X509_get_subject_name(xs);
-		char		buffer[BUFSIZ];
+		char		*text;
+		int		len;
 
 		/* inform CGI about client cert */
-		setenv("SSL_CLIENT_S_DN",
-			(char *)X509_NAME_oneline(xsname, NULL, 0), 1);
-		if (X509_NAME_get_text_by_NID(xsname, NID_commonName,
-				buffer, BUFSIZ) >= 0)
-			setenv("SSL_CLIENT_S_DN_CN", buffer, 1);
-		if (X509_NAME_get_text_by_NID(xsname, NID_pkcs9_emailAddress,
-				buffer, BUFSIZ) >= 0)
-			setenv("SSL_CLIENT_S_DN_Email", buffer, 1);
+		/* subject */
+		text = X509_NAME_oneline(xsname, NULL, 0);
+		if (text)
+		{
+			setenv("SSL_CLIENT_S_DN", text, 1);
+			free(text);
+		}
+		len = X509_NAME_get_text_by_NID(xsname, NID_commonName,
+			NULL, 0);
+		if (len >= 0)
+		{
+			MALLOC(text, char, len + 1);
+			X509_NAME_get_text_by_NID(xsname, NID_commonName,
+				text, len + 1);
+			setenv("SSL_CLIENT_S_DN_CN", text, 1);
+			free(text);
+		}
+
+		len = X509_NAME_get_text_by_NID(xsname, NID_pkcs9_emailAddress,
+			NULL, 0);
+		if (len >= 0)
+		{
+			MALLOC(text, char, len + 1);
+			X509_NAME_get_text_by_NID(xsname,
+				NID_pkcs9_emailAddress, text, len + 1);
+			setenv("SSL_CLIENT_S_DN_Email", text, 1);
+			free(text);
+		}
+		/* issuer */
 		xsname = X509_get_issuer_name(xs);
-		setenv("SSL_CLIENT_I_DN",
-			(char *)X509_NAME_oneline(xsname, NULL, 0), 1);
-		if (X509_NAME_get_text_by_NID(xsname, NID_commonName,
-				buffer, BUFSIZ) >= 0)
-			setenv("SSL_CLIENT_I_DN_CN", buffer, 1);
-		if (X509_NAME_get_text_by_NID(xsname, NID_pkcs9_emailAddress,
-				buffer, BUFSIZ) >= 0)
-			setenv("SSL_CLIENT_I_DN_Email", buffer, 1);
+		text = X509_NAME_oneline(xsname, NULL, 0);
+		if (text)
+		{
+			setenv("SSL_CLIENT_I_DN", text, 1);
+			free(text);
+		}
+		len = X509_NAME_get_text_by_NID(xsname, NID_commonName,
+			NULL, 0);
+		if (len >= 0)
+		{
+			MALLOC(text, char, len + 1);
+			X509_NAME_get_text_by_NID(xsname, NID_commonName,
+				text, len + 1);
+			setenv("SSL_CLIENT_I_DN_CN", text, 1);
+			free(text);
+		}
+		len = X509_NAME_get_text_by_NID(xsname, NID_pkcs9_emailAddress,
+			NULL, 0);
+		if (len >= 0)
+		{
+			MALLOC(text, char, len + 1);
+			X509_NAME_get_text_by_NID(xsname,
+				NID_pkcs9_emailAddress, text, len + 1);
+			setenv("SSL_CLIENT_I_DN_Email", text, 1);
+			free(text);
+		}
 
 		/* we did accept the cert, but is it valid? */
 		if (SSL_get_verify_result(cursock->ssl) == X509_V_OK)
@@ -193,7 +233,7 @@ sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 
 #ifdef		HAVE_PCRE
 	X509_NAME	*xsname;
-	char		buffer[BUFSIZ];
+	char		*strname;
 	int		rc, ovector[OVSIZE];
 	X509		*xs = x509_ctx->cert;
 
@@ -201,21 +241,33 @@ sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 	if (cursock->sslpcresdn)
 	{
 		xsname = X509_get_subject_name(xs);
-		X509_NAME_oneline(xsname, buffer, BUFSIZ);
-		rc = pcre_exec(cursock->sslpcresdn, NULL,
-			buffer, strlen(buffer),
-			0, 0, ovector, OVSIZE);
-		validated &= (rc >= 0);
+		strname = X509_NAME_oneline(xsname, NULL, 0);
+		if (strname)
+		{
+			rc = pcre_exec(cursock->sslpcresdn, NULL,
+				strname, strlen(strname),
+				0, 0, ovector, OVSIZE);
+			validated &= (rc >= 0);
+			free(strname);
+		}
+		else
+			validated = false;
 	}
 	/* match issuer */
 	if (cursock->sslpcreidn)
 	{
 		xsname = X509_get_issuer_name(xs);
-		X509_NAME_oneline(xsname, buffer, BUFSIZ);
-		rc = pcre_exec(cursock->sslpcreidn, NULL,
-			buffer, strlen(buffer),
-			0, 0, ovector, OVSIZE);
-		validated &= (rc >= 0);
+		strname = X509_NAME_oneline(xsname, NULL, 0);
+		if (strname)
+		{
+			rc = pcre_exec(cursock->sslpcreidn, NULL,
+				strname, strlen(strname),
+				0, 0, ovector, OVSIZE);
+			validated &= (rc >= 0);
+			free(strname);
+		}
+		else
+			validated = false;
 	}
 #endif		/* HAVE_PCRE */
 
@@ -472,7 +524,7 @@ secwrite(const char *buf, size_t count)
 		static char	head[20];
 
 		i = 0;
-		len[0] = (size_t)snprintf(head, 20, "%zx\r\n", count);
+		len[0] = (size_t)snprintf(head, sizeof(head), "%zx\r\n", count);
 		len[1] = count;
 		len[2] = 2;
 		message[0] = head;
@@ -571,13 +623,19 @@ secputs(const char *buf)
 ssize_t
 secprintf(const char *format, ...)
 {
-	va_list ap;
-	char	buf[LINEBUFSIZE];
+	va_list 	ap;
+	char		*str = NULL;
 
 	va_start(ap, format);
-	vsnprintf(buf, sizeof(buf), format, ap);
+	const int	len = vasprintf(&str, format, ap);
 	va_end(ap);
-	return secwrite(buf, strlen(buf));
+
+	if (!len)
+		return 0;
+
+	const ssize_t	ssz = secwrite(str, strlen(str));
+	free(str);
+	return ssz;
 }
 
 ssize_t

@@ -37,8 +37,9 @@ static bool	valid_nonce(const char *nonce) NONNULL WARNUNUSED;
 static bool
 get_crypted_password(const char *authfile, const char *user, char **passwd, char **hash)
 {
-	char	line[LINEBUFSIZE];
+	char	*line;
 	FILE	*af;
+	size_t	sz;
 
 	if (!(af = fopen(authfile, "r")))
 		return false;
@@ -48,31 +49,48 @@ get_crypted_password(const char *authfile, const char *user, char **passwd, char
 	if (hash)
 		*hash = NULL;
 
-	while (fgets(line, LINEBUFSIZE, af))
+	while ((line = fgetln(af, &sz)))
 	{
 		char	*lpass, *lhash, *eol;
+		char	*linecopy = NULL;
+
+		if (sz < strlen(user) + 2)
+			continue;
 
 		if (strncmp(line + 1, user, strlen(user)) ||
 				line[strlen(user)+1] != ':')
 			continue;
 
+		if ((eol = memchr(line, '\r', sz)) ||
+				(eol = memchr(line, '\n', sz)))
+			*eol = '\0';
+		else
+		{
+			/* force proper line termination */
+			MALLOC(linecopy, char, sz + 1);
+			memcpy(linecopy, line, sz);
+			linecopy[sz] = '\0';
+			line = linecopy;
+		}
+
 		if ((lpass = strchr(line, ':')))
 			lpass++;
 		else
 		{
+			if (linecopy)
+				free(linecopy);
 			fclose(af);
 			return false;
 		}
 		if ((lhash = strchr(lpass, ':')))
 			*lhash++ = '\0';
-		if ((eol = strchr(lhash ? lhash : lpass, '\r')) ||
-				(eol = strchr(lhash ? lhash : lpass, '\n')))
-			*eol = '\0';
 
 		if (passwd)
 			STRDUP(*passwd, lpass);
 		if (hash)
 			STRDUP(*hash, lhash);
+		if (linecopy)
+			free(linecopy);
 		fclose(af);
 		return true; /* found! */
 	}
@@ -83,11 +101,11 @@ get_crypted_password(const char *authfile, const char *user, char **passwd, char
 static bool
 check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 {
-	char		line[MYBUFSIZ], *search, *passwd, *find;
+	char		*line, *search, *passwd, *find;
 	bool		allow;
 
 	/* basic auth */
-	strlcpy(line, env.authorization, MYBUFSIZ);
+	STRDUP(line, env.authorization);
 	find = line + strlen(line);
 	while ((find > line) && (*(find - 1) < ' '))
 		*(--find) = 0;
@@ -107,17 +125,27 @@ check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 		 * may alter the buffer, in which case we compare garbage.
 		 */
 		if (authfile && check_auth_ldap(authfile, search, find))
+		{
+			free(line);
 			return true;
+		}
 		else if (ldap && check_auth_ldap_full(search, find, ldap))
+		{
+			free(line);
 			return true;
+		}
 #endif /* AUTH_LDAP */
 	}
 	passwd = NULL;
 	if (!get_crypted_password(authfile, search, &passwd, NULL) || !passwd)
+	{
+		free(line);
 		return false;
+	}
 
 	allow = !strcmp(passwd, crypt(find, passwd));
 	free(passwd);
+	free(line);
 	(void)ldap;
 	return allow;
 }
@@ -128,7 +156,7 @@ check_digest_auth(const char *authfile, bool *stale)
 {
 	char		ha2[MD5_DIGEST_STRING_LENGTH],
 			digest[MD5_DIGEST_STRING_LENGTH],
-			line[MYBUFSIZ];
+			*line;
 	struct		mapping		*authreq;
 	const char	*user, *realm, *nonce, *cnonce, *uri,
 			*response, *qop, *nc;
@@ -141,16 +169,18 @@ check_digest_auth(const char *authfile, bool *stale)
 	/* digest auth, rfc 2069 */
 	if (strncmp(env.authorization, "Digest ", 7))
 		return false; /* fail */
-	strlcpy(line, env.authorization + 7, MYBUFSIZ);
-	if (!*line)
-		return false;
+	STRDUP(line, env.authorization + 7);
 
 	/* grab element from line */
 	fields = eqstring_to_array(line, NULL);
 	if (!fields)
+	{
+		free(line);
 		return false;
+	}
 	MALLOC(authreq, struct mapping, fields);
 	fields = eqstring_to_array(line, authreq);
+	free(line);
 	user = realm = nonce = cnonce = uri = response = qop = nc = NULL;
 	for (sz = 0; sz < fields; sz++)
 	{
@@ -264,11 +294,12 @@ check_auth(const char *authfile, const struct ldap_auth *ldap, bool quiet)
 
 	if (authfile)
 	{
-		char		*p, line[LINEBUFSIZE];
+		char		*p, *line;
+		size_t		sz;
 		int		i = 1;
 
-		if ((p = fgets(line, LINEBUFSIZE, af)))
-			for (i = 0; *p; p++)
+		if ((line = fgetln(af, &sz)))
+			for (i = 0, p = line; p < line + sz; p++)
 				if (':' == *p)
 					i++;
 		digest = i > 1;
