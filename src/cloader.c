@@ -62,6 +62,7 @@
 #include	"extra.h"
 #include	"path.h"
 #include	"malloc.h"
+#include	"ssl.h"
 
 #ifndef		PRIO_MAX
 #define		PRIO_MAX	20
@@ -362,8 +363,12 @@ load_config()
 					warnx("Configuration option '%s' is deprecated",
 						key);
 				else if (!strcasecmp("SSLCertificate", key))
+#ifdef		HANDLE_SSL_TLSEXT
 					STRDUP(current->sslcertificate,
 						calcpath(value));
+#else		/* HANDLE_SSL_TLSEXT */
+					errx(1, "Vhost SSLCertificate not allowed: SSL library doesn't support TLSEXT");
+#endif		/* HANDLE_SSL_TLSEXT */
 				else if (!strcasecmp("SSLPrivateKey", key))
 					STRDUP(current->sslprivatekey,
 						calcpath(value));

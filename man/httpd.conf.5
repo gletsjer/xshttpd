@@ -294,6 +294,14 @@ both blocks with and without
 The location of the x509 certificate to be used for SSL
 connections. This may be an absolute path or relative to
 .Sy SystemRoot .
+.Pp
+If your SSL library supports the
+.Ql TLS hostname extension ,
+then this option can be used in a
+.Sy Virtual
+section as well.
+However most versions of OpenSSL - and most browsers -
+do not support this feature (yet).
 .It Sy SSLPrivateKey Ar filename Aq conf/key.pem
 The location of the x509 certificate's key to be used for SSL connections.
 This may be contained in the same file as the
@@ -302,6 +310,14 @@ file. Note that this key may be protected with a secret passphrase.
 In that case the server will prompt for this passphrase when started.
 Do not use passphrase protection when you expect the server to start
 up automatically.
+.Pp
+If your SSL library supports the
+.Ql TLS hostname extension ,
+then this option can be used in a
+.Sy Virtual
+section as well.
+However most versions of OpenSSL - and most browsers -
+do not support this feature (yet).
 .It Sy SSLAuthentication Xo
 .Bro Cm none Ns No | Ns Cm optional Ns No | Ns Cm strict Brc Aq none
 .Xc

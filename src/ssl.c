@@ -400,6 +400,8 @@ loadssl(struct socket_config *lsock, struct virtual *vc)
 
 	if (vc && !vc->sslcertificate)
 		return;
+	if (vc && !vc->sslprivatekey)
+		STRDUP(vc->sslprivatekey, vc->sslcertificate);
 
 	if (!(method = SSLv23_server_method()))
 		err(1, "Cannot init SSL method: %s",
@@ -435,12 +437,8 @@ loadssl(struct socket_config *lsock, struct virtual *vc)
 			calcpath(vc ? vc->sslprivatekey : lsock->sslprivatekey),
 			ERR_reason_error_string(ERR_get_error()));
 
-	if (!lsock->sslcafile && !lsock->sslcapath &&
-			lsock->sslauth != auth_none)
-		errx(1, "Cannot do SSL %sauthentication without CAfile/CApath",
-			auth_strict == lsock->sslauth ? "strict " :
-			auth_optional == lsock->sslauth ? "optional " :
-			"");
+	if (!lsock->sslcafile && !lsock->sslcapath)
+		/* TODO: warn */;
 	else if (!SSL_CTX_load_verify_locations(ssl_ctx,
 			lsock->sslcafile ? calcpath(lsock->sslcafile) : NULL,
 			lsock->sslcapath ? calcpath(lsock->sslcapath) : NULL))
