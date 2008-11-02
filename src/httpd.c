@@ -86,8 +86,8 @@ gid_t		origegid;
 uid_t		origeuid;
 char		currenttime[80];
 static	char	remoteaddr[NI_MAXHOST], remotehost[NI_MAXHOST];
-static	char	referer[MYBUFSIZ], orig[MYBUFSIZ], *startparams;
-static	const char	*message503;
+static	char	referer[MYBUFSIZ], orig[MYBUFSIZ];
+static	char	*startparams, *message503;
 struct	session		session;
 struct	env		env;
 #define CLEANENV do { \
@@ -500,8 +500,8 @@ set_signals()
 void
 xserror(int code, const char *format, ...)
 {
-	char		*errmsg = NULL;
 	va_list		ap;
+	char		*errmsg = NULL;
 	char		*message, *htmlmessage;
 
 	alarm(180);
@@ -1576,7 +1576,7 @@ setup_environment()
 int
 main(int argc, char **argv, char **envp)
 {
-	int			option;
+	int		option;
 	size_t		num;
 	bool		nolog = false;
 	enum		{ opt_port, opt_dir, opt_host };

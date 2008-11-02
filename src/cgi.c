@@ -471,9 +471,9 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		writetodo = env.content_length;
 		while (writetodo > 0)
 		{
-			char	inbuf[RWBUFSIZE];
-			int	offset, result;
-			size_t	tobewritten;
+			char		inbuf[RWBUFSIZE];
+			ssize_t		result;
+			size_t		offset, tobewritten;
 
 			if (writetodo > RWBUFSIZE)
 				tobewritten = RWBUFSIZE;
@@ -712,14 +712,14 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	totalwritten = 0;
 	if (dossi)
 	{
-		off_t ttw = 0;
+		off_t		ttw = 0;
 		/* Parse the output of CGI script for SSI directives */
 		sendwithdirectives(p[0], &ttw);
 		totalwritten = ttw;
 	}
 	else
 	{
-		int	result;
+		ssize_t		result;
 
 		while ((result = secread(p[0], input, RWBUFSIZE)) > 0)
 		{
