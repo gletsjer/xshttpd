@@ -11,7 +11,13 @@
 #  define	OPENSSL_NO_MD5
 #  define	HEADER_MD5_H	/* trick older openssl */
 # endif		/* Not USE_OPENSSL_MD5 */
-#include	<openssl/ssl.h>
+# include	<openssl/ssl.h>
+# include	<openssl/tls1.h>
+# ifdef		TLSEXT_NAMETYPE_host_name
+#  ifndef	OPENSSL_NO_TLSEXT
+#   define	HANDLE_SSL_TLSEXT
+#  endif	/* OPENSSL_NO_TLSEXT */
+# endif		/* TLSEXT_NAMETYPE_host_name */
 #endif		/* HANDLE_SSL */
 
 #include	"htconfig.h"
