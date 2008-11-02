@@ -1690,6 +1690,9 @@ main(int argc, char **argv, char **envp)
 			printf("\nCompiled options:\n\t"
 #ifdef		HANDLE_SSL
 				"+SSL "
+# ifdef	 	 SSL_TLSEXT_ERR_OK
+  				"(TLSEXT) "
+# endif		 /* SSL_TLSEXT_ERR_OK */
 #else		/* HANDLE_SSL */
 				"-SSL "
 #endif		/* HANDLE_SSL */

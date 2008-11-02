@@ -23,8 +23,8 @@ CFLAGS="${CFLAGS} -I/usr/local/include -I/usr/include"
 LDFLAGS="${LDFLAGS} -L/usr/local/lib -Wl,-R/usr/local/lib"
 httpd_cflags="${CFLAGS}"
 libxs_cflags="${CFLAGS}"
-httpd_ldlags="${LDLAGS}"
-libxs_ldlags="${LDLAGS}"
+httpd_ldflags="${LDFLAGS}"
+libxs_ldflags="${LDFLAGS}"
 
 dnl Checks for header files.
 AC_USE_SYSTEM_EXTENSIONS

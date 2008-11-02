@@ -298,7 +298,7 @@ pem_passwd_cb(char *buf, int size, int rwflag, void *userdata)
 	return strlen(buf);
 }
 
-#ifdef		TLSEXT_TYPE_server_name
+#ifdef	 	SSL_TLSEXT_ERR_OK
 static int
 ssl_servername_cb(SSL *ssl, int *al, struct socket_config *lsock)
 {
@@ -346,7 +346,7 @@ ssl_servername_cb(SSL *ssl, int *al, struct socket_config *lsock)
 
 	return SSL_TLSEXT_ERR_OK;
 }
-#endif		/* TLSEXT_TYPE_server_name */
+#endif	 	/* SSL_TLSEXT_ERR_OK */
 
 static void
 preloadssl(void)
@@ -375,7 +375,7 @@ preloadssl(void)
 				devrandom[0],
 				ERR_reason_error_string(ERR_get_error()));
 	}
-#endif		DEVRANDOM
+#endif		/* DEVRANDOM */
 
 	ssl_init_done = true;
 }
@@ -518,11 +518,11 @@ loadssl(struct socket_config *lsock, struct virtual *vc)
 			&sslverify_callback);
 	}
 
-#ifdef		TLSEXT_TYPE_server_name
+#ifdef		SSL_TLSEXT_ERR_OK
 	if (!SSL_CTX_set_tlsext_servername_callback(ssl_ctx, ssl_servername_cb)
 			|| !SSL_CTX_set_tlsext_servername_arg(ssl_ctx, lsock))
 		errx(1, "Cannot load TLS servername callback");
-#endif		/* TLSEXT_TYPE_server_name */
+#endif		/* SSL_TLSEXT_ERR_OK */
 
 #endif		/* HANDLE_SSL */
 }
