@@ -361,6 +361,12 @@ load_config()
 						!strcasecmp("UseLdapAuth", key))
 					warnx("Configuration option '%s' is deprecated",
 						key);
+				else if (!strcasecmp("SSLCertificate", key))
+					STRDUP(current->sslcertificate,
+						calcpath(value));
+				else if (!strcasecmp("SSLPrivateKey", key))
+					STRDUP(current->sslprivatekey,
+						calcpath(value));
 				else
 					errx(1, "illegal directive: '%s'", key);
 			}
@@ -473,7 +479,15 @@ load_config()
 		if (lsock->usessl)
 		{
 #ifdef		HANDLE_SSL
-			loadssl(lsock);
+			struct virtual	*vc;
+
+			loadssl(lsock, NULL);
+			if (lsock->socketname)
+				for (vc = config.virtual; vc; vc = vc->next)
+					if (vc->socketname &&
+						!strcasecmp(lsock->socketname,
+							vc->socketname))
+						loadssl(lsock, vc);
 #else		/* HANDLE_SSL */
 			/* Sanity check */
 			errx(1, "SSL support configured but not compiled in");

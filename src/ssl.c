@@ -19,6 +19,8 @@
 #include	<openssl/rand.h>
 #include	<openssl/err.h>
 #include	<openssl/conf.h>
+#include	<openssl/e_os.h>
+#include	<openssl/tls1.h>
 #endif		/* HANDLE_SSL */
 
 #include	"htconfig.h"
@@ -278,7 +280,6 @@ sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 	(void)x509_ctx;
 	return validated;
 }
-#endif		/* HANDLE_SSL */
 
 static int
 pem_passwd_cb(char *buf, int size, int rwflag, void *userdata)
@@ -297,8 +298,91 @@ pem_passwd_cb(char *buf, int size, int rwflag, void *userdata)
 	return strlen(buf);
 }
 
+#ifdef		TLSEXT_TYPE_server_name
+static int
+ssl_servername_cb(SSL *ssl, int *al, struct socket_config *lsock)
+{
+	const char	*servername;
+	struct virtual	*vc;
+
+	if (!lsock->socketname)
+		return SSL_TLSEXT_ERR_NOACK;
+
+	if (!(servername = SSL_get_servername(ssl, TLSEXT_NAMETYPE_host_name)))
+	{
+		warnx("Failed to get TLS hostname");
+		return SSL_TLSEXT_ERR_NOACK;
+	}
+
+	for (vc = config.virtual; vc; vc = vc->next)
+	{
+		char	*host;
+
+		if (!vc->socketname ||
+				strcasecmp(lsock->socketname, vc->socketname))
+			continue;
+
+		if (!strcasecmp(servername, vc->hostname))
+			break;
+		if (!vc->aliases)
+			continue;
+
+		for (int i = 0; (host = vc->aliases[i]); i++)
+			if (!strcasecmp(servername, host))
+				break;
+
+		if (host)
+			break;
+	}
+	if (!vc || !vc->ssl_ctx)
+		return SSL_TLSEXT_ERR_NOACK;
+
+	/* matching vhost config found */
+	if (vc->ssl_ctx != SSL_set_SSL_CTX(ssl, vc->ssl_ctx))
+	{
+		warnx("Failed to switch SSL context");
+		return SSL_TLSEXT_ERR_ALERT_FATAL;
+	}
+
+	return SSL_TLSEXT_ERR_OK;
+}
+#endif		/* TLSEXT_TYPE_server_name */
+
+static void
+preloadssl(void)
+{
+	static bool	ssl_init_done = false;
+
+	if (ssl_init_done)
+		return;
+
+	SSL_load_error_strings();
+#ifdef		HAVE_OPENSSL_CONFIG
+	OPENSSL_config(NULL);
+#endif		/* HAVE_OPENSSL_CONFIG */
+	SSL_library_init();
+	ERR_print_errors_fp(stderr);
+
+#ifdef		DEVRANDOM
+	/* load randomness */
+	struct stat	sb;
+	const char	*devrandom[] = { DEVRANDOM };
+
+	if (lstat(devrandom[0], &sb) == 0 && S_ISCHR(sb.st_mode))
+	{
+		if (!RAND_load_file(devrandom[0], 16 * 1024))
+			errx(1, "Cannot load randomness (%s): %s\n",
+				devrandom[0],
+				ERR_reason_error_string(ERR_get_error()));
+	}
+#endif		DEVRANDOM
+
+	ssl_init_done = true;
+}
+#endif		/* HANDLE_SSL */
+
 void
-loadssl(struct socket_config *lsock)
+loadssl(struct socket_config *lsock, struct virtual *vc)
 {
 #ifdef		HANDLE_SSL
 	SSL_CTX		*ssl_ctx;
@@ -307,45 +391,56 @@ loadssl(struct socket_config *lsock)
 	if (!lsock->usessl)
 		return;
 
+	preloadssl();
+
 	if (!lsock->sslcertificate)
 		STRDUP(lsock->sslcertificate, CERT_FILE);
 	if (!lsock->sslprivatekey)
 		STRDUP(lsock->sslprivatekey, KEY_FILE);
-	SSL_load_error_strings();
-#ifdef		HAVE_OPENSSL_CONFIG
-	OPENSSL_config(NULL);
-#endif		/* HAVE_OPENSSL_CONFIG */
-	SSL_library_init();
-	ERR_print_errors_fp(stderr);
+
+	if (vc && !vc->sslcertificate)
+		return;
+
 	if (!(method = SSLv23_server_method()))
 		err(1, "Cannot init SSL method: %s",
 			ERR_reason_error_string(ERR_get_error()));
 	if (!(ssl_ctx = SSL_CTX_new(method)))
 		err(1, "Cannot init SSL context: %s",
 			ERR_reason_error_string(ERR_get_error()));
-	lsock->ssl_ctx = ssl_ctx;
+	if (vc)
+		vc->ssl_ctx = ssl_ctx;
+	else
+		lsock->ssl_ctx = ssl_ctx;
+
+	SSL_CTX_set_mode(ssl_ctx,
+		SSL_CTX_get_mode(ssl_ctx) | SSL_MODE_AUTO_RETRY);
 	SSL_CTX_set_default_passwd_cb(ssl_ctx, pem_passwd_cb);
 	SSL_CTX_set_default_passwd_cb_userdata(ssl_ctx, lsock->sslprivatekey);
+
 	if (!SSL_CTX_use_certificate_file(ssl_ctx,
-			calcpath(lsock->sslcertificate),
+			calcpath(vc ? vc->sslcertificate : lsock->sslcertificate),
 			SSL_FILETYPE_PEM))
 		errx(1, "Cannot load SSL cert %s: %s", 
-			calcpath(lsock->sslcertificate),
+			calcpath(vc ? vc->sslcertificate : lsock->sslcertificate),
 			ERR_reason_error_string(ERR_get_error()));
 	if (!SSL_CTX_use_PrivateKey_file(ssl_ctx,
-			calcpath(lsock->sslprivatekey),
+			calcpath(vc ? vc->sslprivatekey : lsock->sslprivatekey),
 			SSL_FILETYPE_PEM))
 		errx(1, "Cannot load SSL key %s: %s", 
-			calcpath(lsock->sslprivatekey),
+			calcpath(vc ? vc->sslprivatekey : lsock->sslprivatekey),
 			ERR_reason_error_string(ERR_get_error()));
 	if (!SSL_CTX_check_private_key(ssl_ctx))
 		errx(1, "Cannot check private SSL %s %s: %s",
-			calcpath(lsock->sslcertificate),
-			calcpath(lsock->sslprivatekey),
+			calcpath(vc ? vc->sslprivatekey : lsock->sslcertificate),
+			calcpath(vc ? vc->sslprivatekey : lsock->sslprivatekey),
 			ERR_reason_error_string(ERR_get_error()));
-	if (!lsock->sslcafile && !lsock->sslcapath)
-		/* TODO: throw an error */
-		lsock->sslauth = auth_none;
+
+	if (!lsock->sslcafile && !lsock->sslcapath &&
+			lsock->sslauth != auth_none)
+		errx(1, "Cannot do SSL %sauthentication without CAfile/CApath",
+			auth_strict == lsock->sslauth ? "strict " :
+			auth_optional == lsock->sslauth ? "optional " :
+			"");
 	else if (!SSL_CTX_load_verify_locations(ssl_ctx,
 			lsock->sslcafile ? calcpath(lsock->sslcafile) : NULL,
 			lsock->sslcapath ? calcpath(lsock->sslcapath) : NULL))
@@ -354,18 +449,8 @@ loadssl(struct socket_config *lsock)
 			lsock->sslcapath ? calcpath(lsock->sslcapath) : "",
 			ERR_reason_error_string(ERR_get_error()));
 
-	/* load randomness */
-	struct stat	sb;
-	if (lstat("/dev/urandom", &sb) == 0 && S_ISCHR(sb.st_mode))
-	{
-		if (!RAND_load_file("/dev/urandom", 16 * 1024))
-			errx(1, "Cannot load randomness (%s): %s\n",
-				"/dev/urandom", ERR_reason_error_string(ERR_get_error()));
-	}
-
 	/* read dh parameters from private keyfile */
-	BIO		*bio = NULL;
-	bio = BIO_new_file(calcpath(lsock->sslprivatekey), "r");
+	BIO	*bio = BIO_new_file(calcpath(vc ? vc->sslprivatekey : lsock->sslprivatekey), "r");
 	if (bio)
 	{
 		DSA		*dsa;
@@ -382,7 +467,7 @@ loadssl(struct socket_config *lsock)
 		if (!dh)
 		{
 			BIO_free(bio);
-			bio = BIO_new_file(calcpath(lsock->sslcertificate), "r");
+			bio = BIO_new_file(calcpath(vc ? vc->sslcertificate : lsock->sslcertificate), "r");
 			if (bio)
 				dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
 			if (!dh && (dsa = PEM_read_bio_DSAparams(bio, NULL, NULL, NULL)))
@@ -407,6 +492,7 @@ loadssl(struct socket_config *lsock)
 	{
 		/* Using default temp ECDH parameters */
 		EC_KEY	*ecdh;
+
 		ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
 		if (!ecdh)
 			errx(1, "Cannot load temp curve: %s",
@@ -431,6 +517,13 @@ loadssl(struct socket_config *lsock)
 			SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT,
 			&sslverify_callback);
 	}
+
+#ifdef		TLSEXT_TYPE_server_name
+	if (!SSL_CTX_set_tlsext_servername_callback(ssl_ctx, ssl_servername_cb)
+			|| !SSL_CTX_set_tlsext_servername_arg(ssl_ctx, lsock))
+		errx(1, "Cannot load TLS servername callback");
+#endif		/* TLSEXT_TYPE_server_name */
+
 #endif		/* HANDLE_SSL */
 }
 

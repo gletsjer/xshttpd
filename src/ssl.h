@@ -19,11 +19,12 @@
 struct	mapping;
 struct	maplist;
 struct	socket_config;
+struct	virtual;
 
 /* Wrapper functions are used even if SSL is not enabled */
 bool	initssl(void);
 void	ssl_environment(void);
-void	loadssl(struct socket_config *) NONNULL;
+void	loadssl(struct socket_config *, struct virtual *);
 void	endssl(void);
 
 void	initreadmode(bool);

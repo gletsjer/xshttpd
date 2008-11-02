@@ -64,6 +64,11 @@ extern struct virtual
 	FILE *		openerror;
 	FILE *		openscript;
 	logstyle_t	logstyle;
+#ifdef		HANDLE_SSL
+	char *		sslcertificate;
+	char *		sslprivatekey;
+	SSL_CTX *	ssl_ctx;
+#endif		/* HANDLE_SSL */
 	struct virtual *	next;
 } *current;
 
@@ -87,8 +92,8 @@ struct socket_config
 	pcre *		sslpcreidn;
 #endif		/* HAVE_PCRE */
 #ifdef		HANDLE_SSL
-	SSL_CTX		*ssl_ctx;	/* per socket */
-	SSL		*ssl;		/* per instance */
+	SSL_CTX *	ssl_ctx;	/* per socket */
+	SSL *		ssl;		/* per instance */
 #endif		/* HANDLE_SSL */
 	struct socket_config *	next;
 } *cursock;
