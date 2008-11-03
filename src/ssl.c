@@ -39,7 +39,11 @@
 static int	netbufind, netbufsiz;
 static char	netbuf[MYBUFSIZ];
 
-static int	pem_passwd_cb(char *buf, int size, int rwflag, void *userdata);
+static int	pem_passwd_cb(char *, int, int, void *);
+#ifdef	 	HANDLE_SSL_TLSEXT
+static int	ssl_servername_cb(SSL *, int *, struct socket_config *);
+#endif		/* HANDLE_SSL_TLSEXT */
+static void	preloadssl(void);
 
 void
 initreadmode(bool reset)
@@ -305,9 +309,6 @@ ssl_servername_cb(SSL *ssl, int *al, struct socket_config *lsock)
 	const char	*servername;
 	struct virtual	*vc;
 
-	if (!lsock->socketname)
-		return SSL_TLSEXT_ERR_NOACK;
-
 	if (!(servername = SSL_get_servername(ssl, TLSEXT_NAMETYPE_host_name)))
 	{
 		warnx("Failed to get TLS hostname");
@@ -318,8 +319,8 @@ ssl_servername_cb(SSL *ssl, int *al, struct socket_config *lsock)
 	{
 		char	*host;
 
-		if (!vc->socketname ||
-				strcasecmp(lsock->socketname, vc->socketname))
+		if (lsock->socketname && (!vc->socketname ||
+				strcasecmp(lsock->socketname, vc->socketname)))
 			continue;
 
 		if (!strcasecmp(servername, vc->hostname))
@@ -344,6 +345,7 @@ ssl_servername_cb(SSL *ssl, int *al, struct socket_config *lsock)
 		return SSL_TLSEXT_ERR_ALERT_FATAL;
 	}
 
+	(void)al;
 	return SSL_TLSEXT_ERR_OK;
 }
 #endif	 	/* HANDLE_SSL_TLSEXT */
