@@ -649,7 +649,7 @@ dir_include_file(int argc, char **argv, off_t *size)
 		char	*escpath = escape(path);
 		*size += secprintf("[Error opening file `%s': %s]\n",
 			escpath, strerror(errno));
-		free(escpath);
+		FREE(escpath);
 		return(ERR_CONT);
 	}
 	if (ssi)
@@ -687,7 +687,7 @@ dir_last_mod(int argc, char **argv, off_t *size)
 			escpath = escape(path);
 			*size += secprintf("[Cannot stat file '%s': %s]\n",
 				escpath, strerror(errno));
-			free(escpath);
+			FREE(escpath);
 			return(ERR_CONT);
 		}
 		thetime = localtime(&statbuf.st_mtime);
@@ -803,7 +803,7 @@ dir_printenv(int argc, char **argv, off_t *size)
 		/* print as html */
 		v = escape(c);
 		*size += secprintf("%s<br>\n", v);
-		free(v);
+		FREE(v);
 	}
 	(void)argc;
 	(void)argv;
@@ -861,13 +861,13 @@ dir_echo(int argc, char **argv, off_t *size)
 	{
 		var = urlencode(value, false);
 		*size += secputs(var);
-		free(var);
+		FREE(var);
 	}
 	else /* enc = "html" */
 	{
 		var = escape(value);
 		*size += secputs(var);
-		free(var);
+		FREE(var);
 	}
 	return(ERR_NONE);
 }
@@ -998,8 +998,7 @@ static	int
 dir_endswitch(int argc, char **argv, off_t *size)
 {
 	dir_endif(argc, argv, size);
-	if (switchstr)
-		free(switchstr);
+	FREE(switchstr);
 	return(ERR_NONE);
 }
 
@@ -1148,8 +1147,7 @@ parsedirectives(char *parse, off_t *size)
 			break;
 		}
 		while (argc--)
-			if (argv[argc])
-				free(argv[argc]);
+			FREE(argv[argc]);
 		if (!directive->name)
 		{
 			char		*search;
@@ -1159,7 +1157,7 @@ parsedirectives(char *parse, off_t *size)
 				here = search + 3;
 		}
 		else if (!directive->params)
-			free(argv[0]);
+			FREE(argv[0]);
 	}
 
 	if (store != result)
@@ -1222,12 +1220,10 @@ sendwithdirectives_internal(int fd, off_t *size)
 			{
 				alarm(0);
 				fclose(parse);
-				if (linecopy)
-					free(linecopy);
+				FREE(linecopy);
 				return(ERR_QUIT);
 			}
-			if (linecopy)
-				free(linecopy);
+			FREE(linecopy);
 		}
 	}
 	alarm(0);
@@ -1248,7 +1244,6 @@ sendwithdirectives(int fd, off_t *size)
 	ret = sendwithdirectives_internal(fd, size);
 
 	while (setvarlen-- > 0)
-		if (setvars[setvarlen])
-			free(setvars[setvarlen]);
+		FREE(setvars[setvarlen]);
 	return ret;
 }
