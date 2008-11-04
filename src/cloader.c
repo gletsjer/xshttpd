@@ -275,6 +275,23 @@ load_config()
 							lsock->sslauth = auth_strict;
 						/* default: auth_none */
 					}
+					else if (!strcasecmp("SSLVHosts", key))
+					{
+						char		**vhosts = NULL;
+						size_t		vsz = string_to_arraypn(value, &vhosts);
+						struct ssl_vhost	*vhost, *prev;
+
+						prev = NULL;
+						for (size_t i = 0; i < vsz; i++)
+						{
+							CALLOC(vhost, struct ssl_vhost, 1);
+							vhost->hostname = vhosts[i];
+							if (prev)
+								prev->next = vhost;
+							else
+								lsock->sslvhosts = vhost;
+						}
+					}
 				}
 				/* All other settings belong to specific 'current' */
 				else if (!current)
@@ -484,15 +501,20 @@ load_config()
 		if (lsock->usessl)
 		{
 #ifdef		HANDLE_SSL
-			struct virtual	*vc;
-
 			loadssl(lsock, NULL);
-			if (lsock->socketname)
-				for (vc = config.virtual; vc; vc = vc->next)
-					if (vc->socketname &&
-						!strcasecmp(lsock->socketname,
-							vc->socketname))
-						loadssl(lsock, vc);
+			if (!lsock->sslvhosts)
+				continue;
+
+			for (struct ssl_vhost *sslvhost = lsock->sslvhosts;
+					sslvhost;
+					sslvhost = sslvhost->next)
+				for (struct virtual *vc = config.virtual; vc; vc = vc->next)
+					if (!strcasecmp(sslvhost->hostname, vc->hostname))
+					{
+						sslvhost->virtual = vc;
+						loadssl(lsock, sslvhost);
+						break;
+					}
 #else		/* HANDLE_SSL */
 			/* Sanity check */
 			errx(1, "SSL support configured but not compiled in");

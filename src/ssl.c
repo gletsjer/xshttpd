@@ -307,6 +307,7 @@ static int
 ssl_servername_cb(SSL *ssl, int *al, struct socket_config *lsock)
 {
 	const char	*servername;
+	struct ssl_vhost*vhost;
 	struct virtual	*vc;
 
 	if (!(servername = SSL_get_servername(ssl, TLSEXT_NAMETYPE_host_name)))
@@ -315,31 +316,32 @@ ssl_servername_cb(SSL *ssl, int *al, struct socket_config *lsock)
 		return SSL_TLSEXT_ERR_NOACK;
 	}
 
-	for (vc = config.virtual; vc; vc = vc->next)
+	if (!lsock->sslvhosts)
+		return SSL_TLSEXT_ERR_NOACK;
+
+	for (vhost = lsock->sslvhosts; vhost; vhost = vhost->next)
 	{
 		char	*host;
 
-		if (lsock->socketname && (!vc->socketname ||
-				strcasecmp(lsock->socketname, vc->socketname)))
-			continue;
+		vc = vhost->virtual;
 
 		if (!strcasecmp(servername, vc->hostname))
 			break;
 		if (!vc->aliases)
 			continue;
 
-		for (int i = 0; (host = vc->aliases[i]); i++)
+		for (int j = 0; (host = vc->aliases[j]); j++)
 			if (!strcasecmp(servername, host))
 				break;
 
 		if (host)
 			break;
 	}
-	if (!vc || !vc->ssl_ctx)
+	if (!vhost || !vhost->ssl_ctx)
 		return SSL_TLSEXT_ERR_NOACK;
 
 	/* matching vhost config found */
-	if (vc->ssl_ctx != SSL_set_SSL_CTX(ssl, vc->ssl_ctx))
+	if (vhost->ssl_ctx != SSL_set_SSL_CTX(ssl, vhost->ssl_ctx))
 	{
 		warnx("Failed to switch SSL context");
 		return SSL_TLSEXT_ERR_ALERT_FATAL;
@@ -384,11 +386,12 @@ preloadssl(void)
 #endif		/* HANDLE_SSL */
 
 void
-loadssl(struct socket_config *lsock, struct virtual *vc)
+loadssl(struct socket_config *lsock, struct ssl_vhost *sslvhost)
 {
 #ifdef		HANDLE_SSL
 	SSL_CTX		*ssl_ctx;
 	SSL_METHOD	*method = NULL;
+	struct virtual	*vc = NULL;
 
 	if (!lsock->usessl)
 		return;
@@ -400,9 +403,11 @@ loadssl(struct socket_config *lsock, struct virtual *vc)
 	if (!lsock->sslprivatekey)
 		STRDUP(lsock->sslprivatekey, KEY_FILE);
 
-	if (vc && !vc->sslcertificate)
+	if (sslvhost)
+		vc = sslvhost->virtual;
+	if (sslvhost && !vc->sslcertificate)
 		return;
-	if (vc && !vc->sslprivatekey)
+	if (sslvhost && !vc->sslprivatekey)
 		STRDUP(vc->sslprivatekey, vc->sslcertificate);
 
 	if (!(method = SSLv23_server_method()))
@@ -411,8 +416,8 @@ loadssl(struct socket_config *lsock, struct virtual *vc)
 	if (!(ssl_ctx = SSL_CTX_new(method)))
 		err(1, "Cannot init SSL context: %s",
 			ERR_reason_error_string(ERR_get_error()));
-	if (vc)
-		vc->ssl_ctx = ssl_ctx;
+	if (sslvhost)
+		sslvhost->ssl_ctx = ssl_ctx;
 	else
 		lsock->ssl_ctx = ssl_ctx;
 
@@ -422,21 +427,21 @@ loadssl(struct socket_config *lsock, struct virtual *vc)
 	SSL_CTX_set_default_passwd_cb_userdata(ssl_ctx, lsock->sslprivatekey);
 
 	if (!SSL_CTX_use_certificate_file(ssl_ctx,
-			calcpath(vc ? vc->sslcertificate : lsock->sslcertificate),
+			calcpath(sslvhost ? vc->sslcertificate : lsock->sslcertificate),
 			SSL_FILETYPE_PEM))
 		errx(1, "Cannot load SSL cert %s: %s", 
-			calcpath(vc ? vc->sslcertificate : lsock->sslcertificate),
+			calcpath(sslvhost ? vc->sslcertificate : lsock->sslcertificate),
 			ERR_reason_error_string(ERR_get_error()));
 	if (!SSL_CTX_use_PrivateKey_file(ssl_ctx,
-			calcpath(vc ? vc->sslprivatekey : lsock->sslprivatekey),
+			calcpath(sslvhost ? vc->sslprivatekey : lsock->sslprivatekey),
 			SSL_FILETYPE_PEM))
 		errx(1, "Cannot load SSL key %s: %s", 
-			calcpath(vc ? vc->sslprivatekey : lsock->sslprivatekey),
+			calcpath(sslvhost ? vc->sslprivatekey : lsock->sslprivatekey),
 			ERR_reason_error_string(ERR_get_error()));
 	if (!SSL_CTX_check_private_key(ssl_ctx))
 		errx(1, "Cannot check private SSL %s %s: %s",
-			calcpath(vc ? vc->sslprivatekey : lsock->sslcertificate),
-			calcpath(vc ? vc->sslprivatekey : lsock->sslprivatekey),
+			calcpath(sslvhost ? vc->sslprivatekey : lsock->sslcertificate),
+			calcpath(sslvhost ? vc->sslprivatekey : lsock->sslprivatekey),
 			ERR_reason_error_string(ERR_get_error()));
 
 	if (!lsock->sslcafile && !lsock->sslcapath)
@@ -450,7 +455,7 @@ loadssl(struct socket_config *lsock, struct virtual *vc)
 			ERR_reason_error_string(ERR_get_error()));
 
 	/* read dh parameters from private keyfile */
-	BIO	*bio = BIO_new_file(calcpath(vc ? vc->sslprivatekey : lsock->sslprivatekey), "r");
+	BIO	*bio = BIO_new_file(calcpath(sslvhost ? vc->sslprivatekey : lsock->sslprivatekey), "r");
 	if (bio)
 	{
 		DSA		*dsa;
@@ -467,7 +472,7 @@ loadssl(struct socket_config *lsock, struct virtual *vc)
 		if (!dh)
 		{
 			BIO_free(bio);
-			bio = BIO_new_file(calcpath(vc ? vc->sslcertificate : lsock->sslcertificate), "r");
+			bio = BIO_new_file(calcpath(sslvhost ? vc->sslcertificate : lsock->sslcertificate), "r");
 			if (bio)
 				dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
 			if (!dh && (dsa = PEM_read_bio_DSAparams(bio, NULL, NULL, NULL)))
