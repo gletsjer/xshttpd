@@ -692,11 +692,9 @@ server_error(int code, const char *readable, const char *cgi)
 void
 logrequest(const char *request, off_t size)
 {
-	char		buffer[90], *dynrequest, *dynagent, *p;
+	char		*dynrequest, *dynagent, *p;
+	const char	*timestamp = gmtimestamp();
 	FILE		*alog;
-
-	strftime(buffer, sizeof(buffer),
-		"%d/%b/%Y:%H:%M:%S +0000", localtimenow());
 
 	if (!current->openaccess)
 		if (!config.system->openaccess)
@@ -730,7 +728,7 @@ logrequest(const char *request, off_t size)
 			: config.system->openreferer;
 		fprintf(alog, "%s - - [%s] \"%s %s %s\" %03d %" PRIoff "\n",
 			env.remote_host,
-			buffer,
+			timestamp,
 			env.request_method, dynrequest,
 			env.server_protocol,
 			session.rstatus,
@@ -746,7 +744,7 @@ logrequest(const char *request, off_t size)
 				" \"%s\" \"%s\"\n",
 			current ? current->hostname : config.system->hostname,
 			env.remote_host,
-			buffer,
+			timestamp,
 			env.request_method, dynrequest,
 			env.server_protocol,
 			session.rstatus,
@@ -758,7 +756,7 @@ logrequest(const char *request, off_t size)
 		fprintf(alog, "%s - - [%s] \"%s %s %s\" %03d %" PRIoff
 				" \"%s\" \"%s\"\n",
 			env.remote_host,
-			buffer,
+			timestamp,
 			env.request_method, dynrequest,
 			env.server_protocol,
 			session.rstatus,

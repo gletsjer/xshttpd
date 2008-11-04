@@ -5,6 +5,7 @@ Changes since 3.6 beta 21
 - Remove arbitrary string length limits for many configuration files,
   HTTP header messages and SSL certificate fields
 - Add support for SSLVhosts (TLS extension: server name indication)
+- Fix NULL-pointer dereference and string termination in HTML encoding
 
 Changes since 3.6 beta 20
 - Add UseSendfile option in httpd.conf to disable sendfile(2)

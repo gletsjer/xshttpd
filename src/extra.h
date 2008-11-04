@@ -6,6 +6,7 @@
 #include	"htconfig.h"
 
 struct tm *	localtimenow	(void) WARNUNUSED;
+char *	gmtimestamp		(void) WARNUNUSED;
 bool	mysleep			(int);
 bool	match			(const char *, const char *) NONNULL WARNUNUSED;
 bool	match_list		(char *, const char *) NONNULL WARNUNUSED;

@@ -37,6 +37,18 @@ localtimenow(void)
 	return localtime(&now);
 }
 
+char *
+gmtimestamp(void)
+{
+	static	char	buffer[90];
+	time_t	now;
+
+	time(&now);
+	strftime(buffer, sizeof(buffer),
+		"%d/%b/%Y:%H:%M:%S +0000", gmtime(&now));
+	return (char *)buffer;
+}
+
 bool
 match(const char *total, const char *pattern)
 {
