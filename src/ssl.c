@@ -715,7 +715,7 @@ secfwrite(const char *buf, size_t size, size_t nmemb, FILE *stream)
 ssize_t
 secputs(const char *buf)
 {
-	return secwrite(buf, strlen(buf));
+	return buf ? secwrite(buf, strlen(buf)) : 0;
 }
 
 ssize_t
@@ -723,6 +723,9 @@ secprintf(const char *format, ...)
 {
 	va_list 	ap;
 	char		*str = NULL;
+
+	if (!format)
+		return 0;
 
 	va_start(ap, format);
 	const int	len = vasprintf(&str, format, ap);
@@ -741,6 +744,9 @@ secread(int rd, void *buf, size_t len)
 {
 	const size_t	inbuffer = netbufsiz - netbufind;
 	char		*cbuf = buf;
+
+	if (!len)
+		return 0;
 
 	if (inbuffer > 0)
 	{
