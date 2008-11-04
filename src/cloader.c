@@ -275,8 +275,9 @@ load_config()
 							lsock->sslauth = auth_strict;
 						/* default: auth_none */
 					}
-					else if (!strcasecmp("SSLVHosts", key))
+					else if (!strcasecmp("SSLVhosts", key))
 					{
+#ifdef		HANDLE_SSL_TLSEXT
 						char		**vhosts = NULL;
 						size_t		vsz = string_to_arraypn(value, &vhosts);
 						struct ssl_vhost	*vhost, *prev;
@@ -290,7 +291,11 @@ load_config()
 								prev->next = vhost;
 							else
 								lsock->sslvhosts = vhost;
+							prev = vhost;
 						}
+#else		/* HANDLE_SSL_TLSEXT */
+						errx(1, "SSLVhosts not allowed: SSL library doesn't support TLSEXT");
+#endif		/* HANDLE_SSL_TLSEXT */
 					}
 				}
 				/* All other settings belong to specific 'current' */
