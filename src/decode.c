@@ -112,7 +112,7 @@ escape(const char *what)
 	if (!what || !*what)
 		return NULL;
 
-	sz = strlen(what);
+	sz = strlen(what) + 1;
 	for (p = what; p[len = strcspn(p, "<>&\"")]; p += len + 1)
 		sz += 10;
 
