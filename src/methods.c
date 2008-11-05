@@ -1608,7 +1608,7 @@ loadcompresstypes()
 			*end = '\0';
 		else
 			end = line + sz;
-		while ((end > line) && (*(end - 1) <= ' '))
+		while (end > line && *(end - 1) <= ' ')
 			*(--end) = '\0';
 		if (line == end || line + sz == end)
 			/* skip empty/non-terminated lines */
@@ -1692,7 +1692,7 @@ loadscripttypes(char *orgbase, char *base)
 			*end = '\0';
 		else
 			end = line + sz;
-		while ((end > line) && (*(end - 1) <= ' '))
+		while (end > line && *(end - 1) <= ' ')
 			*(--end) = '\0';
 		if (line == end || line + sz == end)
 			/* skip empty/non-terminated lines */

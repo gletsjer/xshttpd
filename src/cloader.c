@@ -138,12 +138,13 @@ load_config()
 		/* parse config file */
 		while ((line = fgetln(confd, &sz)))
 		{
-			char	*key, *value, *comment, *end;
+			char	*key, *value, *end;
 
-			if ((comment = strchr(line, '#')))
-				*comment = '\0';
-			end = line + sz;
-			while ((end > line) && (*(end - 1) <= ' '))
+			if ((end = memchr(line, '#', sz)))
+				*end = '\0';
+			else
+				end = line + sz;
+			while (end > line && *(end - 1) <= ' ')
 				*(--end) = '\0';
 			if (end == line || end == line + sz)
 				continue;
