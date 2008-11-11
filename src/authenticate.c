@@ -158,7 +158,7 @@ check_digest_auth(const char *authfile, bool *stale)
 			digest[MD5_DIGEST_STRING_LENGTH],
 			*line;
 	struct		mapping		*authreq;
-	const char	*user, *realm, *nonce, *cnonce, *uri,
+	char		*user, *realm, *nonce, *cnonce, *uri,
 			*response, *qop, *nc;
 	char		*passwd, *a2, *digplain, *ha1;
 	char		*idx, *val;
@@ -180,7 +180,6 @@ check_digest_auth(const char *authfile, bool *stale)
 	}
 	MALLOC(authreq, struct mapping, fields);
 	fields = eqstring_to_array(line, authreq);
-	free(line);
 	user = realm = nonce = cnonce = uri = response = qop = nc = NULL;
 	for (sz = 0; sz < fields; sz++)
 	{
@@ -208,12 +207,14 @@ check_digest_auth(const char *authfile, bool *stale)
 	if (!user || !realm || !nonce || !uri || !response)
 	{
 		free(authreq);
+		free(line);
 		return false; /* fail */
 	}
 	passwd = ha1 = NULL;
 	if (!get_crypted_password(authfile, user, &passwd, &ha1) || !passwd)
 	{
 		free(authreq);
+		free(line);
 		return false; /* not found */
 	}
 
@@ -221,6 +222,7 @@ check_digest_auth(const char *authfile, bool *stale)
 	if (!ha1)
 	{
 		free(authreq);
+		free(line);
 		return false;
 	}
 
@@ -229,6 +231,7 @@ check_digest_auth(const char *authfile, bool *stale)
 	{
 		free(ha1);
 		free(authreq);
+		free(line);
 		return false; /* no valid hash */
 	}
 
@@ -250,6 +253,7 @@ check_digest_auth(const char *authfile, bool *stale)
 	if (strcmp(response, digest))
 	{
 		free(authreq);
+		free(line);
 		return false; /* no match */
 	}
 
@@ -257,12 +261,14 @@ check_digest_auth(const char *authfile, bool *stale)
 	{
 		*stale = true;
 		free(authreq);
+		free(line);
 		return false; /* invalid nonce */
 	}
 
 	setenv("AUTH_TYPE", "Digest", 1);
 	setenv("REMOTE_USER", user, 1);
 	free(authreq);
+	free(line);
 	return true;
 }
 #endif		/* HAVE_MD5 */
