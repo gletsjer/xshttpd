@@ -12,6 +12,7 @@
 #ifdef		HAVE_CRYPT_H
 #include	<crypt.h>
 #endif		/* HAVE_CRYPT_H */
+#include	<libutil.h>
 
 #include	"htconfig.h"
 #include	"httpd.h"
@@ -49,36 +50,28 @@ get_crypted_password(const char *authfile, const char *user, char **passwd, char
 	if (hash)
 		*hash = NULL;
 
-	while ((line = fgetln(af, &sz)))
+	while ((line = fparseln(af, &sz, NULL, NULL, 0)))
 	{
-		char	*lpass, *lhash, *eol;
-		char	*linecopy = NULL;
+		char	*lpass, *lhash;
 
 		if (sz < strlen(user) + 2)
+		{
+			free(line);
 			continue;
+		}
 
 		if (strncmp(line + 1, user, strlen(user)) ||
 				line[strlen(user)+1] != ':')
-			continue;
-
-		if ((eol = memchr(line, '\r', sz)) ||
-				(eol = memchr(line, '\n', sz)))
-			*eol = '\0';
-		else
 		{
-			/* force proper line termination */
-			MALLOC(linecopy, char, sz + 1);
-			memcpy(linecopy, line, sz);
-			linecopy[sz] = '\0';
-			line = linecopy;
+			free(line);
+			continue;
 		}
 
 		if ((lpass = strchr(line, ':')))
 			lpass++;
 		else
 		{
-			if (linecopy)
-				free(linecopy);
+			free(line);
 			fclose(af);
 			return false;
 		}
@@ -89,8 +82,7 @@ get_crypted_password(const char *authfile, const char *user, char **passwd, char
 			STRDUP(*passwd, lpass);
 		if (hash)
 			STRDUP(*hash, lhash);
-		if (linecopy)
-			free(linecopy);
+		free(line);
 		fclose(af);
 		return true; /* found! */
 	}

@@ -18,6 +18,7 @@
 #include	<ctype.h>
 #include	<unistd.h>
 #include	<fnmatch.h>
+#include	<libutil.h>
 
 #include	"httpd.h"
 #include	"htconfig.h"
@@ -144,10 +145,13 @@ check_file_redirect(const char *base, const char *filename)
 bool
 check_redirect(const char *cffile, const char *filename)
 {
-	char	*line, *request;
+	char	*request, *command;
+	char	*argv[3];
 	FILE	*fp;
 	bool	guard = true;
-	size_t	sz;
+	bool	exittrue = false;
+	bool	exitfalse= false;
+	ssize_t	ret;
 
 	if (!(fp = fopen(cffile, "r")))
 		/* no redir */
@@ -155,22 +159,10 @@ check_redirect(const char *cffile, const char *filename)
 
 	STRDUP(request, filename);
 
-	while ((line = fgetln(fp, &sz)))
+	while ((ret = fgetfields(fp, 4, &command, &argv[0], &argv[1], &argv[2])) >= 0)
 	{
-		char	*p, *command;
-		char	*subst, *orig, *repl, *newloc, *host;
-		char	*envvar, *value;
-
-		if (!(p = memchr(line, '\n', sz)))
-			continue;
-		*p = '\0';
-
-		p = line;
-		while ((command = strsep(&p, " \t\r\n")) && !*command)
-			/* continue */;
-
 		/* skip comments and blank lines */
-		if (!command || !*command)
+		if (!ret)
 		{
 			/* block reset */
 			guard = true;
@@ -178,104 +170,94 @@ check_redirect(const char *cffile, const char *filename)
 		}
 
 		if (!guard)
-			continue;
-
-		if ('#' == *command)
-			continue;
+			/* continue */;
 
 		/* use pcre matching */
-		if (!strcasecmp(command, "ifenv"))
+		else if (!strcasecmp(command, "ifenv") && ret >= 3)
 		{
-			while ((envvar = strsep(&p, " \t\r\n")) && !*envvar)
-				/* continue */;
-			while ((value = strsep(&p, " \t\r\n")) && !*value)
-				/* continue */;
+			const char *envvar = argv[0];
+			const char *value = argv[1];
 
 			if ('$' == *envvar)
 				envvar++;
 			if (!*envvar ||
-				!(envvar = getenv(envvar)) ||
-				(pcre_match(envvar, value) <= 0))
-			{
+					!(envvar = getenv(envvar)) ||
+					(pcre_match(envvar, value) <= 0))
 				/* no match -> skip block */
 				guard = false;
-				continue;
-			}
 		}
-		else if (!strcasecmp(command, "pass"))
+		else if (!strcasecmp(command, "pass") && ret >= 2)
 		{
-			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
-				/* continue */;
-			if (pcre_match(request, orig) > 0)
-			{
-				fclose(fp);
-				return false;
-			}
+			if (pcre_match(request, argv[0]) > 0)
+				exitfalse = true;
 		}
 		else if (!strcasecmp(command, "passexist"))
 		{
 			struct stat	statbuf;
+			const char	*orig = getenv("SCRIPT_FILENAME");
 
-			if ((orig = getenv("SCRIPT_FILENAME")) &&
-				!stat(orig, &statbuf))
-			{
-				return false;
-			}
+			if (orig && !stat(orig, &statbuf))
+				exitfalse = true;
 		}
-		else if (!strcasecmp(command, "redir"))
+		else if (!strcasecmp(command, "redir") && ret >= 3)
 		{
-			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
-				/* continue */;
-			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
-				/* continue */;
-			if ((subst = pcre_subst(request, orig, repl)) &&
-					*subst)
+			const char	*newloc;
+			char	*subst = pcre_subst(request, argv[0], argv[1]);
+
+			if (subst && *subst)
 			{
 				newloc = mknewurl(request, subst);
 				redirect(newloc, 'R' == command[0], 0);
 				free(subst);
-				fclose(fp);
-				return true;
+				exittrue = true;
 			}
 		}
-		else if (!strcasecmp(command, "rewrite"))
+		else if (!strcasecmp(command, "rewrite") && ret >= 3)
 		{
-			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
-				/* continue */;
-			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
-				/* continue */;
-			if ((subst = pcre_subst(request, orig, repl)) &&
-					*subst)
+			char	*subst = pcre_subst(request, argv[0], argv[1]);
+
+			if (subst && *subst)
 			{
 				do_get(subst);
 				free(subst);
-				fclose(fp);
-				return true;
+				exittrue = true;
 			}
 		}
-		else if (!strcasecmp(command, "forward"))
+		else if (!strcasecmp(command, "forward") && ret >= 4)
 		{
-			while ((host = strsep(&p, " \t\r\n")) && !*host)
-				/* continue */;
-			while ((orig = strsep(&p, " \t\r\n")) && !*orig)
-				/* continue */;
-			while ((repl = strsep(&p, " \t\r\n")) && !*repl)
-				/* continue */;
-			if ((subst = pcre_subst(request, orig, repl)) &&
-					*subst)
+			char	*subst = pcre_subst(request, argv[0], argv[1]);
+
+			if (subst && *subst)
 			{
-				do_proxy(host, subst);
+				do_proxy(argv[0], subst);
 				free(subst);
-				fclose(fp);
-				return true;
+				exittrue = true;
 			}
 		}
-		else /* no command: redir to url */
+		else if (1 == ret)
+			/* no command: redir to url */
 		{
-			newloc = mknewurl(request, command);
+			const char	*newloc = mknewurl(request, command);
+
 			redirect(newloc, false, true);
+			exittrue = true;
+		}
+
+		switch (ret)
+		{
+		case 4:
+			free(argv[2]);
+		case 3:
+			free(argv[1]);
+		case 2:
+			free(argv[0]);
+		case 1:
+			free(command);
+		}
+		if (exittrue || exitfalse)
+		{
 			fclose(fp);
-			return true;
+			return exittrue;
 		}
 	}
 	fclose(fp);
@@ -361,9 +343,8 @@ check_allow_host(const char *hostname, char *pattern)
 bool
 check_noxs(const char *cffile)
 {
-	char	*allowhost, *p;
 	FILE	*rfile;
-	size_t	sz;
+	char	*allowhost;
 
 	if (!(rfile = fopen(cffile, "r")))
 	{
@@ -378,20 +359,16 @@ check_noxs(const char *cffile)
 		return true; /* access denied */
 	}
 
-	while ((allowhost = fgetln(rfile, &sz)))
+	while ((allowhost = fparseln(rfile, NULL, NULL, NULL, FPARSEARG)))
 	{
-		if (!(p = memchr(allowhost, '\n', sz)))
-			continue;
-		*p = '\0';
-
-		if (!*allowhost || '#' == *allowhost)
-			continue;
-
 		if (check_allow_host(env.remote_addr, allowhost))
 		{
 			fclose(rfile);
+			free(allowhost);
 			return false; /* access granted */
 		}
+
+		free(allowhost);
 	}
 
 	fclose(rfile);
@@ -404,7 +381,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 {
 	char	*line;
 	char    **authfiles;
-	size_t	sz, num_authfiles = 0;
+	size_t	num_authfiles = 0;
 	bool	state = 0;
 	bool	restrictcheck = 0, restrictallow = 0;
 	bool	sslcheck = 0, sslallow = 0;
@@ -421,21 +398,19 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 		return true; /* access denied */
 	}
 
-	while ((line = fgetln(fp, &sz)))
+	while ((line = fparseln(fp, NULL, NULL, NULL, FPARSEARG)))
 	{
 		char    *p, *name, *value;
 
-		if (!(p = memchr(line, '\n', sz)))
+		if (!*line)
+		{
+			free(line);
 			continue;
-		*p = '\0';
+		}
 
 		p = line;
 		while ((name = strsep(&p, " \t\r\n")) && !*name)
 			/* continue */;
-
-		/* skip comments and blank lines */
-		if (!name || !*name || '#' == *name)
-			continue;
 
 		/* try to isolate a [url] section */
 		if ('[' == name[0])
@@ -443,8 +418,11 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 			for (p = ++name; *p && *p != ']'; p++)
 				/* skip */;
 			if (!*p)
+			{
 				/* [ without ]; skip it */
+				free(line);
 				continue;
+			}
 			*p = '\0';
 
 			if ((p = strchr(name, '/')))
@@ -452,32 +430,39 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 				*p++ = '\0';
 				if (!env.request_method ||
 					strcasecmp(name, env.request_method))
+				{
+					free(line);
 					continue;
+				}
 				name = p;
 			}
 			/* try simple matching */
 			state = !strcmp(name, "*") ||
 				fnmatch(name, filename, 0) != FNM_NOMATCH;
+			free(line);
 			continue;
 		}
 
 		/* ignore anything else if no match */
 		if (!state)
+		{
+			free(line);
 			continue;
+		}
 
 		/* strip leading/trailing whitespace from value */
 		for ( ; isspace(*p); p++)
 			/* do nothing */;
 		value = p;
-		if ((p = strchr(value, '#')))
-			*p = '\0';
-		else
-			p = strchr(value, '\0');
+		p = strchr(value, '\0');
 		while (isspace(*--p))
 			*p = '\0';
 
 		if (!value || !*value)
+		{
+			free(line);
 			continue;
+		}
 
 		/* AuthFilename => $file does .xsauth-type authentication */
 		if (!strcasecmp(name, "AuthFilename") ||

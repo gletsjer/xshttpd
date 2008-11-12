@@ -57,6 +57,9 @@ but not able to overwrite your data - nor should it be able to write logfiles */
 /* Argument to listen(). Leave it as it is, it should be fine. */
 #define MAXLISTEN	50
 
+/* Parsing method for fparseln() */
+#define	FPARSEARG	FPARSELN_UNESCCOMM|FPARSELN_UNESCCONT|FPARSELN_UNESCESC
+
 /* Assumed maximum pathlength. Use C99 define */
 #define	XS_PATH_MAX	((size_t)FILENAME_MAX)
 

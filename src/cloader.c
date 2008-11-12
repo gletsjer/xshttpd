@@ -43,6 +43,7 @@
 #include	<pwd.h>
 #include	<grp.h>
 #include	<unistd.h>
+#include	<libutil.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
@@ -133,21 +134,20 @@ load_config()
 		subtype_t	subtype = sub_none;
 		struct virtual	*last = NULL;
 		char		*line;
-		size_t		sz;
 
 		/* parse config file */
-		while ((line = fgetln(confd, &sz)))
+		while ((line = fparseln(confd, NULL, NULL, NULL, FPARSEARG)))
 		{
 			char	*key, *value, *end;
 
-			if ((end = memchr(line, '#', sz)))
-				*end = '\0';
-			else
-				end = line + sz;
+			end = line + strlen(line);
 			while (end > line && *(end - 1) <= ' ')
 				*(--end) = '\0';
-			if (end == line || end == line + sz)
+			if (end <= line)
+			{
+				free(line);
 				continue;
+			}
 			key = line;
 
 			if ((value = strpbrk(line, "\t ")))
@@ -484,6 +484,8 @@ load_config()
 			}
 			else
 				errx(1, "illegal directive: '%s'", line);
+
+			free(line);
 		}
 		if (config_preprocessor)
 			pclose(confd);

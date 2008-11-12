@@ -66,6 +66,7 @@ XS_FUNC_IN_LIB(inet_pton, HAVE_INET_PTON, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(getaddrinfo, HAVE_GETADDRINFO, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(getnameinfo, HAVE_GETNAMEINFO, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
+XS_FUNC_IN_LIB(fparseln, HAVE_FPARSELN, util, libxs)
 XS_FUNC_IN_LIB(MD5Data, HAVE_LIBMD, md, libxs)
 AS_IF([test "$ac_cv_search_MD5Data" != no],
 	AC_DEFINE(HAVE_MD5, [],

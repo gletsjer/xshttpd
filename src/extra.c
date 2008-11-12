@@ -12,6 +12,8 @@
 #include	<pwd.h>
 #include	<string.h>
 #include	<ctype.h>
+#include	<stdarg.h>
+#include	<libutil.h>
 
 #include	"htconfig.h"
 #include	"extra.h"
@@ -381,4 +383,32 @@ free_string_arrayp(char **array)
 	for (p = *array; p; p++)
 		free(p);
 	free(array);
+}
+
+ssize_t
+fgetfields(FILE *fd, size_t num_fields, ...)
+{
+	va_list		ap;
+	char		*line, *p, *fld;
+	char		**argp;
+	size_t		sz, lineno, num;
+
+	if (!(line = fparseln(fd, &sz, &lineno, NULL, FPARSEARG)))
+		return -1;
+
+	p = line;
+	num = 0;
+	va_start(ap, num_fields);
+	while ((fld = strsep(&p, " \t\n\r")))
+	{
+		if (!*fld)
+			/* skip empty field */
+			continue;
+		if (++num > num_fields)
+			return num_fields;
+		argp = va_arg(ap, char **);
+		STRDUP(*argp, fld);
+	}
+	free(line);
+	return num;
 }

@@ -1537,38 +1537,29 @@ loadfiletypes(char *orgbase, char *base)
 
 	/* DECL */
 	ftypes		*prev = NULL, *new = NULL;
-	char		*line;
-	size_t		sz;
+	char		*name, *ext;
+	ssize_t		ret;
 
-	while ((line = fgetln(mime, &sz)))
+	while ((ret = fgetfields(mime, 2, &name, &ext)) >= 0)
 	{
-		char	*name, *ext, *p;
-
-		p = line + sz - 1;
-		if (sz < 1 || (*p != '\r' && *p != '\n'))
-			/* skip empty/non-terminated lines */
-			continue;
-		*p = '\0';
-		if ((p = strchr(line, '#')))
-			*p = '\0';
-		for (p = line, name = strsep(&p, " \t\r\n");
-				(ext = strsep(&p, " \t\r\n"));
-				)
+		if (ret < 2)
 		{
-			if (!*ext)
-				continue;
-			MALLOC(new, ftypes, 1);
-			if (prev)
-				prev->next = new;
-			else if (base)
-				lftype = new;
-			else
-				ftype = new;
-			prev = new;
-			STRDUP(new->name, name);
-			STRDUP(new->ext, ext);
-			new->next = NULL;
+			if (ret)
+				free(name);
+			/* this may be a local file: silently ignore errors */
+			continue;
 		}
+		MALLOC(new, ftypes, 1);
+		new->name = name;
+		new->ext = ext;
+		new->next = NULL;
+		if (prev)
+			prev->next = new;
+		else if (base)
+			lftype = new;
+		else
+			ftype = new;
+		prev = new;
 	}
 	fclose(mime);
 }
@@ -1596,45 +1587,27 @@ loadcompresstypes()
 
 	/* DECL */
 	ctypes		*prev, *new;
-	char		*line;
-	size_t		sz;
+	char		*prog, *ext, *name;
+	ssize_t		ret;
 
 	prev = NULL;
-	while ((line = fgetln(methods, &sz)))
+	while ((ret = fgetfields(methods, 3, &prog, &ext, &name)) >= 0)
 	{
-		char	*end;
-
-		if ((end = memchr(line, '#', sz)))
-			*end = '\0';
-		else
-			end = line + sz;
-		while (end > line && *(end - 1) <= ' ')
-			*(--end) = '\0';
-		if (line == end || line + sz == end)
-			/* skip empty/non-terminated lines */
+		if (!ret)
 			continue;
+		if (ret < 2)
+			errx(1, "Unable to parse `%s' in `%s'", prog, path);
+
 		MALLOC(new, ctypes, 1);
+		new->prog = prog;
+		new->ext = ext;
+		new->name = ret >= 3 ? name : NULL;
+
 		if (prev)
 			prev->next = new;
 		else
 			ctype = new;
 		prev = new; new->next = NULL;
-
-		/* parse line */
-		char	*p, *q;
-
-		p = line;
-		STRDUP(new->prog, strsep(&p, " \t\n"));
-		while ((q = strsep(&p, " \t\n")))
-			if (*q)
-			{
-				STRDUP(new->ext, q);
-				break;
-			}
-		if (!q)
-			errx(1, "Unable to parse `%s' in `%s'", line, path);
-		STRDUP(new->name, strsep(&p, " \t\n"));
-
 	}
 	fclose(methods);
 }
@@ -1680,59 +1653,44 @@ loadscripttypes(char *orgbase, char *base)
 
 	/* DECL */
 	ctypes		*prev, *new;
-	char		*line;
-	size_t		sz;
+	char		*prog, *ext, *name;
+	ssize_t		ret;
 
 	prev = NULL;
-	while ((line = fgetln(methods, &sz)))
+	while ((ret = fgetfields(methods, 2, &prog, &ext, &name)) >= 0)
 	{
-		char	*end;
-
-		if ((end = memchr(line, '#', sz)))
-			*end = '\0';
-		else
-			end = line + sz;
-		while (end > line && *(end - 1) <= ' ')
-			*(--end) = '\0';
-		if (line == end || line + sz == end)
-			/* skip empty/non-terminated lines */
+		if (ret < 2)
+		{
+			if (ret)
+				free(name);
+			/* this may be a local file: silently ignore errors */
 			continue;
+		}
+
 #ifndef		HAVE_PERL
-		if (!strncmp(line, "internal:perl", 13))
+		if (!strcmp(prog, "internal:perl"))
 			continue;
 #endif		/* HAVE_PERL */
 #ifndef		HAVE_PYTHON
-		if (!strncmp(line, "internal:python", 15))
+		if (!strcmp(prog, "internal:python"))
 			continue;
 #endif		/* HAVE_PYTHON */
 #ifndef		HAVE_RUBY
-		if (!strncmp(line, "internal:ruby", 13))
+		if (!strcmp(prog, "internal:ruby"))
 			continue;
 #endif		/* HAVE_RUBY */
 
 		MALLOC(new, ctypes, 1);
-		/* parse line */
-		char	*p, *q;
-
-		p = line;
-		STRDUP(new->prog, strsep(&p, " \t\n"));
-		while ((q = strsep(&p, " \t\n")))
-			if (*q)
-			{
-				STRDUP(new->ext, q);
-				break;
-			}
-		if (!q)
-			errx(1, "Unable to parse `%s' in script methods", line);
-		STRDUP(new->name, strsep(&p, " \t\n"));
+		new->prog = prog;
+		new->ext = ext;
+		new->name = ret >= 3 ? name : NULL;
 		new->next = NULL;
 		if (!strcmp(new->ext, "*"))
 		{
 			/* there can be only one default */
 			if (ditype)
 				free_ctype(ditype);
-			free(new->ext);
-			STRDUP(new->ext, "");
+			new->ext[0] = '\0';
 			ditype = new;
 		}
 		else
