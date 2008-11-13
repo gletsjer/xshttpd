@@ -421,10 +421,10 @@ loadssl(struct socket_config *lsock, struct ssl_vhost *sslvhost)
 	else
 		lsock->ssl_ctx = ssl_ctx;
 
-#if 0
+#ifdef		SSL_MODE_AUTO_RETRY
 	SSL_CTX_set_mode(ssl_ctx,
 		SSL_CTX_get_mode(ssl_ctx) | SSL_MODE_AUTO_RETRY);
-#endif
+#endif		/* SSL_MODE_AUTO_RETRY */
 	SSL_CTX_set_default_passwd_cb(ssl_ctx, pem_passwd_cb);
 	SSL_CTX_set_default_passwd_cb_userdata(ssl_ctx, lsock->sslprivatekey);
 

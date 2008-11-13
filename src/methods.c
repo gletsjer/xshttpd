@@ -1444,6 +1444,9 @@ do_proxy(const char *proxy, const char *params)
 	CURL	*handle = curl_easy_init();
 	char	*request, *p;
 
+#if 0
+	curl_easy_setopt(handle, CURLOPT_NOSIGNAL, 1);
+#endif
 	if ((p = strstr(proxy, ":443")) || (p = strstr(proxy, ":https")))
 	{
 		*p = '\0'; /* or libcurl will try host:https:443 */

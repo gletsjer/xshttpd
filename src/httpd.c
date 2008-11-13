@@ -423,7 +423,6 @@ alarm_handler(int sig)
 	if (!in_progress)
 	{
 		fflush(stdout); fflush(stdin); fflush(stderr);
-		endssl();
 		close(STDIN_FILENO);
 		close(STDOUT_FILENO);
 		session.persistent = false;
