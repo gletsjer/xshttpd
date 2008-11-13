@@ -11,6 +11,7 @@
 #include	<inttypes.h>
 #include	<stdarg.h>
 #include	<stdint.h>
+#include	<stdio.h>
 #ifdef		HAVE_TIME_H
 #include	<time.h>
 #endif		/* HAVE_TIME_H */
@@ -146,5 +147,18 @@ char *	strsep		(char **, const char *);
 #ifndef		HAVE_SRANDOMDEV
 void	srandomdev	(void);
 #endif		/* HAVE_SRANDOMDEV */
+
+#ifndef		HAVE_FGETLN
+char *	fgetln		(FILE *, size_t *);
+#endif		/* HAVE_FGETLN */
+
+#ifndef		HAVE_FPARSELN
+char *	fparseln	(FILE *, size_t *, size_t *, const char[3], int);
+#define FPARSELN_UNESCESC       0x01
+#define FPARSELN_UNESCCONT      0x02
+#define FPARSELN_UNESCCOMM      0x04
+#define FPARSELN_UNESCREST      0x08
+#define FPARSELN_UNESCALL       0x0f
+#endif		/* HAVE_FPARSELN */
 
 #endif		/* ALTERNATIVE_H */

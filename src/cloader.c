@@ -43,7 +43,9 @@
 #include	<pwd.h>
 #include	<grp.h>
 #include	<unistd.h>
+#ifdef		HAVE_LIBUTIL_H
 #include	<libutil.h>
+#endif		/* HAVE_LIBUTIL_H */
 #ifdef		HAVE_ERR_H
 #include	<err.h>
 #endif		/* HAVE_ERR_H */

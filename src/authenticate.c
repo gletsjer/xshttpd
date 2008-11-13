@@ -12,7 +12,9 @@
 #ifdef		HAVE_CRYPT_H
 #include	<crypt.h>
 #endif		/* HAVE_CRYPT_H */
+#ifdef		HAVE_LIBUTIL_H
 #include	<libutil.h>
+#endif		/* HAVE_LIBUTIL_H */
 
 #include	"htconfig.h"
 #include	"httpd.h"

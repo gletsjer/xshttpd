@@ -4,6 +4,7 @@ is not complete. Refer to cvs comments for more information.
 Changes since 3.6 beta 21
 - Fix memory mismanagement in digest authentication verification
 - Replace fgets(), fgetln() by friendlier fparseln() routine
+  Include replacement functions for fgetln() and fparseln()
 
 Changes since 3.6 beta 20
 - Remove arbitrary string length limits for many configuration files,

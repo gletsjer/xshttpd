@@ -32,6 +32,9 @@ AC_SYS_LARGEFILE
 AC_CHECK_HEADERS([crypt.h err.h getopt.h sys/mman.h sys/param.h sys/resource.h sys/select.h sys/sendfile.h], [], [], [[]])
 AC_CHECK_HEADERS([sys/syslimits.h], [], [], [#include <sys/cdefs.h>
 ])
+AC_CHECK_HEADERS([libutil.h], [], [], [#include <stdio.h>
+#include <sys/types.h>
+])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_UID_T
@@ -75,7 +78,7 @@ AS_IF([test "$ac_cv_search_MD5Data" != no],
 AS_IF([test "$ac_cv_search_inet_aton" = no], [AC_LIBOBJ(inet_aton)])
 AC_CHECK_FUNC(asprintf,, [AC_LIBOBJ(snprintf)])
 AC_CHECK_FUNC(setegid,,   [AC_LIBOBJ(seteuid)])
-AC_REPLACE_FUNCS(closefrom err killpg memmem mkstemp setenv seteuid setgroups setproctitle srandomdev strlcat strcasestr strlcpy strptime strsep)
+AC_REPLACE_FUNCS(closefrom err fgetln fparseln killpg memmem mkstemp setenv seteuid setgroups setproctitle srandomdev strlcat strcasestr strlcpy strptime strsep)
 
 dnl Check in6_addr layout; must follow socket library check.
 AC_CHECK_TYPES(struct in6_addr,,, [#include <netinet/in.h>])

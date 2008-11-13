@@ -19,7 +19,7 @@
 #include	<openssl/rand.h>
 #include	<openssl/err.h>
 #include	<openssl/conf.h>
-#include	<openssl/e_os.h>
+#include	<openssl/ssl.h>
 #include	<openssl/tls1.h>
 #endif		/* HANDLE_SSL */
 

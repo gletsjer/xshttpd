@@ -18,7 +18,9 @@
 #include	<ctype.h>
 #include	<unistd.h>
 #include	<fnmatch.h>
+#ifdef		HAVE_LIBUTIL_H
 #include	<libutil.h>
+#endif		/* HAVE_LIBUTIL_H */
 
 #include	"httpd.h"
 #include	"htconfig.h"

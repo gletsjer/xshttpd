@@ -13,7 +13,9 @@
 #include	<string.h>
 #include	<ctype.h>
 #include	<stdarg.h>
+#ifdef		HAVE_LIBUTIL_H
 #include	<libutil.h>
+#endif		/* HAVE_LIBUTIL_H */
 
 #include	"htconfig.h"
 #include	"extra.h"
