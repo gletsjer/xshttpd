@@ -20,6 +20,10 @@
 #include	<fnmatch.h>
 #ifdef		HAVE_LIBUTIL_H
 #include	<libutil.h>
+#else		/* HAVE_LIBUTIL_H */
+# ifdef		HAVE_UTIL_H
+# include	<util.h>
+# endif		/* HAVE_UTIL_H */
 #endif		/* HAVE_LIBUTIL_H */
 
 #include	"httpd.h"

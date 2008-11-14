@@ -45,6 +45,10 @@
 #include	<unistd.h>
 #ifdef		HAVE_LIBUTIL_H
 #include	<libutil.h>
+#else		/* HAVE_LIBUTIL_H */
+# ifdef		HAVE_UTIL_H
+# include	<util.h>
+# endif		/* HAVE_UTIL_H */
 #endif		/* HAVE_LIBUTIL_H */
 #ifdef		HAVE_ERR_H
 #include	<err.h>
@@ -394,9 +398,11 @@ load_config()
 #else		/* HANDLE_SSL_TLSEXT */
 					errx(1, "Vhost SSLCertificate not allowed: SSL library doesn't support TLSEXT");
 #endif		/* HANDLE_SSL_TLSEXT */
+#ifdef		HANDLE_SSL
 				else if (!strcasecmp("SSLPrivateKey", key))
 					STRDUP(current->sslprivatekey,
 						calcpath(value));
+#endif		/* HANDLE_SSL */
 				else
 					errx(1, "illegal directive: '%s'", key);
 			}

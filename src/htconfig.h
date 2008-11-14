@@ -71,6 +71,7 @@ extern struct virtual
 	struct virtual *	next;
 } *current;
 
+#ifdef		HANDLE_SSL
 struct ssl_vhost
 {
 	char *			hostname;
@@ -78,6 +79,7 @@ struct ssl_vhost
 	SSL_CTX *		ssl_ctx;
 	struct ssl_vhost *	next;
 };
+#endif		/* HANDLE_SSL */
 
 struct socket_config
 {
@@ -98,8 +100,8 @@ struct socket_config
 	pcre *		sslpcresdn;
 	pcre *		sslpcreidn;
 #endif		/* HAVE_PCRE */
-	struct ssl_vhost *	sslvhosts;
 #ifdef		HANDLE_SSL
+	struct ssl_vhost *	sslvhosts;
 	SSL_CTX *	ssl_ctx;	/* per socket */
 	SSL *		ssl;		/* per instance */
 #endif		/* HANDLE_SSL */

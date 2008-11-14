@@ -446,7 +446,8 @@ senduncompressed(int fd)
 			warnx("setsockopt(IPPROTO_TCP)");
 #endif		/* TCP_NOPUSH */
 
-#ifdef		HAVE_BSD_SENDFILE
+#ifdef		HAVE_SENDFILE
+# ifdef		HAVE_BSD_SENDFILE
 		if (config.usesendfile && !cursock->usessl &&
 			!session.chunked && valid_size_t_size)
 		{
@@ -455,8 +456,8 @@ senduncompressed(int fd)
 					env.remote_host ? env.remote_host : "(none)");
 		}
 		else
-#endif		/* HAVE_BSD_SENDFILE */
-#ifdef		HAVE_LINUX_SENDFILE	/* cannot have both */
+# endif		/* HAVE_BSD_SENDFILE */
+# ifdef		HAVE_LINUX_SENDFILE	/* cannot have both */
 		if (config.usesendfile && !cursock->usessl &&
 			!session.chunked && valid_size_t_size)
 		{
@@ -465,7 +466,8 @@ senduncompressed(int fd)
 					env.remote_host ? env.remote_host : "(none)");
 		}
 		else
-#endif		/* HAVE_LINUX_SENDFILE */
+# endif		/* HAVE_LINUX_SENDFILE */
+#endif		/* HAVE_SENDFILE */
 #ifdef		HAVE_MMAP
 		/* don't use mmap() for files >12Mb to avoid hogging memory */
 		if (size < 12 * 1048576 && valid_size_t_size)

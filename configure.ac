@@ -29,11 +29,10 @@ libxs_ldflags="${LDFLAGS}"
 dnl Checks for header files.
 AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
-AC_CHECK_HEADERS([crypt.h err.h getopt.h sys/mman.h sys/param.h sys/resource.h sys/select.h sys/sendfile.h], [], [], [[]])
-AC_CHECK_HEADERS([sys/syslimits.h], [], [], [#include <sys/cdefs.h>
-])
-AC_CHECK_HEADERS([libutil.h], [], [], [#include <stdio.h>
+AC_CHECK_HEADERS([crypt.h err.h getopt.h util.h sys/param.h sys/select.h sys/sendfile.h], [], [], [[]])
+AC_CHECK_HEADERS([sys/syslimits.h libutil.h sys/resource.h sys/mman.h], [], [], [#include <sys/cdefs.h>
 #include <sys/types.h>
+#include <time.h>
 ])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
