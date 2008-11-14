@@ -131,9 +131,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	char		fullpath[XS_PATH_MAX], input[RWBUFSIZE],
 			line[LINEBUFSIZE];
 	const char	*argv1;
-	int		p[2], r[2], chldstat;
+	int		p[2], r[2];
 	bool		nph, dossi;
-	unsigned int	left;
 	FILE		*logfile;
 	int		q[2];
 	bool		ssl_post = false;
@@ -149,7 +148,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	action.sa_flags = 0;
 	sigaction(SIGALRM, &action, NULL);
 
-	left = alarm(60 * config.scripttimeout); fflush(stdout);
+	(void)alarm(60 * config.scripttimeout);
+	fflush(stdout);
 	unsetenv("REDIRECT_STATUS");
 
 	/* snip++ */
@@ -413,6 +413,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		break;
 	}
 
+	/* DECL */
 	const char * const te = getenv("HTTP_TRANSFER_ENCODING");
 	if (ssl_post && te && !strcasecmp(te, "chunked"))
 	{
@@ -775,5 +776,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	fflush(stdout);
 	close(p[0]);
 	if (child > 0)
+	{
+		int	chldstat;
 		waitpid(child, &chldstat, 0);
+	}
 }

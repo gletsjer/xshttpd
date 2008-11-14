@@ -178,6 +178,7 @@ urlencode(const char *what, bool delimenc)
 	}
 
 	/* start encoding past host-info (if any) */
+	/* DECL */
 	const char	mark[] =
 		{ '-', '_', '.', '!', '~', '*', '\'', '(', ')' };
 	const char	delim[] =

@@ -70,9 +70,10 @@ match(const char *total, const char *pattern)
 				return true;
 			while (total[x])
 			{
-				bool		ret;
+				const bool	ret =
+					match(total + (x++), pattern + y);
 
-				if ((ret = match(total + (x++), pattern + y)))
+				if (ret)
 					return ret;
 			}
 			return false;
@@ -197,9 +198,9 @@ internal_xstring_to_arrayp(const char *value, char ***array, size_t (*xstring_to
 static size_t
 internal_xstring_to_arraypn(const char *value, char ***array, size_t (*xstring_to_array)(const char *, char **))
 {
-	size_t	sz;
+	const size_t	sz =
+		internal_xstring_to_arrayp(value, array, xstring_to_array);
 
-	sz = internal_xstring_to_arrayp(value, array, xstring_to_array);
 	if (!sz)
 		return sz;
 
@@ -366,11 +367,9 @@ qstring_to_array(const char *value, char **array)
 void
 free_string_array(char **array, size_t num)
 {
-	size_t	i;
-
 	if (!array)
 		return;
-	for (i = 0; i < num; i++)
+	for (size_t i = 0; i < num; i++)
 		free(array[i]);
 	free(array);
 }
@@ -378,11 +377,9 @@ free_string_array(char **array, size_t num)
 void
 free_string_arrayp(char **array)
 {
-	char	*p;
-
 	if (!array)
 		return;
-	for (p = *array; p; p++)
+	for (char *p = *array; p; p++)
 		free(p);
 	free(array);
 }
@@ -411,6 +408,7 @@ fgetfields(FILE *fd, size_t num_fields, ...)
 		argp = va_arg(ap, char **);
 		STRDUP(*argp, fld);
 	}
+	va_end(ap);
 	free(line);
 	return num;
 }

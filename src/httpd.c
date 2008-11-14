@@ -374,9 +374,8 @@ open_logs(int sig)
 
 	/* local block */
 	{
-		int		tempfile;
+		const int	tempfile = fileno(config.system->openerror);
 
-		tempfile = fileno(config.system->openerror);
 		if (tempfile != 2)
 		{
 			if (dup2(tempfile, STDERR_FILENO) == -1)
@@ -671,6 +670,8 @@ server_error(int code, const char *readable, const char *cgi)
 			}
 		}
 	}
+
+	/* local block */
 	{
 		char	*temp = strrchr(cgipath, '/');
 		if (temp)
@@ -1228,17 +1229,12 @@ standalone_socket(int id)
 {
 	int			csd = 0;
 	unsigned int		count;
-	socklen_t		clen;
 #ifdef		HAVE_GETADDRINFO
 	struct	addrinfo	hints, *res;
 	struct	sockaddr_storage	saddr;
 #else		/* HAVE_GETADDRINFO */
 	struct	sockaddr	saddr;
-	in_port_t		sport;
 #endif		/* HAVE_GETADDRINFO */
-#ifndef		HAVE_GETNAMEINFO
-	in_addr_t		laddr;
-#endif		/* HAVE_GETNAMEINFO */
 	pid_t			*childs;
 
 	setproctitle("xs(MAIN): Initializing deamons...");
@@ -1289,19 +1285,24 @@ standalone_socket(int id)
 	freeaddrinfo(res);
 
 #else		/* HAVE_GETADDRINFO */
-	/* Quick patch to run on old systems */
-	memset(&saddr, 0, sizeof(struct sockaddr));
-	saddr.sa_family = PF_INET;
-	if (!strcmp(cursock->port, "http"))
-		sport = 80;
-	else if (!strcmp(cursock->port, "https"))
-		sport = 443;
-	else
-		sport = (in_port_t)strtoul(cursock->port, NULL, 10) || 80;
-	((struct sockaddr_in *)&saddr)->sin_port = htons(sport);
+	{
+		/* Quick patch to run on old systems */
+		const in_port_t		sport;
 
-	if (bind(sd, &saddr, sizeof(struct sockaddr)) == -1)
-		err(1, "bind()");
+		memset(&saddr, 0, sizeof(struct sockaddr));
+		saddr.sa_family = PF_INET;
+		if (!strcmp(cursock->port, "http"))
+			sport = 80;
+		else if (!strcmp(cursock->port, "https"))
+			sport = 443;
+		else
+			sport = (in_port_t)strtoul(cursock->port, NULL, 10)
+				|| 80;
+		((struct sockaddr_in *)&saddr)->sin_port = htons(sport);
+
+		if (bind(sd, &saddr, sizeof(struct sockaddr)) == -1)
+			err(1, "bind()");
+	}
 #endif		/* HAVE_GETADDRINFO */
 
 	if (listen(sd, MAXLISTEN))
@@ -1399,6 +1400,7 @@ standalone_socket(int id)
 	while (true)
 	{
 		struct	linger	sl;
+		socklen_t	clen;
 
 		/* (in)sanity check */
 		if (count > cursock->instances)
@@ -1458,13 +1460,17 @@ standalone_socket(int id)
 				memmove(remoteaddr, remoteaddr + 7, strlen(remoteaddr) - 7);
 		}
 #else		/* HAVE_GETNAMEINFO */
-		/* I don't need libnsl for this... */
-		laddr = ntohl(((struct sockaddr_in *)&saddr)->sin_addr.s_addr);
-		snprintf(remoteaddr, NI_MAXHOST, "%u.%u.%u.%u",
-			(laddr & 0xff000000) >> 24,
-			(laddr & 0x00ff0000) >> 16,
-			(laddr & 0x0000ff00) >> 8,
-			(laddr & 0x000000ff));
+		{
+			/* I don't need libnsl for this... */
+			const in_addr_t		laddr =
+				ntohl(((struct sockaddr_in *)&saddr)
+					->sin_addr.s_addr);
+			snprintf(remoteaddr, NI_MAXHOST, "%u.%u.%u.%u",
+				(laddr & 0xff000000) >> 24,
+				(laddr & 0x00ff0000) >> 16,
+				(laddr & 0x0000ff00) >> 8,
+				(laddr & 0x000000ff));
+		}
 #endif		/* HAVE_GETNAMEINFO */
 
 		strlcpy(remotehost, remoteaddr, NI_MAXHOST);

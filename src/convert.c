@@ -22,9 +22,9 @@ convertpath(const char *org)
 
 	if (!strncmp(org, "/~", 2))
 	{
-		char			*person;
+		char			*person, *slash;
 		const	struct	passwd	*userinfo;
-		char			*slash, *userpos;
+		const	char		*userpos;
 
 		STRDUP(person, org + 2);
 		if ((slash = strchr(person, '/')))
@@ -40,7 +40,7 @@ convertpath(const char *org)
 		/* transform_user_dir */
 		if ((userpos = strstr(config.users->htmldir, "%u")))
 		{
-			int	len = userpos - config.users->htmldir;
+			const int	len = userpos - config.users->htmldir;
 
 			snprintf(path, XS_PATH_MAX, "%*.*s%s%s/",
 				len, len, config.users->htmldir,

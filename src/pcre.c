@@ -16,10 +16,11 @@ char *
 pcre_subst(const char * const string, const char * const pattern, const char * const replacement)
 {
 #ifndef		HAVE_PCRE
-	char		*match, *result;
+	char		*result;
+	const char	*match = strcasestr(string, pattern);
 
 	/* no pcre -> no substitute */
-	if (!(match = strcasestr(string, pattern)))
+	if (!match)
 		return NULL;
 
 	asprintf(&result, "%.*s%s%s", (int)(match - string), string,
@@ -36,6 +37,7 @@ pcre_subst(const char * const string, const char * const pattern, const char * c
 		return NULL;
 
 	rc = pcre_exec(re, NULL, string, strlen(string), 0, 0, ovector, OVSIZE);
+	pcre_free(re);
 
 	if (rc <= 0)
 		return NULL;
@@ -78,10 +80,11 @@ pcre_match(const char *const string, const char *const pattern)
 	const char	*error;
 	pcre		*re;
 
-	if ((re = pcre_compile(pattern, 0, &error, &erroffset, NULL)) == NULL)
+	if (!(re = pcre_compile(pattern, 0, &error, &erroffset, NULL)))
 		return -1;
+
 	rc = pcre_exec(re, NULL, string, strlen(string), 0, 0, NULL, 0);
-	free(re);
+	pcre_free(re);
 	if (PCRE_ERROR_NOMATCH == rc)
 		return 0;
 	return rc < 0 ? -1 : 1;

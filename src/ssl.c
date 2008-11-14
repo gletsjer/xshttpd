@@ -201,6 +201,8 @@ ssl_environment()
 			setenv("SSL_CLIENT_VERIFY", "SUCCESS", 1);
 		else
 			setenv("SSL_CLIENT_VERIFY", "FAILED", 1);
+
+		X509_free(xs);
 	}
 	else
 	{
@@ -369,6 +371,7 @@ preloadssl(void)
 
 #ifdef		DEVRANDOM
 	/* load randomness */
+	/* DECL */
 	struct stat	sb;
 	const char	*devrandom[] = { DEVRANDOM };
 
@@ -476,11 +479,13 @@ loadssl(struct socket_config *lsock, struct ssl_vhost *sslvhost)
 			BIO_free(bio);
 			bio = BIO_new_file(calcpath(sslvhost ? vc->sslcertificate : lsock->sslcertificate), "r");
 			if (bio)
-				dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
-			if (!dh && (dsa = PEM_read_bio_DSAparams(bio, NULL, NULL, NULL)))
 			{
-				dh = DSA_dup_DH(dsa);
-				DSA_free(dsa);
+				dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
+				if (!dh && (dsa = PEM_read_bio_DSAparams(bio, NULL, NULL, NULL)))
+				{
+					dh = DSA_dup_DH(dsa);
+					DSA_free(dsa);
+				}
 			}
 		}
 		if (dh)
@@ -548,12 +553,13 @@ secread_internal(int fd, void *buf, size_t count)
 
 		while ((ret = SSL_read(cursock->ssl, buf, count)) < 0)
 		{
-			int	s_err = SSL_get_error(cursock->ssl, ret);
+			const int s_err = SSL_get_error(cursock->ssl, ret);
 
 			switch (s_err)
 			{
 			case SSL_ERROR_NONE:
 			case SSL_ERROR_WANT_READ:
+				/* read was interrupted, but no error */
 				usleep(200);
 				continue;
 			case SSL_ERROR_SYSCALL:
@@ -648,13 +654,12 @@ secwrite(const char *buf, size_t count)
 #ifdef		HANDLE_SSL
 		if (cursock->usessl)
 		{
-			int		s_err;
 			ssize_t		ret;
 
 			while ((ret = SSL_write(cursock->ssl, message[i], len[i])) <= 0)
 			{
 				/* SSL_write doesn't return w/ partial writes */
-				s_err = SSL_get_error(cursock->ssl, ret);
+				const int s_err = SSL_get_error(cursock->ssl, ret);
 
 				switch (s_err)
 				{
