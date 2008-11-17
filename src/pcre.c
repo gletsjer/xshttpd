@@ -44,7 +44,9 @@ pcre_subst(const char * const string, const char * const pattern, const char * c
 
 	MALLOC(result, char, BUFSIZ);
 	result[0] = '\0';
-	strncat(result, string, ovector[0]);
+	if (!strstr(replacement, "://"))
+		/* redirect to local path: subst on original url */
+		strncat(result, string, ovector[0]);
 	pcre_get_substring_list(string, ovector, rc, &list);
 	for (prev = replacement; (next = strchr(prev, '\\')); prev = next + 2)
 	{
