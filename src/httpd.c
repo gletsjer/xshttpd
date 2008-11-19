@@ -1532,11 +1532,11 @@ standalone_socket(int id)
 			do
 			{
 #ifdef		TCP_CORK
-				if ((setsockopt(csd, SOL_TCP, TCP_CORK, (int[]){1}, sizeof(int))) == -1)
+				if ((setsockopt(1, SOL_TCP, TCP_CORK, (int[]){1}, sizeof(int))) == -1)
 					warn("setsockopt(TCP_CORK)");
 #endif		/* TCP_CORK */
 #ifdef		TCP_NO_PUSH
-				if ((setsockopt(csd, SOL_TCP, TCP_NO_PUSH, (int[]){1}, sizeof(int))) == -1)
+				if ((setsockopt(1, SOL_TCP, TCP_NO_PUSH, (int[]){1}, sizeof(int))) == -1)
 					warn("setsockopt(TCP_NO_PUSH)");
 #endif		/* TCP_NO_PUSH */
 				process_request();
@@ -1560,13 +1560,12 @@ standalone_socket(int id)
 						secputs("0\r\n\r\n");
 				}
 #ifdef		TCP_CORK
-				if ((setsockopt(csd, SOL_TCP, TCP_CORK, (int[]){0}, sizeof(int))) == -1)
+				if ((setsockopt(1, SOL_TCP, TCP_CORK, (int[]){0}, sizeof(int))) == -1)
 					warn("setsockopt(TCP_CORK)");
 #endif		/* TCP_CORK */
 #ifdef		TCP_NO_PUSH
-				if ((setsockopt(csd, SOL_TCP, TCP_NO_PUSH, (int[]){0}, sizeof(int))) == -1)
+				if ((setsockopt(1, SOL_TCP, TCP_NO_PUSH, (int[]){0}, sizeof(int))) == -1)
 					warn("setsockopt(TCP_NO_PUSH)");
-				write(csd, "", 0);
 #endif		/* TCP_NO_PUSH */
 				setproctitle("xs(%c%d): Awaiting request "
 					"#%d from `%s'",
