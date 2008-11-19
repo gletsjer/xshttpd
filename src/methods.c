@@ -334,7 +334,8 @@ sendheaders(int fd, off_t size)
 	}
 
 	/* All preconditions satisfied */
-	secprintf("%s 200 OK\r\n", env.server_protocol);
+	if (secprintf("%s 200 OK\r\n", env.server_protocol) < 0)
+		return false;
 	stdheaders(false, false, false);
 	if (cfvalues.charset)
 		secprintf("Content-type: %s; charset=%s\r\n",

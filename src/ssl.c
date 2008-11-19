@@ -563,7 +563,10 @@ secread_internal(int fd, void *buf, size_t count)
 				usleep(200);
 				continue;
 			case SSL_ERROR_SYSCALL:
-				warn("SSL_read()");
+				if (EBADF != errno)
+					warn("SSL_read()");
+					break;
+				/* else: socket closed (by alarm handler) */
 				break;
 			case SSL_ERROR_ZERO_RETURN:
 				/* clean shutdown */
@@ -668,14 +671,15 @@ secwrite(const char *buf, size_t count)
 					continue;
 				case SSL_ERROR_SYSCALL:
 					warn("SSL_write()");
-					break;
+					session.persistent = false;
+					return ret;
 				default:
 					warnx("SSL_write(): %s",
 						ERR_error_string(s_err, NULL));
-					break;
+					session.persistent = false;
+					return ret;
 				}
-				session.persistent = false;
-				break;
+				/* NOTREACHED */
 			}
 		}
 		else
@@ -697,13 +701,13 @@ secwrite(const char *buf, size_t count)
 				{
 					/* remote host aborted connection */
 					session.persistent = false;
-					break;
+					return ret;
 				}
 				else
 				{
 					warn("write()");
 					session.persistent = false;
-					break;
+					return ret;
 				}
 			}
 		}

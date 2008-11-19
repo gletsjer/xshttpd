@@ -544,7 +544,16 @@ xserror(int code, const char *format, ...)
 	}
 	if (session.headers)
 	{
-		secprintf("%s %03d %s\r\n", env.server_protocol, code, message);
+		/* Write error message */
+		const ssize_t	ret = secprintf("%s %03d %s\r\n",
+					env.server_protocol, code, message);
+
+		if (ret <= 0)
+		{
+			/* Write failed: don't write the rest */
+			session.persistent = false;
+			return;
+		}
 		secprintf("Content-length: %zu\r\n",
 			errmsg ? strlen(errmsg) : 0);
 		if ((getenv("HTTP_ALLOW")))
@@ -814,8 +823,10 @@ process_request()
 		return;
 	case ERR_CLOSE:
 		/* connection close: terminate quietly */
-		return;
 	case ERR_QUIT:
+		/* fatal error: warning should be in logfile,
+		 * no use trying to send an error back */
+		return;
 	default:
 		xserror(400, "Unable to read begin of request line");
 		return;
