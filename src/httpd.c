@@ -1284,10 +1284,12 @@ standalone_socket(int id)
 	if ((setsockopt(sd, SOL_SOCKET, SO_KEEPALIVE, (int[]){1}, sizeof(int))) == -1)
 		err(1, "setsockopt(KEEPALIVE)");
 
+#if		0
 	if ((setsockopt(sd, SOL_SOCKET, SO_SNDBUF, (int[]){RWBUFSIZE}, sizeof(int))) == -1)
 		err(1, "setsockopt(SNDBUF)");
 	if ((setsockopt(sd, SOL_SOCKET, SO_RCVBUF, (int[]){RWBUFSIZE}, sizeof(int))) == -1)
 		err(1, "setsockopt(SNDBUF)");
+#endif
 
 #ifdef		HAVE_GETADDRINFO
 	if (bind(sd, res->ai_addr, res->ai_addrlen) == -1)
@@ -1333,6 +1335,10 @@ standalone_socket(int id)
 				warn("setsockopt(ACCEPTFILTER) - missing accf_data(9)?");
 		}
 #else		/* SO_ACCEPTFILTER */
+# ifdef		TCP_QUICKACK
+		if ((setsockopt(sd, SOL_TCP, TCP_QUICKACK, (int[]){0}, sizeof(int))) == -1)
+			warn("setsockopt(TCP_QUICKACK)");
+# endif		/* TCP_QUICKACK */
 # ifdef		TCP_DEFER_ACCEPT
 		if ((setsockopt(sd, SOL_TCP, TCP_DEFER_ACCEPT, (int[]){180}, sizeof(int))) == -1)
 			warn("setsockopt(TCP_DEFER_ACCEPT)");
@@ -1525,6 +1531,14 @@ standalone_socket(int id)
 		else
 			do
 			{
+#ifdef		TCP_CORK
+				if ((setsockopt(csd, SOL_TCP, TCP_CORK, (int[]){1}, sizeof(int))) == -1)
+					warn("setsockopt(TCP_CORK)");
+#endif		/* TCP_CORK */
+#ifdef		TCP_NO_PUSH
+				if ((setsockopt(csd, SOL_TCP, TCP_NO_PUSH, (int[]){1}, sizeof(int))) == -1)
+					warn("setsockopt(TCP_NO_PUSH)");
+#endif		/* TCP_NO_PUSH */
 				process_request();
 				alarm(10);
 				if (session.chunked)
@@ -1545,6 +1559,15 @@ standalone_socket(int id)
 #endif		/* HAVE_LIBMD */
 						secputs("0\r\n\r\n");
 				}
+#ifdef		TCP_CORK
+				if ((setsockopt(csd, SOL_TCP, TCP_CORK, (int[]){0}, sizeof(int))) == -1)
+					warn("setsockopt(TCP_CORK)");
+#endif		/* TCP_CORK */
+#ifdef		TCP_NO_PUSH
+				if ((setsockopt(csd, SOL_TCP, TCP_NO_PUSH, (int[]){0}, sizeof(int))) == -1)
+					warn("setsockopt(TCP_NO_PUSH)");
+				write(csd, "", 0);
+#endif		/* TCP_NO_PUSH */
 				setproctitle("xs(%c%d): Awaiting request "
 					"#%d from `%s'",
 					id, count + 1, ++reqsc, remotehost);

@@ -7,6 +7,7 @@ Changes since 3.6 beta 21
   Include replacement functions for fgetln() and fparseln()
 - Fix crash in https timeout handler
 - Portability fixes (b20 doesn't work on many platforms)
+- Tweak TCP options (especially for Linux systems)
 
 Changes since 3.6 beta 20
 - Remove arbitrary string length limits for many configuration files,
