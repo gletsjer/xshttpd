@@ -1284,13 +1284,6 @@ standalone_socket(int id)
 	if ((setsockopt(sd, SOL_SOCKET, SO_KEEPALIVE, (int[]){1}, sizeof(int))) == -1)
 		err(1, "setsockopt(KEEPALIVE)");
 
-#if		0
-	if ((setsockopt(sd, SOL_SOCKET, SO_SNDBUF, (int[]){RWBUFSIZE}, sizeof(int))) == -1)
-		err(1, "setsockopt(SNDBUF)");
-	if ((setsockopt(sd, SOL_SOCKET, SO_RCVBUF, (int[]){RWBUFSIZE}, sizeof(int))) == -1)
-		err(1, "setsockopt(SNDBUF)");
-#endif
-
 #ifdef		HAVE_GETADDRINFO
 	if (bind(sd, res->ai_addr, res->ai_addrlen) == -1)
 		err(1, "bind()");
