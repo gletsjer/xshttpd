@@ -8,6 +8,7 @@
 .Nm xspasswd
 .Op Fl b | Fl d
 .Op Fl l | Fl u
+.Op Fl r
 .Op Fl f Ar filename
 .Op Ar username
 .Sh DESCRIPTION
@@ -56,6 +57,15 @@ authentication details and sensitive content are
 transferred over a secure channel (i.e. using https).
 In this case digest authentication does not add
 any additional security.
+.Pp
+Use the
+.Fl r
+option to remove a user from the authentication file.
+Note that the options that control the account type will be
+ignored when
+.Fl r
+is given. That is: the named account will be removed even
+if these options (locked, digest, ..) do not match.
 .Sh EXAMPLES
 Change your current directory to the directory that you wish
 to protect with usercodes and passwords. Note that

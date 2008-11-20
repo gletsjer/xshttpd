@@ -25,19 +25,32 @@
 #include	"authenticate.h"
 #include	"xscrypt.h"
 
+static void	usage(void) NORETURN;
+
+static void
+usage(void)
+{
+	errx(1, "[-options] [username]\n\n"
+		"-b | -d\t\tBasic or Digest HTTP authentication\n"
+		"-l | -u\t\tLock or unlock (allow) password modification\n"
+		"-r\t\tRemove account from password file\n"
+		"-f <file>\tUse filename in stead of %s\n", 
+		AUTH_FILE);
+}
+
 int
 main(int argc, char **argv)
 {
 	char		*pwd, *username, *passone, *filename,
-			*total, line[BUFSIZ], *newfile;
+			*total, line[BUFSIZ];
 	const	char	*password;
 	int		option;
-	bool		passwdlock = false, digest = false;
-	FILE		*authinp, *authout;
+	bool		passwdlock, digest, delete;
 
 	umask(S_IRWXG | S_IRWXO);
-	filename = NULL;
-	while ((option = getopt(argc, argv, "bdf:hlu")) != EOF)
+	filename = total = NULL;
+	passwdlock = digest = delete = false;
+	while ((option = getopt(argc, argv, "bdf:hlru")) != EOF)
 	{
 		switch (option)
 		{
@@ -56,23 +69,27 @@ main(int argc, char **argv)
 		case 'l':
 			passwdlock = true;
 			break;
+		case 'r':
+			delete = true;
+			break;
 		case 'u':
 			passwdlock = false;
 			break;
 		default:
-			errx(1, "Usage: xspasswd [-b|-d] [-l|-u] "
-				"[-f filename] [user]");
+			usage();
+			/* NOTREACHED */
 		}
 	}
 	argc -= optind;
 	argv += optind;
 
+	if (argc > 1)
+		usage();
 	if (!filename)
 		STRDUP(filename, AUTH_FILE);
 	printf("The information will be stored in %s\n\n", filename);
-	if (argc > 1)
-		errx(1, "Usage: xspasswd [-b|-d] [-l|-u] [user]");
-	else if (argc)
+
+	if (argc)
 		STRDUP(username, argv[0]);
 	else
 	{
@@ -88,52 +105,72 @@ main(int argc, char **argv)
 	}
 	if (strchr(username, ':'))
 		errx(1, "Username may not contain a colon");
-	STRDUP(passone, getpass("Please enter a password: "));
-	if (!passone)
-		errx(1, "Password input failed");
-	if (!(password = (const char *)getpass("Please reenter password: ")))
-		errx(1, "Password input failed");
-	if (strcmp(password, passone))
-		errx(1, "Password did not match previous entry!");
-	pwd = crypt(password, mksalt());
-
-	if (digest)
+	if (!delete)
 	{
-#ifdef		HAVE_MD5
-		char	ha1[MD5_DIGEST_STRING_LENGTH];
+		STRDUP(passone, getpass("Please enter a password: "));
+		if (!passone)
+			errx(1, "Password input failed");
+		if (!(password = (const char *)getpass("Please reenter password: ")))
+			errx(1, "Password input failed");
+		if (strcmp(password, passone))
+			errx(1, "Password did not match previous entry!");
+		pwd = crypt(password, mksalt());
 
-		generate_ha1(username, password, ha1);
-		asprintf(&total, "%c%s:%s:%s\n",
-			(passwdlock ? 'L' : 'U'), username, pwd, ha1);
+		if (digest)
+		{
+#ifdef		HAVE_MD5
+			char	ha1[MD5_DIGEST_STRING_LENGTH];
+
+			generate_ha1(username, password, ha1);
+			asprintf(&total, "%c%s:%s:%s\n",
+				(passwdlock ? 'L' : 'U'), username, pwd, ha1);
 #else		/* HAVE_MD5 */
-		errx(1, "Digest authentication is not supported");
+			errx(1, "Digest authentication is not supported");
 #endif		/* HAVE_MD5 */
+		}
+		else
+			asprintf(&total, "%c%s:%s\n",
+				(passwdlock ? 'L' : 'U'), username, pwd);
+		free(passone);
 	}
-	else
-		asprintf(&total, "%c%s:%s\n",
-			(passwdlock ? 'L' : 'U'), username, pwd);
-	free(passone);
+
+	/* DECL */
+	FILE		*authinp, *authout;
+	char		*newfile;
+	bool		found = false;
+	size_t		count = 0;
 
 	authinp = fopen(filename, "r");
+	if (delete && !authinp)
+		err(1, "Cannot open authentication file");
+
 	asprintf(&newfile, "%s.new", filename);
 	if (!(authout = fopen(newfile, "w")))
-		err(1, "fopen(`%s', `w')", newfile);
+		err(1, "Cannot write new authentication file");
 
-	bool found = false;
 	while (authinp && fgets(line, sizeof(line), authinp))
 	{
+		count++;
 		if (!strncmp(line + 1, username, strlen(username)) &&
 			(line[strlen(username) + 1] == ':'))
 		{
 			found = true;
-			fputs(total, authout);
+			if (!delete)
+				fputs(total, authout);
+			else
+				count--;
 		} else
 			fputs(line, authout);
 	}
-	if (found)
+	if (found && delete)
+		printf("Access for `%s' has been removed.\n", username);
+	else if (found)
 		printf("Password for `%s' has been changed.\n", username);
-	else
+	else if (delete)
+		printf("User `%s' not found in passwordfile.\n", username);
+	else /* not found: add */
 	{
+		count++;
 		fputs(total, authout);
 		printf("New user `%s' has been created.\n", username);
 	}
@@ -143,7 +180,13 @@ main(int argc, char **argv)
 		fclose(authinp);
 	fclose(authout);
 	if (rename(newfile, filename))
-		err(1, "Cannot rename(`%s', `%s')", newfile, filename);
+		err(1, "Cannot rename authentication file");
 	free(newfile);
+	if (!count)
+	{
+		printf("Authentication file is now completely empty: "
+			"removing file...\n");
+		unlink(filename);
+	}
 	return 0;
 }

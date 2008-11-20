@@ -8,6 +8,7 @@ Changes since 3.6 beta 21
 - Fix crash in https timeout handler
 - Portability fixes (b20 doesn't work on many platforms)
 - Tweak TCP options (especially for Linux systems)
+- Add xspasswd -r option to remove accounts from password file
 
 Changes since 3.6 beta 20
 - Remove arbitrary string length limits for many configuration files,
