@@ -1025,56 +1025,56 @@ typedef	struct
 {
 	const	char	*name;
 	int		(*func) (int, char **, off_t *);
-	char		params;
+	bool		params;
+	bool		conditional;
 	/* padding */
 } directivestype;
 
 static	directivestype	directives[] =
 {
-	{ "count-total",	dir_count_total,	0	},
-	{ "count-total-gfx",	dir_count_total_gfx,	1	},
-	{ "count-today",	dir_count_today,	0	},
-	{ "count-today-gfx",	dir_count_today_gfx,	1	},
-	{ "count-month",	dir_count_month,	0	},
-	{ "count-month-gfx",	dir_count_month_gfx,	1	},
-	{ "count-reset",	dir_count_reset,	0	},
-	{ "date",		dir_date,		1	},
-	{ "date-format",	dir_date_format,	1	},
-	{ "exec",		dir_exec,		1	},
-	{ "include",		dir_include_file,	1	},
-	{ "include-file",	dir_include_file,	1	},
-	{ "last-modified",	dir_last_mod,		1	},
-	{ "last-mod",		dir_last_mod,		1	},
-	{ "remote-host",	dir_echo_obsolete,	0	},
-	{ "run-cgi",		dir_run_cgi,		1	},
-	{ "agent-short",	dir_echo_obsolete,	0	},
-	{ "agent-long",		dir_echo_obsolete,	0	},
-	{ "argument",		dir_echo_obsolete,	0	},
-	{ "printenv",		dir_printenv,		0	},
-	{ "referer",		dir_echo_obsolete,	0	},
-	{ "set",		dir_set,		1	},
-	{ "echo",		dir_echo,		1	},
-	{ "if",			dir_if,			1	},
-	{ "if-not",		dir_if_not,		1	},
-	{ "else",		dir_else,		0	},
-	{ "endif",		dir_endif,		0	},
-	{ "switch",		dir_switch,		1	},
-	{ "endswitch",	dir_endswitch,	0	},
-	{ "case",		dir_case,		1	},
-	{ NULL,			NULL,			0	}
+	{ "count-total",	dir_count_total,	false,	false	},
+	{ "count-total-gfx",	dir_count_total_gfx,	true,	false	},
+	{ "count-today",	dir_count_today,	false,	false	},
+	{ "count-today-gfx",	dir_count_today_gfx,	true,	false	},
+	{ "count-month",	dir_count_month,	false,	false	},
+	{ "count-month-gfx",	dir_count_month_gfx,	true,	false	},
+	{ "count-reset",	dir_count_reset,	false,	false	},
+	{ "date",		dir_date,		true,	false	},
+	{ "date-format",	dir_date_format,	true,	false	},
+	{ "exec",		dir_exec,		true,	false	},
+	{ "include",		dir_include_file,	true,	false	},
+	{ "include-file",	dir_include_file,	true,	false	},
+	{ "last-modified",	dir_last_mod,		true,	false	},
+	{ "last-mod",		dir_last_mod,		true,	false	},
+	{ "remote-host",	dir_echo_obsolete,	false,	false	},
+	{ "run-cgi",		dir_run_cgi,		true,	false	},
+	{ "agent-short",	dir_echo_obsolete,	false,	false	},
+	{ "agent-long",		dir_echo_obsolete,	false,	false	},
+	{ "argument",		dir_echo_obsolete,	false,	false	},
+	{ "printenv",		dir_printenv,		false,	false	},
+	{ "referer",		dir_echo_obsolete,	false,	false	},
+	{ "set",		dir_set,		true,	false	},
+	{ "echo",		dir_echo,		true,	false	},
+	{ "if",			dir_if,			true,	true	},
+	{ "if-not",		dir_if_not,		true,	true	},
+	{ "else",		dir_else,		false,	true	},
+	{ "endif",		dir_endif,		false,	true	},
+	{ "switch",		dir_switch,		true,	true	},
+	{ "endswitch",		dir_endswitch,		false,	true	},
+	{ "case",		dir_case,		true,	true	},
+	{ NULL,			NULL,			false,	false	}
 };
 
 static	bool
 print_enabled()
 {
-	bool		output;
 	unsigned int	count;
 
-	output = true;
 	for (count = 0; count <= ssioutput; count++)
 		if (!ssiarray[count])
-			output = false;
-	return output;
+			return false;
+
+	return true;
 }
 
 static	int
@@ -1124,14 +1124,7 @@ parsedirectives(char *parse, off_t *size)
 			}
 			else
 				argc = 0;
-			if (printable ||
-				(directive->func == dir_if) ||
-				(directive->func == dir_if_not) ||
-				(directive->func == dir_else) ||
-				(directive->func == dir_endif) ||
-				(directive->func == dir_switch) ||
-				(directive->func == dir_endswitch) ||
-				(directive->func == dir_case))
+			if (printable || directive->conditional)
 			{
 				switch (directive->func(argc, argv, size))
 				{
