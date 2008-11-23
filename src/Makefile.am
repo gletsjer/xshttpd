@@ -20,7 +20,7 @@ DEFAULT_INCLUDES = -I$(top_builddir)
 
 EXTRA_DIST = alternative.h authenticate.h cgi.h cloader.h config.h \
 	constants.h compiler.h convert.h decode.h extra.h fcgi.h fcgi_api.h \
-	htconfig.h httpd.h ldap.h malloc.h methods.h path.h pcre.h \
+	htconfig.h httpd.h ldap.h malloc.h methods.h md5.h path.h pcre.h \
 	ssi.h ssl.h xsfiles.h xscounter.h xscrypt.h
 
 cscope:

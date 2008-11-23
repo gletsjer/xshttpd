@@ -4,10 +4,6 @@
 #define		METHODS_H
 
 #include	"config.h"
-#ifdef		HAVE_LIBMD
-# include	<md5.h>
-extern	MD5_CTX	*md5context;
-#endif		/* HAVE_MD5 */
 
 void	loadcompresstypes	(void);
 void	loadscripttypes		(char *, char *);

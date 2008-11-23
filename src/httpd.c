@@ -809,9 +809,6 @@ process_request()
 	session.persistent = false;
 	session.trailers = false;
 	env.content_length = 0;
-#ifdef		HAVE_LIBMD
-	md5context = NULL;
-#endif		/* HAVE_LIBMD */
 
 	initreadmode(false);
 	switch (readline(0, line, sizeof(line)))
@@ -1536,20 +1533,12 @@ standalone_socket(int id)
 				alarm(10);
 				if (session.chunked)
 				{
-					session.chunked = false;
-#ifdef		HAVE_LIBMD
-					if (md5context)
-					{
-						char   digest[MD5_DIGEST_LENGTH];
-						char           base64_data[MD5_DIGEST_B64_LENGTH];
+					char	*checksum;
 
-						MD5Final((unsigned char *)digest, md5context);
-						base64_encode(digest, MD5_DIGEST_LENGTH, base64_data);
-						secprintf("0\r\nContent-MD5: %s\r\n\r\n", base64_data);
-						free(md5context);
-					}
+					session.chunked = false;
+					if ((checksum = checksum_final()))
+						secprintf("0\r\nContent-MD5: %s\r\n\r\n", checksum);
 					else
-#endif		/* HAVE_LIBMD */
 						secputs("0\r\n\r\n");
 				}
 #ifdef		TCP_CORK

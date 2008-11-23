@@ -26,6 +26,7 @@
 #include	"htconfig.h"
 #include	"httpd.h"
 #include	"path.h"
+#include	"decode.h"
 #include	"ssl.h"
 #include	"extra.h"
 #include	"methods.h"
@@ -647,10 +648,7 @@ secwrite(const char *buf, size_t count)
 		message[2] = buf;
 	}
 
-#ifdef		HAVE_LIBMD
-	if (md5context)
-		MD5Update(md5context, (const unsigned char *)buf, count);
-#endif		/* HAVE_LIBMD */
+	checksum_update(buf, count);
 
 	for (; i < 3; i++)
 	{

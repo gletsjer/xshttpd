@@ -90,12 +90,6 @@ int	inet_aton	(const char *, struct in_addr *);
 int	killpg		(pid_t, int);
 #endif		/* HAVE_KILLPG */
 
-#ifdef		USE_OPENSSL_MD5
-# ifndef	HAVE_MD5DATA
-char *	MD5Data		(const unsigned char *, size_t, char *);
-# endif		/* HAVE_MD5DATA */
-#endif		/* USE_OPENSSL_MD5 */
-
 #ifndef		HAVE_MEMMEM
 void *	memmem		(const void *, size_t, const void *, size_t);
 #endif		/* HAVE_MEMMEM */

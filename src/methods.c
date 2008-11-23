@@ -65,10 +65,6 @@
 #include	"malloc.h"
 #include	"fcgi.h"
 
-#ifdef		HAVE_LIBMD
-MD5_CTX		*md5context;
-#endif		/* HAVE_LIBMD */
-
 static bool	getfiletype		(bool);
 static bool	sendheaders		(int, off_t);
 static void	senduncompressed	(int);
@@ -357,23 +353,13 @@ sendheaders(int fd, off_t size)
 	}
 	else
 	{
-#ifdef		HAVE_LIBMD
-		char	digest[MD5_DIGEST_LENGTH];
-		char	hex_digest[MD5_DIGEST_STRING_LENGTH];
-		char	base64_data[MD5_DIGEST_B64_LENGTH];
-#endif		/* HAVE_MD5 */
 		char	modified[32];
+		char	*checksum;
 
 		secprintf("Content-length: %" PRIoff "\r\n", size);
-#ifdef		HAVE_LIBMD
-		if (config.usecontentmd5)
-		{
-			MD5File(orig_pathname, hex_digest);
-			hex_decode(hex_digest, MD5_DIGEST_STRING_LENGTH-1, digest);
-			base64_encode(digest, MD5_DIGEST_LENGTH, base64_data);
-			secprintf("Content-MD5: %s\r\n", base64_data);
-		}
-#endif		/* HAVE_MD5 */
+		if (config.usecontentmd5 &&
+				(checksum = checksum_file(orig_pathname)))
+			secprintf("Content-MD5: %s\r\n", checksum);
 
 		strftime(modified, sizeof(modified),
 			"%a, %d %b %Y %H:%M:%S GMT", gmtime(&modtime));
@@ -528,13 +514,8 @@ senduncompressed(int fd)
 		if (session.httpversion >= 11)
 		{
 			session.chunked = true;
-#ifdef		HAVE_LIBMD
 			if (config.usecontentmd5 && session.trailers)
-			{
-				MALLOC(md5context, MD5_CTX, 1);
-				MD5Init(md5context);
-			}
-#endif		/* HAVE_LIBMD */
+				checksum_init();
 		}
 		alarm((size / MINBYTESPERSEC) + 60);
 		errval = sendwithdirectives(fd, &usize);

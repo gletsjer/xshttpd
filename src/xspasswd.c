@@ -22,7 +22,6 @@
 #include	"decode.h"
 #include	"extra.h"
 #include	"malloc.h"
-#include	"authenticate.h"
 #include	"xscrypt.h"
 
 static void	usage(void) NORETURN;
@@ -118,15 +117,14 @@ main(int argc, char **argv)
 
 		if (digest)
 		{
-#ifdef		HAVE_MD5
-			char	ha1[MD5_DIGEST_STRING_LENGTH];
+			char	*ha1 = generate_ha1(username, password);
 
-			generate_ha1(username, password, ha1);
-			asprintf(&total, "%c%s:%s:%s\n",
-				(passwdlock ? 'L' : 'U'), username, pwd, ha1);
-#else		/* HAVE_MD5 */
-			errx(1, "Digest authentication is not supported");
-#endif		/* HAVE_MD5 */
+			if (ha1)
+				asprintf(&total, "%c%s:%s:%s\n",
+					(passwdlock ? 'L' : 'U'),
+					username, pwd, ha1);
+			else
+				errx(1, "Digest authentication error");
 		}
 		else
 			asprintf(&total, "%c%s:%s\n",

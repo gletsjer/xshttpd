@@ -17,7 +17,6 @@
 
 #include	"htconfig.h"
 #include	"extra.h"
-#include	"authenticate.h"
 #include	"decode.h"
 #include	"xscrypt.h"
 #include	"malloc.h"
@@ -159,8 +158,7 @@ changepasswd(const char *param, int  cl)
 			!strncmp(buffer+1, new2, strlen(new2)))
 		{
 			bool	digest;
-			char	*opwent;
-			char	*eol;
+			char	*opwent, *eol, *ha1;
 
 			eol = strchr(buffer + strlen(new2) + 2, ':');
 			digest = eol ? true : false;
@@ -191,17 +189,11 @@ changepasswd(const char *param, int  cl)
 				remove(filename);
 				xserror(403, "Cannot change authentication digests");
 			}
-#ifdef		HAVE_MD5
-			if (digest)
-			{
-				char	ha1[MD5_DIGEST_STRING_LENGTH];
 
-				generate_ha1(username, new1, ha1);
+			if (digest && (ha1 = generate_ha1(username, new1)))
 				fprintf(output, "%c%s:%s:%s\n",
 					buffer[0], username, cryptnew, ha1);
-			}
 			else
-#endif		/* HAVE_MD5 */
 				fprintf(output, "%c%s:%s\n",
 					buffer[0], username, cryptnew);
 		} else

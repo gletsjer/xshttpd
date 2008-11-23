@@ -28,6 +28,7 @@
 #include	"ldap.h"
 #include	"extra.h"
 #include	"malloc.h"
+#include	"md5.h"
 
 static unsigned long	secret;
 static const bool	rfc2617_digest = true;
