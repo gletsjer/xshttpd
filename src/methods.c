@@ -1524,29 +1524,39 @@ loadfiletypes(char *orgbase, char *base)
 
 	/* DECL */
 	ftypes		*prev = NULL, *new = NULL;
-	char		*name, *ext;
+	char		*name, **args;
 	ssize_t		ret;
 
-	while ((ret = fgetfields(mime, 2, &name, &ext)) >= 0)
+	while ((ret = fgetmfields(mime, &args)) >= 0)
 	{
+		name = args[0];
+		
 		if (ret < 2)
 		{
 			if (ret)
 				free(name);
+			free(args);
 			/* this may be a local file: silently ignore errors */
 			continue;
 		}
-		MALLOC(new, ftypes, 1);
-		new->name = name;
-		new->ext = ext;
-		new->next = NULL;
-		if (prev)
-			prev->next = new;
-		else if (base)
-			lftype = new;
-		else
-			ftype = new;
-		prev = new;
+		for (int n = 1; n < ret; n++)
+		{
+			MALLOC(new, ftypes, 1);
+			if (1 == n)
+				new->name = name;
+			else
+				STRDUP(new->name, name);
+			new->ext = args[n];
+			new->next = NULL;
+			if (prev)
+				prev->next = new;
+			else if (base)
+				lftype = new;
+			else
+				ftype = new;
+			prev = new;
+		}
+		free(args);
 	}
 	fclose(mime);
 }

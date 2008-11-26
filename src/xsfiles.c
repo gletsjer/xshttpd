@@ -152,7 +152,7 @@ bool
 check_redirect(const char *cffile, const char *filename)
 {
 	char	*request, *command;
-	char	*argv[3];
+	char	**argv;
 	FILE	*fp;
 	bool	guard = true;
 	bool	exittrue = false;
@@ -165,8 +165,10 @@ check_redirect(const char *cffile, const char *filename)
 
 	STRDUP(request, filename);
 
-	while ((ret = fgetfields(fp, 4, &command, &argv[0], &argv[1], &argv[2])) >= 0)
+	while ((ret = fgetmfields(fp, &argv)) >= 0)
 	{
+		command = argv[0];
+
 		/* skip comments and blank lines */
 		if (!ret)
 		{
@@ -181,8 +183,8 @@ check_redirect(const char *cffile, const char *filename)
 		/* use pcre matching */
 		else if (!strcasecmp(command, "ifenv") && ret >= 3)
 		{
-			const char *envvar = argv[0];
-			const char *value = argv[1];
+			const char *envvar = argv[1];
+			const char *value = argv[2];
 
 			if ('$' == *envvar)
 				envvar++;
@@ -194,7 +196,7 @@ check_redirect(const char *cffile, const char *filename)
 		}
 		else if (!strcasecmp(command, "pass") && ret >= 2)
 		{
-			if (pcre_match(request, argv[0]) > 0)
+			if (pcre_match(request, argv[1]) > 0)
 				exitfalse = true;
 		}
 		else if (!strcasecmp(command, "passexist"))
@@ -208,7 +210,7 @@ check_redirect(const char *cffile, const char *filename)
 		else if (!strcasecmp(command, "redir") && ret >= 3)
 		{
 			const char	*newloc;
-			char	*subst = pcre_subst(request, argv[0], argv[1]);
+			char	*subst = pcre_subst(request, argv[1], argv[2]);
 
 			if (subst && *subst)
 			{
@@ -220,7 +222,7 @@ check_redirect(const char *cffile, const char *filename)
 		}
 		else if (!strcasecmp(command, "rewrite") && ret >= 3)
 		{
-			char	*subst = pcre_subst(request, argv[0], argv[1]);
+			char	*subst = pcre_subst(request, argv[1], argv[2]);
 
 			if (subst && *subst)
 			{
@@ -231,11 +233,11 @@ check_redirect(const char *cffile, const char *filename)
 		}
 		else if (!strcasecmp(command, "forward") && ret >= 4)
 		{
-			char	*subst = pcre_subst(request, argv[0], argv[1]);
+			char	*subst = pcre_subst(request, argv[1], argv[2]);
 
 			if (subst && *subst)
 			{
-				do_proxy(argv[0], subst);
+				do_proxy(argv[1], subst);
 				free(subst);
 				exittrue = true;
 			}
@@ -249,17 +251,9 @@ check_redirect(const char *cffile, const char *filename)
 			exittrue = true;
 		}
 
-		switch (ret)
-		{
-		case 4:
-			free(argv[2]);
-		case 3:
-			free(argv[1]);
-		case 2:
-			free(argv[0]);
-		case 1:
-			free(command);
-		}
+		while (ret > 0)
+			free(argv[--ret]);
+		free(argv);
 		if (exittrue || exitfalse)
 		{
 			fclose(fp);

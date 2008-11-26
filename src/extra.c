@@ -416,3 +416,32 @@ fgetfields(FILE *fd, size_t num_fields, ...)
 	free(line);
 	return num;
 }
+
+ssize_t
+fgetmfields(FILE *fd, char ***fieldsp)
+{
+	char		*line, *p, *fld;
+	char		**fields;
+	size_t		sz, lineno, num;
+
+	if (!(line = fparseln(fd, &sz, &lineno, NULL, FPARSEARG)))
+		return -1;
+
+	sz /= 2;
+	MALLOC(fields, char *, sz);
+	*fieldsp = fields;
+	p = line;
+	num = 0;
+	while ((fld = strsep(&p, " \t\n\r")))
+	{
+		if (!*fld)
+			continue;
+		if (num+1 >= sz)
+			return num;
+		STRDUP(fields[num], fld);
+		num++;
+	}
+	free(line);
+	return num;
+}
+

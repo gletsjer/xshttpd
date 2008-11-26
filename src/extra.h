@@ -20,5 +20,6 @@ size_t	eqstring_to_array	(char *, struct mapping *) NONNULL1;	/* idx=val strings
 void	free_string_array	(char **, size_t);
 void	free_string_arrayp	(char **);
 ssize_t	fgetfields		(FILE *, size_t, ...);
+ssize_t	fgetmfields		(FILE *, char ***);
 
 #endif		/* EXTRA_H */
