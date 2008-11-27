@@ -427,7 +427,7 @@ fgetmfields(FILE *fd, char ***fieldsp)
 	if (!(line = fparseln(fd, &sz, &lineno, NULL, FPARSEARG)))
 		return -1;
 
-	sz /= 2;
+	sz /= 2 + 2;
 	MALLOC(fields, char *, sz);
 	*fieldsp = fields;
 	p = line;
@@ -436,8 +436,6 @@ fgetmfields(FILE *fd, char ***fieldsp)
 	{
 		if (!*fld)
 			continue;
-		if (num+1 >= sz)
-			return num;
 		STRDUP(fields[num], fld);
 		num++;
 	}
