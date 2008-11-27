@@ -82,7 +82,7 @@ loadmime(const char *name)
 	{
 		if (strchr(buffer, '#'))
 			*strchr(buffer, '#') = 0;
-		end = buffer + strlen(buffer);
+		end = strchr(buffer, '\0');
 		while ((end > buffer) && (*(end - 1) <= ' '))
 			*(--end) = 0;
 		if (!buffer[0])
@@ -250,7 +250,7 @@ main(int argc, char **argv)
 				!strcmp(buffer, NOXS_FILE))
 			continue;
 		if ((strlen(buffer) >= 6) &&
-			(!strcmp(buffer + strlen(buffer) - 6, ".redir")))
+			(!strcmp(strchr(buffer, '\0') - 6, ".redir")))
 			continue;
 		if (!strcmp(buffer, "..") && !show_back)
 			continue;

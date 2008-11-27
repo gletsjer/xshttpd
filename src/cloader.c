@@ -146,7 +146,7 @@ load_config()
 		{
 			char	*key, *value, *end;
 
-			end = line + strlen(line);
+			end = strchr(line, '\0');
 			while (end > line && *(end - 1) <= ' ')
 				*(--end) = '\0';
 			if (end <= line)

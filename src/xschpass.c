@@ -111,7 +111,7 @@ changepasswd(const char *param, int  cl)
 			strtok(search, "=");
 			xserror(404, "Unknown field '%s'", search);
 		}
-		search += strlen(search) + 1;
+		search = strchr(search, '\0') + 1;
 	}
 	if (!username[0] || !old[0] || !new1[0] || !new2[0])
 		xserror(403, "Not all fields were filled in correctly!");

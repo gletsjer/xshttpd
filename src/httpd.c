@@ -1050,7 +1050,7 @@ process_request()
 			}
 		if ((temp = strchr(http_host, ':')))
 			*temp = '\0';
-		temp = http_host + strlen(http_host);
+		temp = strchr(http_host, '\0');
 		while (temp > http_host && *(--temp) == '.')
 			*temp = '\0';
 		if (strcmp(cursock->port, cursock->usessl ? "https" : "http") &&

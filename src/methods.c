@@ -729,7 +729,7 @@ do_get(char *params)
 			file = temp;
 		}
 		else
-			file = params + strlen(params);
+			file = strchr(params, '\0');
 
 		setenv("USER", userinfo->pw_name, 1);
 		setenv("HOME", userinfo->pw_dir, 1);
@@ -1048,7 +1048,7 @@ do_get(char *params)
 		unsigned int	templen = sizeof(total) - strlen(total);
 
 		csearch = ctype;
-		temp = total + strlen(total);
+		temp = strchr(total, '\0');
 		while (csearch)
 		{
 			strlcpy(temp, csearch->ext, templen);

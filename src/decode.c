@@ -337,6 +337,8 @@ generate_ha1(const char *user, const char *passwd)
 
 	return ha1;
 #else		/* HAVE_MD5 */
+	(void)user;
+	(void)passwd;
 	return NULL;
 #endif		/* HAVE_MD5 */
 }
@@ -392,15 +394,18 @@ checksum_file(const char *filename)
 
 #else		/* HAVE_LIBMD */
 void	checksum_init(void)	{}
-char *	checksum_file(void)	{ return NULL; }
+char *	checksum_file(const char *filename)
+{
+	(void)filename;
+	return NULL;
+}
 void	checksum_update(const char *buffer, size_t count)
 {
 	(void)buffer;
 	(void)count;
 }
-char *	checksum_final(const char *filename)
+char *	checksum_final(void)
 {
-	(void)filename;
 	return NULL;
 }
 #endif		/* HAVE_LIBMD */

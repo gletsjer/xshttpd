@@ -320,7 +320,7 @@ qstring_to_array(const char *value, char **array)
 					continue;
 				STRDUP(term, p);
 				p = term;
-				q = p + strlen(p);
+				q = strchr(p, '\0');
 				while (isspace(*q--))
 					*q = '\0';
 				while (p++ < q)

@@ -105,7 +105,7 @@ check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 
 	/* basic auth */
 	STRDUP(line, env.authorization);
-	find = line + strlen(line);
+	find = strchr(line, '\0');
 	while ((find > line) && (*(find - 1) < ' '))
 		*(--find) = 0;
 	for (search = line + 5; *search && isspace(*search); search++)

@@ -74,7 +74,7 @@ loaddigit(int num)
 		}
 		if ((search = strchr(buffer, '#')))
 			*search = 0;
-		search = buffer + strlen(buffer);
+		search = strchr(buffer, '\0');
 		while ((search > buffer) && (*(search - 1) <= ' '))
 			*(--search) = 0;
 		if (search == buffer)
