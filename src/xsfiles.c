@@ -233,11 +233,27 @@ check_redirect(const char *cffile, const char *filename)
 		}
 		else if (!strcasecmp(command, "forward") && ret >= 4)
 		{
-			char	*subst = pcre_subst(request, argv[1], argv[2]);
+			/* old style argument parsing
+			 * use new (2 args) syntax instead
+			 */
+			char	*subst = pcre_subst(request, argv[2], argv[3]);
 
 			if (subst && *subst)
 			{
 				do_proxy(argv[1], subst);
+				free(subst);
+				exittrue = true;
+			}
+		}
+		else if (!strcasecmp(command, "forward") && ret >= 3)
+		{
+			const char	*newloc;
+			char	*subst = pcre_subst(request, argv[1], argv[2]);
+
+			if (subst && *subst)
+			{
+				newloc = mknewurl(request, subst);
+				do_proxy(NULL, newloc);
 				free(subst);
 				exittrue = true;
 			}

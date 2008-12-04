@@ -110,24 +110,19 @@ Note that unlike the
 commands, it is not allowed to generate full URL's in this
 case: only local URL's are permitted (omitting the protocol
 and hostname).
-.It Sy forward Ar hostname Ar oldurl Ar newurl
+.It Sy forward Ar oldurl Ar newurl
 If the webserver has been compiled with forwarding support (curl),
 then one can also use
 .Sy forward
 directives. Forwarding behaves transparently (like rewrite),
 but in this case the webserver will retrieve the resulting
-file from a remote webserver, named
-.Ar hostname .
+file from a remote webserver.
 .Pp
-The hostname may optionally contain a
-.Sy :portnum
-postfix forcing the request to be forwarded to the specified
-port rather than the default http port (80). If this postfix
-is
-.Sy :https
-or
-.Sy :443
-then SSL encryption will be applied.
+URL matching and rewriting works the same as for the
+.Sy redir
+command.
+The resulting URL must be an absolute URL including protocol,
+hostname and path.
 .Pp
 Note that forwarding unencrypted requests to a https location or
 encrypted requests to a plain-text http location may lead to a false

@@ -1431,14 +1431,20 @@ do_proxy(const char *proxy, const char *params)
 #if 0
 	curl_easy_setopt(handle, CURLOPT_NOSIGNAL, 1);
 #endif
-	if ((p = strstr(proxy, ":443")) || (p = strstr(proxy, ":https")))
+	if (proxy)
 	{
-		*p = '\0'; /* or libcurl will try host:https:443 */
-		asprintf(&request, "https://%s%s", proxy, params);
-		curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0);
+		if ((p = strstr(proxy, ":443")) ||
+			(p = strstr(proxy, ":https")))
+		{
+			*p = '\0'; /* or libcurl will try host:https:443 */
+			asprintf(&request, "https://%s%s", proxy, params);
+		}
+		else
+			asprintf(&request, "http://%s%s", proxy, params);
 	}
 	else
-		asprintf(&request, "http://%s%s", proxy, params);
+		STRDUP(request, params);
+	curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0);
 	curl_easy_setopt(handle, CURLOPT_URL, request);
 	/* curl_easy_setopt(handle, CURLOPT_VERBOSE, 1); */
 	if (session.postonly)
@@ -1461,9 +1467,11 @@ do_proxy(const char *proxy, const char *params)
 	else
 		logrequest(params, 0);
 	free(request);
-#endif		/* HAVE_CURL */
+#else		/* HAVE_CURL */
+	xserror(500, "HTTP request forwarding not supported");
 	(void)proxy;
 	(void)params;
+#endif		/* HAVE_CURL */
 }
 
 #ifdef		HAVE_CURL

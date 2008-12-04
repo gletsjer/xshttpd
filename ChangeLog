@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.6 beta 23
+- Clean up 'forward' syntax in .redir to match 'redir' command
+
 Changes since 3.6 beta 22
 - Fix possible build conflict caused by libmd and openssl
 - Fix parsing of mime.types files
