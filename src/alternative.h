@@ -72,11 +72,7 @@ int	closefrom	(int);
 #endif		/* HAVE_CLOSEFROM */
 
 #ifndef		HAVE_CRYPT
-# ifdef		USE_OPENSSL_CRYPT
-#  define crypt(k,s)	DES_crypt((k), (s))
-# else		/* USE_OPENSSL_CRYPT */
 char *	crypt		(const char *, const char *);
-# endif		/* USE_OPENSSL_CRYPT */
 #endif		/* HAVE_CRYPT */
 
 #ifndef		HAVE_ERR

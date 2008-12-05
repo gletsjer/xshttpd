@@ -118,13 +118,15 @@ AS_IF([test x$with_ssl = xyes], [
 		])
 	])
 
-dnl If no crypt, use SSL crypt; if no SSL crypt use libcompat
+dnl If no crypt, use libcrypto; if no libcrypto use libcompat
 AS_IF([test "$ac_cv_search_crypt" = no], [
 	AS_IF([test "$ac_cv_search_SSL_version" != no], [
 		AC_DEFINE(USE_OPENSSL_CRYPT,,
 			[Define to 1 if you have openssl, but no crypt function]),
-		AC_LIBOBJ(crypt)
-		])
+		AC_LIBOBJ(crypto_crypt)
+		libxs_ldflags="${libxs_ldflags} ${xssl_ldflags}"
+		],
+		[AC_LIBOBJ(crypt)])
 	])
 
 XS_CHECK_WITH(pcre, PCRE support, yes)
