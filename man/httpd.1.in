@@ -323,19 +323,26 @@ should be granted in this file (one address per line). This works
 for IPv4 as well as IPv6 addresses. Or you can use CIDR notation to
 allow an entire subnet. So including "131.155.140.0/23" will unblock
 131.155.140.0 - 131.155.141.255.
-.It .xsuid
-If this file exists in a certain directory, all files in that
-directory will be retrieved as (by default) nobody/nogroup
-instead of under your own UID. This can be useful if you want
-a file permission of say 600 to mean: do not allow retrieval
-(by default, the file is retrieved under your own UID, so the
-daemon could have still read those files).
 .It .redir
 If this file is present in a certain directory, and a file
 is requested from that directory, then a redirection message
 will be sent to the remote user's browser. See
 .Xr xsredir 5
 for the format of this file.
+.It .xsauth
+If this file exists, all files in that directory and
+subdirectories are protected by usercode/password
+combinations. See
+.Xr xsauth 5
+for more details about this.
+.El
+.Pp
+Use of the following files is deprecated. They can still be used,
+but support may be dropped in the future.
+The same (or better) functionality is offered by the
+.Xr xsconf 5
+local configuration feature.
+.Bl -tag -width Ds
 .It *.redir
 If a (regular) file is requested and a file exists with the same
 name but with
@@ -360,12 +367,6 @@ This file lets a user override the contents of the global
 file. The syntax of this file is exactly the same as that for the global
 configuration file, but it applies (recursively) to the local
 subdirectories.
-.It .xsauth
-If this file exists, all files in that directory and
-subdirectories are protected by usercode/password
-combinations. See
-.Xr xsauth 5
-for more details about this.
 .It .xsscripts
 This file lets a user override the contents of the global
 .Pa script.methods
@@ -374,6 +375,13 @@ global configuration file and it applies (recursively) to the local
 subdirectories. See
 .Xr xsscripts 5
 for more information.
+.It .xsuid
+If this file exists in a certain directory, all files in that
+directory will be retrieved as (by default) nobody/nogroup
+instead of under your own UID. This can be useful if you want
+a file permission of say 600 to mean: do not allow retrieval
+(by default, the file is retrieved under your own UID, so the
+daemon could have still read those files).
 .El
 .Sh DIAGNOSTICS
 The

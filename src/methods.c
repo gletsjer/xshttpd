@@ -947,13 +947,16 @@ do_get(char *params)
 	else
 		filename = file;
 
+	cfvalues.noprivs = false; /* will be checked later */
+
 	RETRY:
 	/* Switch userid to system default if .xsuid exists */
 	snprintf(total, XS_PATH_MAX, "%s/.xsuid", base);
-	if (!stat(total, &statbuf))
+	if (cfvalues.noprivs || !stat(total, &statbuf))
 	{
 		if (!origeuid)
 		{
+			seteuid(origeuid);
 			setegid(config.system->groupid);
 			setgroups(1, &config.system->groupid);
 			seteuid(config.system->userid);
@@ -1007,6 +1010,9 @@ do_get(char *params)
 	if ((xsfile = find_file(orgbase, base, CONFIG_FILE)) &&
 			check_xsconf(xsfile, filename, &cfvalues))
 		return;
+	if (cfvalues.noprivs && !origeuid && !switcheduid)
+		/* Privileges should be dropped: retry reading files */
+		goto RETRY;
 
 	/* PUT and DELETE are handled by CGI scripts */
 	if (!strcasecmp(env.request_method, "PUT") ||

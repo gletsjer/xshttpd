@@ -46,11 +46,6 @@ letter is immediately followed by the username, a colon and
 the encrypted version of the password. This is optionally
 followed by an additional colon and a hash value to be used
 for digest access authentication.
-.Pp
-On systems that don't have a standard
-.Xr crypt 3
-function available, all passwords will be stored unencrypted
-instead.
 .Ss LDAP Authentication
 If LDAP support is enabled at compile time, then special
 directives can be used in

@@ -5,5 +5,4 @@
 - Make FastCGI usable
 - Implement mod_dav with full WebDAV commands (fs backend)
 - SCGI, http://python.ca/scgi/
-- Consider SSL cert per vhost, using SSL_CTX_set_tlsext_servername_callback()
 

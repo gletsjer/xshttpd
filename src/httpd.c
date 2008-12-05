@@ -1702,9 +1702,6 @@ main(int argc, char **argv, char **envp)
 			putchar('a' - 1 + (unsigned char)(OPENSSL_VERSION_NUMBER >> 4 & 0xff));
 # endif
 #endif		/* OPENSSL_VERSION_NUMBER */
-#ifdef		PCRE_MAJOR
-			printf(" PCRE/%u.%u", PCRE_MAJOR, PCRE_MINOR);
-#endif		/* PCRE_MINOR */
 			printf("\nCompiled options:\n\t"
 #ifdef		HANDLE_SSL
 				"+SSL "

@@ -13,6 +13,7 @@ typedef struct cf_values
 	char	*p3pcp;
 	char	*putscript;
 	char	*delscript;
+	bool	noprivs;
 } cf_values;
 
 bool	check_file_redirect	(const char *, const char *) WARNUNUSED;

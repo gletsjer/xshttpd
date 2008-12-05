@@ -538,6 +538,8 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 			STRDUP(cfvalues->putscript, value);
 		else if (!strcasecmp(name, "ScriptTimeout"))
 			config.scripttimeout = strtoul(value, NULL, 10);
+		else if (!strcasecmp(name, "NoPrivs"))
+			cfvalues->noprivs = !strcasecmp("true", value);
 
 		/* ldap options */
 		else if (!strcasecmp(name, "LdapHost"))
