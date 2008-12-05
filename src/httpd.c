@@ -1716,11 +1716,6 @@ main(int argc, char **argv, char **envp)
 #else		/* HANDLE_SSL */
 				"-SSL "
 #endif		/* HANDLE_SSL */
-#ifdef		HAVE_CRYPT
-				"+CRYPT "
-#else		/* HAVE_CRYPT */
-				"-CRYPT "
-#endif		/* HAVE_CRYPT */
 #ifdef		HAVE_LIBMD
  				"+MD "
 #else		/* HAVE_LIBMD */

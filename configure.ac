@@ -115,11 +115,15 @@ AS_IF([test x$with_ssl = xyes], [
 			AC_LIBOBJ(MD5Data)
 			libxs_ldflags="${libxs_ldflags} ${xssl_ldflags}"
 			])
-		AS_IF([test "$ac_cv_search_crypt" = no],
-			[AC_DEFINE(HAVE_CRYPT)
-			 AC_LIBOBJ(crypt)
-			 libxs_ldflags="${libxs_ldflags} ${xssl_ldflags}"
-			])
+		])
+	])
+
+dnl If no crypt, use SSL crypt; if no SSL crypt use libcompat
+AS_IF([test "$ac_cv_search_crypt" = no], [
+	AS_IF([test "$ac_cv_search_SSL_version" != no], [
+		AC_DEFINE(USE_OPENSSL_CRYPT,,
+			[Define to 1 if you have openssl, but no crypt function]),
+		AC_LIBOBJ(crypt)
 		])
 	])
 

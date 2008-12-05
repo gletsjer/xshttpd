@@ -13,7 +13,7 @@
 #include	<stdint.h>
 #include	<stdio.h>
 #ifdef		HAVE_TIME_H
-#include	<time.h>
+# include	<time.h>
 #endif		/* HAVE_TIME_H */
 #include	<limits.h>
 #include	<sys/socket.h>
@@ -57,11 +57,11 @@ typedef uint16_t	in_port_t;
 /***** Useful defines *****/
 
 #ifndef		S_ISREG
-#define		S_ISREG(m)	(((m)&(S_IFMT)) == (S_IFREG))
+# define	S_ISREG(m)	(((m)&(S_IFMT)) == (S_IFREG))
 #endif		/* S_ISREG */
 
 #ifdef		NULL
-#undef		NULL
+# undef		NULL
 #endif		/* NULL */
 #define		NULL		((void *)0)
 
@@ -72,7 +72,11 @@ int	closefrom	(int);
 #endif		/* HAVE_CLOSEFROM */
 
 #ifndef		HAVE_CRYPT
+# ifdef		USE_OPENSSL_CRYPT
+#  define crypt(k,s)	DES_crypt((k), (s))
+# else		/* USE_OPENSSL_CRYPT */
 char *	crypt		(const char *, const char *);
+# endif		/* USE_OPENSSL_CRYPT */
 #endif		/* HAVE_CRYPT */
 
 #ifndef		HAVE_ERR
@@ -148,11 +152,11 @@ char *	fgetln		(FILE *, size_t *);
 
 #ifndef		HAVE_FPARSELN
 char *	fparseln	(FILE *, size_t *, size_t *, const char[3], int);
-#define FPARSELN_UNESCESC       0x01
-#define FPARSELN_UNESCCONT      0x02
-#define FPARSELN_UNESCCOMM      0x04
-#define FPARSELN_UNESCREST      0x08
-#define FPARSELN_UNESCALL       0x0f
+# define FPARSELN_UNESCESC       0x01
+# define FPARSELN_UNESCCONT      0x02
+# define FPARSELN_UNESCCOMM      0x04
+# define FPARSELN_UNESCREST      0x08
+# define FPARSELN_UNESCALL       0x0f
 #endif		/* HAVE_FPARSELN */
 
 #endif		/* ALTERNATIVE_H */
