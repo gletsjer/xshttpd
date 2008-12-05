@@ -223,7 +223,7 @@ AS_IF([test x${enable_warnings} != xno], [
 		[CFLAGS="${CFLAGS} -Wconversion -Wpadded"])
 	])
 
-XS_ARG_DEFAULT(ssp, HAVE_SSP, no, [enable stack smashing protector])
+XS_ARG_DEFAULT(ssp, HAVE_SSP, yes, [enable stack smashing protector])
 AS_IF([test x${enable_ssp} = xyes], [
 	AC_MSG_CHECKING([whether ${CC%% *} supports stack protection...])
 	TCFLAGS="${CFLAGS}"
