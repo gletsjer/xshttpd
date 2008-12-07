@@ -6,6 +6,7 @@ Changes since 3.6 beta 23
 - Include a replacement crypt() if libc, libcrypt and libssl fail
 - Add NoPrivs option to .xsconf (and deprecate .xsuid)
 - Enable Smashing Stack Protector (SSP) by default
+- Fix parsing of empty lines in mime.types
 
 Changes since 3.6 beta 22
 - Fix possible build conflict caused by libmd and openssl

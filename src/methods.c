@@ -1543,16 +1543,16 @@ loadfiletypes(char *orgbase, char *base)
 
 	while ((ret = fgetmfields(mime, &args)) >= 0)
 	{
-		name = args[0];
-		
 		if (ret < 2)
 		{
 			if (ret)
-				free(name);
+				free(args[0]);
 			free(args);
 			/* this may be a local file: silently ignore errors */
 			continue;
 		}
+
+		name = args[0];
 		for (int n = 1; n < ret; n++)
 		{
 			MALLOC(new, ftypes, 1);
