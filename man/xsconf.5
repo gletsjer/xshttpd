@@ -88,6 +88,18 @@ the IP of the visitor matches one of the restrict address
 blocks. All other visitors will be presented with a
 .Ql 403 Permission Denied
 error.
+.It Sy NoPrivs
+Boolean setting; if set to
+.Ql true
+then all matching files will be retrieved using the unpriviliged
+account of the webserver (by default
+.Ql www/www )
+instead of under your own UID.
+This can be useful if you want a file permission of say 600 to mean:
+do not allow retrieval.
+The default is
+.Ql false :
+all file are retrieved under your own UID.
 .It Sy AuthFile
 Specify a password file that should be used to decide who is
 granted access to the matching file. Users who cannot
