@@ -219,14 +219,25 @@ These variables can later be printed using the
 directive.
 The variables can also be accessed from other files that are
 processed during the same request. 
-This means that variables can be set or printed in any of the
-files that are included using the
-.Nm include
-directive.
 .Pp
 Variable names or values may contain spaces if this value is
 enclosed in double quotes, e.g.
 .D1 <!--# Ns Cm set Li title="Hello\~World" Ns -->
+.Pp
+.Nm set
+in combination with
+.Nm include
+can be used for example to create a common header file for inclusing,
+in which only the title changes. This title can then be printed with
+.Nm echo .
+Another useful method is to have
+.Nm set
+in combination with
+.Nm if Ns -statements
+in an included file, for instance to generate a common menu file in
+which the selected entry is displayed distinctively.
+Alternatively, variables may also be set in the included file and
+then used in the main document.
 .El
 .Ss Control directives
 .Bl -tag -width Ds -compact
