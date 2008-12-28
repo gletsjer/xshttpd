@@ -132,9 +132,6 @@ AS_IF([test "$ac_cv_search_crypt" = no], [
 XS_CHECK_WITH(pcre, PCRE support, yes)
 AS_IF([test x$with_pcre = xyes], [
 	XS_TRY_CONFIG(pcre, libxs)
-	AS_IF([test -z "${xs_pcre_path}"],
-		[XS_FUNC_IN_LIB(pcre_exec, HAVE_PCRE, pcre, httpd)],
-		[AC_DEFINE(HAVE_PCRE)])
 	])
 
 XS_CHECK_WITH(ldap, LDAP authentication support, no)
@@ -144,9 +141,6 @@ AS_IF([test x$with_ldap = xyes],
 XS_CHECK_WITH(curl, CURL transfer support, no)
 AS_IF([test x$with_curl = xyes], [
 	XS_TRY_CONFIG(curl, httpd)
-	AS_IF([test -z "${xs_curl_path}"],
-		[XS_FUNC_IN_LIB(curl_version, HAVE_CURL, curl, httpd)],
-		[AC_DEFINE(HAVE_CURL)])
 	])
 
 XS_CHECK_WITH(perl, PERL persistent interpreter, no)
@@ -162,11 +156,8 @@ AS_IF([test x$with_perl = xyes], [
 
 XS_CHECK_WITH(python, Python interpreter, no)
 AS_IF([test x$with_python = xyes], [
-	AC_DEFINE(HAVE_PYTHON,, [Define this to use python cgi environment])
-	XS_TRY_CONFIG([python2.5], httpd)
-	AS_IF([test -z "${xs_python2_5_path}"],
-		XS_FUNC_IN_LIB(Py_Initialize, HAVE_PYTHON, [python2.5], httpd),
-		[AC_DEFINE(HAVE_PYTHON)])
+	XS_TRY_CONFIG(python, httpd)
+	AS_IF([test -z "${xs_python_path}"], [XS_TRY_CONFIG([python2.5], httpd)])
 	AC_MSG_WARN([Internal Python interpreter is still EXPERIMENTAL])
 	])
 

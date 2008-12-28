@@ -59,7 +59,10 @@ AC_DEFUN([XS_TRY_CONFIG], [
 	AS_TR_SH(xs_$1_path)="$progpath"
 	AS_IF([test -n "${progpath}"],
 		[$2_cflags="${$2_cflags} `${progpath} --cflags`"
-		 $2_ldflags="${$2_ldflags} `${progpath} --libs`"])
+		 $2_ldflags="${$2_ldflags} `${progpath} --libs`"
+		 AC_DEFINE_UNQUOTED(AS_TR_CPP(HAVE_$1), 1,
+			 [Define this if you have the $1 libary])
+		 ])
 	])
 
 AC_DEFUN([XS_FUNC_SENDFILE], [
