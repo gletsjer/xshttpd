@@ -1678,18 +1678,8 @@ loadscripttypes(char *orgbase, char *base)
 			continue;
 		}
 
-#ifndef		HAVE_PERL
-		if (!strcmp(prog, "internal:perl"))
+		if (!strncmp(prog, "internal:", 9))
 			continue;
-#endif		/* HAVE_PERL */
-#ifndef		HAVE_PYTHON
-		if (!strcmp(prog, "internal:python"))
-			continue;
-#endif		/* HAVE_PYTHON */
-#ifndef		HAVE_RUBY
-		if (!strcmp(prog, "internal:ruby"))
-			continue;
-#endif		/* HAVE_RUBY */
 
 		MALLOC(new, ctypes, 1);
 		new->prog = prog;

@@ -54,14 +54,6 @@
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
 #include	<ctype.h>
-#ifdef		HAVE_PERL
-#include	<EXTERN.h>
-#include	<perl.h>
-#endif		/* HAVE_PERL */
-#ifdef		HAVE_PYTHON
-#include	<python2.5/Python.h>
-#endif		/* HAVE_PYTHON */
-
 
 #include	"htconfig.h"
 #include	"httpd.h"
@@ -80,15 +72,6 @@ char			*config_preprocessor;
 
 struct configuration	config;
 struct virtual		*current;
-
-#ifdef		HAVE_PERL
-PerlInterpreter *	my_perl = NULL;
-#endif		/* HAVE_PERL */
-
-#ifdef		HAVE_RUBY
-extern void	ruby_init(void);
-extern void	ruby_script(const char *);
-#endif		/* HAVE_RUBY */
 
 void
 load_config()
@@ -649,56 +632,4 @@ remove_config()
 	/* XXX: Rewrite this to avoid memory leaks */
 	memset(&config, 0, sizeof config);
 }
-
-#ifdef		HAVE_PERL
-void
-loadperl()
-{
-	char	*path, *embedding[] = { NULL, NULL };
-	int	exitstatus = 0;
-
-	if (!(my_perl = perl_alloc()))
-		err(1, "No memory!");
-	perl_construct(my_perl);
-
-	/* perl_parse() doesn't like const arguments: pass dynamic */
-	if (config.perlscript)
-		STRDUP(path, calcpath(config.perlscript));
-	else
-		STRDUP(path, calcpath("contrib/persistent.pl"));
-	if (!access(path, R_OK))
-	{
-		embedding[0] = embedding[1] = path;
-		exitstatus = perl_parse(my_perl, NULL, 2, embedding, NULL);
-		if (!exitstatus)
-		{
-			perl_run(my_perl);
-			free(path);
-			return;
-		}
-	}
-
-	warn("Perl module not available");
-	free(path);
-	perl_free(my_perl);
-	my_perl = NULL;
-}
-#endif		/* HAVE_PERL */
-
-#ifdef		HAVE_PYTHON
-void
-loadpython()
-{
-	Py_InitializeEx(0);
-}
-#endif		/* HAVE_PYTHON */
-
-#ifdef		HAVE_RUBY
-void
-loadruby()
-{
-	ruby_init();
-	ruby_script("embedded");
-}
-#endif		/* HAVE_RUBY */
 

@@ -75,6 +75,7 @@
 #include	"ldap.h"
 #include	"malloc.h"
 #include	"fcgi.h"
+#include	"modules.h"
 
 static char copyright[] = "Copyright 1995-2008 Sven Berkvens, Johan van Selst";
 
@@ -393,15 +394,12 @@ open_logs(int sig)
 	loadfiletypes(NULL, NULL);
 	loadcompresstypes();
 	loadscripttypes(NULL, NULL);
-#ifdef		HAVE_PERL
-	loadperl();
-#endif		/* HAVE_PERL */
-#ifdef		HAVE_PYTHON
-	loadpython();
-#endif		/* HAVE_PYTHON */
-#ifdef		HAVE_RUBY
-	loadruby();
-#endif		/* HAVE_RUBY */
+
+	/* initialise modules */
+	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
+		if (mod->init)
+			mod->init();
+
 #ifdef		HAVE_CURL
 	curl_global_init(CURL_GLOBAL_ALL);
 #endif		/* HAVE_CURL */
@@ -1723,21 +1721,6 @@ main(int argc, char **argv, char **envp)
 #else		/* HAVE_PCRE */
 				"-PCRE "
 #endif		/* HAVE_PCRE */
-#ifdef		HAVE_PERL
-				"+PERL "
-#else		/* HAVE_PERL */
-				"-PERL "
-#endif		/* HAVE_PERL */
-#ifdef		HAVE_PYTHON
-				"+PYTHON "
-#else		/* HAVE_PYTHON */
-				"-PYTHON "
-#endif		/* HAVE_PYTHON */
-#ifdef		HAVE_RUBY
-				"+RUBY "
-#else		/* HAVE_RUBY */
-				"-RUBY "
-#endif		/* HAVE_RUBY */
 #ifdef		AUTH_LDAP
 				"+LDAP "
 #else		/* AUTH_LDAP */

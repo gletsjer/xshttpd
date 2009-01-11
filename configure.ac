@@ -147,24 +147,28 @@ XS_CHECK_WITH(perl, PERL persistent interpreter, no)
 AS_IF([test x$with_perl = xyes], [
 	AC_PATH_PROG(perlpath, perl)
 	AS_IF([test -n "${perlpath}"], [
-		AC_DEFINE(HAVE_PERL,, [Define this to use perl cgi environment])
-		httpd_cflags="${httpd_cflags} `${perlpath} -MExtUtils::Embed -e ccopts`"
-		httpd_ldflags="${httpd_ldflags} `${perlpath} -MExtUtils::Embed -e ldopts`"
+		modules="${modules} perl"
+		libmod_cflags="${libmod_cflags} `${perlpath} -MExtUtils::Embed -e ccopts`"
+		libmod_ldflags="${libmod_ldflags} `${perlpath} -MExtUtils::Embed -e ldopts`"
 		])
 	AC_MSG_WARN([Internal Perl interpreter is still EXPERIMENTAL])
 	])
 
 XS_CHECK_WITH(python, Python interpreter, no)
 AS_IF([test x$with_python = xyes], [
-	XS_TRY_CONFIG(python, httpd)
-	AS_IF([test -z "${xs_python_path}"], [XS_TRY_CONFIG([python2.5], httpd)])
+	XS_TRY_CONFIG(python, libmod)
+	AS_IF([test -z "${xs_python_path}"],
+		[XS_TRY_CONFIG([python2.5], libmod)]
+		AS_IF([test -z "${xs_python2_5_path}"],
+			[modules="${modules} python"]),
+		[modules="${modules} python"])
 	AC_MSG_WARN([Internal Python interpreter is still EXPERIMENTAL])
 	])
 
 XS_CHECK_WITH(ruby, Ruby interpreter, no)
 AS_IF([test x$with_ruby = xyes], [
-	AC_DEFINE(HAVE_RUBY,, [Define this to use ruby cgi environment])
-	XS_FUNC_IN_LIB(ruby_run, HAVE_RUBY, [ruby18], httpd)
+	XS_FUNC_IN_LIB(ruby_run, HAVE_RUBY, [ruby18], libmod)
+	test x$ac_cv_search_ruby_run != xno && modules="${modules} ruby"
 	AC_MSG_WARN([Internal Ruby interpreter is still EXPERIMENTAL])
 dnl	rubyhdr="`ruby -r mkmf -e 'print ($hdrdir)'`/ruby.h"
 dnl	AC_DEFINE_UNQUOTED(RUBY_HDR, "${rubyhdr}", [Ruby include file])
@@ -225,11 +229,26 @@ AS_IF([test x${enable_ssp} = xyes], [
 		CFLAGS="${TCFLAGS}")
 	])
 
+dnl write modules.c
+mod_decl="nonexistent"
+for m in ${modules}
+do
+	mod_decl="${mod_decl}, ${m}_module"
+	mod_list="${mod_list} &${m}_module,"
+done
+AM_CONDITIONAL(MOD_PERL,   [echo "${modules}" | grep -q perl])
+AM_CONDITIONAL(MOD_PYTHON, [echo "${modules}" | grep -q python])
+AM_CONDITIONAL(MOD_RUBY,   [echo "${modules}" | grep -q ruby])
+
 dnl Generate configure output.
 AC_SUBST(libxs_ldflags)
 AC_SUBST(libxs_cflags)
+AC_SUBST(libmod_ldflags)
+AC_SUBST(libmod_cflags)
 AC_SUBST(httpd_ldflags)
 AC_SUBST(httpd_cflags)
 AC_SUBST(SERVER_IDENT)
-AC_CONFIG_FILES([Makefile config/Makefile contrib/Makefile fonts/Makefile icons/Makefile man/Makefile libcompat/Makefile src/Makefile man/httpd.1])
+AC_SUBST(mod_decl)
+AC_SUBST(mod_list)
+AC_CONFIG_FILES([Makefile config/Makefile contrib/Makefile fonts/Makefile icons/Makefile man/Makefile libcompat/Makefile src/Makefile man/httpd.1 src/modules.c])
 AC_OUTPUT

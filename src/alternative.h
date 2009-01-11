@@ -6,8 +6,6 @@
 
 #include	"config.h"
 
-#define		PERL_NO_SHORT_NAMES
-
 #include	<inttypes.h>
 #include	<stdarg.h>
 #include	<stdint.h>

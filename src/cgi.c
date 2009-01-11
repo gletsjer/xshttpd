@@ -30,13 +30,6 @@
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
 #include	<stdarg.h>
-#ifdef		HAVE_PERL
-#include	<EXTERN.h>
-#include	<perl.h>
-#endif		/* HAVE_PERL */
-#ifdef		HAVE_PYTHON
-#include	<python2.5/Python.h>
-#endif		/* HAVE_PYTHON */
 
 #include	"httpd.h"
 #include	"ssi.h"
@@ -46,19 +39,10 @@
 #include	"htconfig.h"
 #include	"extra.h"
 #include	"malloc.h"
+#include	"modules.h"
 
 static	void		time_is_up(int)	NORETURN;
 static	bool		append(char **, bool, const char * const format, ...)	PRINTF_LIKE(3,4);
-
-#ifdef		HAVE_RUBY
-extern void	ruby_run(void);
-extern void	rb_load_file(const char *);
-#endif		/* HAVE_RUBY */
-
-#ifdef		HAVE_PERL
-char *	perlargs[] = { NULL, NULL };
-extern	PerlInterpreter *my_perl;
-#endif		/* HAVE_PERL */
 
 static pid_t			child;
 
@@ -340,34 +324,15 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			warn("setpriority()");
 #endif		/* HAVE_SETPRIORITY */
 
-#ifdef		HAVE_PERL
-		if (engine && !strcmp(engine, "internal:perl") && my_perl)
-		{
-			perlargs[0] = fullpath;
-			Perl_call_argv(aTHX_ "Embed::Persistent::eval_file",
-				G_DISCARD | G_EVAL, perlargs);
-			exit(0);
-		}
-		else
-#endif		/* HAVE_PERL */
-#ifdef		HAVE_PYTHON
-		if (engine && !strcmp(engine, "internal:python"))
-		{
-			FILE	*fp = fopen(fullpath, "r");
-			PyRun_SimpleFile(fp, fullpath);
-			fclose(fp);
-			exit(0);
-		}
-		else
-#endif		/* HAVE_PERL */
-#ifdef		HAVE_RUBY
-		if (engine && !strcmp(engine, "internal:ruby"))
-		{
-			rb_load_file(fullpath);
-			ruby_run();
-			exit(0);
-		}
-#endif		/* HAVE_RUBY */
+		/* interpreter modules */
+		if (engine)
+			for (struct module *mod = modules[0]; mod; mod++)
+				if (!strcmp(engine, mod->engine))
+				{
+					mod->file_handler(fullpath);
+					exit(0);
+				}
+
 		if (engine)
 		{
 			const char	meta[] = " \t&();<>|{}$%";
