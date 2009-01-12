@@ -17,6 +17,7 @@
 #include	"htconfig.h"
 #include	"extra.h"
 #include	"decode.h"
+#include	"hash.h"
 #include	"xscrypt.h"
 #include	"malloc.h"
 

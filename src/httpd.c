@@ -76,6 +76,7 @@
 #include	"malloc.h"
 #include	"fcgi.h"
 #include	"modules.h"
+#include	"hash.h"
 
 static char copyright[] = "Copyright 1995-2008 Sven Berkvens, Johan van Selst";
 

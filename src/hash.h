@@ -1,7 +1,9 @@
 #ifndef		MD5_H
 #define		MD5_H
 
-# include	<openssl/md5.h>
+#include	"config.h"
+#include	<stdbool.h>
+#include	<openssl/md5.h>
 
 #ifndef		MD5_DIGEST_LENGTH
 # define	MD5_DIGEST_LENGTH		16
@@ -12,5 +14,13 @@
 #ifndef		MD5_DIGEST_B64_LENGTH
 # define	MD5_DIGEST_B64_LENGTH		((4 * MD5_DIGEST_LENGTH + 2) / 3 + 1)
 #endif		/* MD5_DIGEST_B64_LENGTH */
+
+char	*generate_ha1	(const char *, const char *) NONNULL;
+bool	md5data		(const char *, size_t, char *) NONNULL;
+bool	md5file		(const char *, char *) NONNULL;
+void	checksum_init	(void);
+void	checksum_update	(const char *, size_t);
+char	*checksum_final	(void);
+char	*checksum_file	(const char *);
 
 #endif		/* MD5_H */

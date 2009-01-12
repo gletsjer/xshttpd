@@ -25,6 +25,7 @@
 #include	"httpd.h"
 #include	"path.h"
 #include	"decode.h"
+#include	"hash.h"
 #include	"ssl.h"
 #include	"extra.h"
 #include	"methods.h"

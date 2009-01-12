@@ -8,7 +8,6 @@
 #ifdef		AUTH_LDAP
 #include	<ldap.h>
 
-bool	check_group (LDAP *, char *, const char *, const char *) WARNUNUSED;
 bool	check_auth_ldap(const char *, const char *, const char *) WARNUNUSED;
 bool	check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth *ldapinfo) WARNUNUSED;
 #endif		/* AUTH_LDAP */

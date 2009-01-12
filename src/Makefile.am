@@ -10,7 +10,7 @@ httpd_CFLAGS = $(httpd_cflags) -DBUILD_HTTPD
 httpd_LDFLAGS = $(httpd_ldflags) $(libxs_ldflags) $(libmod_ldflags)
 httpd_LDADD = $(LDADD) libmod.a
 
-libxs_a_SOURCES = decode.c extra.c path.c xscrypt.c
+libxs_a_SOURCES = decode.c hash.c extra.c path.c xscrypt.c
 libxs_a_CFLAGS = $(libxs_cflags)
 
 libmod_a_SOURCES =
@@ -34,7 +34,7 @@ DEFAULT_INCLUDES = -I$(top_builddir)
 
 EXTRA_DIST = alternative.h authenticate.h cgi.h cloader.h config.h \
 	constants.h compiler.h convert.h decode.h extra.h fcgi.h fcgi_api.h \
-	htconfig.h httpd.h ldap.h malloc.h methods.h md5.h modules.h \
+	hash.h htconfig.h httpd.h ldap.h malloc.h methods.h modules.h \
 	path.h pcre.h ssi.h ssl.h xsfiles.h xscounter.h xscrypt.h
 
 cscope:

@@ -52,6 +52,7 @@
 #include	"httpd.h"
 #include	"htconfig.h"
 #include	"decode.h"
+#include	"hash.h"
 #include	"methods.h"
 #include	"convert.h"
 #include	"ssi.h"

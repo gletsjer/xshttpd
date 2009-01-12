@@ -14,7 +14,9 @@
 #include	<string.h>
 #include	<ldap.h>
 
-bool
+static bool	check_group (LDAP *, char *, const char *, const char *) WARNUNUSED;
+
+static bool
 check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 {
 	LDAPMessage	*res = NULL;
