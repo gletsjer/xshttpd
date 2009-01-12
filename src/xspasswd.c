@@ -13,9 +13,8 @@
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
 #include	<sys/stat.h>
-#ifdef		HAVE_CRYPT_H
-#include	<crypt.h>
-#endif		/* HAVE_CRYPT_H */
+
+#include	<openssl/des.h>
 
 #include	"htconfig.h"
 #include	"httpd.h"
@@ -57,9 +56,6 @@ main(int argc, char **argv)
 			digest = false;
 			break;
 		case 'd':
-#ifndef		HAVE_MD5
-			errx(1, "Digest authentication is not available");
-#endif		/* HAVE_MD5 */
 			digest = true;
 			break;
 		case 'f':
@@ -113,7 +109,7 @@ main(int argc, char **argv)
 			errx(1, "Password input failed");
 		if (strcmp(password, passone))
 			errx(1, "Password did not match previous entry!");
-		pwd = crypt(password, mksalt());
+		pwd = DES_crypt(password, mksalt());
 
 		if (digest)
 		{

@@ -9,9 +9,6 @@
 #include	<ctype.h>
 #include	<unistd.h>
 #include	<stdbool.h>
-#ifdef		HAVE_CRYPT_H
-#include	<crypt.h>
-#endif		/* HAVE_CRYPT_H */
 #ifdef		HAVE_LIBUTIL_H
 #include	<libutil.h>
 #else		/* HAVE_LIBUTIL_H */
@@ -19,6 +16,8 @@
 # include	<util.h>
 # endif		/* HAVE_UTIL_H */
 #endif		/* HAVE_LIBUTIL_H */
+
+#include	<openssl/des.h>
 
 #include	"htconfig.h"
 #include	"httpd.h"
@@ -35,11 +34,9 @@ static const bool	rfc2617_digest = true;
 
 static bool	get_crypted_password(const char *, const char *, char **, char **) WARNUNUSED;
 static bool	check_basic_auth(const char *authfile, const struct ldap_auth *) WARNUNUSED;
-#ifdef		HAVE_MD5
 static bool	check_digest_auth(const char *authfile, bool *stale) WARNUNUSED;
 static char 	*fresh_nonce(void) WARNUNUSED;
 static bool	valid_nonce(const char *nonce) NONNULL WARNUNUSED;
-#endif		/* HAVE_MD5 */
 
 /* returns malloc()ed data! */
 static bool
@@ -142,14 +139,13 @@ check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 		return false;
 	}
 
-	allow = !strcmp(passwd, crypt(find, passwd));
+	allow = !strcmp(passwd, DES_crypt(find, passwd));
 	free(passwd);
 	free(line);
 	(void)ldap;
 	return allow;
 }
 
-#ifdef		HAVE_MD5
 static bool
 check_digest_auth(const char *authfile, bool *stale)
 {
@@ -236,7 +232,7 @@ check_digest_auth(const char *authfile, bool *stale)
 
 	/* calculate h(a2) */
 	len = asprintf(&a2, "%s:%s", env.request_method, uri);
-	MD5Data((unsigned char *)a2, len, ha2);
+	md5data(a2, len, ha2);
 	free(a2);
 
 	/* calculate digest from h(a1) and h(a2) */
@@ -245,7 +241,7 @@ check_digest_auth(const char *authfile, bool *stale)
 	else
 		len = asprintf(&digplain, "%s:%s:%s:%s:%s:%s",
 			ha1, nonce, nc, cnonce, qop, ha2);
-	MD5Data((unsigned char *)digplain, len, digest);
+	md5data(digplain, len, digest);
 	free(digplain);
 	free(ha1);
 
@@ -270,7 +266,6 @@ check_digest_auth(const char *authfile, bool *stale)
 	free(line);
 	return true;
 }
-#endif		/* HAVE_MD5 */
 
 bool
 check_auth(const char *authfile, const struct ldap_auth *ldap, bool quiet)
@@ -333,7 +328,6 @@ check_auth(const char *authfile, const struct ldap_auth *ldap, bool quiet)
 		{
 			secprintf("%s 401 Unauthorized\r\n",
 				env.server_protocol);
-#ifdef		HAVE_MD5
 			if (digest)
 			{
 				secprintf("WWW-Authenticate: digest realm=\""
@@ -344,7 +338,6 @@ check_auth(const char *authfile, const struct ldap_auth *ldap, bool quiet)
 					 : "");
 			}
 			else
-#endif		/* HAVE_MD5 */
 				secputs("WWW-Authenticate: basic realm=\""
 					REALM "\"\r\n");
 			secprintf("Content-length: %zu\r\n", strlen(errmsg));
@@ -354,7 +347,6 @@ check_auth(const char *authfile, const struct ldap_auth *ldap, bool quiet)
 		free(errmsg);
 		return false;
 	}
-#ifdef		HAVE_MD5
 	stale = false;
 	if ('d' == env.authorization[0] || 'D' == env.authorization[0])
 	{
@@ -362,7 +354,6 @@ check_auth(const char *authfile, const struct ldap_auth *ldap, bool quiet)
 			return true;
 	}
 	else
-#endif		/* HAVE_MD5 */
 	{
 		if (check_basic_auth(authfile, ldap))
 			return true;
@@ -384,7 +375,6 @@ check_auth(const char *authfile, const struct ldap_auth *ldap, bool quiet)
 	{
 		secprintf("%s 401 Wrong user/password combination\r\n",
 			env.server_protocol);
-#ifdef		HAVE_MD5
 		if (digest)
 		{
 			secprintf("WWW-Authenticate: digest realm=\""
@@ -396,7 +386,6 @@ check_auth(const char *authfile, const struct ldap_auth *ldap, bool quiet)
 				stale ? ", stale=true" : "");
 		}
 		else
-#endif		/* HAVE_MD5 */
 			secputs("WWW-Authenticate: basic realm=\""
 				REALM "\"\r\n");
 		secprintf("Content-length: %zu\r\n", strlen(errmsg));
@@ -415,7 +404,6 @@ initnonce()
 	secret = random();
 }
 
-#ifdef		HAVE_MD5
 static char *
 fresh_nonce(void)
 {
@@ -427,7 +415,7 @@ fresh_nonce(void)
 
 	len = asprintf(&buf, "%" PRItimex ":%lu:%s",
 		ts, secret, env.remote_addr);
-	MD5Data((unsigned char *)buf, len, bufhex);
+	md5data(buf, len, bufhex);
 	free(buf);
 
 	snprintf(nonce, MAX_NONCE_LENGTH, "%" PRItimex ":%s", ts, bufhex);
@@ -452,7 +440,7 @@ valid_nonce(const char *nonce)
 
 	len = asprintf(&buf, "%" PRItimex ":%lu:%s",
 		ts, secret, env.remote_addr);
-	MD5Data((unsigned char *)buf, len, bufhex);
+	md5data(buf, len, bufhex);
 	free(buf);
 
 	if (strcmp(ptr, bufhex))
@@ -461,4 +449,3 @@ valid_nonce(const char *nonce)
 	/* fresh for 1 hour */
 	return ts + 3600 > time(NULL);
 }
-#endif		/* HAVE_MD5 */

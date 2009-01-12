@@ -381,11 +381,9 @@ load_config()
 #else		/* HANDLE_SSL_TLSEXT */
 					errx(1, "Vhost SSLCertificate not allowed: SSL library doesn't support TLSEXT");
 #endif		/* HANDLE_SSL_TLSEXT */
-#ifdef		HANDLE_SSL
 				else if (!strcasecmp("SSLPrivateKey", key))
 					STRDUP(current->sslprivatekey,
 						calcpath(value));
-#endif		/* HANDLE_SSL */
 				else
 					errx(1, "illegal directive: '%s'", key);
 			}
@@ -499,7 +497,6 @@ load_config()
 			lsock->instances = HTTPD_NUMBER;
 		if (lsock->usessl)
 		{
-#ifdef		HANDLE_SSL
 			loadssl(lsock, NULL);
 			if (!lsock->sslvhosts)
 				continue;
@@ -514,10 +511,6 @@ load_config()
 						loadssl(lsock, sslvhost);
 						break;
 					}
-#else		/* HANDLE_SSL */
-			/* Sanity check */
-			errx(1, "SSL support configured but not compiled in");
-#endif		/* HANDLE_SSL */
 		}
 	}
 	if (!config.pidfile)

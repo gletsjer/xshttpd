@@ -69,10 +69,6 @@ typedef uint16_t	in_port_t;
 int	closefrom	(int);
 #endif		/* HAVE_CLOSEFROM */
 
-#ifndef		HAVE_CRYPT
-char *	crypt		(const char *, const char *);
-#endif		/* HAVE_CRYPT */
-
 #ifndef		HAVE_ERR
 void	err		(int, const char *, ...) PRINTF_LIKE(2, 3) NORETURN;
 void	errx		(int, const char *, ...) PRINTF_LIKE(2, 3) NORETURN;

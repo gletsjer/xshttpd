@@ -29,7 +29,7 @@ libxs_ldflags="${LDFLAGS}"
 dnl Checks for header files.
 AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
-AC_CHECK_HEADERS([crypt.h err.h getopt.h util.h sys/param.h sys/select.h sys/sendfile.h], [], [], [[]])
+AC_CHECK_HEADERS([err.h getopt.h util.h sys/param.h sys/select.h sys/sendfile.h], [], [], [[]])
 AC_CHECK_HEADERS([sys/syslimits.h libutil.h sys/resource.h sys/mman.h], [], [], [#include <sys/cdefs.h>
 #include <sys/types.h>
 #include <time.h>
@@ -67,12 +67,7 @@ XS_FUNC_IN_LIB(inet_aton, HAVE_INET_ATON, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(inet_pton, HAVE_INET_PTON, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(getaddrinfo, HAVE_GETADDRINFO, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(getnameinfo, HAVE_GETNAMEINFO, nsl, httpd, -lsocket)
-XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, libxs)
 XS_FUNC_IN_LIB(fparseln, HAVE_FPARSELN, util, libxs)
-XS_FUNC_IN_LIB(MD5Data, HAVE_LIBMD, md, libxs)
-AS_IF([test "$ac_cv_search_MD5Data" != no],
-	AC_DEFINE(HAVE_MD5, [],
-		[Define to 1 if you have the MD5 function (from libmd or openssl)]))
 
 AS_IF([test "$ac_cv_search_inet_aton" = no], [AC_LIBOBJ(inet_aton)])
 AS_IF([test "$ac_cv_search_fparseln" = no], [AC_LIBOBJ(fparseln)])
@@ -99,36 +94,23 @@ AS_IF([test x$ac_cv_type_struct_in6_addr = xyes], [
 dnl Test runs for required global variables.
 AC_CHECK_DECLS_ONCE([sys_errlist, optarg, environ])
 
-dnl User specified additional (non-system) libraries.
+dnl OpenSSL is mandatory
 XS_CHECK_WITH(ssl, SSL crypto support, yes)
-AS_IF([test x$with_ssl = xyes], [
-	XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, xssl, -lcrypto)
-	AS_IF([test "$ac_cv_search_SSL_version" != no], [
-		XS_FUNC_IN_LIB(OPENSSL_config, HAVE_OPENSSL_CONFIG, ssl, xssl, -lcrypto)
-		httpd_cflags="${httpd_cflags} -I/usr/local/ssl/include"
-		httpd_ldflags="${httpd_ldflags} ${xssl_ldflags}"
-		AC_DEFINE(HANDLE_SSL,, [Enable OpenSSL support])
-		AS_IF([test "$ac_cv_search_MD5Datax" = no], [
-			AC_DEFINE(HAVE_MD5)
-			AC_DEFINE(USE_OPENSSL_MD5,,
-				[Define to 1 if you have openssl, but no MD5Data function])
-			AC_LIBOBJ(MD5Data)
-			libxs_ldflags="${libxs_ldflags} ${xssl_ldflags}"
-			])
-		])
-	])
+AS_IF([test x$with_ssl != x -a x$with_ssl != xyes],
+	[ssllib="-L${with_ssl}/lib -lcrypto"]
+	[sslinc="-I${with_ssl}/include"],
+	[ssllib="-lcrypto"])
 
-dnl If no crypt, use libcrypto; if no libcrypto use libcompat
-AS_IF([test "$ac_cv_search_crypt" = no], [
-	AS_IF([test "$ac_cv_search_SSL_version" != no], [
-		AC_DEFINE(USE_OPENSSL_CRYPT,,
-			[Define to 1 if you have openssl, but no crypt function]),
-		AC_LIBOBJ(crypto_crypt)
-		libxs_ldflags="${libxs_ldflags} ${xssl_ldflags}"
-		],
-		[AC_LIBOBJ(crypt)])
-	])
+XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, xssl, [${ssllib}])
+AS_IF([test "$ac_cv_search_SSL_version" = no],
+	AC_MSG_ERROR([Cannot find required OpenSSL library]))
 
+XS_FUNC_IN_LIB(OPENSSL_config, HAVE_OPENSSL_CONFIG, ssl, x, [${ssllib}])
+libxs_cflags="${libxs_cflags} ${sslinc}"
+libxs_ldflags="${libxs_ldflags} ${ssllib}"
+httpd_ldflags="${httpd_ldflags} ${xssl_ldflags}"
+
+dnl User specified additional (non-system) libraries.
 XS_CHECK_WITH(pcre, PCRE support, yes)
 AS_IF([test x$with_pcre = xyes], [
 	XS_TRY_CONFIG(pcre, libxs)
@@ -175,6 +157,7 @@ dnl	AC_DEFINE_UNQUOTED(RUBY_HDR, "${rubyhdr}", [Ruby include file])
 	])
 
 AC_MSG_CHECKING([if you want configuration preprocessing])
+withval=
 AC_ARG_WITH(preprocessor, [
 Extra options:
 ]AS_HELP_STRING([--with-preprocessor],
@@ -192,6 +175,7 @@ Extra options:
 
 dnl Main root directory, optionally supplied by user.
 dnl Set may be delayed untill 'make' stage, becasue ${prefix} is delayed.
+withval=
 AC_ARG_WITH(rootdir,
 	AS_HELP_STRING([--with-rootdir=DIR],
 		[directory to install data files @<:@LIBDIR/httpd@:>@]),

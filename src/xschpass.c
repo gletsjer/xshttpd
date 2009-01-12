@@ -11,9 +11,8 @@
 #include	<errno.h>
 #include	<string.h>
 #include	<ctype.h>
-#ifdef		HAVE_CRYPT_H
-#include	<crypt.h>
-#endif		/* HAVE_CRYPT_H */
+
+#include	<openssl/des.h>
 
 #include	"htconfig.h"
 #include	"extra.h"
@@ -120,7 +119,7 @@ changepasswd(const char *param, int  cl)
 	for (search = new1; *search; search++)
 		if (*search < ' ')
 			xserror(403, "Your password contains an invalid character!");
-	STRDUP(cryptnew, crypt(new1, mksalt()));
+	STRDUP(cryptnew, DES_crypt(new1, mksalt()));
 
 	if (stat(filename, &statbuf1))
 		xserror(403, "Could not stat directory '%s': %s",
@@ -167,7 +166,7 @@ changepasswd(const char *param, int  cl)
 				continue;
 			*eol = '\0';
 			opwent = buffer + 1 + strlen(new2);
-			STRDUP(cryptold, crypt(old, opwent));
+			STRDUP(cryptold, DES_crypt(old, opwent));
 			if (strcmp(cryptold, opwent))
 			{
 				fclose(input); fclose(output);

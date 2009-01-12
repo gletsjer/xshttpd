@@ -15,13 +15,11 @@
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
 
-#ifdef		HANDLE_SSL
 #include	<openssl/rand.h>
 #include	<openssl/err.h>
 #include	<openssl/conf.h>
 #include	<openssl/ssl.h>
 #include	<openssl/tls1.h>
-#endif		/* HANDLE_SSL */
 
 #include	"htconfig.h"
 #include	"httpd.h"
@@ -49,16 +47,13 @@ static void	preloadssl(void);
 void
 initreadmode(bool reset)
 {
-#ifdef		HANDLE_SSL
 	unsigned long readerror;
-#endif		/* HANDLE_SSL */
 
 	if (reset)
 	{
 		netbufind = netbufsiz = 0;
 		netbuf[netbufind] = '\0';
 	}
-#ifdef		HANDLE_SSL
 	while ((readerror = ERR_get_error()))
 	{
 		warnx("SSL Error: %s", ERR_reason_error_string(readerror));
@@ -66,13 +61,11 @@ initreadmode(bool reset)
 	}
 	if (cursock->ssl)
 		setenv("SSL_CIPHER", SSL_get_cipher(cursock->ssl), 1);
-#endif		/* HANDLE_SSL */
 }
 
 bool
 initssl()
 {
-#ifdef		HANDLE_SSL
 	if (!cursock->usessl)
 		return true;
 
@@ -120,14 +113,12 @@ initssl()
 		}
 	}
 #endif		/* HAVE_PCRE */
-#endif		/* HANDLE_SSL */
 	return true;
 }
 
 void
 ssl_environment()
 {
-#ifdef		HANDLE_SSL
 	X509		*xs;
 
 	if (!cursock->usessl)
@@ -217,13 +208,11 @@ ssl_environment()
 	}
 	/* we are now doing SSL-only */
 	setenv("HTTPS", "on", 1);
-#endif		/* HANDLE_SSL */
 }
 
 void
 endssl()
 {
-#ifdef		HANDLE_SSL
 	if (cursock->usessl && cursock->ssl)
 	{
 		if (!SSL_shutdown(cursock->ssl))
@@ -231,10 +220,8 @@ endssl()
 		SSL_free(cursock->ssl);
 		cursock->ssl = NULL;
 	}
-#endif		/* HANDLE_SSL */
 }
 
-#ifdef		HANDLE_SSL
 static int
 sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 {
@@ -387,12 +374,10 @@ preloadssl(void)
 
 	ssl_init_done = true;
 }
-#endif		/* HANDLE_SSL */
 
 void
 loadssl(struct socket_config *lsock, struct ssl_vhost *sslvhost)
 {
-#ifdef		HANDLE_SSL
 	SSL_CTX		*ssl_ctx;
 	SSL_METHOD	*method = NULL;
 	struct virtual	*vc = NULL;
@@ -536,8 +521,6 @@ loadssl(struct socket_config *lsock, struct ssl_vhost *sslvhost)
 			|| !SSL_CTX_set_tlsext_servername_arg(ssl_ctx, lsock))
 		errx(1, "Cannot load TLS servername callback");
 #endif		/* HANDLE_SSL_TLSEXT */
-
-#endif		/* HANDLE_SSL */
 }
 
 
@@ -547,7 +530,6 @@ secread_internal(int fd, void *buf, size_t count)
 	if (!count)
 		return 0;
 
-#ifdef		HANDLE_SSL
 	if (cursock->ssl && STDIN_FILENO == fd)
 	{
 		int	ret;
@@ -586,7 +568,6 @@ secread_internal(int fd, void *buf, size_t count)
 		return ret;
 	}
 	else
-#endif		/* HANDLE_SSL */
 	{
 		ssize_t	ret;
 
@@ -652,7 +633,6 @@ secwrite(const char *buf, size_t count)
 
 	for (; i < 3; i++)
 	{
-#ifdef		HANDLE_SSL
 		if (cursock->usessl)
 		{
 			ssize_t		ret;
@@ -681,7 +661,6 @@ secwrite(const char *buf, size_t count)
 			}
 		}
 		else
-#endif		/* HANDLE_SSL */
 		{
 			ssize_t		ret;
 

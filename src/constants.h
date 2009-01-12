@@ -26,10 +26,8 @@ but not able to overwrite your data - nor should it be able to write logfiles */
 #define SCRIPT_METHODS	CONFIG_DIRT "script.methods"
 #define	COMPRESS_METHODS CONFIG_DIRT "compress.methods"
 
-#ifdef		HANDLE_SSL
 #define	CERT_FILE	CONFIG_DIRT "cert.pem"
 #define KEY_FILE	CONFIG_DIRT "key.pem"
-#endif		/* HANDLE_SSL */
 
 #define CNT_DATA	LOG_DIRT "xs-counter.data"
 #define CNT_LOCK	LOG_DIRT "xs-counter.lock"

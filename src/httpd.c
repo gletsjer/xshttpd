@@ -1701,21 +1701,6 @@ main(int argc, char **argv, char **envp)
 # endif
 #endif		/* OPENSSL_VERSION_NUMBER */
 			printf("\nCompiled options:\n\t"
-#ifdef		HANDLE_SSL
-				"+SSL "
-# ifdef	 	 HANDLE_SSL_TLSEXT
-  				"+TLSEXT "
-# else		 /* HANDLE_SSL_TLSEXT */
-  				"-TLSEXT "
-# endif		 /* HANDLE_SSL_TLSEXT */
-#else		/* HANDLE_SSL */
-				"-SSL "
-#endif		/* HANDLE_SSL */
-#ifdef		HAVE_LIBMD
- 				"+MD "
-#else		/* HAVE_LIBMD */
-				"-MD "
-#endif		/* HAVE_LIBMD */
 #ifdef		HAVE_PCRE
 				"+PCRE "
 #else		/* HAVE_PCRE */
@@ -1736,6 +1721,11 @@ main(int argc, char **argv, char **envp)
 #else		/* HAVE_SSP */
 				"-SSP "
 #endif		/* HAVE_SSP */
+#ifdef	 	 HANDLE_SSL_TLSEXT
+  				"+TLSEXT "
+#else		 /* HANDLE_SSL_TLSEXT */
+  				"-TLSEXT "
+#endif		 /* HANDLE_SSL_TLSEXT */
 				"\nDefault configuration file:\n"
 #ifdef		PATH_PREPROCESSOR
 				"\t%s %s\n", config_preprocessor, config_path

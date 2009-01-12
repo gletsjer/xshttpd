@@ -7,7 +7,9 @@
 #include	<stdlib.h>
 #include	<sys/types.h>
 #include	<string.h>
+#include	<fcntl.h>
 #include	<ctype.h>
+#include	<unistd.h>
 
 #include	"htconfig.h"
 #include	"httpd.h"
@@ -325,25 +327,46 @@ base64_encode(const char *msg, size_t len, char *bin)
 char *
 generate_ha1(const char *user, const char *passwd)
 {
-#ifdef		HAVE_MD5
 	static	char	ha1[MD5_DIGEST_STRING_LENGTH];
 	char		*a1;
 	size_t		len;
 
 	/* calculate h(a1) */
 	len = asprintf(&a1, "%s:%s:%s", user, REALM, passwd);
-	MD5Data((const unsigned char *)a1, len, ha1);
+	md5data(a1, len, ha1);
 	free(a1);
 
 	return ha1;
-#else		/* HAVE_MD5 */
-	(void)user;
-	(void)passwd;
-	return NULL;
-#endif		/* HAVE_MD5 */
 }
 
-#ifdef		HAVE_LIBMD
+bool
+md5data(const char *data, size_t len, char *bufhex)
+{
+	char    buf[MD5_DIGEST_LENGTH];
+
+	MD5((const unsigned char *)data, len, (unsigned char *)buf);
+	hex_encode(buf, MD5_DIGEST_LENGTH, bufhex);
+	return true;
+}
+
+bool
+md5file(const char *filename, char *hash)
+{
+	int	fd;
+	unsigned char	buf[BUFSIZ];
+	unsigned long	len;
+	MD5_CTX		md5_ctx;
+
+	if ((fd = open(filename, O_RDONLY, 0)) < 0)
+		return false;
+
+	MD5_Init(&md5_ctx);
+	while ((len = read(fd, buf, sizeof(buf))) >= 0)
+		MD5_Update(&md5_ctx, buf, len);
+
+	return (bool)MD5_Final(hash, &md5_ctx);
+}
+
 bool		use_checksum;
 MD5_CTX		md5context;
 
@@ -351,14 +374,14 @@ void
 checksum_init(void)
 {
 	use_checksum = true;
-	MD5Init(&md5context);
+	MD5_Init(&md5context);
 }
 
 void
 checksum_update(const char *buffer, size_t count)
 {
 	if (use_checksum)
-		MD5Update(&md5context, (const unsigned char *)buffer, count);
+		MD5_Update(&md5context, buffer, count);
 }
 
 char *
@@ -372,7 +395,7 @@ checksum_final(void)
 	/* turn off after use */
 	use_checksum = false;
 
-	MD5Final((unsigned char *)digest, &md5context);
+	MD5_Final((unsigned char *)digest, &md5context);
 	base64_encode(digest, MD5_DIGEST_LENGTH, base64_data);
 	return base64_data;
 }
@@ -384,7 +407,7 @@ checksum_file(const char *filename)
 	char		digest    [MD5_DIGEST_LENGTH];
 	char		hex_digest[MD5_DIGEST_STRING_LENGTH];
 
-	if (!(MD5File(filename, hex_digest)))
+	if (!(md5file(filename, hex_digest)))
 		return NULL;
 
 	hex_decode(hex_digest, MD5_DIGEST_STRING_LENGTH - 1, digest);
@@ -392,20 +415,3 @@ checksum_file(const char *filename)
 	return base64_data;
 }
 
-#else		/* HAVE_LIBMD */
-void	checksum_init(void)	{}
-char *	checksum_file(const char *filename)
-{
-	(void)filename;
-	return NULL;
-}
-void	checksum_update(const char *buffer, size_t count)
-{
-	(void)buffer;
-	(void)count;
-}
-char *	checksum_final(void)
-{
-	return NULL;
-}
-#endif		/* HAVE_LIBMD */
