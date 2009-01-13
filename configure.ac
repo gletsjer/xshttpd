@@ -113,7 +113,7 @@ httpd_ldflags="${httpd_ldflags} ${xssl_ldflags}"
 dnl User specified additional (non-system) libraries.
 XS_CHECK_WITH(pcre, PCRE support, yes)
 AS_IF([test x$with_pcre = xyes], [
-	XS_TRY_CONFIG(pcre, libxs)
+	XS_TRY_CONFIG(pcre, httpd)
 	])
 
 XS_CHECK_WITH(ldap, LDAP authentication support, no)
