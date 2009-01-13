@@ -337,6 +337,13 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		{
 			const char	meta[] = " \t&();<>|{}$%";
 
+			if (!strncmp(engine, "internal:", 9))
+			{
+				secprintf("Content-type: text/plain\r\n\r\n");
+				secprintf("[Interpreter not available]\n");
+				exit(1);
+			}
+
 			/* let shell handle engines containing metacharacters */
 			if (engine[strcspn(engine, meta)])
 			{

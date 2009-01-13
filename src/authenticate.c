@@ -367,9 +367,9 @@ check_auth_modules(void)
 		return denied_basic();
 	}
 
-	/* Digest authentication */
-	/* TODO: implement this */
-	return denied_digest(false);
+	/* TODO: implement digest modules */
+
+	return true;
 }
 
 bool
