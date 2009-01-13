@@ -9,12 +9,12 @@
 #include	<EXTERN.h>
 #include	<perl.h>
 
-#include	"htconfig.h"
 #include	"malloc.h"
 #include	"modules.h"
 #include	"path.h"
 
-char *		perlargs[] = { NULL, NULL };
+char		*perlargs[] = { NULL, NULL };
+char		*perlscript = NULL;
 PerlInterpreter	*my_perl = NULL;
 
 int
@@ -28,8 +28,8 @@ perl_init(void)
 	perl_construct(my_perl);
 
 	/* perl_parse() doesn't like const arguments: pass dynamic */
-	if (config.perlscript)
-		STRDUP(path, calcpath(config.perlscript));
+	if (perlscript)
+		STRDUP(path, calcpath(perlscript));
 	else
 		STRDUP(path, calcpath("contrib/persistent.pl"));
 	if (!access(path, R_OK))
@@ -60,11 +60,23 @@ perl_handler(char *filename)
 	return 0;
 }
 
+bool
+perl_config_general(const char *key, const char *value)
+{
+	if (!strcasecmp("PerlPersistentScript", key))
+	{
+		STRDUP(perlscript, value);
+		return true;
+	}
+	return false;
+}
+
 struct module perl_module =
 {
 	.name = "perl interpreter",
 	.engine = "internal:perl",
 	.init = perl_init,
 	.file_handler = perl_handler,
+	.config_general = perl_config_general,
 };
 

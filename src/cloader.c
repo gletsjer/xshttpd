@@ -62,6 +62,7 @@
 #include	"path.h"
 #include	"malloc.h"
 #include	"ssl.h"
+#include	"modules.h"
 
 #ifndef		PRIO_MAX
 #define		PRIO_MAX	20
@@ -209,8 +210,20 @@ load_config()
 						config.priority = strtoul(value, NULL, 10);
 					else if (!strcasecmp("ScriptPriority", key))
 						config.scriptpriority = strtoul(value, NULL, 10);
-					else if (!strcasecmp("PerlPersistentScript", key))
-						STRDUP(config.perlscript, value);
+					else
+					{
+						/* Check modules for configuration directives */
+						bool	used = false;
+
+						for (struct module *mod, **mods = modules;
+								(mod = *mods); mods++)
+						{
+							if (mod->config_general)
+								used |= mod->config_general(key, value);
+						}
+						if (!used)
+							errx(1, "illegal global directive: '%s'", key);
+					}
 				}
 				else if (subtype == sub_socket)
 				{
@@ -287,6 +300,8 @@ load_config()
 						errx(1, "SSLVhosts not allowed: SSL library doesn't support TLSEXT");
 #endif		/* HANDLE_SSL_TLSEXT */
 					}
+					else
+						errx(1, "illegal socket directive: '%s'", key);
 				}
 				/* All other settings belong to specific 'current' */
 				else if (!current)

@@ -10,7 +10,8 @@ struct module
 	char	*name;
 	char	*engine;
 	int	(*init) (void);
-	int	(*file_handler) (char *);
+	int	(*file_handler) (char *filename);
+	bool	(*config_general) (const char *key, const char *value);
 };
 
 extern struct module *modules[];
