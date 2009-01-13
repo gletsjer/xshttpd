@@ -17,6 +17,10 @@ char		*perlargs[] = { NULL, NULL };
 char		*perlscript = NULL;
 PerlInterpreter	*my_perl = NULL;
 
+int	perl_init(void);
+int	perl_handler(const char *filename);
+bool	perl_config_general(const char *key, const char *value);
+
 int
 perl_init(void)
 {
@@ -52,9 +56,9 @@ perl_init(void)
 }
 
 int
-perl_handler(char *filename)
+perl_handler(const char *filename)
 {
-	perlargs[0] = filename;
+	STRDUP(perlargs[0], filename);
 	Perl_call_argv(aTHX_ "Embed::Persistent::eval_file",
 		G_DISCARD | G_EVAL, perlargs);
 	return 0;

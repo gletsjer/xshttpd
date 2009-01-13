@@ -5,7 +5,6 @@
 #include	<stdlib.h>
 #include	<err.h>
 
-#include	"htconfig.h"
 #include	"malloc.h"
 #include	"modules.h"
 #include	"path.h"
@@ -14,6 +13,9 @@ extern void     ruby_run(void);
 extern void     rb_load_file(const char *);
 extern void	ruby_init(void);
 extern void	ruby_script(const char *);
+
+int		mod_ruby_init(void);
+int		ruby_handler(const char *filename);
 
 int
 mod_ruby_init(void)
@@ -24,7 +26,7 @@ mod_ruby_init(void)
 }
 
 int
-ruby_handler(char *filename)
+ruby_handler(const char *filename)
 {
 	rb_load_file(filename);
 	ruby_run();

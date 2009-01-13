@@ -3,18 +3,28 @@
 
 #include	"config.h"
 
-#ifdef		AUTH_LDAP
-#include	"htconfig.h"
-#include	"ldap.h"
-#include	"httpd.h"
-#include	"malloc.h"
-
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<string.h>
+
 #include	<ldap.h>
 
+#include	"ldap.h"
+#include	"httpd.h"
+#include	"malloc.h"
+#include	"modules.h"
+
+struct ldap_auth
+{
+	char	*uri, *attr, *dn, *groups;
+	int	version;
+} ldap;
+
 static bool	check_group (LDAP *, char *, const char *, const char *) WARNUNUSED;
+static bool	check_auth_ldap(const char *, const char *, const char *) WARNUNUSED;
+static bool	check_auth_ldap_full(const char *user, const char *pass) WARNUNUSED;
+
+bool		ldap_config_local(const char *, const char *);
 
 static bool
 check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
@@ -85,8 +95,8 @@ bool
 check_auth_ldap(const char *authfile, const char *user, const char *pass)
 {
 	FILE	*af;
-	char	line[LINEBUFSIZE];
-	struct ldap_auth	ldap;
+	char	*line;
+	size_t	sz;
 
 	memset(&ldap, 0, sizeof(ldap));
 
@@ -153,11 +163,11 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
                 }
 	}
 	fclose(af);
-	return check_auth_ldap_full(user, pass, &ldap);
+	return check_auth_ldap_full(user, pass);
 }
 
 bool
-check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth *ldap)
+check_auth_ldap_full(const char *user, const char *pass)
 {
 	char	*filter;
 	char	*dn = NULL;
@@ -168,16 +178,20 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 	int	version = 3;
 	struct	berval	cred;
 
-	if (!ldap || !ldap->uri || !strlen(ldap->uri) ||
-			!ldap->dn || !strlen(ldap->dn) ||
-			!ldap->attr || !strlen(ldap->attr))
+	/* No directory name - then no checking */
+	if (!ldap.dn)
+		return true;
+
+	if (!ldap.uri || !strlen(ldap.uri) ||
+			!ldap.dn || !strlen(ldap.dn) ||
+			!ldap.attr || !strlen(ldap.attr))
 		/* LDAP config is incomplete */
 		return false;
 
-	if (ldap_initialize (&ld, ldap->uri) != LDAP_SUCCESS)
+	if (ldap_initialize (&ld, ldap.uri) != LDAP_SUCCESS)
 		return false;
-	if (ldap->version)
-		version = ldap->version;
+	if (ldap.version)
+		version = ldap.version;
 	ldap_set_option (ld, LDAP_OPT_PROTOCOL_VERSION, &version);
 
 	/* copy password to rw variable */
@@ -188,9 +202,9 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 	 * This search may look confusing. Basically, we do a search for the
 	 * user in the tree given, _including all subtrees_.
 	 */
-	asprintf (&filter, "(%s=%s)", ldap->attr, user);
+	asprintf (&filter, "(%s=%s)", ldap.attr, user);
 
-	if (ldap_search_ext_s (ld, ldap->dn, LDAP_SCOPE_SUBTREE, filter, NULL, 0, NULL, NULL, NULL, 0, &res) != LDAP_SUCCESS)
+	if (ldap_search_ext_s (ld, ldap.dn, LDAP_SCOPE_SUBTREE, filter, NULL, 0, NULL, NULL, NULL, 0, &res) != LDAP_SUCCESS)
 		goto leave;
   
 	/* simply grab the first item */
@@ -206,7 +220,7 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 	if (ldap_sasl_bind_s (ld, dn, LDAP_SASL_SIMPLE, &cred, NULL, NULL, NULL) != LDAP_SUCCESS)
 		goto leave;
 
-	if (!strcmp (ldap->groups, ""))
+	if (!strcmp (ldap.groups, ""))
 	{
 		/* no groups specified, so it's a definite go */
 		allow = true;
@@ -216,7 +230,7 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 		char	*curoffs;
 		char	line[LINEBUFSIZE];
 
-		curoffs = ldap->groups;
+		curoffs = ldap.groups;
 		for (;;)
 		{
 			/* isolate a group on a ',' boundery */
@@ -226,7 +240,7 @@ check_auth_ldap_full(const char *user, const char *pass, const struct ldap_auth 
 				ptr = strchr (curoffs, 0);
 			strlcpy (line, curoffs, (ptr - curoffs));
 
-			if (check_group (ld, ldap->dn, user, line))
+			if (check_group (ld, ldap.dn, user, line))
 			{
 				allow = true;
 				break;
@@ -250,4 +264,54 @@ leave:
 	return allow;
 }
 
-#endif		/* AUTH_LDAP */
+bool
+ldap_config_local(const char *name, const char *value)
+{
+	if (!name && !value)
+		memset(&ldap, 0, sizeof(ldap));
+	else if (!strcasecmp(name, "LdapHost"))
+	{
+		if (ldap.uri)
+			free(ldap.uri);
+		asprintf(&ldap.uri, "ldap://%s", value);
+	}
+	else if (!strcasecmp(name, "LdapURI"))
+	{
+		if (ldap.uri)
+			free(ldap.uri);
+		STRDUP(ldap.uri, value);
+	}
+	else if (!strcasecmp(name, "LdapAttr"))
+	{
+		if (ldap.attr)
+			free(ldap.attr);
+		STRDUP(ldap.attr, value);
+	}
+	else if (!strcasecmp(name, "LdapDN"))
+	{
+		if (ldap.dn)
+			free(ldap.dn);
+		STRDUP(ldap.dn, value);
+	}
+	else if (!strcasecmp(name, "LdapVersion"))
+		ldap.version = strtoul(value, NULL, 10);
+	else if (!strcasecmp(name, "LdapGroups"))
+	{
+		if (ldap.groups)
+			free(ldap.groups);
+		STRDUP(ldap.groups, value);
+	}
+	else
+		return false;
+
+	return true;
+}
+
+struct module ldap_module =
+{
+	.name = "ldap authentication",
+	.init = NULL,
+	.auth_basic = check_auth_ldap_full,
+	.config_local = ldap_config_local,
+};
+

@@ -24,19 +24,23 @@
 #include	"decode.h"
 #include	"ssl.h"
 #include	"authenticate.h"
-#include	"ldap.h"
 #include	"extra.h"
 #include	"malloc.h"
+#include	"modules.h"
 #include	"hash.h"
 
 static unsigned long	secret;
 static const bool	rfc2617_digest = true;
 
 static bool	get_crypted_password(const char *, const char *, char **, char **) WARNUNUSED;
-static bool	check_basic_auth(const char *authfile, const struct ldap_auth *) WARNUNUSED;
+static bool	check_basic_auth(const char *authfile) WARNUNUSED;
 static bool	check_digest_auth(const char *authfile, bool *stale) WARNUNUSED;
 static char 	*fresh_nonce(void) WARNUNUSED;
 static bool	valid_nonce(const char *nonce) NONNULL WARNUNUSED;
+
+static bool	denied_access(bool digest, bool stale);
+static bool	denied_digest(bool stale);
+static bool	denied_basic(void);
 
 /* returns malloc()ed data! */
 static bool
@@ -95,7 +99,7 @@ get_crypted_password(const char *authfile, const char *user, char **passwd, char
 }
 
 static bool
-check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
+check_basic_auth(const char *authfile)
 {
 	char		*line, *search, *passwd, *find;
 	bool		allow;
@@ -114,23 +118,6 @@ check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 		setenv("AUTH_TYPE", "Basic", 1);
 		setenv("REMOTE_USER", search, 1);
 		setenv("REMOTE_PASSWORD", find, 1);
-
-#ifdef AUTH_LDAP
-		/*
-		 * Try to do an LDAP auth first. This is because xs_encrypt()
-		 * may alter the buffer, in which case we compare garbage.
-		 */
-		if (authfile && check_auth_ldap(authfile, search, find))
-		{
-			free(line);
-			return true;
-		}
-		else if (ldap && check_auth_ldap_full(search, find, ldap))
-		{
-			free(line);
-			return true;
-		}
-#endif /* AUTH_LDAP */
 	}
 	passwd = NULL;
 	if (!get_crypted_password(authfile, search, &passwd, NULL) || !passwd)
@@ -142,7 +129,6 @@ check_basic_auth(const char *authfile, const struct ldap_auth *ldap)
 	allow = !strcmp(passwd, DES_crypt(find, passwd));
 	free(passwd);
 	free(line);
-	(void)ldap;
 	return allow;
 }
 
@@ -268,99 +254,9 @@ check_digest_auth(const char *authfile, bool *stale)
 }
 
 bool
-check_auth(const char *authfile, const struct ldap_auth *ldap, bool quiet)
+denied_access(bool digest, bool stale)
 {
 	char		*errmsg;
-	bool		digest, stale;
-	FILE		*af;
-
-	if (!authfile && !ldap)
-	{
-		if (!quiet)
-			server_error(403,
-				"Authentication information is not available",
-				"NOT_AVAILABLE");
-		return false;
-	}
-
-	if (authfile && !(af = fopen(authfile, "r")))
-	{
-		if (!quiet)
-			server_error(403,
-				"Authentication file is not available",
-				"NOT_AVAILABLE");
-		return false;
-	}
-
-	if (authfile)
-	{
-		char		*p, *line;
-		size_t		sz;
-		int		i = 1;
-
-		if ((line = fgetln(af, &sz)))
-			for (i = 0, p = line; p < line + sz; p++)
-				if (':' == *p)
-					i++;
-		digest = i > 1;
-		fclose(af);
-	}
-	else
-		digest = false;
-
-	if (!env.authorization ||
-		(strncasecmp(env.authorization, "Basic", 5) &&
-		 strncasecmp(env.authorization, "Digest", 6)))
-	{
-		if (quiet)
-			return false;
-
-		asprintf(&errmsg,
-			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-			"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
-			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
-			"<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
-			"<head><title>Unauthorized</title></head>\n"
-			"<body><h1>Unauthorized</h1><p>Your client does \n"
-			"not understand %s authentication</p></body></html>\n",
-			digest ? "digest" : "basic");
-		if (session.headers)
-		{
-			secprintf("%s 401 Unauthorized\r\n",
-				env.server_protocol);
-			if (digest)
-			{
-				secprintf("WWW-Authenticate: digest realm=\""
-					REALM "\", nonce=\"%s\"%s\r\n",
-					fresh_nonce(),
-					rfc2617_digest
-					 ? ", qop=\"auth\", algorithm=md5"
-					 : "");
-			}
-			else
-				secputs("WWW-Authenticate: basic realm=\""
-					REALM "\"\r\n");
-			secprintf("Content-length: %zu\r\n", strlen(errmsg));
-			stdheaders(1, 1, 1);
-		}
-		secputs(errmsg);
-		free(errmsg);
-		return false;
-	}
-	stale = false;
-	if ('d' == env.authorization[0] || 'D' == env.authorization[0])
-	{
-		if (check_digest_auth(authfile, &stale))
-			return true;
-	}
-	else
-	{
-		if (check_basic_auth(authfile, ldap))
-			return true;
-	}
-
-	if (quiet)
-		return false;
 
 	asprintf(&errmsg,
 		"\r\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -395,6 +291,153 @@ check_auth(const char *authfile, const struct ldap_auth *ldap, bool quiet)
 	free(errmsg);
 	(void)stale;
 	return false;
+}
+
+bool
+denied_basic(void)
+{
+	return denied_access(false, false);
+}
+
+bool
+denied_digest(bool stale)
+{
+	return denied_access(true, stale);
+}
+
+bool
+check_auth_modules(void)
+{
+	bool	allowed = true;
+	bool	digest = false;
+
+	if (!env.authorization)
+	{
+		for (struct module *mod, **mods = modules; (mod = *mods); mods++)
+			if (mod->auth_basic)
+			{
+				if (!mod->auth_basic("", ""))
+					return denied_basic();
+			}
+			else if (mod->auth_digest)
+			{
+				if (!mod->auth_digest("", ""))
+					return denied_digest(false);
+			}
+
+		/* Every module needs to grant access */
+		if (allowed)
+			return true;
+	}
+
+	/* Parse authentication line */
+	if (!strncasecmp(env.authorization, "Basic", 5))
+		digest = false;
+	else if (!strncasecmp(env.authorization, "Digest", 6))
+		digest = true;
+	else
+		return denied_basic();
+
+	/* Basic authentication */
+	if (!digest)
+	{
+		char	*line, *user, *pass;
+
+		STRDUP(line, env.authorization);
+		pass = strchr(line, '\0');
+		while ((pass > line) && (*(pass - 1) < ' '))
+			*(--pass) = 0;
+		for (user = line + 5; *user && isspace(*user); user++)
+			/* DO NOTHING */ ;
+		uudecode(user);
+		if (!(pass = strchr(user, ':')))
+			return denied_basic();
+
+		*pass++ = 0;
+		for (struct module *mod, **mods = modules;
+				(mod = *mods); mods++)
+		{
+			if (mod->auth_basic)
+			{
+				/* Only one module needs to grant access */
+				if (mod->auth_basic(user, pass))
+					return true;
+			}
+		}
+		return denied_basic();
+	}
+
+	/* Digest authentication */
+	/* TODO: implement this */
+	return denied_digest(false);
+}
+
+bool
+check_auth(const char *authfile, bool quiet)
+{
+	bool		digest, stale;
+	FILE		*af;
+
+	if (!authfile)
+	{
+		if (!quiet)
+			server_error(403,
+				"Authentication information is not available",
+				"NOT_AVAILABLE");
+		return false;
+	}
+
+	if (authfile && !(af = fopen(authfile, "r")))
+	{
+		if (!quiet)
+			server_error(403,
+				"Authentication file is not available",
+				"NOT_AVAILABLE");
+		return false;
+	}
+
+	/* Determine authentication type from file: basic / digest */
+	if (authfile)
+	{
+		char		*p, *line;
+		size_t		sz;
+		int		i = 1;
+
+		if ((line = fgetln(af, &sz)))
+			for (i = 0, p = line; p < line + sz; p++)
+				if (':' == *p)
+					i++;
+		digest = i > 1;
+		fclose(af);
+	}
+	else
+		digest = false;
+
+	if (!env.authorization ||
+		(strncasecmp(env.authorization, "Basic", 5) &&
+		 strncasecmp(env.authorization, "Digest", 6)))
+	{
+		if (quiet)
+			return false;
+
+		return denied_access(digest, false);
+	}
+	stale = false;
+	if ('d' == env.authorization[0] || 'D' == env.authorization[0])
+	{
+		if (check_digest_auth(authfile, &stale))
+			return true;
+	}
+	else
+	{
+		if (check_basic_auth(authfile))
+			return true;
+	}
+
+	if (quiet)
+		return false;
+
+	return denied_access(digest, stale);
 }
 
 void

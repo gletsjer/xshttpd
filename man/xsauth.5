@@ -47,13 +47,11 @@ the encrypted version of the password. This is optionally
 followed by an additional colon and a hash value to be used
 for digest access authentication.
 .Ss LDAP Authentication
-If LDAP support is enabled at compile time, then special
-directives can be used in
-.Xr xsconf 5
-files to enable password checks via a remote authentication
-server. The use of special LDAP directives in
+Previous versions allowed LDAP configuration options in
 .Pa .xsauth
-files is deprecated and will not be supported in future versions.
+files as well. This is no longer supported. Use
+.Xr xsconf 5
+in stead to configure LDAP authentication.
 .Sh SEE ALSO
 .Xr httpd 1 ,
 .Xr xspasswd 1 ,

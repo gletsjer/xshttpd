@@ -5,7 +5,7 @@ noinst_LIBRARIES = libxs.a libmod.a
 AM_CPPFLAGS = -DHTTPD_ROOT=\"$(rootdir)\"
 
 httpd_SOURCES = httpd.c authenticate.c cgi.c cloader.c convert.c fcgi.c \
-	ldap.c methods.c path.c pcre.c ssi.c ssl.c xsfiles.c
+	methods.c path.c pcre.c ssi.c ssl.c xsfiles.c
 httpd_CFLAGS = $(httpd_cflags) -DBUILD_HTTPD
 httpd_LDFLAGS = $(httpd_ldflags) $(libxs_ldflags) $(libmod_ldflags)
 httpd_LDADD = $(LDADD) libmod.a
@@ -24,6 +24,9 @@ libmod_a_SOURCES += mod_python.c
 endif
 if MOD_RUBY
 libmod_a_SOURCES += mod_ruby.c
+endif
+if MOD_LDAP
+libmod_a_SOURCES += mod_ldap.c
 endif
 
 httpdc_CPPFLAGS = $(AM_CPPFLAGS) -DBINDIR=\"$(bindir)\"

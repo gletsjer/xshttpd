@@ -64,6 +64,7 @@
 #include	"authenticate.h"
 #include	"xsfiles.h"
 #include	"malloc.h"
+#include	"modules.h"
 #include	"fcgi.h"
 
 static bool	getfiletype		(bool);
@@ -989,14 +990,18 @@ do_get(char *params)
 #endif
 	}
 
+	/* Clear local configuration values */
 	memset(&cfvalues, 0, sizeof(cfvalues));
+	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
+		if (mod->config_local)
+			mod->config_local(NULL, NULL);
 
 	/* Check user directives */
 	/* These should all send there own error messages when appropriate */
 	if ((xsfile = find_file(orgbase, base, NOXS_FILE)) && check_noxs(xsfile))
 		return;
 	if ((xsfile = find_file(orgbase, base, AUTH_FILE)) &&
-			!check_auth(xsfile, NULL, false))
+			!check_auth(xsfile, false))
 		return;
 	if (check_file_redirect(base, filename))
 		return;
@@ -1011,9 +1016,15 @@ do_get(char *params)
 	if ((xsfile = find_file(orgbase, base, CONFIG_FILE)) &&
 			check_xsconf(xsfile, filename, &cfvalues))
 		return;
+
 	if (cfvalues.noprivs && !origeuid && !switcheduid)
 		/* Privileges should be dropped: retry reading files */
 		goto RETRY;
+
+	/* Authentication modules trigger after config parsing */
+	if (!check_auth_modules())
+		/* Error has been sent */
+		return;
 
 	/* PUT and DELETE are handled by CGI scripts */
 	if (!strcasecmp(env.request_method, "PUT") ||

@@ -232,10 +232,19 @@ environment variable that should be presented to CGI
 binaries. This must be a colon separated list of
 directories; no sanity checking is done. A reasonable
 default is provided.
+.El
+.Ss Global module optinos
+If webserver modules are enabled, additional configuration
+options may be available in the global section. If the relevant
+module is not available, then using such an option will generate
+a fatal error.
+.Bl -tag -width Ds
+.It Sy mod_perl
+.Bl -tag -width Ds
 .It Sy PerlPersistentScript Aq contrib/persistent.pl
 Location of the script that is used for internal handling of
-Perl CGI's. This option is only available when the server is
-compiled with Perl support.
+Perl CGI's.
+.El
 .El
 .Ss Socket Options
 It is possible to bind to multiple sockets at the same time

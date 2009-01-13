@@ -3,7 +3,9 @@
 #include       "@srcdir@/config.h"
 #include       "@srcdir@/malloc.h"
 
-extern struct module @mod_decl@;
+const char	*module_names[] = { @mod_name@ NULL, };
+
+extern struct module @mod_decl@ nonexistent;
 
 struct module *modules[] =
 {

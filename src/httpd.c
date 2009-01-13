@@ -72,7 +72,6 @@
 #include	"path.h"
 #include	"convert.h"
 #include	"authenticate.h"
-#include	"ldap.h"
 #include	"malloc.h"
 #include	"fcgi.h"
 #include	"modules.h"
@@ -1707,11 +1706,6 @@ main(int argc, char **argv, char **envp)
 #else		/* HAVE_PCRE */
 				"-PCRE "
 #endif		/* HAVE_PCRE */
-#ifdef		AUTH_LDAP
-				"+LDAP "
-#else		/* AUTH_LDAP */
-				"-LDAP "
-#endif		/* AUTH_LDAP */
 #ifdef		HAVE_CURL
 				"+CURL "
 #else		/* HAVE_CURL */
@@ -1727,7 +1721,12 @@ main(int argc, char **argv, char **envp)
 #else		 /* HANDLE_SSL_TLSEXT */
   				"-TLSEXT "
 #endif		 /* HANDLE_SSL_TLSEXT */
-				"\nDefault configuration file:\n"
+				);
+			printf("\nAvailable modules:\n\t");
+			for (const char *mod, **mods = module_names;
+					(mod = *mods); mods++)
+				printf("%s ", mod);
+			printf("\nConfiguration file:\n"
 #ifdef		PATH_PREPROCESSOR
 				"\t%s %s\n", config_preprocessor, config_path
 #else		/* PATH_PREPROCESSOR */

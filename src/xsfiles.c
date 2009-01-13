@@ -30,11 +30,11 @@
 #include	"htconfig.h"
 #include	"methods.h"
 #include	"extra.h"
-#include	"ldap.h"
 #include	"pcre.h"
 #include	"authenticate.h"
 #include	"xsfiles.h"
 #include	"malloc.h"
+#include	"modules.h"
 
 #ifdef		HAVE_STRUCT_IN6_ADDR
 # ifndef	IN6_ARE_MASKED_ADDR_EQUAL
@@ -402,10 +402,8 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 	bool	restrictcheck = 0, restrictallow = 0;
 	bool	sslcheck = 0, sslallow = 0;
 	FILE    *fp;
-	struct ldap_auth	ldap;
 
 	authfiles = NULL;
-	memset(&ldap, 0, sizeof(ldap));
 
 	if (!(fp = fopen(cffile, "r")))
 	{
@@ -541,40 +539,6 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 		else if (!strcasecmp(name, "NoPrivs"))
 			cfvalues->noprivs = !strcasecmp("true", value);
 
-		/* ldap options */
-		else if (!strcasecmp(name, "LdapHost"))
-		{
-			if (ldap.uri)
-				free(ldap.uri);
-			asprintf(&ldap.uri, "ldap://%s", value);
-		}
-		else if (!strcasecmp(name, "LdapURI"))
-		{
-			if (ldap.uri)
-				free(ldap.uri);
-			STRDUP(ldap.uri, value);
-		}
-		else if (!strcasecmp(name, "LdapAttr"))
-		{
-			if (ldap.attr)
-				free(ldap.attr);
-			STRDUP(ldap.attr, value);
-		}
-		else if (!strcasecmp(name, "LdapDN"))
-		{
-			if (ldap.dn)
-				free(ldap.dn);
-			STRDUP(ldap.dn, value);
-		}
-		else if (!strcasecmp(name, "LdapVersion"))
-			ldap.version = strtoul(value, NULL, 10);
-		else if (!strcasecmp(name, "LdapGroups"))
-		{
-			if (ldap.groups)
-				free(ldap.groups);
-			STRDUP(ldap.groups, value);
-		}
-
 		/* SSL client cert options */
 		else if (!strcasecmp(name, "SSLSubjectMatch"))
 		{
@@ -600,6 +564,12 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 			else
 				sslallow |= smatch;
 		}
+		else
+			/* Check modules for configuration directives */
+			for (struct module *mod, **mods = modules;
+					(mod = *mods); mods++)
+				if (mod->config_local)
+					mod->config_local(name, value);
 
 		/* ... and much more ... */
 	}
@@ -618,11 +588,11 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 		if (i + 1 < num_authfiles)
 		{
 			/* suppress errors from check_auth() */
-			if (check_auth(authfiles[i], NULL, true))
+			if (check_auth(authfiles[i], true))
 				/* access granted */
 				break;
 		}
-		else if (!check_auth(authfiles[i], NULL, false))
+		else if (!check_auth(authfiles[i], false))
 		{
 			/* a 401 response has been sent */
 			free_string_array(authfiles, num_authfiles);
@@ -630,10 +600,6 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 		}
 	}
 	free_string_array(authfiles, num_authfiles);
-
-	if (ldap.dn && !check_auth(NULL, &ldap, false))
-		/* a 401 response has been sent */
-		return true;
 
 	return false;
 }

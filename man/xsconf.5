@@ -169,9 +169,43 @@ this policy will be added to the headers of the requested
 document.
 .El
 .Pp
-If LDAP support is enabled at compile time, then special
-directives can be used to enable password checks through a
-remote authentication server.
+.Bl -tag -width Ds
+Extra authentication options are available when SSL and PCRE
+are compiled in and SSL client certificates are used. SSL
+client certificates must be enabled explicitly via the
+.Sy SSLAuthentication
+option in
+.Xr httpd.conf 5 .
+.It Sy SSLSubjectMatch
+The argument should be a regular expression that is matched
+against the
+.Ql distinguished name
+field of the subject mentioned on the SSL client certificate.
+The contents of this field is also available through the
+.Ev SSL_CLIENT_S_DN
+environment variable.
+Access is only granted if this information is available and
+matches the data in the certificate. Multiple
+.Sy SSLSubjectMatch
+directives are allowed, in which case access is granted if
+any of these match the certificate subject.
+.It Sy SSLIssuerMatch
+A regular expression that is matched against the issuer
+information of the client certificate. Usage is similar to
+the
+.Sy SSLSubjectMatch
+directive.
+.El
+.Ss Module Configuration Directives
+Optional modules can be enabled for the webserver. In this case,
+extra configuration directives for the specific modules are
+available as well. These settings will be silently ingored when
+the relevant webserver module is not loaded.
+.Pp
+.Ss mod_ldap
+.Pp
+If LDAP support is enabled, then special directives can be used
+to enable password checks through a remote authentication server.
 .Bl -tag -width Ds
 .It Sy LdapHost
 Set the hostname or IP address of the LDAP authentication server.
@@ -202,34 +236,6 @@ List of groups of which the user should be a member. If the
 username is found in any of these groups, then access will
 be granted. If no groups are specified, then a matching
 username and password will be enough to be granted access.
-.El
-.Pp
-.Bl -tag -width Ds
-Extra authentication options are available when SSL and PCRE
-are compiled in and SSL client certificates are used. SSL
-client certificates must be enabled explicitly via the
-.Sy SSLAuthentication
-option in
-.Xr httpd.conf 5 .
-.It Sy SSLSubjectMatch
-The argument should be a regular expression that is matched
-against the
-.Ql distinguished name
-field of the subject mentioned on the SSL client certificate.
-The contents of this field is also available through the
-.Ev SSL_CLIENT_S_DN
-environment variable.
-Access is only granted if this information is available and
-matches the data in the certificate. Multiple
-.Sy SSLSubjectMatch
-directives are allowed, in which case access is granted if
-any of these match the certificate subject.
-.It Sy SSLIssuerMatch
-A regular expression that is matched against the issuer
-information of the client certificate. Usage is similar to
-the
-.Sy SSLSubjectMatch
-directive.
 .El
 .Sh EXAMPLES
 An

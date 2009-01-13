@@ -18,12 +18,6 @@ typedef	enum { log_none, log_traditional, log_combined, log_virtual }	logstyle_t
 typedef enum { auth_none, auth_optional, auth_strict }	sslauth_t;
 typedef enum { ERR_NONE, ERR_CONT, ERR_QUIT, ERR_LINE, ERR_CLOSE } xs_error_t;
 
-struct ldap_auth
-{
-	char	*uri, *attr, *dn, *groups;
-	int	version;
-};
-
 struct mapping
 {
 	char	*index, *value;

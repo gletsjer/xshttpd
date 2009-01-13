@@ -385,8 +385,7 @@ load_config()
 						!strcasecmp("UseCharset", key) ||
 						!strcasecmp("UseRestrictAddr", key) ||
 						!strcasecmp("UseVirtualHost", key) ||
-						!strcasecmp("UsePcreRedir", key) ||
-						!strcasecmp("UseLdapAuth", key))
+						!strcasecmp("UsePcreRedir", key))
 					warnx("Configuration option '%s' is deprecated",
 						key);
 				else if (!strcasecmp("SSLCertificate", key))

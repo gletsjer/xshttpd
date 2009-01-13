@@ -6,12 +6,11 @@
 #include	"config.h"
 #include	<stdbool.h>
 
-#include	"ldap.h"
-
 #define		REALM		"this page"
 #define		MAX_NONCE_LENGTH	60
 
 void	initnonce	(void);
-bool	check_auth	(const char *, const struct ldap_auth *, bool)	WARNUNUSED;
+bool	check_auth	(const char *, bool)	WARNUNUSED;
+bool	check_auth_modules	(void)		WARNUNUSED;
 
 #endif		/* AUTHENTICATE_H */

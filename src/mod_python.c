@@ -7,11 +7,12 @@
 
 #include	<python2.5/Python.h>
 
-#include	"htconfig.h"
 #include	"malloc.h"
 #include	"modules.h"
 #include	"path.h"
 
+int	python_init(void);
+int	python_handler(const char *filename);
 
 int
 python_init()
@@ -21,7 +22,7 @@ python_init()
 }
 
 int
-python_handler(char *filename)
+python_handler(const char *filename)
 {
 	FILE    *fp = fopen(filename, "r");
 	PyRun_SimpleFile(fp, filename);

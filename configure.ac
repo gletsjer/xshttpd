@@ -116,13 +116,15 @@ AS_IF([test x$with_pcre = xyes], [
 	XS_TRY_CONFIG(pcre, httpd)
 	])
 
-XS_CHECK_WITH(ldap, LDAP authentication support, no)
-AS_IF([test x$with_ldap = xyes],
-	[XS_FUNC_IN_LIB(ldap_initialize, AUTH_LDAP, ldap, httpd)])
-
 XS_CHECK_WITH(curl, CURL transfer support, no)
 AS_IF([test x$with_curl = xyes], [
 	XS_TRY_CONFIG(curl, httpd)
+	])
+
+XS_CHECK_WITH(ldap, LDAP authentication support, no)
+AS_IF([test x$with_ldap = xyes],
+	[XS_FUNC_IN_LIB(ldap_initialize, HAVE_LDAP, ldap, libmod)
+	 test x$ac_cv_search_ldap_initialize != xno && modules="${modules} ldap"
 	])
 
 XS_CHECK_WITH(perl, PERL persistent interpreter, no)
@@ -214,15 +216,20 @@ AS_IF([test x${enable_ssp} = xyes], [
 	])
 
 dnl write modules.c
-mod_decl="nonexistent"
 for m in ${modules}
 do
-	mod_decl="${mod_decl}, ${m}_module"
+	mod_decl="${mod_decl} ${m}_module,"
 	mod_list="${mod_list} &${m}_module,"
+	mod_name="${mod_name} \"${m}\","
 done
+mod_decl="${mod_decl# }"
+mod_list="${mod_list# }"
+mod_name="${mod_name# }"
 AM_CONDITIONAL(MOD_PERL,   [echo "${modules}" | grep -q perl])
 AM_CONDITIONAL(MOD_PYTHON, [echo "${modules}" | grep -q python])
 AM_CONDITIONAL(MOD_RUBY,   [echo "${modules}" | grep -q ruby])
+AM_CONDITIONAL(MOD_LDAP,   [echo "${modules}" | grep -q ldap])
+AC_DEFINE_UNQUOTED(MODULES, "${modules}", [Modules enabled during compilation])
 
 dnl Generate configure output.
 AC_SUBST(libxs_ldflags)
@@ -234,5 +241,6 @@ AC_SUBST(httpd_cflags)
 AC_SUBST(SERVER_IDENT)
 AC_SUBST(mod_decl)
 AC_SUBST(mod_list)
+AC_SUBST(mod_name)
 AC_CONFIG_FILES([Makefile config/Makefile contrib/Makefile fonts/Makefile icons/Makefile man/Makefile libcompat/Makefile src/Makefile man/httpd.1 src/modules.c])
 AC_OUTPUT
