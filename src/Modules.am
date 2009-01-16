@@ -1,0 +1,53 @@
+pkglibdir = $(moduledir)
+pkglib_LTLIBRARIES =
+httpd_dlopen =
+
+if MOD_PERL
+httpd_dlopen += -dlopen mod_perl.la
+pkglib_LTLIBRARIES += mod_perl.la
+mod_perl_la_SOURCES = mod_perl.c
+mod_perl_la_CFLAGS = @perl_cflags@
+mod_perl_la_LIBADD = @perl_ldflags@
+mod_perl_la_LDFLAGS = -module -export-dynamic
+endif
+
+if MOD_PYTHON
+httpd_dlopen += -dlopen mod_python.la
+pkglib_LTLIBRARIES += mod_python.la
+mod_python_la_SOURCES = mod_python.c
+mod_python_la_CFLAGS = @python_cflags@
+mod_python_la_LIBADD = @python_ldflags@
+mod_python_la_LDFLAGS = -module -export-dynamic
+endif
+
+if MOD_RUBY
+httpd_dlopen += -dlopen mod_ruby.la
+pkglib_LTLIBRARIES += mod_ruby.la
+mod_ruby_la_SOURCES = mod_ruby.c
+mod_ruby_la_CFLAGS = @ruby_cflags@
+mod_ruby_la_LIBADD = @ruby_ldflags@
+mod_ruby_la_LDFLAGS = -module -export-dynamic
+endif
+
+if MOD_LDAP
+httpd_dlopen += -dlopen mod_ldap.la
+pkglib_LTLIBRARIES += mod_ldap.la
+mod_ldap_la_SOURCES = mod_ldap.c
+mod_ldap_la_CFLAGS = @ldap_cflags@
+mod_ldap_la_LIBADD = @ldap_ldflags@
+mod_ldap_la_LDFLAGS = -module -export-dynamic
+endif
+
+# only install the shared libaries. yes, really.
+install-pkglibLTLIBRARIES: $(pkglib_LTLIBRARIES)
+	@$(NORMAL_INSTALL)
+	test -z "$(pkglibdir)" || $(MKDIR_P) "$(DESTDIR)$(pkglibdir)"
+	@list='$(pkglib_LTLIBRARIES)'; for p in $$list; do \
+	  p=".libs/$${p%.la}.so"; \
+	  if test -f $$p; then \
+	    f=$(am__strip_dir) \
+	    echo " $(pkglibLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) '$$p' '$(DESTDIR)$(pkglibdir)/$$f'"; \
+	    $(pkglibLTLIBRARIES_INSTALL) $(INSTALL_STRIP_FLAG) "$$p" "$(DESTDIR)$(pkglibdir)/$$f"; \
+	  else :; fi; \
+	done
+

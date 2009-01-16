@@ -396,6 +396,7 @@ open_logs(int sig)
 	loadscripttypes(NULL, NULL);
 
 	/* initialise modules */
+	init_modules();
 	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
 		if (mod->init)
 			mod->init();

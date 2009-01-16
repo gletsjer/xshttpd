@@ -84,3 +84,5 @@ struct module perl_module =
 	.config_general = perl_config_general,
 };
 
+struct module *_perl_module_p = &perl_module;
+
