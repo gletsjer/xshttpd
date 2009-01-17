@@ -51,13 +51,14 @@ md5file(const char *filename, char *hash)
 	MD5_CTX		md5_ctx;
 	unsigned char	buf[BUFSIZ];
 
-	if ((fd = open(filename, O_RDONLY, 0)) < 0)
+	if ((fd = open(filename, O_RDONLY)) < 0)
 		return false;
 
 	MD5_Init(&md5_ctx);
-	while ((len = read(fd, buf, sizeof(buf))) >= 0)
+	while ((len = read(fd, buf, sizeof(buf))) > 0)
 		MD5_Update(&md5_ctx, buf, len);
 
+	close(fd);
 	return MD5_Final((unsigned char *)hash, &md5_ctx);
 }
 
