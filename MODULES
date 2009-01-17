@@ -1,0 +1,30 @@
+XS-httpd 3.7 introduces a system for including webserver modules
+into the server daemon. These modules can be hooked into the server
+at specific locations and may provide additional features that
+are not a core part of the webserver.
+
+Examples of such features are a persistent CGI script interpreter
+(e.g. for Python scripts) or an external authentication module.
+Often these modules will use an external system library.
+
+The modules may be configurable by the administrator or users via
+the global (httpd.conf) and local (.xsconf) configuration files.
+
+Every module must fill in a 'struct module <name>_module' variable
+(as defined in modules.h): this sets the module name and a list
+of callback functions that may be executed from the 'hooks'
+in the webserver.
+
+At the moment the following hooks are available. This list will
+likely be extended in the near future:
+
+init		module initialisation
+file_handler	handle representation (interpretation) of a stored file
+auth_basic	perform basic authentication (username, password)
+auth_digest	perform digest authentication (username, cookie)
+config_general	read global configuration options (httpd.conf)
+config_local	read local configuration options (.xsconf)
+
+Note that config_* functions will be called with NULL arguments
+before a configuration file is parsed: this may be used by the module
+to reset its previous configuration values.
