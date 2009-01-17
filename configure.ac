@@ -14,8 +14,9 @@ AC_PROG_CC_C99
 AS_IF([test x$ac_cv_prog_cc_c99 = xno],
 	AC_MSG_FAILURE([ISO C99 capable compiler required]))
 AC_PROG_INSTALL
-AC_LIBTOOL_DLOPEN
-AC_PROG_LIBTOOL
+dnl AC_LIBTOOL_DLOPEN
+dnl AC_PROG_LIBTOOL
+AC_PROG_RANLIB
 AC_PATH_PROG(ppmtogif, ppmtogif, /bin/true)
 AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "${ppmtogif}",
 	[ppmtogif-like program used to create graphic counters])
@@ -68,6 +69,7 @@ XS_FUNC_IN_LIB(inet_aton, HAVE_INET_ATON, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(inet_pton, HAVE_INET_PTON, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(getaddrinfo, HAVE_GETADDRINFO, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(getnameinfo, HAVE_GETNAMEINFO, nsl, httpd, -lsocket)
+XS_FUNC_IN_LIB(dlopen, HAVE_DLOPEN, dl, httpd)
 XS_FUNC_IN_LIB(fparseln, HAVE_FPARSELN, util, libxs)
 
 AS_IF([test "$ac_cv_search_inet_aton" = no], [AC_LIBOBJ(inet_aton)])
