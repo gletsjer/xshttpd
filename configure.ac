@@ -9,10 +9,13 @@ AC_DEFINE_UNQUOTED(SERVER_IDENT, "${SERVER_IDENT}", [Server version])
 AC_CONFIG_HEADERS([config.h])
 
 dnl Checks for programs.
+AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC_C99
 AS_IF([test x$ac_cv_prog_cc_c99 = xno],
 	AC_MSG_FAILURE([ISO C99 capable compiler required]))
 AC_PROG_INSTALL
+dnl AC_LIBTOOL_DLOPEN
+dnl AC_PROG_LIBTOOL
 AC_PROG_RANLIB
 AC_PATH_PROG(ppmtogif, ppmtogif, /bin/true)
 AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "${ppmtogif}",
@@ -27,7 +30,6 @@ httpd_ldflags="${LDFLAGS}"
 libxs_ldflags="${LDFLAGS}"
 
 dnl Checks for header files.
-AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
 AC_CHECK_HEADERS([err.h getopt.h util.h sys/param.h sys/select.h sys/sendfile.h], [], [], [[]])
 AC_CHECK_HEADERS([sys/syslimits.h libutil.h sys/resource.h sys/mman.h], [], [], [#include <sys/cdefs.h>
@@ -67,6 +69,7 @@ XS_FUNC_IN_LIB(inet_aton, HAVE_INET_ATON, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(inet_pton, HAVE_INET_PTON, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(getaddrinfo, HAVE_GETADDRINFO, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(getnameinfo, HAVE_GETNAMEINFO, nsl, httpd, -lsocket)
+XS_FUNC_IN_LIB(dlopen, HAVE_DLOPEN, dl, httpd)
 XS_FUNC_IN_LIB(fparseln, HAVE_FPARSELN, util, libxs)
 
 AS_IF([test "$ac_cv_search_inet_aton" = no], [AC_LIBOBJ(inet_aton)])
@@ -111,48 +114,42 @@ libxs_ldflags="${libxs_ldflags} ${ssllib}"
 httpd_ldflags="${httpd_ldflags} ${xssl_ldflags}"
 
 dnl User specified additional (non-system) libraries.
-XS_CHECK_WITH(pcre, PCRE support, yes)
-AS_IF([test x$with_pcre = xyes], [
-	XS_TRY_CONFIG(pcre, httpd)
+XS_CHECK_WITH(pcre, PCRE support, yes, [XS_TRY_CONFIG(pcre, httpd)])
+
+XS_CHECK_WITH(curl, CURL transfer support, no, [XS_TRY_CONFIG(curl, httpd)])
+
+XS_CHECK_WITH(ldap, LDAP authentication support, no, [
+	XS_FUNC_IN_LIB(ldap_initialize, HAVE_LDAP, ldap, ldap)
+	AC_SUBST(ldap_cflags)
+	AC_SUBST(ldap_ldflags)
+	test x$ac_cv_search_ldap_initialize != xno && modules="${modules} ldap"
 	])
 
-XS_CHECK_WITH(curl, CURL transfer support, no)
-AS_IF([test x$with_curl = xyes], [
-	XS_TRY_CONFIG(curl, httpd)
-	])
-
-XS_CHECK_WITH(ldap, LDAP authentication support, no)
-AS_IF([test x$with_ldap = xyes],
-	[XS_FUNC_IN_LIB(ldap_initialize, HAVE_LDAP, ldap, libmod)
-	 test x$ac_cv_search_ldap_initialize != xno && modules="${modules} ldap"
-	])
-
-XS_CHECK_WITH(perl, PERL persistent interpreter, no)
-AS_IF([test x$with_perl = xyes], [
+XS_CHECK_WITH(perl, PERL persistent interpreter, no, [
 	AC_PATH_PROG(perlpath, perl)
 	AS_IF([test -n "${perlpath}"], [
 		modules="${modules} perl"
-		libmod_cflags="${libmod_cflags} `${perlpath} -MExtUtils::Embed -e ccopts`"
-		libmod_ldflags="${libmod_ldflags} `${perlpath} -MExtUtils::Embed -e ldopts`"
+		AC_SUBST(perl_cflags, ["`${perlpath} -MExtUtils::Embed -e ccopts`"])
+		AC_SUBST(perl_ldflags, ["`${perlpath} -MExtUtils::Embed -e ldopts`"])
 		])
 	AC_MSG_WARN([Internal Perl interpreter is still EXPERIMENTAL])
 	])
 
-XS_CHECK_WITH(python, Python interpreter, no)
-AS_IF([test x$with_python = xyes], [
-	XS_TRY_CONFIG(python, libmod)
-	AS_IF([test -z "${xs_python_path}"],
-		[XS_TRY_CONFIG([python2.5], libmod)]
-		AS_IF([test -z "${xs_python2_5_path}"],
-			[modules="${modules} python"]),
-		[modules="${modules} python"])
+XS_CHECK_WITH(python, Python interpreter, no, [
+	XS_TRY_CONFIG(python, python, [modules="${modules} python"], [
+		XS_TRY_CONFIG([python2.5], python, 
+			[modules="${modules} python"])
+		])
 	AC_MSG_WARN([Internal Python interpreter is still EXPERIMENTAL])
+	AC_SUBST(python_cflags)
+	AC_SUBST(python_ldflags)
 	])
 
-XS_CHECK_WITH(ruby, Ruby interpreter, no)
-AS_IF([test x$with_ruby = xyes], [
-	XS_FUNC_IN_LIB(ruby_run, HAVE_RUBY, [ruby18], libmod)
+XS_CHECK_WITH(ruby, Ruby interpreter, no, [
+	XS_FUNC_IN_LIB(ruby_run, HAVE_RUBY, [ruby18], ruby)
 	test x$ac_cv_search_ruby_run != xno && modules="${modules} ruby"
+	AC_SUBST(ruby_cflags)
+	AC_SUBST(ruby_ldflags)
 	AC_MSG_WARN([Internal Ruby interpreter is still EXPERIMENTAL])
 dnl	rubyhdr="`ruby -r mkmf -e 'print ($hdrdir)'`/ruby.h"
 dnl	AC_DEFINE_UNQUOTED(RUBY_HDR, "${rubyhdr}", [Ruby include file])
@@ -195,6 +192,7 @@ XS_ARG_DIR(html,    HTML_DIR,   [htdocs])
 XS_ARG_DIR(icon,    ICON_DIR,   [icons])
 XS_ARG_DIR(phicon,  PHICON_DIR, [icons])
 XS_ARG_DIR(log,     LOG_DIR,    [logs])
+XS_ARG_DIR(module,  MODULE_DIR, [module])
 
 dnl User may tweak compilation behaviour.
 XS_ARG_DEFAULT(warnings, HAVE_GDB, no, [enable extra compiler warnings])
@@ -218,29 +216,23 @@ AS_IF([test x${enable_ssp} = xyes], [
 dnl write modules.c
 for m in ${modules}
 do
-	mod_decl="${mod_decl} ${m}_module,"
-	mod_list="${mod_list} &${m}_module,"
 	mod_name="${mod_name} \"${m}\","
 done
-mod_decl="${mod_decl# }"
-mod_list="${mod_list# }"
-mod_name="${mod_name# }"
+mod_name="{ ${mod_name# } NULL }"
 AM_CONDITIONAL(MOD_PERL,   [echo "${modules}" | grep -q perl])
 AM_CONDITIONAL(MOD_PYTHON, [echo "${modules}" | grep -q python])
 AM_CONDITIONAL(MOD_RUBY,   [echo "${modules}" | grep -q ruby])
 AM_CONDITIONAL(MOD_LDAP,   [echo "${modules}" | grep -q ldap])
-AC_DEFINE_UNQUOTED(MODULES, "${modules}", [Modules enabled during compilation])
+AC_DEFINE_UNQUOTED(MODULES, [${mod_name}], [Modules enabled during compilation])
 
 dnl Generate configure output.
 AC_SUBST(libxs_ldflags)
 AC_SUBST(libxs_cflags)
-AC_SUBST(libmod_ldflags)
-AC_SUBST(libmod_cflags)
 AC_SUBST(httpd_ldflags)
 AC_SUBST(httpd_cflags)
 AC_SUBST(SERVER_IDENT)
 AC_SUBST(mod_decl)
 AC_SUBST(mod_list)
 AC_SUBST(mod_name)
-AC_CONFIG_FILES([Makefile config/Makefile contrib/Makefile fonts/Makefile icons/Makefile man/Makefile libcompat/Makefile src/Makefile man/httpd.1 src/modules.c])
+AC_CONFIG_FILES([Makefile config/Makefile contrib/Makefile fonts/Makefile icons/Makefile man/Makefile libcompat/Makefile src/Makefile man/httpd.1])
 AC_OUTPUT

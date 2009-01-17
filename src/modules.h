@@ -7,6 +7,8 @@
 
 extern const char	*module_names[];
 
+bool	init_modules(void);
+
 struct module
 {
 	const char	*name;
@@ -19,6 +21,6 @@ struct module
 	bool	(*config_local) (const char *key, const char *value);
 };
 
-extern struct module *modules[];
+extern struct module **modules;
 
 #endif		/* MODULES_H */

@@ -1,0 +1,44 @@
+# Automake doesn't really grok shared libraries,
+# but I'm sure we can find a way around that
+
+libdir = $(moduledir)
+RANLIB = :
+SO_CFLAGS = -fPIC
+lib_LIBRARIES =
+
+if MOD_PERL
+lib_LIBRARIES += mod_perl.so
+mod_perl_so_SOURCES = mod_perl.c path.c
+mod_perl_so_CFLAGS = $(SO_CFLAGS) @perl_cflags@
+mod_perl_so_LIBADD = @perl_ldflags@
+mod_perl_so_LDFLAGS = -shared -rdynamic $(LDFLAGS)
+mod_perl_so_AR = $(CC) $(mod_perl_so_LDFLAGS) -o
+endif
+
+if MOD_PYTHON
+lib_LIBRARIES += mod_python.so
+mod_python_so_SOURCES = mod_python.c
+mod_python_so_CFLAGS = $(SO_CFLAGS) @python_cflags@
+mod_python_so_LIBADD = @python_ldflags@
+mod_python_so_LDFLAGS = -shared -rdynamic $(LDFLAGS)
+mod_python_so_AR = $(CC) $(mod_python_so_LDFLAGS) -o
+endif
+
+if MOD_RUBY
+lib_LIBRARIES += mod_ruby.so
+mod_ruby_so_SOURCES = mod_ruby.c
+mod_ruby_so_CFLAGS = $(SO_CFLAGS) @ruby_cflags@
+mod_ruby_so_LIBADD = @ruby_ldflags@
+mod_ruby_so_LDFLAGS = -shared -rdynamic $(LDFLAGS)
+mod_ruby_so_AR = $(CC) $(mod_ruby_so_LDFLAGS) -o
+endif
+
+if MOD_LDAP
+lib_LIBRARIES += mod_ldap.so
+mod_ldap_so_SOURCES = mod_ldap.c
+mod_ldap_so_CFLAGS = $(SO_CFLAGS) @ldap_cflags@
+mod_ldap_so_LIBADD = @ldap_ldflags@
+mod_ldap_so_LDFLAGS = -shared -rdynamic $(LDFLAGS)
+mod_ldap_so_AR = $(CC) $(mod_ldap_so_LDFLAGS) -o
+endif
+

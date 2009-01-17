@@ -42,7 +42,7 @@ AC_DEFUN([XS_FUNC_IN_LIB], [
 	LIBS=
 	])
 
-# XS_CHECK_WITH(function, desc, default)
+# XS_CHECK_WITH(function, desc, default, [action-if-yes], [action-if-no])
 AC_DEFUN([XS_CHECK_WITH], [
 	AC_MSG_CHECKING([if you want $2])
 	AC_ARG_WITH($1,
@@ -50,19 +50,32 @@ AC_DEFUN([XS_CHECK_WITH], [
 		AC_MSG_RESULT(${with_$1}),
 		AS_TR_SH(with_$1)=$3
 		AC_MSG_RESULT($3))
+	AS_IF([test x$with_$1 != x -a x$with_$1 != xno], [$4], [$5])
 	])
 
-# XS_TRY_CONFIG(path, buildprog)
+# XS_CHECK_PC(prog, library, [action-if-yes], [action-if-no])
+AC_DEFUN([XS_CHECK_PC], [
+	PKG_CHECK_MODULES(AS_TR_SH($1), [lib$1], [
+		$2_cflags="${$2_cflags} ${AS_TR_SH($1_CFLAGS)}"
+		$2_ldflags="${$2_ldflags} ${AS_TR_SH($1_LIBS)}"
+		AC_DEFINE_UNQUOTED(AS_TR_CPP(HAVE_$1), 1,
+			[Define this if you have the $1 libary])
+		$3
+		],
+		[$4])
+	])
+
+# XS_TRY_CONFIG(path, buildprog, [action-if-yes], [action-if-no])
 AC_DEFUN([XS_TRY_CONFIG], [
-	unset progpath ac_cv_path_progpath
-	AC_PATH_PROG(progpath, $1-config)
-	AS_TR_SH(xs_$1_path)="$progpath"
-	AS_IF([test -n "${progpath}"],
-		[$2_cflags="${$2_cflags} `${progpath} --cflags`"
-		 $2_ldflags="${$2_ldflags} `${progpath} --libs`"
-		 AC_DEFINE_UNQUOTED(AS_TR_CPP(HAVE_$1), 1,
-			 [Define this if you have the $1 libary])
-		 ])
+	    AC_PATH_PROG(AS_TR_SH(xs_$1_path), $1-config)
+	    AS_IF([test -n "${AS_TR_SH(xs_$1_path)}"], [
+		$2_cflags="${$2_cflags} `${AS_TR_SH(xs_$1_path)} --cflags`"
+		$2_ldflags="${$2_ldflags} `${AS_TR_SH(xs_$1_path)} --libs`"
+		AC_DEFINE_UNQUOTED(AS_TR_CPP(HAVE_$1), 1,
+			[Define this if you have the $1 libary])
+		$3
+		],
+		[$4])
 	])
 
 AC_DEFUN([XS_FUNC_SENDFILE], [

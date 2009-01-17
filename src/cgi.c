@@ -326,8 +326,9 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 		/* interpreter modules */
 		if (engine)
-			for (struct module *mod = modules[0]; mod; mod++)
-				if (!strcmp(engine, mod->engine))
+			for (struct module *mod, **mods = modules;
+					(mod = *mods); mods++)
+				if (mod->engine && !strcmp(engine, mod->engine))
 				{
 					mod->file_handler(fullpath);
 					exit(0);
