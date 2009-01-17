@@ -395,12 +395,6 @@ open_logs(int sig)
 	loadcompresstypes();
 	loadscripttypes(NULL, NULL);
 
-	/* initialise modules */
-	init_modules();
-	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
-		if (mod->init)
-			mod->init();
-
 #ifdef		HAVE_CURL
 	curl_global_init(CURL_GLOBAL_ALL);
 #endif		/* HAVE_CURL */
@@ -1206,6 +1200,14 @@ standalone_main()
 	detach();
 	write_pidfile();
 	open_logs(0);
+
+	/* initialise modules */
+	init_modules();
+	module_config();
+
+	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
+		if (mod->init)
+			mod->init();
 
 	/* start with second socket - the first will be last */
 	for (cursock = config.sockets->next; cursock; cursock = cursock->next)

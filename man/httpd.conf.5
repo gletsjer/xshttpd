@@ -232,6 +232,15 @@ environment variable that should be presented to CGI
 binaries. This must be a colon separated list of
 directories; no sanity checking is done. A reasonable
 default is provided.
+.It Sy Modules Ar module Oo Ar module ... Oc Aq *
+A list with the names of all dynamic modules that should
+be loaded with the webserver (e.g.
+.Ql perl, ldap ) .
+When this option is not present or specified as the special value
+.Ql Sy *
+then a default list of modules will be loaded.
+The list of default modules can be queried with the command
+.Ql httpd -v .
 .El
 .Ss Global module optinos
 If webserver modules are enabled, additional configuration

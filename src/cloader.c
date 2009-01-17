@@ -74,6 +74,13 @@ char			*config_preprocessor;
 struct configuration	config;
 struct virtual		*current;
 
+struct config_option
+{
+	char		*key;
+	char		*value;
+	struct config_option	*next;
+} *unknown_options = NULL;
+
 void
 load_config()
 {
@@ -210,19 +217,18 @@ load_config()
 						config.priority = strtoul(value, NULL, 10);
 					else if (!strcasecmp("ScriptPriority", key))
 						config.scriptpriority = strtoul(value, NULL, 10);
+					else if (!strcasecmp("Modules", key))
+						string_to_arraypn(value, &config.modules);
 					else
 					{
-						/* Check modules for configuration directives */
-						bool	used = false;
+						/* Might be a module option: store for later */
+						struct	config_option	*option;
 
-						for (struct module *mod, **mods = modules;
-								(mod = *mods); mods++)
-						{
-							if (mod->config_general)
-								used |= mod->config_general(key, value);
-						}
-						if (!used)
-							errx(1, "illegal global directive: '%s'", key);
+						MALLOC(option, struct config_option, 1);
+						STRDUP(option->key, key);
+						STRDUP(option->value, value);
+						option->next = unknown_options;
+						unknown_options = option;
 					}
 				}
 				else if (subtype == sub_socket)
@@ -634,9 +640,36 @@ load_config()
 }
 
 void
+module_config()
+{
+	/* Reset module configurations */
+	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
+		if (mod->config_general)
+			mod->config_general(NULL, NULL);
+
+	for (struct config_option *option = unknown_options;
+			option; option = option->next)
+	{
+		/* Check modules for configuration directives */
+		bool	used = false;
+
+		for (struct module *mod, **mods = modules;
+				(mod = *mods); mods++)
+		{
+			if (mod->config_general)
+				used |= mod->config_general
+					(option->key, option->value);
+		}
+		if (!used)
+			errx(1, "illegal global directive: '%s'", option->key);
+	}
+}
+
+void
 remove_config()
 {
 	/* XXX: Rewrite this to avoid memory leaks */
 	memset(&config, 0, sizeof config);
+	unknown_options = NULL;
 }
 

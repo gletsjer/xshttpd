@@ -67,7 +67,7 @@ perl_handler(const char *filename)
 bool
 perl_config_general(const char *key, const char *value)
 {
-	if (!strcasecmp("PerlPersistentScript", key))
+	if (key && !strcasecmp("PerlPersistentScript", key))
 	{
 		STRDUP(perlscript, value);
 		return true;

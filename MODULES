@@ -6,8 +6,10 @@ are not a core part of the webserver.
 Examples of such features are a persistent CGI script interpreter
 (e.g. for Python scripts) or an external authentication module.
 Often these modules will use an external system library.
+The webserver daemon itself no longer needs to be linked directly
+with these external libraries.
 
-The modules may be configurable by the administrator or users via
+The modules may be customisable by the administrator or users via
 the global (httpd.conf) and local (.xsconf) configuration files.
 
 Every module must fill in a 'struct module <name>_module' variable
