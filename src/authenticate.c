@@ -356,15 +356,11 @@ check_auth_modules(void)
 		*pass++ = 0;
 		for (struct module *mod, **mods = modules;
 				(mod = *mods); mods++)
-		{
 			if (mod->auth_basic)
-			{
-				/* Only one module needs to grant access */
-				if (mod->auth_basic(user, pass))
-					return true;
-			}
-		}
-		return denied_basic();
+				/* Every module needs to grant access */
+				allowed &= mod->auth_basic(user, pass);
+		/* At least one module needs to deny access */
+		return allowed ? true : denied_basic();
 	}
 
 	/* TODO: implement digest modules */
