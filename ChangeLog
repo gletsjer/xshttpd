@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 2
+- Fix authentication module logic: all modules need to grant access
+
 Changes since 3.7 beta 1
 - Modules are now implemented as shared libraries
 - Add Modules option to set which modules get loaded
