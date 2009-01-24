@@ -37,6 +37,7 @@
 #include	"cgi.h"
 #include	"fcgi.h"
 #include	"htconfig.h"
+#include	"hash.h"
 #include	"extra.h"
 #include	"malloc.h"
 #include	"modules.h"
@@ -651,6 +652,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				append(&head, false, "Server: %s\r\n", SERVER_IDENT);
 			if (session.httpversion >= 11)
 				append(&head, false, "Transfer-encoding: chunked\r\n");
+			if (config.usecontentmd5 && session.trailers)
+				append(&head, false, "Trailer: Content-MD5\r\n");
 			append(&head, false, "Date: %s\r\n", currenttime);
 			secprintf("%s\r\n", head);
 			if (head)
@@ -659,6 +662,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			if (session.rstatus != 204 && session.rstatus != 304 &&
 					session.httpversion >= 11)
 				session.chunked = true;
+			if (config.usecontentmd5 && session.trailers)
+				checksum_init();
 		}
 		freeheaders(&http_headers);
 	}
