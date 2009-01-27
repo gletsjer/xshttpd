@@ -3,6 +3,7 @@
 #include	"config.h"
 
 #include	<stdlib.h>
+#include	<unistd.h>
 #include	<err.h>
 
 #include	"malloc.h"
@@ -14,23 +15,25 @@ extern void     rb_load_file(const char *);
 extern void	ruby_init(void);
 extern void	ruby_script(const char *);
 
-int		mod_ruby_init(void);
-int		ruby_handler(const char *filename);
+bool		mod_ruby_init(void);
+bool		ruby_handler(const char *filename, int fdin, int fdout);
 
-int
+bool
 mod_ruby_init(void)
 {
 	ruby_init();
 	ruby_script("embedded");
-	return 0;
+	return true;
 }
 
-int
-ruby_handler(const char *filename)
+bool
+ruby_handler(const char *filename, int fdin, int fdout)
 {
+	dup2(fdout, STDOUT_FILENO);
 	rb_load_file(filename);
 	ruby_run();
-	return 0;
+	(void)fdin;
+	return true;
 }
 
 struct module ruby_module =

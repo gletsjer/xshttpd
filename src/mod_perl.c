@@ -17,11 +17,11 @@ char		*perlargs[] = { NULL, NULL };
 char		*perlscript = NULL;
 PerlInterpreter	*my_perl = NULL;
 
-int	perl_init(void);
-int	perl_handler(const char *filename);
+bool	perl_init(void);
+bool	perl_handler(const char *filename, int fdin, int fdout);
 bool	perl_config_general(const char *key, const char *value);
 
-int
+bool
 perl_init(void)
 {
 	char	*path, *embedding[] = { NULL, NULL };
@@ -44,7 +44,7 @@ perl_init(void)
 		{
 			perl_run(my_perl);
 			free(path);
-			return 0;
+			return true;
 		}
 	}
 
@@ -52,16 +52,20 @@ perl_init(void)
 	free(path);
 	perl_free(my_perl);
 	my_perl = NULL;
-	return 0;
+	return false;
 }
 
-int
-perl_handler(const char *filename)
+bool
+perl_handler(const char *filename, int fdin, int fdout)
 {
+	/* XXX: Should use fdin rather than filename */
+
+	dup2(fdout, STDOUT_FILENO);
 	STRDUP(perlargs[0], filename);
 	Perl_call_argv(aTHX_ "Embed::Persistent::eval_file",
 		G_DISCARD | G_EVAL, perlargs);
-	return 0;
+	(void)fdin;
+	return true;
 }
 
 bool

@@ -331,7 +331,15 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					(mod = *mods); mods++)
 				if (mod->engine && !strcmp(engine, mod->engine))
 				{
-					mod->file_handler(fullpath);
+					int	fd;
+					
+					if ((fd = open(fullpath, O_RDONLY)) < 0)
+					{
+						secprintf("Content-type: text/plain\r\n\r\n");
+						secprintf("[Cannot change directory]\n");
+						exit(1);
+					}
+					mod->file_handler(fullpath, fd, STDOUT_FILENO);
 					exit(0);
 				}
 

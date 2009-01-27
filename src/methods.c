@@ -185,14 +185,20 @@ sendheaders(int fd, off_t size)
 	{
 		char input[RWBUFSIZE];
 
-		/* fgets is better: read() may split HTML tags! */
-		while (read(fd, input, sizeof(input)))
-			if (strstr(input, "<!--#"))
-			{
-				dynamic = true;
-				break;
-			}
-		lseek(fd, (off_t)0, SEEK_SET);
+		if (lseek(fd, (off_t)0, SEEK_SET) < 0)
+			/* cannot seek in file: parse it anyway */
+			dynamic = true;
+		else
+		{
+			/* fgets is better: read() may split HTML tags! */
+			while (read(fd, input, sizeof(input)))
+				if (strstr(input, "<!--#"))
+				{
+					dynamic = true;
+					break;
+				}
+			lseek(fd, (off_t)0, SEEK_SET);
+		}
 	}
 
 	modtime = 0;
@@ -654,6 +660,7 @@ do_get(char *params)
 	const	struct	passwd	*userinfo;
 	char			*xsfile;
 	const	ctypes		*csearch = NULL, *isearch = NULL;
+	struct module		*inflate_module = NULL;
 
 	alarm(240);
 
@@ -1065,17 +1072,33 @@ do_get(char *params)
 	{
 		unsigned int	templen = sizeof(total) - strlen(total);
 
-		csearch = ctype;
 		temp = strchr(total, '\0');
-		while (csearch)
+
+		for (struct module *mod, **mods = modules;
+				(mod = *mods); mods++)
+			if (mod->inflate_handler && mod->file_extension)
+			{
+				strlcpy(temp, mod->file_extension, templen);
+				if (!stat(total, &statbuf))
+				{
+					inflate_module = mod;
+					break;
+				}
+			}
+
+		if (!inflate_module)
 		{
-			strlcpy(temp, csearch->ext, templen);
-			if (!stat(total, &statbuf))
-				break;
-			csearch = csearch->next;
+			csearch = ctype;
+			while (csearch)
+			{
+				strlcpy(temp, csearch->ext, templen);
+				if (!stat(total, &statbuf))
+					break;
+				csearch = csearch->next;
+			}
+			if (!csearch)
+				goto NOTFOUND;
 		}
-		if (!csearch)
-			goto NOTFOUND;
 	}
 
 	if (!S_ISREG(statbuf.st_mode) || delay_redir)
@@ -1244,7 +1267,32 @@ do_get(char *params)
 		return;
 	}
 
-	if (csearch)
+	if (inflate_module && inflate_module->inflate_handler)
+	{
+		if (strlen(inflate_module->file_encoding) &&
+			(temp = getenv("HTTP_ACCEPT_ENCODING")) &&
+			strstr(temp, inflate_module->file_encoding))
+		{
+			STRDUP(cfvalues.encoding,
+				inflate_module->file_encoding);
+			senduncompressed(fd);
+		}
+		else
+		{
+			int	p[2];
+
+			if (pipe(p) < 0)
+			{
+				xserror(500, "pipe(): %s", strerror(errno));
+				return;
+			}
+			inflate_module->inflate_handler(NULL, fd, p[1]);
+			close(p[1]);
+			senduncompressed(p[0]);
+			close(p[0]);
+		}
+	}
+	else if (csearch)
 	{
 		if (strlen(csearch->name) &&
 			(temp = getenv("HTTP_ACCEPT_ENCODING")) &&

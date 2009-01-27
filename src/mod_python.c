@@ -11,23 +11,25 @@
 #include	"modules.h"
 #include	"path.h"
 
-int	python_init(void);
-int	python_handler(const char *filename);
+bool	python_init(void);
+bool	python_handler(const char *filename, int fdin, int fdout);
 
-int
+bool
 python_init()
 {
 	Py_InitializeEx(0);
-	return 0;
+	return true;
 }
 
-int
-python_handler(const char *filename)
+bool
+python_handler(const char *filename, int fdin, int fdout)
 {
-	FILE    *fp = fopen(filename, "r");
+	FILE    *fp = fdopen(fdin, "r");
+
+	dup2(fdout, STDOUT_FILENO);
 	PyRun_SimpleFile(fp, filename);
 	fclose(fp);
-	return 0;
+	return true;
 }
 
 struct module python_module =
