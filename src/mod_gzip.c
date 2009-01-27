@@ -52,7 +52,7 @@ gzip_config_general(const char *key, const char *value)
 
 struct module gzip_module =
 {
-	.name = "gzip interpreter",
+	.name = "gzip decompression",
 	.file_extension = ".gz",
 	.file_encoding = "gzip",
 	.inflate_handler = gzip_handler,

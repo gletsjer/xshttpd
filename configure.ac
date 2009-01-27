@@ -122,7 +122,14 @@ XS_CHECK_WITH(gzip, GZIP support, yes, [
 	XS_FUNC_IN_LIB(gzopen, HAVE_GZIP, z, gzip)
 	AC_SUBST(gzip_cflags)
 	AC_SUBST(gzip_ldflags)
-	test x$ac_cv_search_ldap_initialize != xno && modules="${modules} gzip"
+	test x$ac_cv_search_ldap_initialize != xno && modules="${modules} gzip compress"
+	])
+
+XS_CHECK_WITH(bzip2, BZIP2 support, no, [
+	XS_FUNC_IN_LIB(BZ2_bzopen, HAVE_BZIP2, bz2, bzip2)
+	AC_SUBST(bzip2_cflags)
+	AC_SUBST(bzip2_ldflags)
+	test x$ac_cv_search_ldap_initialize != xno && modules="${modules} bzip2"
 	])
 
 XS_CHECK_WITH(ldap, LDAP authentication support, no, [
@@ -231,6 +238,7 @@ AM_CONDITIONAL(MOD_PYTHON, [echo "${modules}" | grep -q python])
 AM_CONDITIONAL(MOD_RUBY,   [echo "${modules}" | grep -q ruby])
 AM_CONDITIONAL(MOD_LDAP,   [echo "${modules}" | grep -q ldap])
 AM_CONDITIONAL(MOD_GZIP,   [echo "${modules}" | grep -q gzip])
+AM_CONDITIONAL(MOD_BZIP2,   [echo "${modules}" | grep -q bzip2])
 AC_DEFINE_UNQUOTED(MODULES, [${mod_name}], [Modules enabled during compilation])
 
 dnl Generate configure output.

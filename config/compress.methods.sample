@@ -27,7 +27,12 @@
 # but with the proper Content-Encoding specification. The browser will
 # automatically uncompress the document before the user views it. This
 # reduces disk space, webserver load and bandwith ;-)
+#
+# WARNING
+# Use of this file has been deprecated by decompression modules.
+# Please consider loading/writing a module rather than using this file
+# to execute an external binary to handle the decompression.
 
-/usr/bin/uncompress	.Z	compress
-/usr/bin/gunzip		.gz	gzip
-/usr/bin/bunzip2	.bz2	bzip2
+#/usr/bin/uncompress	.Z	compress
+#/usr/bin/gunzip	.gz	gzip
+#/usr/bin/bunzip2	.bz2	bzip2

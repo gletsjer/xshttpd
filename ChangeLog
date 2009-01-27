@@ -1,6 +1,11 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 3
+- Fix bug that caused internal: commands in .xsscripts to be ignored
+- Add mod_gzip, mod_compress, mod_bzip to replace external binaries
+- Add Content-MD5 trailers for CGI scripts
+
 Changes since 3.7 beta 2
 - Fix authentication module logic: all modules need to grant access
 

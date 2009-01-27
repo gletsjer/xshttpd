@@ -43,11 +43,25 @@ mod_ldap_so_AR = $(CC) $(mod_ldap_so_LDFLAGS) -o
 endif
 
 if MOD_GZIP
-lib_LIBRARIES += mod_gzip.so
+lib_LIBRARIES += mod_gzip.so mod_compress.so
 mod_gzip_so_SOURCES = mod_gzip.c
 mod_gzip_so_CFLAGS = $(SO_CFLAGS) @gzip_cflags@
 mod_gzip_so_LIBADD = @gzip_ldflags@
 mod_gzip_so_LDFLAGS = -shared -rdynamic $(LDFLAGS)
 mod_gzip_so_AR = $(CC) $(mod_gzip_so_LDFLAGS) -o
+mod_compress_so_SOURCES = mod_compress.c
+mod_compress_so_CFLAGS = $(SO_CFLAGS) @gzip_cflags@
+mod_compress_so_LIBADD = @gzip_ldflags@
+mod_compress_so_LDFLAGS = -shared -rdynamic $(LDFLAGS)
+mod_compress_so_AR = $(CC) $(mod_compress_so_LDFLAGS) -o
+endif
+
+if MOD_BZIP2
+lib_LIBRARIES += mod_bzip2.so
+mod_bzip2_so_SOURCES = mod_bzip2.c
+mod_bzip2_so_CFLAGS = $(SO_CFLAGS) @bzip2_cflags@
+mod_bzip2_so_LIBADD = @bzip2_ldflags@
+mod_bzip2_so_LDFLAGS = -shared -rdynamic $(LDFLAGS)
+mod_bzip2_so_AR = $(CC) $(mod_bzip2_so_LDFLAGS) -o
 endif
 
