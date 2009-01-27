@@ -1690,9 +1690,6 @@ loadscripttypes(char *orgbase, char *base)
 			continue;
 		}
 
-		if (!strncmp(prog, "internal:", 9))
-			continue;
-
 		MALLOC(new, ctypes, 1);
 		new->prog = prog;
 		new->ext = ext;
