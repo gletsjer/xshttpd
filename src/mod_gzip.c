@@ -15,6 +15,7 @@
 
 bool	gzip_init(void);
 bool	gzip_handler(const char *filename, int fdin, int fdout);
+bool	gunzip_handler(const char *filename, int fdin, int fdout);
 bool	gzip_config_general(const char *key, const char *value);
 
 bool	usecompress = false;
