@@ -125,11 +125,11 @@ XS_CHECK_WITH(gzip, GZIP support, yes, [
 	test x$ac_cv_search_ldap_initialize != xno && modules="${modules} gzip compress"
 	])
 
-XS_CHECK_WITH(bzip2, BZIP2 support, no, [
+XS_CHECK_WITH(bzip2, BZIP2 support, yes, [
 	XS_FUNC_IN_LIB(BZ2_bzopen, HAVE_BZIP2, bz2, bzip2)
 	AC_SUBST(bzip2_cflags)
 	AC_SUBST(bzip2_ldflags)
-	test x$ac_cv_search_ldap_initialize != xno && modules="${modules} bzip2"
+	test x$ac_cv_search_BZ2_bzopen != xno && modules="${modules} bzip2"
 	])
 
 XS_CHECK_WITH(ldap, LDAP authentication support, no, [

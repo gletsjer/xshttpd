@@ -396,10 +396,42 @@ sendheaders(int fd, off_t size)
 }
 
 static void
-senduncompressed(int fd)
+senduncompressed(int infd)
 {
+	int		fd = infd;
 	off_t		size;
 	struct stat	statbuf;
+
+	/* Optional compress */
+	const char	*temp = getenv("HTTP_ACCEPT_ENCODING");
+	if (temp && !cfvalues.encoding) do
+	{
+		char		**encodings;
+		int		p[2];
+		const size_t	sz = qstring_to_arrayp(temp, &encodings);
+
+		if (!sz)
+			break;
+
+		if (pipe(p) < 0)
+			break;
+
+		for (struct module *mod, **mods = modules;
+				(mod = *mods) && infd == fd; mods++)
+			if (mod->deflate_handler && mod->file_encoding)
+				for (size_t i = 0; i < sz; i++)
+					if (!strcasecmp(mod->file_encoding,
+							encodings[i]))
+						if (mod->deflate_handler(NULL,
+								infd, p[1]))
+						{
+							fd = p[0];
+							STRDUP(cfvalues.encoding, mod->file_encoding);
+							break;
+						}
+
+		free(encodings);
+	} while (false);
 
 	alarm(180);
 

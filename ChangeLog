@@ -1,6 +1,10 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 4
+- Add UseGzipCompression to mod_gzip for on-the-fly compression
+- Build mod_bzip2 by default
+
 Changes since 3.7 beta 3
 - Fix bug that caused internal: commands in .xsscripts to be ignored
 - Add mod_gzip, mod_compress, mod_bzip to replace external binaries

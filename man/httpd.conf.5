@@ -254,6 +254,15 @@ a fatal error.
 Location of the script that is used for internal handling of
 Perl CGI's.
 .El
+.It Sy mod_bzip
+.Bl -tag -width Ds
+.It Sy UseGzipCompression Aq false
+Compress all data using gzip before sending it to the client -
+if the client supports the gzip content encoding. Enabling this
+option will affect performance, but it should reduce bandwidth usage.
+There is currently no setting to exclude certain (types of) files
+from this compression once enabled.
+.El
 .El
 .Ss Socket Options
 It is possible to bind to multiple sockets at the same time
