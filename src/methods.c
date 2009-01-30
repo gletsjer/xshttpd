@@ -401,6 +401,7 @@ senduncompressed(int infd)
 	int		fd = infd;
 	off_t		size;
 	struct stat	statbuf;
+	bool		usecompress = false;
 
 	/* Optional compress */
 	const char	*temp = getenv("HTTP_ACCEPT_ENCODING");
@@ -417,7 +418,7 @@ senduncompressed(int infd)
 			break;
 
 		for (struct module *mod, **mods = modules;
-				(mod = *mods) && infd == fd; mods++)
+				(mod = *mods) && !usecompress; mods++)
 			if (mod->deflate_handler && mod->file_encoding)
 				for (size_t i = 0; i < sz; i++)
 					if (!strcasecmp(mod->file_encoding,
@@ -427,6 +428,7 @@ senduncompressed(int infd)
 						{
 							fd = p[0];
 							STRDUP(cfvalues.encoding, mod->file_encoding);
+							usecompress = true;
 							break;
 						}
 
@@ -455,7 +457,7 @@ senduncompressed(int infd)
 		goto DONE;
 
 	UNPARSED:
-	if (!dynamic)
+	if (!dynamic && !usecompress)
 	{
 		const bool valid_size_t_size =
 #if		OFF_MAX > SIZE_T_MAX
