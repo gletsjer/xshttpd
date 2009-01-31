@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 5
+- Fix on-the-fly decompression: now works with large files
+
 Changes since 3.7 beta 4
 - Add UseGzipCompression to mod_gzip for on-the-fly compression
 - Build mod_bzip2 by default

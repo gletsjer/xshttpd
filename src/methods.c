@@ -69,7 +69,7 @@
 
 static bool	getfiletype		(bool);
 static bool	sendheaders		(int, off_t);
-static void	senduncompressed	(int);
+static void	senduncompressed	(int, struct encoding_filter *);
 static void	sendcompressed		(int, const char *);
 static char *	find_file		(const char *, const char *, const char *)	MALLOC_FUNC;
 #ifdef		HAVE_CURL
@@ -104,7 +104,7 @@ static	ctypes	*itype = NULL, *litype = NULL, *ditype = NULL;
 static	ctypes	**isearches[] = { &litype, &itype, &ditype };
 static	cf_values	cfvalues;
 
-static	bool	dynamic = false;
+static	bool	dynamic = false, unksize = false;
 static	char	real_path[XS_PATH_MAX], orig_filename[XS_PATH_MAX],
 		orig_pathname[XS_PATH_MAX];
 #ifdef		HAVE_CURL
@@ -347,7 +347,7 @@ sendheaders(int fd, off_t size)
 	else
 		secprintf("Content-type: %s\r\n", cfvalues.mimetype);
 
-	if (dynamic)
+	if (dynamic || unksize)
 	{
 		if (session.httpversion >= 11)
 		{
@@ -396,16 +396,15 @@ sendheaders(int fd, off_t size)
 }
 
 static void
-senduncompressed(int infd)
+senduncompressed(int infd, struct encoding_filter *ec_filter)
 {
 	int		fd = infd;
 	off_t		size;
 	struct stat	statbuf;
-	bool		usecompress = false;
 
 	/* Optional compress */
 	const char	*temp = getenv("HTTP_ACCEPT_ENCODING");
-	if (temp && !cfvalues.encoding && !dynamic) do
+	if (temp && !cfvalues.encoding && !dynamic && !ec_filter) do
 	{
 		char		**encodings = NULL;
 		const size_t	sz = qstring_to_arrayp(temp, &encodings);
@@ -414,26 +413,16 @@ senduncompressed(int infd)
 			break;
 
 		for (struct module *mod, **mods = modules;
-				(mod = *mods) && !usecompress; mods++)
-			if (mod->deflate_handler && mod->file_encoding)
+				(mod = *mods) && !ec_filter; mods++)
+			if (mod->deflate_filter && mod->file_encoding)
 				for (size_t i = 0; i < sz; i++)
 					if (!strcasecmp(mod->file_encoding,
 							encodings[i]))
-					{
-						int	tempfd;
-
-						tempfd = mod->deflate_handler(infd);
-						if (tempfd >= 0)
-						{
-							fd = tempfd;
-							STRDUP(cfvalues.encoding, mod->file_encoding);
-							usecompress = true;
-							break;
-						}
-					}
+						ec_filter = mod->deflate_filter;
 
 		free(encodings);
 	} while (false);
+	unksize = ec_filter ? true : false;
 
 	alarm(180);
 
@@ -478,7 +467,7 @@ senduncompressed(int infd)
 #ifdef		HAVE_SENDFILE
 # ifdef		HAVE_BSD_SENDFILE
 		if (config.usesendfile && !cursock->usessl &&
-			!session.chunked && !usecompress && valid_size_t_size)
+			!session.chunked && !ec_filter && valid_size_t_size)
 		{
 			if (sendfile(fd, 1, 0, size, NULL, NULL, 0) < 0)
 				xserror(599, "Aborted sendfile for `%s'",
@@ -488,7 +477,7 @@ senduncompressed(int infd)
 # endif		/* HAVE_BSD_SENDFILE */
 # ifdef		HAVE_LINUX_SENDFILE	/* cannot have both */
 		if (config.usesendfile && !cursock->usessl &&
-			!session.chunked && !usecompress && valid_size_t_size)
+			!session.chunked && !ec_filter && valid_size_t_size)
 		{
 			if (sendfile(1, fd, NULL, size) < 0)
 				xserror(599, "Aborted sendfile for `%s'",
@@ -499,7 +488,7 @@ senduncompressed(int infd)
 #endif		/* HAVE_SENDFILE */
 #ifdef		HAVE_MMAP
 		/* don't use mmap() for files >12Mb to avoid hogging memory */
-		if (size < 12 * 1048576 && valid_size_t_size && !usecompress)
+		if (size < 12 * 1048576 && valid_size_t_size && !ec_filter)
 		{
 			char		*buffer;
 			size_t		msize = (size_t)size;
@@ -527,10 +516,26 @@ senduncompressed(int infd)
 			char		*buffer;
 			ssize_t		readtotal;
 			off_t		writetotal;
+			void		*fdp = NULL;
 
 			MALLOC(buffer, char, 100 * RWBUFSIZE);
 			writetotal = 0;
-			while ((readtotal = read(fd, buffer, 100 * RWBUFSIZE)) > 0)
+			if (ec_filter)
+			{
+				if (session.httpversion >= 11)
+				{
+					if (config.usecontentmd5 &&
+							session.trailers)
+						checksum_init();
+					session.chunked = true;
+				}
+				fdp = ec_filter->open(fd);
+			}
+
+			readtotal = ec_filter
+				? ec_filter->read(fdp, buffer, RWBUFSIZE)
+				: read(fd, buffer, 100 * RWBUFSIZE);
+			while (readtotal > 0)
 			{
 				if ((written = secwrite(buffer, (size_t)readtotal))
 						!= readtotal)
@@ -540,12 +545,19 @@ senduncompressed(int infd)
 						env.remote_host ? env.remote_host : "(none)",
 						writetotal + written, size);
 					size = writetotal;
+					if (ec_filter)
+						ec_filter->close(fdp);
 					goto DONE;
 				}
 				writetotal += written;
+				readtotal = ec_filter
+					? ec_filter->read(fdp, buffer, RWBUFSIZE)
+					: read(fd, buffer, 100 * RWBUFSIZE);
 			}
 			size = writetotal;
 			free(buffer);
+			if (ec_filter)
+				ec_filter->close(fdp);
 		}
 	}
 	else /* dynamic content only */
@@ -652,7 +664,7 @@ sendcompressed(int fd, const char *method)
 			return;
 		}
 	}
-	senduncompressed(processed);
+	senduncompressed(processed, NULL);
 }
 
 static	char	*
@@ -1110,7 +1122,7 @@ do_get(char *params)
 
 		for (struct module *mod, **mods = modules;
 				(mod = *mods); mods++)
-			if (mod->inflate_handler && mod->file_extension)
+			if (mod->inflate_filter && mod->file_extension)
 			{
 				strlcpy(temp, mod->file_extension, templen);
 				if (!stat(total, &statbuf))
@@ -1301,41 +1313,49 @@ do_get(char *params)
 		return;
 	}
 
-	if (inflate_module && inflate_module->inflate_handler)
+	/* Determine Content-Encoding for data sent */
+	const char	*accenc = getenv("HTTP_ACCEPT_ENCODING");
+	if (inflate_module && accenc &&
+			inflate_module->inflate_filter &&
+			inflate_module->file_encoding)
 	{
-		if (strlen(inflate_module->file_encoding) &&
-			(temp = getenv("HTTP_ACCEPT_ENCODING")) &&
-			strstr(temp, inflate_module->file_encoding))
-		{
-			STRDUP(cfvalues.encoding,
-				inflate_module->file_encoding);
-			senduncompressed(fd);
-		}
-		else
-		{
-			fd = inflate_module->inflate_handler(fd);
-			if (fd < 0)
+		/* File stored encoded on disk:
+		 * browser groks encoding => send unmodified
+		 * browser doesn't grok it => apply decode filter
+		 */
+		char		**encodings = NULL;
+		size_t		sz;
+		const size_t	encsz = qstring_to_arrayp(accenc, &encodings);
+
+		for (sz = 0; sz < encsz; sz++)
+			if (!strcasecmp(encodings[sz], inflate_module->file_encoding))
 			{
-				xserror(500, "inflate(): %s", strerror(errno));
-				return;
+				STRDUP(cfvalues.encoding, encodings[sz]);
+				senduncompressed(fd, NULL);
+				break;
 			}
-			senduncompressed(fd);
-		}
+		if (sz == encsz)
+			senduncompressed(fd, inflate_module->inflate_filter);
+		FREE(encodings);
 	}
 	else if (csearch)
 	{
-		if (strlen(csearch->name) &&
-			(temp = getenv("HTTP_ACCEPT_ENCODING")) &&
+		/* File stored encoded on disk:
+		 * browser groks encoding => send unmodified
+		 * browser doesn't grok it => run decode program
+		 */
+		if (strlen(csearch->name) && accenc &&
 			strstr(temp, csearch->name))
 		{
 			STRDUP(cfvalues.encoding, csearch->name);
-			senduncompressed(fd);
+			senduncompressed(fd, NULL);
 		}
 		else
 			sendcompressed(fd, csearch->prog);
 	}
 	else
-		senduncompressed(fd);
+		/* File stored in normal format */
+		senduncompressed(fd, NULL);
 	free_xsconf(&cfvalues);
 	return;
 

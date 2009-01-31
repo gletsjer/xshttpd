@@ -11,6 +11,13 @@ extern const char	*module_names[];
 
 bool	init_modules(void);
 
+struct encoding_filter
+{
+	void *	(*open)	(int fd);
+	int	(*read)	(void *fdp, char *buf, size_t len);
+	int	(*close)	(void *fdp);
+};
+
 struct module
 {
 	const char	*name;
@@ -18,13 +25,13 @@ struct module
 	const char	*file_extension;
 	const char	*file_encoding;
 	bool	(*init) (void);
-	bool	(*file_handler) (const char *filename, int fdin, int fdout);
-	int	(*inflate_handler) (int fdin);
-	int	(*deflate_handler) (int fdin);
-	bool	(*auth_basic) (const char *username, const char *password);
-	bool	(*auth_digest) (const char *username, const char *password);
+	bool	(*file_handler)	(const char *filename, int fdin, int fdout);
+	struct encoding_filter	*inflate_filter;
+	struct encoding_filter	*deflate_filter;
+	bool	(*auth_basic)	(const char *username, const char *password);
+	bool	(*auth_digest)	(const char *username, const char *password);
 	bool	(*config_general) (const char *key, const char *value);
-	bool	(*config_local) (const char *key, const char *value);
+	bool	(*config_local)	(const char *key, const char *value);
 };
 
 extern struct module **modules;

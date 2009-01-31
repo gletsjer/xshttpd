@@ -11,28 +11,34 @@
 
 #include	<zlib.h>
 
+#include	"httpd.h"
 #include	"modules.h"
+#include	"extra.h"
 
-bool	compress_handler(const char *filename, int fdin, int fdout);
+/* These functions are an exact copy of mod_gzip */
+void *	compress_open	(int fd);
+int	compress_read	(void *fdp, char *buf, size_t len);
+int	compress_close	(void *fdp);
 
-/* NOTE: This is an exact copy of mod_compress */
-bool
-compress_handler(const char *filename, int fdin, int fdout)
+struct encoding_filter	compress_filter =
+	{ compress_open, compress_read, compress_close };
+
+void *
+compress_open(int fdin)
 {
-	int		len;
-	gzFile		file;
-	static char	buf[BUFSIZ];
+	return (void *)gzdopen(fdin, "rb");
+}
 
-	if (!(file = gzdopen(fdin, "rb")))
-		return false;
+int
+compress_read(void *fdp, char *buf, size_t len)
+{
+	return gzread((gzFile)fdp, buf, len);
+}
 
-	while ((len = gzread(file, buf, sizeof(buf))) > 0)
-		if (write(fdout, buf, len) < 0)
-			break;
-
-	gzclose(file);
-	(void)filename;
-	return 0 == len;
+int
+compress_close(void *fdp)
+{
+	return gzclose((gzFile)fdp);
 }
 
 struct module compress_module =
@@ -40,6 +46,6 @@ struct module compress_module =
 	.name = "compress decompression",
 	.file_extension = ".Z",
 	.file_encoding = "compress",
-	.inflate_handler = compress_handler,
+	.inflate_filter = &compress_filter,
 };
 
