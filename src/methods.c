@@ -418,7 +418,10 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 				for (size_t i = 0; i < sz; i++)
 					if (!strcasecmp(mod->file_encoding,
 							encodings[i]))
+					{
 						ec_filter = mod->deflate_filter;
+						STRDUP(cfvalues.encoding, encodings[i]);
+					}
 
 		free(encodings);
 	} while (false);
@@ -517,8 +520,9 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 			ssize_t		readtotal;
 			off_t		writetotal;
 			void		*fdp = NULL;
+			const size_t	rwbufsize = 100 * RWBUFSIZE;
 
-			MALLOC(buffer, char, 100 * RWBUFSIZE);
+			MALLOC(buffer, char, rwbufsize);
 			writetotal = 0;
 			if (ec_filter)
 			{
@@ -533,8 +537,8 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 			}
 
 			readtotal = ec_filter
-				? ec_filter->read(fdp, buffer, RWBUFSIZE)
-				: read(fd, buffer, 100 * RWBUFSIZE);
+				? ec_filter->read(fdp, buffer, rwbufsize)
+				: read(fd, buffer, rwbufsize);
 			while (readtotal > 0)
 			{
 				if ((written = secwrite(buffer, (size_t)readtotal))
@@ -551,8 +555,8 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 				}
 				writetotal += written;
 				readtotal = ec_filter
-					? ec_filter->read(fdp, buffer, RWBUFSIZE)
-					: read(fd, buffer, 100 * RWBUFSIZE);
+					? ec_filter->read(fdp, buffer, rwbufsize)
+					: read(fd, buffer, rwbufsize);
 			}
 			size = writetotal;
 			free(buffer);
@@ -1315,7 +1319,7 @@ do_get(char *params)
 
 	/* Determine Content-Encoding for data sent */
 	const char	*accenc = getenv("HTTP_ACCEPT_ENCODING");
-	if (inflate_module && accenc &&
+	if (inflate_module &&
 			inflate_module->inflate_filter &&
 			inflate_module->file_encoding)
 	{
@@ -1325,7 +1329,9 @@ do_get(char *params)
 		 */
 		char		**encodings = NULL;
 		size_t		sz;
-		const size_t	encsz = qstring_to_arrayp(accenc, &encodings);
+		const size_t	encsz = accenc
+			? qstring_to_arrayp(accenc, &encodings)
+			: 0;
 
 		for (sz = 0; sz < encsz; sz++)
 			if (!strcasecmp(encodings[sz], inflate_module->file_encoding))

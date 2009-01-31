@@ -34,6 +34,15 @@ struct encoding_filter	gzip_filter =
 struct encoding_filter	gunzip_filter =
 	{ gunzip_open, gunzip_read, gunzip_close };
 
+struct gzstruct
+{
+	int	fdin;
+	int	fdout;
+	gzFile	gzf;
+	off_t	w_off;
+	off_t	r_off;
+};
+
 bool	usecompress = false;
 
 bool
@@ -45,40 +54,63 @@ gzip_init(void)
 void *
 gzip_open(int fd)
 {
-	int	*fdp;
+	gzFile		file;
+	int		tempfd;
+	struct gzstruct	*gzfs;
 
 	if (!usecompress)
 		return NULL;
 
-	MALLOC(fdp, int, 1);
-	*fdp = fd;
+	if ((tempfd = get_temp_fd()) < 0)
+		return NULL;
 
-	return fdp;
+	if (!(file = gzdopen(tempfd, "wb")))
+		return NULL;
+
+	MALLOC(gzfs, struct gzstruct, 1);
+	gzfs->fdin = fd;
+	gzfs->fdout = dup(tempfd);
+	gzfs->gzf = file;
+
+	return (void *)gzfs;
 }
 
 int
 gzip_read(void *fdp, char *buf, size_t len)
 {
 	int		rlen;
-	char		rbuf[RWBUFSIZE*90/100];
-	unsigned long	clen;
+	char		rbuf[RWBUFSIZE];
+	struct gzstruct	*gzfs = (struct gzstruct *)fdp;
 
-	rlen = read(*(int *)fdp, rbuf, sizeof(rbuf));
-	if (rlen <= 0)
-		return rlen;
+	rlen = read(gzfs->fdin, rbuf, sizeof(rbuf));
+	if (rlen > 0)
+	{
+		gzwrite(gzfs->gzf, rbuf, rlen);
+		gzflush(gzfs->gzf, 0);
+		gzfs->w_off = lseek(gzfs->fdout, (off_t)0, SEEK_CUR);
+	}
+	else if (gzfs->gzf)
+	{
+		gzclose(gzfs->gzf);
+		gzfs->gzf = NULL;
+	}
 
-	clen = len;
-	compress((unsigned char *)buf, &clen, (unsigned char *)rbuf, rlen);
-	return (int)clen;
+	lseek(gzfs->fdout, gzfs->r_off, SEEK_SET);
+	rlen = read(gzfs->fdout, buf, len);
+	gzfs->r_off += rlen;
+	lseek(gzfs->fdout, gzfs->w_off, SEEK_SET);
+	return rlen;
 }
 
 int
 gzip_close(void *fdp)
 {
-	if (!usecompress)
-		return -1;
+	struct gzstruct	*gzfs = (struct gzstruct *)fdp;
 
-	return close(*(int *)fdp);
+	close(gzfs->fdin);
+	close(gzfs->fdout);
+	FREE(gzfs);
+	return 0;
 }
 
 int
@@ -147,7 +179,7 @@ struct module gzip_module =
 	.name = "gzip decompression",
 	.file_extension = ".gz",
 	.file_encoding = "gzip",
-//	.deflate_filter = &gzip_filter,
+	.deflate_filter = &gzip_filter,
 	.inflate_filter = &gunzip_filter,
 	.config_general = gzip_config_general,
 };
