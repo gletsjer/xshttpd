@@ -14,8 +14,8 @@
 #include	"httpd.h"
 #include	"malloc.h"
 #include	"modules.h"
-#include	"extra.h"
 
+/* Functions */
 bool	gzip_init(void);
 int	gzip_handler(int fdin);
 bool	gzip_config_general(const char *key, const char *value);
@@ -28,6 +28,7 @@ void *	gunzip_open	(int fd);
 int	gunzip_read	(void *fdp, char *buf, size_t len);
 int	gunzip_close	(void *fdp);
 
+/* Variables */
 struct encoding_filter	gzip_filter =
 	{ gzip_open, gzip_read, gzip_close };
 
@@ -41,6 +42,16 @@ struct gzstruct
 	gzFile	gzf;
 	off_t	w_off;
 	off_t	r_off;
+};
+
+struct module gzip_module =
+{
+	.name = "gzip decompression",
+	.file_extension = ".gz",
+	.file_encoding = "gzip",
+	.deflate_filter = &gzip_filter,
+	.inflate_filter = &gunzip_filter,
+	.config_general = gzip_config_general,
 };
 
 bool	usecompress = false;
@@ -166,21 +177,17 @@ gunzip_close(void *fdp)
 bool
 gzip_config_general(const char *key, const char *value)
 {
-	if (key && !strcasecmp("UzeGzipCompression", key))
+	if (!key)
+	{
+		gzip_module.deflate_filter = NULL;
+		return true;
+	}
+	else if (!strcasecmp("UzeGzipCompression", key))
 	{
 		usecompress = !strcasecmp("true", value);
+		gzip_module.deflate_filter = &gzip_filter;
 		return true;
 	}
 	return false;
 }
-
-struct module gzip_module =
-{
-	.name = "gzip decompression",
-	.file_extension = ".gz",
-	.file_encoding = "gzip",
-	.deflate_filter = &gzip_filter,
-	.inflate_filter = &gunzip_filter,
-	.config_general = gzip_config_general,
-};
 

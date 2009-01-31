@@ -404,13 +404,10 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 
 	/* Optional compress */
 	const char	*temp = getenv("HTTP_ACCEPT_ENCODING");
-	if (temp && !cfvalues.encoding && !dynamic && !ec_filter) do
+	if (temp && !cfvalues.encoding && !dynamic && !ec_filter)
 	{
 		char		**encodings = NULL;
 		const size_t	sz = qstring_to_arrayp(temp, &encodings);
-
-		if (!sz)
-			break;
 
 		for (struct module *mod, **mods = modules;
 				(mod = *mods) && !ec_filter; mods++)
@@ -424,7 +421,7 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 					}
 
 		free(encodings);
-	} while (false);
+	}
 	unksize = ec_filter ? true : false;
 
 	alarm(180);
@@ -551,6 +548,7 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 					size = writetotal;
 					if (ec_filter)
 						ec_filter->close(fdp);
+					FREE(buffer);
 					goto DONE;
 				}
 				writetotal += written;
@@ -559,7 +557,7 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 					: read(fd, buffer, rwbufsize);
 			}
 			size = writetotal;
-			free(buffer);
+			FREE(buffer);
 			if (ec_filter)
 				ec_filter->close(fdp);
 		}
