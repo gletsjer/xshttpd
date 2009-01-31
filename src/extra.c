@@ -443,3 +443,17 @@ fgetmfields(FILE *fd, char ***fieldsp)
 	return num;
 }
 
+int
+get_temp_fd(void)
+{
+	int	fd;
+	char    prefix[] = TEMPORARYPREFIX;
+
+	if (!(fd = mkstemp(prefix)))
+		return -1;
+
+	unlink(prefix);
+
+	return fd;
+}
+

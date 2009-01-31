@@ -405,16 +405,12 @@ senduncompressed(int infd)
 
 	/* Optional compress */
 	const char	*temp = getenv("HTTP_ACCEPT_ENCODING");
-	if (temp && !cfvalues.encoding) do
+	if (temp && !cfvalues.encoding && !dynamic) do
 	{
-		char		**encodings;
-		int		p[2];
+		char		**encodings = NULL;
 		const size_t	sz = qstring_to_arrayp(temp, &encodings);
 
 		if (!sz)
-			break;
-
-		if (pipe(p) < 0)
 			break;
 
 		for (struct module *mod, **mods = modules;
@@ -423,14 +419,18 @@ senduncompressed(int infd)
 				for (size_t i = 0; i < sz; i++)
 					if (!strcasecmp(mod->file_encoding,
 							encodings[i]))
-						if (mod->deflate_handler(NULL,
-								infd, p[1]))
+					{
+						int	tempfd;
+
+						tempfd = mod->deflate_handler(infd);
+						if (tempfd >= 0)
 						{
-							fd = p[0];
+							fd = tempfd;
 							STRDUP(cfvalues.encoding, mod->file_encoding);
 							usecompress = true;
 							break;
 						}
+					}
 
 		free(encodings);
 	} while (false);
@@ -457,7 +457,7 @@ senduncompressed(int infd)
 		goto DONE;
 
 	UNPARSED:
-	if (!dynamic && !usecompress)
+	if (!dynamic)
 	{
 		const bool valid_size_t_size =
 #if		OFF_MAX > SIZE_T_MAX
@@ -478,7 +478,7 @@ senduncompressed(int infd)
 #ifdef		HAVE_SENDFILE
 # ifdef		HAVE_BSD_SENDFILE
 		if (config.usesendfile && !cursock->usessl &&
-			!session.chunked && valid_size_t_size)
+			!session.chunked && !usecompress && valid_size_t_size)
 		{
 			if (sendfile(fd, 1, 0, size, NULL, NULL, 0) < 0)
 				xserror(599, "Aborted sendfile for `%s'",
@@ -488,7 +488,7 @@ senduncompressed(int infd)
 # endif		/* HAVE_BSD_SENDFILE */
 # ifdef		HAVE_LINUX_SENDFILE	/* cannot have both */
 		if (config.usesendfile && !cursock->usessl &&
-			!session.chunked && valid_size_t_size)
+			!session.chunked && !usecompress && valid_size_t_size)
 		{
 			if (sendfile(1, fd, NULL, size) < 0)
 				xserror(599, "Aborted sendfile for `%s'",
@@ -499,12 +499,12 @@ senduncompressed(int infd)
 #endif		/* HAVE_SENDFILE */
 #ifdef		HAVE_MMAP
 		/* don't use mmap() for files >12Mb to avoid hogging memory */
-		if (size < 12 * 1048576 && valid_size_t_size)
+		if (size < 12 * 1048576 && valid_size_t_size && !usecompress)
 		{
 			char		*buffer;
 			size_t		msize = (size_t)size;
 
-			if ((buffer = (char *)mmap((caddr_t)0, msize, PROT_READ,
+			if ((buffer = (char *)mmap((caddr_t)NULL, msize, PROT_READ,
 				MAP_SHARED, fd, (off_t)0)) == (char *)-1)
 				err(1, "[%s] httpd: mmap() failed", currenttime);
 			if ((size_t)(written = secwrite(buffer, msize)) != msize)
@@ -1313,17 +1313,13 @@ do_get(char *params)
 		}
 		else
 		{
-			int	p[2];
-
-			if (pipe(p) < 0)
+			fd = inflate_module->inflate_handler(fd);
+			if (fd < 0)
 			{
-				xserror(500, "pipe(): %s", strerror(errno));
+				xserror(500, "inflate(): %s", strerror(errno));
 				return;
 			}
-			inflate_module->inflate_handler(NULL, fd, p[1]);
-			close(p[1]);
-			senduncompressed(p[0]);
-			close(p[0]);
+			senduncompressed(fd);
 		}
 	}
 	else if (csearch)

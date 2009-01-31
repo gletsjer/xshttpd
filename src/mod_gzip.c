@@ -11,11 +11,13 @@
 
 #include	<zlib.h>
 
+#include	"httpd.h"
 #include	"modules.h"
+#include	"extra.h"
 
 bool	gzip_init(void);
-bool	gzip_handler(const char *filename, int fdin, int fdout);
-bool	gunzip_handler(const char *filename, int fdin, int fdout);
+int	gzip_handler(int fdin);
+int	gunzip_handler(int fdin);
 bool	gzip_config_general(const char *key, const char *value);
 
 bool	usecompress = false;
@@ -26,46 +28,64 @@ gzip_init(void)
 	return true;
 }
 
-bool
-gzip_handler(const char *filename, int fdin, int fdout)
+int
+gzip_handler(int fdin)
 {
 	int		len;
+	int		fd;
 	gzFile		file;
-	static char	buf[BUFSIZ];
+	static char	buf[RWBUFSIZE];
 
 	if (!usecompress)
-		return false;
+		return -1;
 
-	if (!(file = gzdopen(fdout, "wb")))
-		return false;
+	if ((fd = get_temp_fd()) < 0)
+		return -1;
+
+	if (!(file = gzdopen(dup(fd), "wb")))
+	{
+		close(fd);
+		return -1;
+	}
 
 	while ((len = read(fdin, buf, sizeof(buf))) > 0)
-		if (gzwrite(file, buf, len) < 0)
+		if (gzwrite(file, buf, len) != len)
 			break;
 
-	close(fdin);
 	gzclose(file);
-	(void)filename;
-	return 0 == len;
+	close(fdin);
+	if (lseek(fd, (off_t)0, SEEK_SET) < 0)
+		return -1;
+
+	return fd;
 }
 
-bool
-gunzip_handler(const char *filename, int fdin, int fdout)
+int
+gunzip_handler(int fdin)
 {
 	int		len;
+	int		fd;
 	gzFile		file;
-	static char	buf[BUFSIZ];
+	static char	buf[RWBUFSIZE];
+
+	if ((fd = get_temp_fd()) < 0)
+		return -1;
 
 	if (!(file = gzdopen(fdin, "rb")))
-		return false;
+	{
+		close(fd);
+		return -1;
+	}
 
 	while ((len = gzread(file, buf, sizeof(buf))) > 0)
-		if (write(fdout, buf, len) < 0)
+		if (write(fd, buf, len) < 0)
 			break;
 
 	gzclose(file);
-	(void)filename;
-	return 0 == len;
+	if (lseek(fd, (off_t)0, SEEK_SET) < 0)
+		return -1;
+
+	return fd;
 }
 
 bool

@@ -21,5 +21,6 @@ void	free_string_array	(char **, size_t);
 void	free_string_arrayp	(char **);
 ssize_t	fgetfields		(FILE *, size_t, ...);
 ssize_t	fgetmfields		(FILE *, char ***);
+int	get_temp_fd		(void);
 
 #endif		/* EXTRA_H */

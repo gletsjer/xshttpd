@@ -44,12 +44,12 @@ endif
 
 if MOD_GZIP
 lib_LIBRARIES += mod_gzip.so mod_compress.so
-mod_gzip_so_SOURCES = mod_gzip.c
+mod_gzip_so_SOURCES = mod_gzip.c extra.c
 mod_gzip_so_CFLAGS = $(SO_CFLAGS) @gzip_cflags@
 mod_gzip_so_LIBADD = @gzip_ldflags@
 mod_gzip_so_LDFLAGS = -shared -rdynamic $(LDFLAGS)
 mod_gzip_so_AR = $(CC) $(mod_gzip_so_LDFLAGS) -o
-mod_compress_so_SOURCES = mod_compress.c
+mod_compress_so_SOURCES = mod_compress.c extra.c
 mod_compress_so_CFLAGS = $(SO_CFLAGS) @gzip_cflags@
 mod_compress_so_LIBADD = @gzip_ldflags@
 mod_compress_so_LDFLAGS = -shared -rdynamic $(LDFLAGS)
