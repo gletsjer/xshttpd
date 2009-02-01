@@ -102,6 +102,7 @@ load_config()
 	config.usednslookup = true;
 	config.usessi = true;
 	config.useput = true;
+	config.uselocalscript = true;
 	config.execasuser = true;
 #ifdef		HAVE_SENDFILE
 	config.usesendfile = true;

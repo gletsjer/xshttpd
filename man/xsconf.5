@@ -80,6 +80,13 @@ which will be replaced by the filename. If
 .Ql %f
 is present, then the filename won't be appended at the end
 of the command line.
+.Pp
+Execute commands can be disabled globally by setting the
+.Sy UseLocalScript
+to
+.Ql false
+in
+.Xr httpd.conf 5 .
 .It Sy Restrict
 The argument to a restrict command should be a list containing
 one of more IP addresses, prefixes or IP subnets (in CIDR)

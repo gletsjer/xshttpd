@@ -117,13 +117,19 @@ will also be checked for server-side includes. However if
 this setting is turned off, SSI directives will be ignored
 and files are not checked (which may slightly increase
 performance of the webserver).
-.It Sy UseLocalScript Ar boolean Aq false
+.It Sy UseLocalScript Ar boolean Aq true
 If enabled all directories will be checked for the presence
 of a
 .Pa .xsscripts
-file. This can be used to specify how files with certain
-extensions should be handled by the webserver. These files
-use the exact same syntax as the global
+file - or the presens of
+.Sy Execute
+directives in
+.Xr xsconf 5
+files. These can be used to specify how files with certain
+extensions should be handled by the webserver.
+.Pp
+.Pa .xsscripts
+files use the exact same syntax as the global
 .Pa script.methods
 file, see
 .Xr httpd 1
