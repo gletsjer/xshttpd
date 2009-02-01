@@ -1256,27 +1256,34 @@ do_get(char *params)
 	loadfiletypes(orgbase, base);
 
 	/* check litype for local and itype for global settings */
-	if (config.uselocalscript && !cfvalues.scripttype)
-		loadscripttypes(orgbase, base);
+	if (config.uselocalscript)
+	{
+		if (cfvalues.scripttype)
+		{
+			MALLOC(litype, ctypes, 1);
+			memset(litype, 0, sizeof(ctypes));
+			STRDUP(litype[0].prog, cfvalues.scripttype);
+		}
+		else
+			loadscripttypes(orgbase, base);
+	}
+
 	for (int i = 0; i < 3 && script >= 0; i++)
 	{
 	for (isearch = *isearches[i]; isearch; isearch = isearch->next)
 	{
 		if (!isearch->ext ||
-			cfvalues.scripttype ||
 			((temp = strstr(filename, isearch->ext)) &&
 			 strlen(temp) == strlen(isearch->ext)))
 		{
-			const char	*prog = cfvalues.scripttype ? cfvalues.scripttype : isearch->prog;
-
-			if (!strcmp(prog, "internal:404"))
+			if (!strcmp(isearch->prog, "internal:404"))
 				server_error(404, "Requested URL not found", "NOT_FOUND");
-			else if (!strcmp(prog, "internal:text"))
+			else if (!strcmp(isearch->prog, "internal:text"))
 			{
 				script = -1;
 				break;
 			}
-			else if (!strcmp(prog, "internal:exec"))
+			else if (!strcmp(isearch->prog, "internal:exec"))
 			{
 				close(fd);
 				do_script(params, base, filename, NULL);
@@ -1284,7 +1291,7 @@ do_get(char *params)
 			else
 			{
 				close(fd);
-				do_script(params, base, filename, prog);
+				do_script(params, base, filename, isearch->prog);
 			}
 			free_xsconf(&cfvalues);
 			return;
@@ -1705,10 +1712,8 @@ loadcompresstypes()
 	}
 	path = calcpath(COMPRESS_METHODS);
 	if (!(methods = fopen(path, "r")))
-	{
-		warn("fopen(`%s' [read])", path);
+		/* configuration file is optional: silently ignore */
 		return;
-	}
 
 	/* DECL */
 	ctypes		*prev, *new;
