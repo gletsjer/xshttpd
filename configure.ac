@@ -149,6 +149,17 @@ XS_CHECK_WITH(perl, PERL persistent interpreter, no, [
 	AC_MSG_WARN([Internal Perl interpreter is still EXPERIMENTAL])
 	])
 
+XS_CHECK_WITH(ruby, Ruby interpreter, no, [
+	AC_PATH_PROG(rubypath, ruby)
+	AS_IF([test -n "${rubypath}"], [
+		modules="${modules} ruby"
+		AC_SUBST(ruby_cflags)
+dnl		AC_SUBST(ruby_cflags, [-I"`${rubypath} -r mkmf -e 'print ($hdrdir)'`"])
+		AC_SUBST(ruby_ldflags, [`${rubypath} -r mkmf -e 'print %&-L#{Config.expand($libdir)} -l#{CONFIG["RUBY_SO_NAME"]}&'`])
+		])
+	AC_MSG_WARN([Internal Ruby interpreter is still EXPERIMENTAL])
+	])
+
 XS_CHECK_WITH(python, Python interpreter, no, [
 	XS_TRY_CONFIG(python, python, [modules="${modules} python"], [
 		XS_TRY_CONFIG([python2.5], python, 
@@ -157,16 +168,6 @@ XS_CHECK_WITH(python, Python interpreter, no, [
 	AC_MSG_WARN([Internal Python interpreter is still EXPERIMENTAL])
 	AC_SUBST(python_cflags)
 	AC_SUBST(python_ldflags)
-	])
-
-XS_CHECK_WITH(ruby, Ruby interpreter, no, [
-	XS_FUNC_IN_LIB(ruby_run, HAVE_RUBY, [ruby18], ruby)
-	test x$ac_cv_search_ruby_run != xno && modules="${modules} ruby"
-	AC_SUBST(ruby_cflags)
-	AC_SUBST(ruby_ldflags)
-	AC_MSG_WARN([Internal Ruby interpreter is still EXPERIMENTAL])
-dnl	rubyhdr="`ruby -r mkmf -e 'print ($hdrdir)'`/ruby.h"
-dnl	AC_DEFINE_UNQUOTED(RUBY_HDR, "${rubyhdr}", [Ruby include file])
 	])
 
 AC_MSG_CHECKING([if you want configuration preprocessing])
