@@ -4,7 +4,7 @@ is not complete. Refer to cvs comments for more information.
 Changes since 3.7 beta 5
 - Execute in .xsconf now works if script.methods is emtpy
 - UseLocalScript now defaults to on (and is checked properly)
-- Fix on-the-fly decompression: now works with large files
+- Fix on-the-fly (de)compression: now works with large files
 
 Changes since 3.7 beta 4
 - Add UseGzipCompression to mod_gzip for on-the-fly compression
