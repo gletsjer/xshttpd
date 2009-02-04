@@ -12,12 +12,12 @@
 #include	<zlib.h>
 
 #include	"httpd.h"
+#include	"extra.h"
 #include	"malloc.h"
 #include	"modules.h"
 
 /* Functions */
 bool	gzip_init(void);
-int	gzip_handler(int fdin);
 bool	gzip_config_general(const char *key, const char *value);
 
 void *	gzip_open	(int fd);
@@ -82,6 +82,8 @@ gzip_open(int fd)
 	gzfs->fdin = fd;
 	gzfs->fdout = dup(tempfd);
 	gzfs->gzf = file;
+	gzfs->r_off = 0;
+	gzfs->w_off = 0;
 
 	return (void *)gzfs;
 }
@@ -122,38 +124,6 @@ gzip_close(void *fdp)
 	close(gzfs->fdout);
 	FREE(gzfs);
 	return 0;
-}
-
-int
-gzip_handler(int fdin)
-{
-	int		len;
-	int		fd;
-	gzFile		file;
-	static char	buf[RWBUFSIZE];
-
-	if (!usecompress)
-		return -1;
-
-	if ((fd = get_temp_fd()) < 0)
-		return -1;
-
-	if (!(file = gzdopen(dup(fd), "wb")))
-	{
-		close(fd);
-		return -1;
-	}
-
-	while ((len = read(fdin, buf, sizeof(buf))) > 0)
-		if (gzwrite(file, buf, len) != len)
-			break;
-
-	gzclose(file);
-	close(fdin);
-	if (lseek(fd, (off_t)0, SEEK_SET) < 0)
-		return -1;
-
-	return fd;
 }
 
 void *
