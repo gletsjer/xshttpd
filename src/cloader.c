@@ -626,9 +626,9 @@ load_config()
 		if (!current->phexecdir)
 			STRDUP(current->phexecdir, PHEXEC_DIR);
 		if (!current->icondir)
-			STRDUP(current->icondir, calcpath(ICON_DIR));
+			STRDUP(current->icondir, ICON_DIR);
 		if (!current->phicondir)
-			STRDUP(current->phicondir, calcpath(PHICON_DIR));
+			STRDUP(current->phicondir, PHICON_DIR);
 		if (!current->logstyle)
 			current->logstyle = config.system->logstyle;
 		if (!current->userid)

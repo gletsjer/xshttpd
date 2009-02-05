@@ -608,16 +608,11 @@ sendcompressed(int fd, const char *method)
 	int		processed;
 
 	/* local block */
+	if ((processed = get_temp_fd()) < 0)
 	{
-		char	prefix[] = TEMPORARYPREFIX;
-
-		if (!(processed = mkstemp(prefix)))
-		{
-			xserror(500, "Unable to open temporary file");
-			err(1, "[%s] httpd: Cannot create temporary file",
-				currenttime);
-		}
-		remove(prefix);
+		xserror(500, "Unable to open temporary file");
+		err(1, "[%s] httpd: Cannot create temporary file",
+			currenttime);
 	}
 
 	switch(pid = fork())
@@ -771,6 +766,7 @@ do_get(char *params)
 		}
 		if (!origeuid)
 		{
+			seteuid(origeuid);
 			setegid(userinfo->pw_gid);
 			setgroups(1, (const gid_t *)&userinfo->pw_gid);
 			seteuid(userinfo->pw_uid);
@@ -811,6 +807,7 @@ do_get(char *params)
 				/* We got a virtual host, now set euid */
 				if (!origeuid)
 				{
+					seteuid(origeuid);
 					setegid(statbuf.st_gid);
 					setgroups(1, (const gid_t *)&statbuf.st_gid);
 					seteuid(statbuf.st_uid);
@@ -822,7 +819,9 @@ do_get(char *params)
 				}
 			}
 		}
+#if 0
 		if (!*base)
+#endif
 		{
 			size = strlen(current->execdir);
 			if (!strncmp(params + 1, current->execdir, size))
@@ -844,6 +843,7 @@ do_get(char *params)
 		/* set euid if it wasn't set yet */
 		if (!origeuid)
 		{
+			seteuid(origeuid);
 			setegid(current->groupid);
 			setgroups(1, (const gid_t *)&current->groupid);
 			seteuid(current->userid);
