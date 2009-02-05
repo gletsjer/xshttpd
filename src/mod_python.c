@@ -5,7 +5,7 @@
 #include	<stdlib.h>
 #include	<err.h>
 
-#include	<python2.5/Python.h>
+#include	<Python.h>
 
 #include	"malloc.h"
 #include	"modules.h"
