@@ -184,27 +184,17 @@ Extra options:
 		])
 	 ], AC_MSG_RESULT(${withval:-no}))
 
-dnl Main root directory, optionally supplied by user.
-dnl Set may be delayed untill 'make' stage, becasue ${prefix} is delayed.
-withval=
-AC_ARG_WITH(rootdir,
-	AS_HELP_STRING([--with-rootdir=DIR],
-		[directory to install data files @<:@LIBDIR/httpd@:>@]),
-	rootdir="${withval}",
-	rootdir='${prefix}/lib/httpd')
-AC_SUBST(rootdir)
+dnl Select directory layout 
+hier=xs
+AC_MSG_CHECKING([for --enable-hier])
+AC_ARG_ENABLE(hier,
+	AC_HELP_STRING([--enable-hier=[xs|gnu]], [set hierarchy layout]),
+	hier=${enable_hier}
+	AC_MSG_RESULT(${enable_hier}))
+[eval $(sed '1,/^\['${hier}'\]$/d; /^$/,$d; s/		*//; s,+,/xs-httpd,' hier.layout)]
 
 dnl Various installation directories - relative to ${rootdir}.
-XS_ARG_DIR(config,  CONFIG_DIR, [conf])
-XS_ARG_DIR(cgi,     CGI_DIR,    [cgi-bin])
-XS_ARG_DIR(phexec,  PHEXEC_DIR, [cgi-bin])
-XS_ARG_DIR(contrib, CONTRIB_DIR,[contrib])
-XS_ARG_DIR(font,    FONT_DIR,   [gfxcount])
-XS_ARG_DIR(html,    HTML_DIR,   [htdocs])
-XS_ARG_DIR(icon,    ICON_DIR,   [icons])
-XS_ARG_DIR(phicon,  PHICON_DIR, [icons])
-XS_ARG_DIR(log,     LOG_DIR,    [logs])
-XS_ARG_DIR(module,  MODULE_DIR, [module])
+XS_ARG_DIRS(root config phexec contrib font html phicon log module run)
 
 dnl User may tweak compilation behaviour.
 XS_ARG_DEFAULT(warnings, HAVE_GDB, no, [enable extra compiler warnings])

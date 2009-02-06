@@ -305,7 +305,7 @@ main(int argc, char **argv)
 	char		*pidfilename = NULL;
 	int		option;
 
-	strlcpy(rootdir, HTTPD_ROOT, BUFSIZ);
+	strlcpy(rootdir, ROOT_DIR, BUFSIZ);
 	while ((option = getopt(argc, argv, "d:p:")) != EOF)
 	{
 		switch(option)

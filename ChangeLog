@@ -6,6 +6,7 @@ Changes since 3.7 beta 6
 - Fix handling of unprivileged uid
 - Fix mod_python for versions other than 2.5
 - Fix mod_gzip dependency
+- Easier install directory configuration via hier.layout
 
 Changes since 3.7 beta 5
 - Execute in .xsconf now works if script.methods is emtpy

@@ -34,7 +34,7 @@ but not able to overwrite your data - nor should it be able to write logfiles */
 #define CNT_CLEAR	LOG_DIRT "xs-clear.lock"
 
 #define BITBUCKETNAME	"/dev/null"
-#define PID_PATH	"/var/run/httpd.pid"
+#define PID_PATH	RUN_DIRT "httpd.pid"
 #define TEMPORARYPREFIX	"/tmp/xs-httpd.XXXX"
 
 #define INDEX_HTML	"index.html"
@@ -43,6 +43,8 @@ but not able to overwrite your data - nor should it be able to write logfiles */
 #define REDIR_FILE	".redir"
 #define CONFIG_FILE	".xsconf"
 
+#define	CGI_DIR		"cgi-bin"
+#define	ICON_DIR	"icons"
 #define UHTML_DIR	".html"
 
 /* The default PATH environment variable for CGI binaries */

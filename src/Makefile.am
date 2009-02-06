@@ -1,8 +1,7 @@
 bin_PROGRAMS = httpd xspasswd clearxs readxs xsindex httpdc
-cgi_PROGRAMS = imagemap error gfxcount xschpass
+phexec_PROGRAMS = imagemap error gfxcount xschpass
 noinst_PROGRAMS = reformatxs xscat
 noinst_LIBRARIES = libxs.a
-AM_CPPFLAGS = -DHTTPD_ROOT=\"$(rootdir)\"
 
 httpd_SOURCES = httpd.c authenticate.c cgi.c cloader.c convert.c fcgi.c \
 	methods.c modules.c path.c pcre.c ssi.c ssl.c xsfiles.c

@@ -507,7 +507,7 @@ load_config()
 
 	/* Fill in missing defaults */
 	if (!config.systemroot)
-		STRDUP(config.systemroot, HTTPD_ROOT);
+		STRDUP(config.systemroot, ROOT_DIR);
 	if (!config.sockets)
 		config.sockets = lsock;
 	for (lsock = config.sockets; lsock; lsock = lsock->next)

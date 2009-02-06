@@ -19,7 +19,7 @@ calcpath(const char *filename)
 #ifdef		BUILD_HTTPD
 	rootdir = config.systemroot;
 #else		/* BUILD_HTTPD */
-	rootdir = getenv("HTTPD_ROOT") ? getenv("HTTPD_ROOT") : HTTPD_ROOT;
+	rootdir = getenv("ROOT_DIR") ? getenv("ROOT_DIR") : ROOT_DIR;
 #endif		/* BUILD_HTTPD */
 
 	if (*filename == '/')
@@ -27,6 +27,6 @@ calcpath(const char *filename)
 	else if (rootdir)
 		snprintf(buffer, XS_PATH_MAX, "%s/%s", rootdir, filename);
 	else
-		snprintf(buffer, XS_PATH_MAX, HTTPD_ROOT "/%s", filename);
+		snprintf(buffer, XS_PATH_MAX, ROOT_DIR "/%s", filename);
 	return (buffer);
 }

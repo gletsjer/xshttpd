@@ -23,14 +23,15 @@ dnl 		[  --with-$1=PATH	  directory to use for $2 [ROOTDIR/$2]],
 dnl 		$1=${withval},
 dnl 		$1=${rootdir}/$2)
 dnl 	])
-AC_DEFUN([XS_ARG_DIR], [
-	$1dir='${rootdir}/$3'
-	AC_SUBST($1dir)
-	AC_DEFINE([$2], "$3", [$1 directory])
-	AS_IF([test -z "$3"],
-		AC_DEFINE([$2T], []),
-		AC_DEFINE([$2T], [$2 "/"],
-			[$1 directory with opt. trailing slash]))
+AC_DEFUN([XS_ARG_DIRS], [
+	m4_foreach_w([loc], [$1], [
+		CFLAGS="${CFLAGS} -[D]AS_TR_CPP(loc[_DIR])=\\\"\$(loc[dir])\\\""
+		AC_DEFINE(AS_TR_CPP(loc[_DIRT]), [AS_TR_CPP(loc[_DIR]) "/"],
+			[loc directory with opt. trailing slash])
+		AS_IF([test "${loc[dir]}" = "${loc[dir]#[/\$]}"],
+			AC_SUBST(loc[dir], "${rootdir}/${loc[dir]}"),
+			AC_SUBST(loc[dir]))
+		])
 	])
 
 # AC_FUNC_IN_LIB(function, define, library, buildprog, extra-lib)

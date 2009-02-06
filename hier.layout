@@ -1,0 +1,26 @@
+# Select a hierarchy sceme using:  ./configure --enable-hier=xs
+
+[xs]
+rootdir=	${prefix}/lib/httpd
+configdir=	conf
+phexecdir=	cgi-bin
+contribdir=	contrib
+fontdir=	gfxcount
+htmldir=	htdocs
+phicondir=	icons
+logdir=		logs
+rundir=		/var/run
+moduledir=	module
+
+[gnu]
+rootdir=	${datarootdir}+
+configdir=	${sysconfdir}+
+phexecdir=	cgi-bin
+contribdir=	contrib
+fontdir=	gfxcount
+htmldir=	htdocs
+phicondir=	icons
+logdir=		${localstatedir}/log+
+rundir=		${localstatedir}/run
+moduledir=	${libexecdir}+
+

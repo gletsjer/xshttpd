@@ -1574,7 +1574,7 @@ setup_environment()
 	setenv("SERVER_SOFTWARE", SERVER_IDENT, 1);
 	setenv("SERVER_NAME", config.system->hostname, 1);
 	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
-	setenv("HTTPD_ROOT", config.systemroot, 1);
+	setenv("ROOT_DIR", config.systemroot, 1);
 	setenv("SERVER_PORT",
 		!strcmp(cursock->port, "http") ? "80" :
 		!strcmp(cursock->port, "https") ? "443" :
