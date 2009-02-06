@@ -1,6 +1,12 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 6
+- Fix IconDir/ExecDir usage for vhosts
+- Fix handling of unprivileged uid
+- Fix mod_python for versions other than 2.5
+- Fix mod_gzip dependency
+
 Changes since 3.7 beta 5
 - Execute in .xsconf now works if script.methods is emtpy
 - UseLocalScript now defaults to on (and is checked properly)

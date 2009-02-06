@@ -819,25 +819,29 @@ do_get(char *params)
 				}
 			}
 		}
-#if 0
-		if (!*base)
-#endif
+
+		size = strlen(current->execdir);
+		if (!strncmp(params + 1, current->execdir, size))
 		{
-			size = strlen(current->execdir);
-			if (!strncmp(params + 1, current->execdir, size))
-			{
-				script = 1;
-				file += size + 2;
-				strlcpy(base, calcpath(current->phexecdir), XS_PATH_MAX);
-			}
-			else if (!strncmp(params + 1, current->icondir, strlen(current->icondir)))
-			{
-				file += strlen(current->icondir) + 2;
-				strlcpy(base, calcpath(current->phicondir), XS_PATH_MAX);
-			}
-			else
-				strlcpy(base, calcpath(current->htmldir), XS_PATH_MAX);
+			struct stat	sb;
+			script = 1;
+			file += size + 2;
+			strlcpy(base, calcpath(current->phexecdir), XS_PATH_MAX);
+			if ((lstat(base, &sb) < 0) || !S_ISDIR(sb.st_mode))
+				strlcpy(base, calcpath(config.system->phexecdir), XS_PATH_MAX);
+
 		}
+		else if (!strncmp(params + 1, current->icondir, strlen(current->icondir)))
+		{
+			struct stat	sb;
+			file += strlen(current->icondir) + 2;
+			strlcpy(base, calcpath(current->phicondir), XS_PATH_MAX);
+			if ((lstat(base, &sb) < 0) || !S_ISDIR(sb.st_mode))
+				strlcpy(base, calcpath(config.system->phicondir), XS_PATH_MAX);
+		}
+		else
+			strlcpy(base, calcpath(current->htmldir), XS_PATH_MAX);
+		/* base may be empty */
 		strlcat(base, "/", XS_PATH_MAX);
 
 		/* set euid if it wasn't set yet */

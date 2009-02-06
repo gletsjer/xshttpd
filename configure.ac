@@ -161,10 +161,7 @@ dnl		AC_SUBST(ruby_cflags, [-I"`${rubypath} -r mkmf -e 'print ($hdrdir)'`"])
 	])
 
 XS_CHECK_WITH(python, Python interpreter, no, [
-	XS_TRY_CONFIG(python, python, [modules="${modules} python"], [
-		XS_TRY_CONFIG([python2.5], python, 
-			[modules="${modules} python"])
-		])
+	XS_TRY_CONFIG(python, python, [modules="${modules} python"])
 	AC_MSG_WARN([Internal Python interpreter is still EXPERIMENTAL])
 	AC_SUBST(python_cflags)
 	AC_SUBST(python_ldflags)
