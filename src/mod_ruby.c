@@ -13,6 +13,7 @@
 extern void     ruby_run(void);
 extern void     rb_load_file(const char *);
 extern void	ruby_init(void);
+extern void	ruby_init_loadpath(void);
 extern void	ruby_script(const char *);
 
 bool		mod_ruby_init(void);
@@ -22,6 +23,7 @@ bool
 mod_ruby_init(void)
 {
 	ruby_init();
+	ruby_init_loadpath();
 	ruby_script("embedded");
 	return true;
 }
