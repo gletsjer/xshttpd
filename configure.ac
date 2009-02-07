@@ -2,6 +2,11 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT([xshttpd],[37b06])
 SERVER_IDENT="xs-httpd/3.7 beta/0.06"
 AS_SHELL_SANITIZE
+
+dnl pre-all
+AC_ARG_WITH([rootdir],,
+	[AC_MSG_ERROR([--with-rootdir is deprecated, edit hier.layout instead])])
+
 AC_CONFIG_SRCDIR(src/httpd.c)
 AC_CONFIG_LIBOBJ_DIR(libcompat)
 AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 no-dist-gzip])
@@ -119,24 +124,27 @@ XS_CHECK_WITH(pcre, PCRE support, yes, [XS_TRY_CONFIG(pcre, httpd)])
 XS_CHECK_WITH(curl, CURL transfer support, no, [XS_TRY_CONFIG(curl, httpd)])
 
 XS_CHECK_WITH(gzip, GZIP support, yes, [
-	XS_FUNC_IN_LIB(gzopen, HAVE_GZIP, z, gzip)
-	AC_SUBST(gzip_cflags)
-	AC_SUBST(gzip_ldflags)
-	test x$ac_cv_search_gzopen != xno && modules="${modules} gzip compress"
+	XS_FUNC_IN_LIB(gzopen, HAVE_GZIP, z, gzip,, [
+		modules="${modules} gzip compress"
+		AC_SUBST(gzip_cflags)
+		AC_SUBST(gzip_ldflags)
+		], [XS_FATAL(gzip)])
 	])
 
 XS_CHECK_WITH(bzip2, BZIP2 support, yes, [
-	XS_FUNC_IN_LIB(BZ2_bzopen, HAVE_BZIP2, bz2, bzip2)
-	AC_SUBST(bzip2_cflags)
-	AC_SUBST(bzip2_ldflags)
-	test x$ac_cv_search_BZ2_bzopen != xno && modules="${modules} bzip2"
+	XS_FUNC_IN_LIB(BZ2_bzopen, HAVE_BZIP2, bz2, bzip2,, [
+		modules="${modules} bzip2"
+		AC_SUBST(bzip2_cflags)
+		AC_SUBST(bzip2_ldflags)
+		], [XS_FATAL(bzip2)])
 	])
 
 XS_CHECK_WITH(ldap, LDAP authentication support, no, [
-	XS_FUNC_IN_LIB(ldap_initialize, HAVE_LDAP, ldap, ldap)
-	AC_SUBST(ldap_cflags)
-	AC_SUBST(ldap_ldflags)
-	test x$ac_cv_search_ldap_initialize != xno && modules="${modules} ldap"
+	XS_FUNC_IN_LIB(ldap_initialize, HAVE_LDAP, ldap, ldap,, [
+		modules="${modules} ldap"
+		AC_SUBST(ldap_cflags)
+		AC_SUBST(ldap_ldflags)
+		], [XS_FATAL(ldap)])
 	])
 
 XS_CHECK_WITH(perl, PERL persistent interpreter, no, [
@@ -145,7 +153,7 @@ XS_CHECK_WITH(perl, PERL persistent interpreter, no, [
 		modules="${modules} perl"
 		AC_SUBST(perl_cflags, ["`${perlpath} -MExtUtils::Embed -e ccopts`"])
 		AC_SUBST(perl_ldflags, ["`${perlpath} -MExtUtils::Embed -e ldopts`"])
-		])
+		], [XS_FATAL(perl)])
 	AC_MSG_WARN([Internal Perl interpreter is still EXPERIMENTAL])
 	])
 
@@ -156,15 +164,16 @@ XS_CHECK_WITH(ruby, Ruby interpreter, no, [
 		AC_SUBST(ruby_cflags)
 dnl		AC_SUBST(ruby_cflags, [-I"`${rubypath} -r mkmf -e 'print ($hdrdir)'`"])
 		AC_SUBST(ruby_ldflags, [`${rubypath} -r mkmf -e 'print %&-L#{Config.expand($libdir)} -l#{CONFIG["RUBY_SO_NAME"]}&'`])
-		])
+		], [XS_FATAL(ruby)])
 	AC_MSG_WARN([Internal Ruby interpreter is still EXPERIMENTAL])
 	])
 
 XS_CHECK_WITH(python, Python interpreter, no, [
-	XS_TRY_CONFIG(python, python, [modules="${modules} python"])
-	AC_MSG_WARN([Internal Python interpreter is still EXPERIMENTAL])
+	XS_TRY_CONFIG(python, python)
+	modules="${modules} python"
 	AC_SUBST(python_cflags)
 	AC_SUBST(python_ldflags)
+	AC_MSG_WARN([Internal Python interpreter is still EXPERIMENTAL])
 	])
 
 AC_MSG_CHECKING([if you want configuration preprocessing])
@@ -177,20 +186,21 @@ Extra options:
 	 AS_IF([test x$withval = xyes], [withval=m4])
 	 AS_IF([test x$withval != xno], [
 		 AC_PATH_PROG(preprocessor, $withval)
-		 AS_IF([test x$preprocessor != x],
-			[AC_DEFINE_UNQUOTED(PATH_PREPROCESSOR, "${preprocessor}",
-				[preprocessor used to parse configuration files])],
-			[AC_MSG_FAILURE([--with-preprocessor was given, but command not found])])
+		 AS_IF([test x$preprocessor != x], [
+			AC_DEFINE_UNQUOTED(PATH_PREPROCESSOR, "${preprocessor}",
+				[preprocessor used to parse configuration files])
+			], [XS_FATAL(preprocessor)])
 		])
-	 ], AC_MSG_RESULT(${withval:-no}))
+	 ], [AC_MSG_RESULT(${withval:-no})])
 
 dnl Select directory layout 
 hier=xs
 AC_MSG_CHECKING([for --enable-hier])
 AC_ARG_ENABLE(hier,
-	AC_HELP_STRING([--enable-hier=[xs|gnu]], [set hierarchy layout]),
+	AC_HELP_STRING([--enable-hier=[xs|gnu]], [set hierarchy layout]), [
 	hier=${enable_hier}
-	AC_MSG_RESULT(${enable_hier}))
+	AC_MSG_RESULT(${enable_hier})
+	], AC_MSG_RESULT(${hier}))
 [eval $(sed '1,/^\['${hier}'\]$/d; /^$/,$d; s/		*//; s,+,/xs-httpd,; s/=/='"'"'/; s/$/'"'"'/' hier.layout)]
 
 dnl Various installation directories - relative to ${rootdir}.

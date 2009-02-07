@@ -8,6 +8,7 @@ Changes since 3.7 beta 6
 - Fix mod_gzip dependency
 - Fix mod_ruby initialization (enable component loading)
 - Easier install directory configuration via hier.layout
+- Abort configure when a selected package cannot be used
 
 Changes since 3.7 beta 5
 - Execute in .xsconf now works if script.methods is emtpy
