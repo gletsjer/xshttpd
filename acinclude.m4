@@ -28,9 +28,7 @@ AC_DEFUN([XS_ARG_DIRS], [
 		CFLAGS="${CFLAGS} -[D]AS_TR_CPP(loc[_DIR])=\\\"\$(loc[dir])\\\""
 		AC_DEFINE(AS_TR_CPP(loc[_DIRT]), [AS_TR_CPP(loc[_DIR]) "/"],
 			[loc directory with opt. trailing slash])
-		AS_IF([test "${loc[dir]}" = "${loc[dir]#[/\$]}"],
-			AC_SUBST(loc[dir], "${rootdir}/${loc[dir]}"),
-			AC_SUBST(loc[dir]))
+		AC_SUBST(loc[dir])
 		])
 	])
 

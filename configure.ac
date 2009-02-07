@@ -191,7 +191,7 @@ AC_ARG_ENABLE(hier,
 	AC_HELP_STRING([--enable-hier=[xs|gnu]], [set hierarchy layout]),
 	hier=${enable_hier}
 	AC_MSG_RESULT(${enable_hier}))
-[eval $(sed '1,/^\['${hier}'\]$/d; /^$/,$d; s/		*//; s,+,/xs-httpd,' hier.layout)]
+[eval $(sed '1,/^\['${hier}'\]$/d; /^$/,$d; s/		*//; s,+,/xs-httpd,; s/=/='"'"'/; s/$/'"'"'/' hier.layout)]
 
 dnl Various installation directories - relative to ${rootdir}.
 XS_ARG_DIRS(root config phexec contrib font html phicon log module run)
