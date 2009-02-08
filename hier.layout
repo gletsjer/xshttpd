@@ -13,14 +13,14 @@ rundir=		/var/run
 moduledir=	module
 
 [gnu]
-rootdir=	$(datarootdir)+
-configdir=	$(sysconfdir)+
+rootdir=	$(datarootdir)/xs-httpd
+configdir=	$(sysconfdir)/xs-httpd
 phexecdir=	cgi-bin
 contribdir=	contrib
 fontdir=	gfxcount
 htmldir=	htdocs
 phicondir=	icons
-logdir=		$(localstatedir)/log+
+logdir=		$(localstatedir)/log/xs-httpd
 rundir=		$(localstatedir)/run
-moduledir=	$(libexecdir)+
+moduledir=	$(libexecdir)/xs-httpd
 

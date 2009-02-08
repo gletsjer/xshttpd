@@ -2,11 +2,6 @@ dnl Process this file with autoconf to produce a configure script.
 AC_INIT([xshttpd],[37b07])
 SERVER_IDENT="xs-httpd/3.7 beta/0.07"
 AS_SHELL_SANITIZE
-
-dnl pre-all
-AC_ARG_WITH([rootdir],,
-	[AC_MSG_ERROR([--with-rootdir is deprecated, edit hier.layout instead])])
-
 AC_CONFIG_SRCDIR(src/httpd.c)
 AC_CONFIG_LIBOBJ_DIR(libcompat)
 AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 no-dist-gzip])
@@ -201,7 +196,12 @@ AC_ARG_ENABLE(hier,
 	hier=${enable_hier}
 	AC_MSG_RESULT(${enable_hier})
 	], AC_MSG_RESULT(${hier}))
-[eval $(sed '1,/^\['${hier}'\]$/d; /^$/,$d; s/		*//; s,+,/xs-httpd,; s/=/='"'"'/; s/$/'"'"'/' ${srcdir}/hier.layout)]
+[eval $(sed '1,/^\['${hier}'\]$/d; /^$/,$d; s/		*//; s/=/='"'"'/; s/$/'"'"'/' ${srcdir}/hier.layout)]
+
+AC_ARG_WITH([rootdir],
+	AS_HELP_STRING([--with-rootdir=DIR],
+		[directory to install data files @<:@LIBDIR/httpd@:>@]),
+	[rootdir="${withval}"])
 
 dnl Various installation directories - relative to ${rootdir}.
 XS_ARG_DIRS(root config phexec contrib font html phicon log module run)
