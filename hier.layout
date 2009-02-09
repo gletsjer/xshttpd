@@ -3,11 +3,7 @@
 [xs]
 rootdir=	$(prefix)/lib/httpd
 configdir=	conf
-phexecdir=	cgi-bin
 contribdir=	contrib
-fontdir=	gfxcount
-htmldir=	htdocs
-phicondir=	icons
 logdir=		logs
 rundir=		/var/run
 moduledir=	module
@@ -15,11 +11,7 @@ moduledir=	module
 [gnu]
 rootdir=	$(datarootdir)/xs-httpd
 configdir=	$(sysconfdir)/xs-httpd
-phexecdir=	cgi-bin
 contribdir=	contrib
-fontdir=	gfxcount
-htmldir=	htdocs
-phicondir=	icons
 logdir=		$(localstatedir)/log/xs-httpd
 rundir=		$(localstatedir)/run
 moduledir=	$(libexecdir)/xs-httpd

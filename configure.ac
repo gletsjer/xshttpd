@@ -204,7 +204,11 @@ AC_ARG_WITH([rootdir],
 	[rootdir="${withval}"])
 
 dnl Various installation directories - relative to ${rootdir}.
-XS_ARG_DIRS(root config phexec contrib font html phicon log module run)
+fontdir='$(rootdir)/gfxcount'
+phexecdir='$(rootdir)/cgi-bin'
+phicondir='$(rootdir)/icons'
+htmldir='$(rootdir)/htdocs'
+XS_ARG_DIRS(root config contrib font html log module phexec phicon run)
 
 dnl User may tweak compilation behaviour.
 XS_ARG_DEFAULT(warnings, HAVE_GDB, no, [enable extra compiler warnings])
