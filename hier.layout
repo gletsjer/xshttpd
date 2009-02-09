@@ -2,17 +2,21 @@
 
 [xs]
 rootdir=	$(prefix)/lib/httpd
+bindir=		$(prefix)/bin
 configdir=	conf
 contribdir=	contrib
 logdir=		logs
+mandir=		$(prefix)/man
 rundir=		/var/run
 moduledir=	module
 
 [gnu]
 rootdir=	$(datarootdir)/xs-httpd
+bindir=		$(bindir)
 configdir=	$(sysconfdir)/xs-httpd
 contribdir=	contrib
 logdir=		$(localstatedir)/log/xs-httpd
+mandir		$(mandir)
 rundir=		$(localstatedir)/run
 moduledir=	$(libexecdir)/xs-httpd
 
