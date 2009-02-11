@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([xshttpd],[37b07])
-SERVER_IDENT="xs-httpd/3.7 beta/0.07"
+AC_INIT([xshttpd],[37a08])
+SERVER_IDENT="xs-httpd/3.7 beta/0.08"
 AS_SHELL_SANITIZE
 AC_CONFIG_SRCDIR([src/httpd.c])
 AC_CONFIG_LIBOBJ_DIR([libcompat])
@@ -197,7 +197,7 @@ AC_ARG_ENABLE(hier,
 	hier=${enable_hier}
 	AC_MSG_RESULT(${enable_hier})
 	], AC_MSG_RESULT(${hier}))
-[eval $(sed '1,/^\['${hier}'\]$/d; /^$/,$d; s/		*//; s/=/='"'"'/; s/$/'"'"'/' ${srcdir}/hier.layout)]
+[eval $(sed '1,/^\['${hier}'\]$/d; /^$/,$d; s/		*//; s/=/='"'"'/; s/$/'"'"'/' ${srcdir}/dirs.conf)]
 
 AC_ARG_WITH([rootdir],
 	AS_HELP_STRING([--with-rootdir=DIR],
