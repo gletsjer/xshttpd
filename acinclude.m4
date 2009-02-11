@@ -10,13 +10,6 @@ AC_DEFUN([XS_ARG_DEFAULT], [
 	AS_IF([test "${enable_$1}" = yes], AC_DEFINE($2,, [$4]))
 	])
 
-AC_DEFUN([XS_SHOW_HELP], [
-	AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)
-	ac_help="$ac_help
-[$1]"
-	AC_DIVERT_POP()
-	])
-
 dnl AC_DEFUN([ac_ARG_DIR], [
 dnl 	AC_ARG_WITH($1,
 dnl 		[  --with-$1=PATH	  directory to use for $2 [ROOTDIR/$2]],
