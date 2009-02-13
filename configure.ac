@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_INIT([xshttpd],[37a08])
+AC_INIT([xshttpd],[37b08])
 SERVER_IDENT="xs-httpd/3.7 beta/0.08"
 AS_SHELL_SANITIZE
 AC_CONFIG_SRCDIR([src/httpd.c])
