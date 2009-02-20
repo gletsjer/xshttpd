@@ -1,16 +1,32 @@
 Website:
 The official XS-httpd website can be found at http://www.stack.nl/xs-httpd/
 
+
 Mailing list:
 Questions about the use or development of this webserver can be directed
 at the mailinglist, <xshttpd-devel@lists.stack.nl>
 You can subscribe to this mailinglist via http://lists.stack.nl/
 A separate list for announcements about new versions is also available.
 
+
 Requirements:
 - shared library support
 - C compiler that supports C99
-- modern OpenSSL library
+- OpenSSL library, http://www.openssl.org/
+
+Optional dependencies for base server:
+- PCRE, http://www.pcre.org/
+- cURL, http://curl.haxx.se/
+
+Optional dependencies for modules:
+- GZIP, http://www.gzip.org/
+- BZIP2, http://www.bzip.org/
+- OpenLDAP, http://www.openldap.org/
+
+- Perl, http://www.perl.org/
+- Python, http://www.python.org/
+- Ruby, http://www.ruby-lang.org/
+
 
 Download sites (anonymous FTP):
 ftp.stack.nl:/pub/xs-httpd/
