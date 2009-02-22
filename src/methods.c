@@ -67,7 +67,7 @@
 #include	"modules.h"
 #include	"fcgi.h"
 
-static bool	getfiletype		(bool);
+static bool	getfiletype		(void);
 static bool	sendheaders		(int, off_t);
 static void	senduncompressed	(int, struct encoding_filter *);
 static void	sendcompressed		(int, const char *);
@@ -181,7 +181,7 @@ sendheaders(int fd, off_t size)
 	dynamic = false;
 
 	/* This is extra overhead, overhead, overhead! */
-	if (config.usessi && getfiletype(false))
+	if (getfiletype() && config.usessi)
 	{
 		char input[RWBUFSIZE];
 
@@ -271,8 +271,8 @@ sendheaders(int fd, off_t size)
 			return false;
 		}
 	}
-	/* set mimetype and charset */
-	getfiletype(true);
+	/* getfiletype() */
+
 	if (getenv("HTTP_ACCEPT"))
 	{
 		size_t		i, acsz, len;
@@ -688,6 +688,99 @@ find_file(const char *orgbase, const char *base, const char *file)
 	return NULL;
 }
 
+static	void
+set_path_info(char *params, char *base, char *file, bool wasdir)
+{
+	char		fullpath[XS_PATH_MAX];
+	struct	stat	statbuf;
+	char		*temp, *temppath, *slash;
+	const	struct	passwd	*userinfo;
+
+	snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
+
+	if (wasdir &&
+		!stat(temppath, &statbuf) &&
+		(statbuf.st_mode & S_IFMT) == S_IFDIR)
+	{
+		setenv("SCRIPT_NAME", params, 1);
+		setenv("SCRIPT_FILENAME", temppath, 1);
+		setenv("PWD", temppath, 1);
+		return;
+	}
+
+	if (!wasdir &&
+		!stat(temppath, &statbuf) &&
+		(statbuf.st_mode & S_IFMT) == S_IFREG)
+	{
+		/* No PATH_INFO for regular files */
+		if (!getenv("ORIG_PATH_TRANSLATED"))
+			setenv("ORIG_PATH_TRANSLATED", temppath, 1);
+		setenv("SCRIPT_NAME", params, 1);
+		setenv("SCRIPT_FILENAME", temppath, 1);
+		if ((temp = strrchr(temppath, '/')))
+		{
+			*temp = '\0';
+			setenv("PWD", temppath, 1);
+			*temp = '/';
+		}
+		return;
+	}
+
+	/* no such file or directory:
+	 * find base path and treat the rest as arguments
+	 */
+	temp = file;
+	while ((temp = strchr(temp, '/')))
+	{
+		*temp = '\0';
+		snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
+
+		if (stat(fullpath, &statbuf))
+			break; /* error later */
+		if ((statbuf.st_mode & S_IFMT) == S_IFREG)
+		{
+			setenv("SCRIPT_NAME", params, 1);
+			setenv("SCRIPT_FILENAME", fullpath, 1);
+			*temp = '/';
+			setenv("PATH_INFO", temp, 1);
+			setenv("PATH_TRANSLATED", convertpath(temp), 1);
+			env.path_info = getenv("PATH_INFO");
+			if ((slash = strrchr(fullpath, '/')))
+				*slash = '\0';
+			setenv("PWD", fullpath, 1);
+			*temp = '\0';
+
+			/* opt. set uid to path_info user */
+			if (!current->uidscripts ||
+					temp[1] != '~' ||
+					!(slash = strchr(&temp[2], '/')) ||
+					origeuid)
+				break;
+			
+			*slash = '\0';
+			/* only for special uidscripts */
+			for (int i = 0; current->uidscripts[i]; i++)
+			{
+				if (strcmp(params, current->uidscripts[i]))
+					continue;
+
+				/* set uid */
+				userinfo = getpwnam(&temp[2]);
+				if (!userinfo || !userinfo->pw_uid)
+					break;
+				seteuid(origeuid);
+				setegid(userinfo->pw_gid);
+				setgroups(1, (const gid_t *)&userinfo->pw_gid);
+				seteuid(userinfo->pw_uid);
+				break;
+			}
+			*slash = '/';
+			break;
+		}
+		*(temp++) = '/';
+	}
+}
+
 void
 do_get(char *params)
 {
@@ -909,79 +1002,7 @@ do_get(char *params)
 	cgi = file;
 
 	/* look for file on disk */
-	snprintf(temppath, XS_PATH_MAX, "%s%s", base, file);
-	if (wasdir &&
-		!stat(temppath, &statbuf) &&
-		(statbuf.st_mode & S_IFMT) == S_IFDIR)
-	{
-		setenv("SCRIPT_NAME", params, 1);
-		setenv("SCRIPT_FILENAME", temppath, 1);
-		setenv("PWD", temppath, 1);
-	}
-	else if (!wasdir &&
-		!stat(temppath, &statbuf) &&
-		(statbuf.st_mode & S_IFMT) == S_IFREG)
-	{
-		/* No PATH_INFO for regular files */
-		if (!getenv("ORIG_PATH_TRANSLATED"))
-			setenv("ORIG_PATH_TRANSLATED", temppath, 1);
-		setenv("SCRIPT_NAME", params, 1);
-		setenv("SCRIPT_FILENAME", temppath, 1);
-		if ((temp = strrchr(temppath, '/')))
-		{
-			*temp = '\0';
-			setenv("PWD", temppath, 1);
-			*temp = '/';
-		}
-	}
-	else
-	{
-		temp = file;
-		while ((temp = strchr(temp, '/')))
-		{
-			char fullpath[XS_PATH_MAX], *slash;
-
-			*temp = '\0';
-			snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
-			if (stat(fullpath, &statbuf))
-				break; /* error later */
-			if ((statbuf.st_mode & S_IFMT) == S_IFREG)
-			{
-				setenv("SCRIPT_NAME", params, 1);
-				setenv("SCRIPT_FILENAME", fullpath, 1);
-				*temp = '/';
-				setenv("PATH_INFO", temp, 1);
-				setenv("PATH_TRANSLATED", convertpath(temp), 1);
-				env.path_info = getenv("PATH_INFO");
-				if ((slash = strrchr(fullpath, '/')))
-					*slash = '\0';
-				setenv("PWD", fullpath, 1);
-				*temp = '\0';
-
-				/* opt. set uid to path_info user */
-				if (current->uidscripts && '~' == temp[1] &&
-					(slash = strchr(&temp[2], '/')) && !origeuid)
-				{
-					*slash = '\0';
-					for (int i = 0; current->uidscripts[i]; i++)
-						if (!strcmp(params, current->uidscripts[i]))
-						{
-							userinfo = getpwnam(&temp[2]);
-							if (!userinfo || !userinfo->pw_uid)
-								break;
-							seteuid(origeuid);
-							setegid(userinfo->pw_gid);
-							setgroups(1, (const gid_t *)&userinfo->pw_gid);
-							seteuid(userinfo->pw_uid);
-							break;
-						}
-					*slash = '/';
-				}
-				break;
-			}
-			*(temp++) = '/';
-		}
-	}
+	set_path_info(params, base, file, wasdir);
 
 	if ((temp = strrchr(file, '/')))
 	{
@@ -1829,7 +1850,7 @@ loadscripttypes(char *orgbase, char *base)
 }
 
 static bool
-getfiletype(bool print)
+getfiletype(void)
 {
 	const	ftypes	* const flist[] = { lftype, ftype };
 	const	int	flen = sizeof(flist) / sizeof(ftypes *);
@@ -1846,36 +1867,35 @@ getfiletype(bool print)
 			return !strcasecmp(cfvalues.mimetype, "text/html");
 	}
 
+	/* no mimetype - set type based on file extension */
 	for (int i = 0; i < flen; i++)
 	{
 		for (const ftypes *search = flist[i]; search; search = search->next)
 		{
 			if (strcasecmp(ext, search->ext))
 				continue;
-			if (print)
+
+			size_t	len = strlen(search->name) + 1;
+			MALLOC(cfvalues.mimetype, char, len);
+			strlcpy(cfvalues.mimetype, search->name, len);
+
+			if (!cfvalues.charset &&
+				!strncmp(cfvalues.mimetype, "text/", 5))
 			{
-				size_t	len = strlen(search->name) + 1;
-
-				MALLOC(cfvalues.mimetype, char, len);
-				strlcpy(cfvalues.mimetype, search->name, len);
-
-				if (!cfvalues.charset &&
-					!strncmp(cfvalues.mimetype, "text/", 5))
-				{
-					/* only force default charset for
-					 * textfiles
-					 */
-					STRDUP(cfvalues.charset,
-						config.defaultcharset
-						? config.defaultcharset
-						: "us-ascii");
-				}
+				/* only force default charset for
+				 * textfiles
+				 */
+				STRDUP(cfvalues.charset,
+					config.defaultcharset
+					? config.defaultcharset
+					: "us-ascii");
 			}
 			return !strcasecmp(search->name, "text/html");
 		}
 	}
-	if (print)
-		STRDUP(cfvalues.mimetype, "application/octet-stream");
+
+	/* set fallback default mimetype */
+	STRDUP(cfvalues.mimetype, "application/octet-stream");
 	return false;
 }
 
