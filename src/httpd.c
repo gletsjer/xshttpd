@@ -117,7 +117,8 @@ static	void	standalone_socket	(int)	NORETURN;
 void
 stdheaders(bool lastmod, bool texthtml, bool endline)
 {
-	secprintf("Date: %s\r\nServer: %s\r\n", currenttime, SERVER_IDENT);
+	secprintf("Date: %s\r\nServer: %s\r\n",
+		currenttime, config.serverident);
 	if (lastmod)
 		secprintf("Last-modified: %s\r\nExpires: %s\r\n",
 			currenttime, currenttime);

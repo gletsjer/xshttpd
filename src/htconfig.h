@@ -120,6 +120,7 @@ extern struct configuration
 	char *		virtualhostdir;
 	char *		defaultcharset;
 	char *		scriptpath;
+	char *		serverident;
 	char **		modules;
 	struct virtual *	system;
 	struct virtual *	users;

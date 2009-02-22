@@ -636,7 +636,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				if (!strncasecmp(val, SERVER_IDENT, strlen(SERVER_IDENT)))
 					append(&head, false, "Server: %s\r\n", val);
 				else
-					append(&head, false, "Server: %s %s\r\n", SERVER_IDENT, val);
+					append(&head, false, "Server: %s %s\r\n", config.serverident, val);
 				server = true;
 			}
 			else if (!strcasecmp(idx, "Date"))
@@ -657,7 +657,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				append(&head, false, "Last-modified: %s\r\n",
 					currenttime);
 			if (!server)
-				append(&head, false, "Server: %s\r\n", SERVER_IDENT);
+				append(&head, false, "Server: %s\r\n", config.serverident);
 			if (session.httpversion >= 11)
 				append(&head, false, "Transfer-encoding: chunked\r\n");
 			if (config.usecontentmd5 && session.trailers)

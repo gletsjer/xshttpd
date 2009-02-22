@@ -238,6 +238,12 @@ environment variable that should be presented to CGI
 binaries. This must be a colon separated list of
 directories; no sanity checking is done. A reasonable
 default is provided.
+.It Sy ServerIdent Bro Cm full No \*(Ba Cm branch No \*(Ba Cm name Brc Aq full
+Set how much of the webserver version details should be included
+in the
+.Sy Server
+string that is send with every HTTP response.
+The default behaviour is to send the full version number.
 .It Sy Modules Ar module Oo Ar module ... Oc Aq *
 A list with the names of all dynamic modules that should
 be loaded with the webserver (e.g.
@@ -292,7 +298,7 @@ it defaults to
 (443) when SSL is enabled for this socket and
 .Sy http
 (80) otherwise.
-.It Sy ListenFamily Bro Cm IPv4 Ns No | Ns Cm IPv6 Brc Aq
+.It Sy ListenFamily Bro Cm IPv4 No \*(Ba Cm IPv6 Brc Aq
 The address family to use:
 .Sy IPv6
 may not be available on all systems. The default is to leave

@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 8
+- New ServerInfo option to set version string (full, branch, name)
+
 Changes since 3.7 beta 7
 - Rename hier.layout to dirs.conf and shuffle configurable dirs
 
