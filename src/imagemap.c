@@ -26,8 +26,8 @@
 #include	<string.h>
 
 #include	"decode.h"
+#include	"constants.h"
 
-#define		MYBUFSIZ	1024
 #define		MAXVERTS	1000
 #define		X		0
 #define		Y		1

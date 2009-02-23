@@ -96,7 +96,11 @@ AS_IF([test x$ac_cv_type_struct_in6_addr = xyes], [
 	])
 
 dnl Test runs for required global variables.
-AC_CHECK_DECLS_ONCE([sys_errlist, optarg, environ])
+AC_CHECK_DECLS_ONCE([optarg, environ])
+AC_CHECK_DECLS([sys_errlist],,, [[#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+]])
 
 dnl OpenSSL is mandatory
 XS_CHECK_WITH(ssl, SSL crypto support, yes)
@@ -115,7 +119,7 @@ libxs_ldflags="${libxs_ldflags} ${ssllib}"
 httpd_ldflags="${httpd_ldflags} ${xssl_ldflags}"
 
 dnl User specified additional (non-system) libraries.
-XS_CHECK_WITH(pcre, PCRE support, yes, [XS_TRY_CONFIG(pcre, httpd)])
+XS_CHECK_WITH(pcre, PCRE support, yes, [XS_TRY_CONFIG(pcre, libxs)])
 
 XS_CHECK_WITH(curl, CURL transfer support, no, [XS_TRY_CONFIG(curl, httpd)])
 

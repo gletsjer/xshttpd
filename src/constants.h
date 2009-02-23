@@ -57,6 +57,14 @@ but not able to overwrite your data - nor should it be able to write logfiles */
 /* Argument to listen(). Leave it as it is, it should be fine. */
 #define MAXLISTEN	50
 
+/* Internal buffer sizes */
+#define		RWBUFSIZE	4096
+#define		MYBUFSIZ	1024
+#define		LINEBUFSIZE	4096
+
+/* Minimum speed to indicate progress */
+#define		MINBYTESPERSEC	32
+
 /* Parsing method for fparseln() */
 #define	FPARSEARG	FPARSELN_UNESCCOMM|FPARSELN_UNESCCONT|FPARSELN_UNESCESC
 

@@ -693,34 +693,34 @@ set_path_info(char *params, char *base, char *file, bool wasdir)
 {
 	char		fullpath[XS_PATH_MAX];
 	struct	stat	statbuf;
-	char		*temp, *temppath, *slash;
+	char		*temp, *slash;
 	const	struct	passwd	*userinfo;
 
 	snprintf(fullpath, XS_PATH_MAX, "%s%s", base, file);
 
 	if (wasdir &&
-		!stat(temppath, &statbuf) &&
+		!stat(fullpath, &statbuf) &&
 		(statbuf.st_mode & S_IFMT) == S_IFDIR)
 	{
 		setenv("SCRIPT_NAME", params, 1);
-		setenv("SCRIPT_FILENAME", temppath, 1);
-		setenv("PWD", temppath, 1);
+		setenv("SCRIPT_FILENAME", fullpath, 1);
+		setenv("PWD", fullpath, 1);
 		return;
 	}
 
 	if (!wasdir &&
-		!stat(temppath, &statbuf) &&
+		!stat(fullpath, &statbuf) &&
 		(statbuf.st_mode & S_IFMT) == S_IFREG)
 	{
 		/* No PATH_INFO for regular files */
 		if (!getenv("ORIG_PATH_TRANSLATED"))
-			setenv("ORIG_PATH_TRANSLATED", temppath, 1);
+			setenv("ORIG_PATH_TRANSLATED", fullpath, 1);
 		setenv("SCRIPT_NAME", params, 1);
-		setenv("SCRIPT_FILENAME", temppath, 1);
-		if ((temp = strrchr(temppath, '/')))
+		setenv("SCRIPT_FILENAME", fullpath, 1);
+		if ((temp = strrchr(fullpath, '/')))
 		{
 			*temp = '\0';
-			setenv("PWD", temppath, 1);
+			setenv("PWD", fullpath, 1);
 			*temp = '/';
 		}
 		return;
@@ -786,7 +786,7 @@ do_get(char *params)
 {
 	char			*temp, *file, *cgi, *question,
 				base[XS_PATH_MAX], orgbase[XS_PATH_MAX],
-				total[XS_PATH_MAX], temppath[XS_PATH_MAX];
+				total[XS_PATH_MAX];
 	const	char		*filename, *http_host;
 	int			fd, script = 0;
 	bool			wasdir, switcheduid = false,

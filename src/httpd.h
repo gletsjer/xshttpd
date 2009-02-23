@@ -9,12 +9,6 @@
 #include	<sys/types.h>
 #include	<stdbool.h>
 
-#define		RWBUFSIZE	4096
-#define		MYBUFSIZ	1024
-#define		LINEBUFSIZE	4096
-
-#define		MINBYTESPERSEC	32
-
 extern	char	currenttime[];
 extern	gid_t	origegid;
 extern	uid_t	origeuid;

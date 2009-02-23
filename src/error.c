@@ -14,7 +14,6 @@
 
 #include	"path.h"
 #include	"decode.h"
-#include	"htconfig.h"
 
 static	void	error			(const char *)	NORETURN;
 static	void	user_unknown		(void);

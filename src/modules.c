@@ -6,6 +6,7 @@
 #include	<string.h>
 #include	<dlfcn.h>
 
+#include	"htconfig.h"
 #include	"malloc.h"
 #include	"modules.h"
 #include	"path.h"

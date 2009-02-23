@@ -10,9 +10,9 @@
 #include	<ldap.h>
 
 #include	"ldap.h"
-#include	"httpd.h"
 #include	"malloc.h"
 #include	"modules.h"
+#include	"constants.h"
 
 struct ldap_auth
 {
@@ -106,11 +106,7 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
 		return false;
 
 	if (!(af = fopen(authfile, "r")))
-	{
-		server_error(403, "Authentication file is not available",
-			"NOT_AVAILABLE");
 		return false;
-	}
 
 	/*
  	 * Quick 'n dirty parser; usually the .xsauth file consists of

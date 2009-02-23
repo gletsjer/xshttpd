@@ -11,7 +11,6 @@
 
 #include	<zlib.h>
 
-#include	"httpd.h"
 #include	"modules.h"
 #include	"extra.h"
 

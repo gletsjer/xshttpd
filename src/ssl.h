@@ -5,6 +5,7 @@
 
 #include	"config.h"
 #include	<stdio.h>
+#include	<stdbool.h>
 
 #include	<openssl/ssl.h>
 #include	<openssl/tls1.h>
@@ -14,7 +15,6 @@
 # endif		/* OPENSSL_NO_TLSEXT */
 #endif		/* TLSEXT_NAMETYPE_host_name */
 
-#include	"htconfig.h"
 /* forward declaration, defined in htconfig.h */
 struct	mapping;
 struct	maplist;

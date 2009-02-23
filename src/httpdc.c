@@ -15,10 +15,8 @@
 #include	<string.h>
 #include	<ctype.h>
 
-#include	"httpd.h"
 #include	"malloc.h"
 #include	"path.h"
-#include	"htconfig.h"
 
 typedef	struct
 {
@@ -30,9 +28,6 @@ typedef	struct
 static	pid_t	httpdpid;	/* a value of 0 denotes no running httpd */
 static	char	startparams[BUFSIZ];
 char		rootdir[XS_PATH_MAX];
-
-struct virtual			*current;
-struct configuration	config;
 
 static	void	cmd_help	(const char *);
 static	void	cmd_status	(const char *);

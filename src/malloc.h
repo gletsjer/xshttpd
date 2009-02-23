@@ -6,7 +6,6 @@
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
 
-#include	"htconfig.h"
 #include	"alternative.h"
 
 #define		MALLOC(var,type,num)					\

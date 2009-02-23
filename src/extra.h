@@ -3,7 +3,10 @@
 #ifndef		EXTRA_H
 #define		EXTRA_H
 
-#include	"htconfig.h"
+#include	<stdbool.h>
+
+/* defined in htconfig.h */
+struct	mapping;
 
 struct tm *	localtimenow	(void) WARNUNUSED;
 char *	gmtimestamp		(void) WARNUNUSED;

@@ -14,7 +14,6 @@
 
 #include	<openssl/des.h>
 
-#include	"htconfig.h"
 #include	"extra.h"
 #include	"decode.h"
 #include	"hash.h"
