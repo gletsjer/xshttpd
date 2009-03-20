@@ -1607,6 +1607,32 @@ do_proxy(const char *proxy, const char *params)
 		curl_easy_setopt(handle, CURLOPT_READDATA, stdin);
 		curl_easy_setopt(handle, CURLOPT_READFUNCTION, curl_readhack);
 	}
+
+	/* Quick hack to add session management */
+	const char		*cookie = getenv("HTTP_COOKIE");
+	const char		*cookie2 = getenv("HTTP_COOKIE2");
+	char			*value = NULL;
+	struct curl_slist	*curl_headers = NULL;
+	if (env.authorization)
+	{
+		asprintf(&value, "Authorization: %s", env.authorization);
+		curl_headers = curl_slist_append(curl_headers, value);
+		free(value);
+	}
+	if (cookie)
+	{
+		asprintf(&value, "Cookie: %s", cookie);
+		curl_headers = curl_slist_append(curl_headers, value);
+		free(value);
+	}
+	if (cookie2)
+	{
+		asprintf(&value, "Cookie2: %s", cookie2);
+		curl_headers = curl_slist_append(curl_headers, value);
+		free(value);
+	}
+
+	curl_easy_setopt(handle, CURLOPT_HTTPHEADER, curl_headers);
 	curl_easy_setopt(handle, CURLOPT_HEADER, 1);
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, stdout);
 	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, secfwrite);
@@ -1619,6 +1645,8 @@ do_proxy(const char *proxy, const char *params)
 	else
 		logrequest(params, 0);
 	free(request);
+	if (curl_headers)
+		free(curl_headers);
 #else		/* HAVE_CURL */
 	xserror(500, "HTTP request forwarding not supported");
 	(void)proxy;
