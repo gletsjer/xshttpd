@@ -1608,28 +1608,16 @@ do_proxy(const char *proxy, const char *params)
 		curl_easy_setopt(handle, CURLOPT_READFUNCTION, curl_readhack);
 	}
 
-	/* Quick hack to add session management */
-	const char		*cookie = getenv("HTTP_COOKIE");
-	const char		*cookie2 = getenv("HTTP_COOKIE2");
-	char			*value = NULL;
-	struct curl_slist	*curl_headers = NULL;
-	if (env.authorization)
+	/* Quick hack to add all headers */
+	for (size_t sz = 0; sz < session.http_headers.size; sz++)
 	{
-		asprintf(&value, "Authorization: %s", env.authorization);
-		curl_headers = curl_slist_append(curl_headers, value);
-		free(value);
-	}
-	if (cookie)
-	{
-		asprintf(&value, "Cookie: %s", cookie);
-		curl_headers = curl_slist_append(curl_headers, value);
-		free(value);
-	}
-	if (cookie2)
-	{
-		asprintf(&value, "Cookie2: %s", cookie2);
-		curl_headers = curl_slist_append(curl_headers, value);
-		free(value);
+		char	*header = NULL;
+
+		asprintf(&header, "%s: %s",
+			session.http_headers.elements[sz].index,
+			session.http_headers.elements[sz].value);
+		curl_headers = curl_slist_append(curl_headers, header);
+		free(header);
 	}
 
 	curl_easy_setopt(handle, CURLOPT_HTTPHEADER, curl_headers);

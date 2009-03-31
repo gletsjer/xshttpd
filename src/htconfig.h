@@ -140,6 +140,7 @@ extern struct session
 	bool		chunked;
 	bool		persistent;
 	bool		trailers;
+	struct maplist	http_headers;
 } session;
 
 extern struct env

@@ -91,10 +91,6 @@ static	char	referer[MYBUFSIZ], orig[MYBUFSIZ];
 static	char	*startparams, *message503;
 struct	session		session;
 struct	env		env;
-#define CLEANENV do { \
-	memset(&env, 0, sizeof(struct env));\
-	MALLOC(environ, char *, 1);\
-	*environ = NULL; } while (0)
 
 /* Prototypes */
 
@@ -777,11 +773,13 @@ logrequest(const char *request, off_t size)
 }
 
 static	void
-process_request()
+process_request(void)
 {
 	char		line[LINEBUFSIZE],
 			http_host[NI_MAXHOST], http_host_long[NI_MAXHOST],
 			*params, *browser, *url, *ver;
+
+	setup_environment();
 
 	session.headers = true;
 	session.httpversion = 11;
@@ -792,7 +790,6 @@ process_request()
 	session.headonly = session.postonly = false;
 	current = NULL;
 	browser = NULL;
-	setup_environment();
 	setcurrenttime();
 
 	http_host[0] = '\0';
@@ -862,16 +859,17 @@ process_request()
 			goto METHOD;
 		}
 
-		struct maplist	http_headers;
-		if (readheaders(0, &http_headers) < 0)
+		if (readheaders(0, &session.http_headers) < 0)
 		{
-			xserror(400, "Unable to read request line");
+			xserror(400, "Unable to read request headers");
 			return;
 		}
-		for (size_t sz = 0; sz < http_headers.size; sz++)
+		for (size_t sz = 0; sz < session.http_headers.size; sz++)
 		{
-			const char	*idx = http_headers.elements[sz].index;
-			const char	*val = http_headers.elements[sz].value;
+			const char	*idx = session.http_headers.elements[sz]
+						.index;
+			const char	*val = session.http_headers.elements[sz]
+						.value;
 
 			if (!strcasecmp("Content-length", idx))
 			{
@@ -943,7 +941,6 @@ process_request()
 				free(name);
 			}
 		}
-		freeheaders(&http_headers);
 	}
 	else if (!strncasecmp(ver, "HTCPCP/", 7))
 	{
@@ -1570,7 +1567,11 @@ static	void
 setup_environment()
 {
 	/* start with empty environment */
-	CLEANENV;
+	memset(&env, 0, sizeof(struct env));
+	*environ = NULL;
+	if (session.http_headers.size)
+		freeheaders(&session.http_headers);
+	memset(&session, 0, sizeof(struct session));
 
 	setenv("SERVER_SOFTWARE", SERVER_IDENT, 1);
 	setenv("SERVER_NAME", config.system->hostname, 1);
@@ -1581,15 +1582,11 @@ setup_environment()
 		!strcmp(cursock->port, "https") ? "443" :
 		cursock->port, 1);
 	if (remoteaddr[0])
-	{
 		setenv("REMOTE_ADDR", remoteaddr, 1);
-		env.remote_addr = remoteaddr;
-	}
+	env.remote_addr = remoteaddr;
 	if (remotehost[0])
-	{
 		setenv("REMOTE_HOST", remotehost, 1);
-		env.remote_host = remotehost;
-	}
+	env.remote_host = remotehost;
 	ssl_environment();
 }
 
@@ -1784,7 +1781,8 @@ main(int argc, char **argv, char **envp)
 #endif		/* HAVE_SETPROCTITLE */
 	initnonce();
 	initfcgi();
-	CLEANENV;
+	MALLOC(environ, char *, 1);
+	*environ = NULL;
 
 	standalone_main();
 	/* NOTREACHED */
