@@ -1609,6 +1609,7 @@ do_proxy(const char *proxy, const char *params)
 	}
 
 	/* Quick hack to add all headers */
+	struct	curl_slist	*curl_headers = NULL;
 	for (size_t sz = 0; sz < session.http_headers.size; sz++)
 	{
 		char	*header = NULL;
