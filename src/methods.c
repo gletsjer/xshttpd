@@ -1614,6 +1614,10 @@ do_proxy(const char *proxy, const char *params)
 	{
 		char	*header = NULL;
 
+		if (!strcasecmp("host",
+				session.http_headers.elements[sz].index))
+			continue;
+
 		asprintf(&header, "%s: %s",
 			session.http_headers.elements[sz].index,
 			session.http_headers.elements[sz].value);
