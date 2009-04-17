@@ -65,7 +65,7 @@ initreadmode(bool reset)
 }
 
 bool
-initssl()
+initssl(void)
 {
 	if (!cursock->usessl)
 		return true;
@@ -118,7 +118,7 @@ initssl()
 }
 
 void
-ssl_environment()
+ssl_environment(void)
 {
 	X509		*xs;
 
@@ -212,7 +212,7 @@ ssl_environment()
 }
 
 void
-endssl()
+endssl(void)
 {
 	if (cursock->usessl && cursock->ssl)
 	{
@@ -394,11 +394,13 @@ loadssl(struct socket_config *lsock, struct ssl_vhost *sslvhost)
 		STRDUP(lsock->sslprivatekey, KEY_FILE);
 
 	if (sslvhost)
+	{
 		vc = sslvhost->virtual;
-	if (sslvhost && !vc->sslcertificate)
-		return;
-	if (sslvhost && !vc->sslprivatekey)
-		STRDUP(vc->sslprivatekey, vc->sslcertificate);
+		if (!vc->sslcertificate)
+			return;
+		if (!vc->sslprivatekey)
+			STRDUP(vc->sslprivatekey, vc->sslcertificate);
+	}
 
 	if (!(method = SSLv23_server_method()))
 		err(1, "Cannot init SSL method: %s",
@@ -410,6 +412,10 @@ loadssl(struct socket_config *lsock, struct ssl_vhost *sslvhost)
 		sslvhost->ssl_ctx = ssl_ctx;
 	else
 		lsock->ssl_ctx = ssl_ctx;
+
+	if (lsock->sslcipherlist &&
+			!SSL_CTX_set_cipher_list(ssl_ctx, lsock->sslcipherlist))
+		errx(1, "No suitable SSL cipher: %s", lsock->sslcipherlist);
 
 #ifdef		SSL_MODE_AUTO_RETRY
 	SSL_CTX_set_mode(ssl_ctx,

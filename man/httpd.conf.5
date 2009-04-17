@@ -419,6 +419,11 @@ match the client certificate issuer as presented in the
 environment variable
 .Ev SSL_CLIENT_I_DN .
 Otherwise the client certificate will be rejected.
+.It Sy SSLCipherList Ar ciphers Aq
+Restrict or extend the encryption ciphers that should be used
+for SSL connections. The possible values for this setting
+are described in
+.Xr ciphers 1 .
 .It Sy SSLVhosts Ar hostname Oo Ar hostname ... Oc Aq
 If your SSL library supports TLS extensions with
 .Ql server name indication

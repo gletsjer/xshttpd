@@ -86,6 +86,7 @@ struct socket_config
 	char *		sslcapath;
 	char *		sslmatchsdn;
 	char *		sslmatchidn;
+	char *		sslcipherlist;
 #ifdef		HAVE_PCRE
 	pcre *		sslpcresdn;
 	pcre *		sslpcreidn;

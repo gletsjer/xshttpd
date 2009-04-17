@@ -299,6 +299,8 @@ load_config()
 							lsock->sslauth = auth_strict;
 						/* default: auth_none */
 					}
+					else if (!strcasecmp("SSLCipherList", key))
+						STRDUP(lsock->sslcipherlist, value);
 					else if (!strcasecmp("SSLVhosts", key))
 					{
 #ifdef		HANDLE_SSL_TLSEXT
