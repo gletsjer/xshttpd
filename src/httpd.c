@@ -712,11 +712,11 @@ logrequest(const char *request, off_t size)
 			if ('\"' == *p)
 				*p = '\'';
 
-	STRDUP(dynagent, getenv("USER_AGENT"));
-	if (dynagent)
-		for (p = dynagent; *p; p++)
-			if ('\"' == *p)
-				*p = '\'';
+	dynagent = getenv("USER_AGENT");
+	STRDUP(dynagent, dynagent ? dynagent : "-");
+	for (p = dynagent; *p; p++)
+		if ('\"' == *p)
+			*p = '\'';
 
 	switch (current->logstyle)
 	{
@@ -748,7 +748,7 @@ logrequest(const char *request, off_t size)
 			env.server_protocol,
 			session.rstatus,
 			size > 0 ? size : 0,
-			referer,
+			referer ? referer : "-",
 			dynagent);
 		break;
 	case log_combined:
@@ -760,7 +760,7 @@ logrequest(const char *request, off_t size)
 			env.server_protocol,
 			session.rstatus,
 			size > 0 ? size : 0,
-			referer,
+			referer ? referer : "-",
 			dynagent);
 		break;
 	case log_none:
