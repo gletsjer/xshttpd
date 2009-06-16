@@ -691,7 +691,7 @@ server_error(int code, const char *readable, const char *cgi)
 void
 logrequest(const char *request, off_t size)
 {
-	char		*dynrequest, *dynagent, *p;
+	char		*dynrequest, *dynagent, *dynuser, *p;
 	const char	*timestamp = gmtimestamp();
 	FILE		*alog;
 
@@ -718,6 +718,12 @@ logrequest(const char *request, off_t size)
 		if ('\"' == *p)
 			*p = '\'';
 
+	dynuser = getenv("REMOTE_USER");
+	STRDUP(dynuser, dynuser ? dynuser : "-");
+	for (p = dynuser; *p; p++)
+		if ('\"' == *p)
+			*p = '\'';
+
 	switch (current->logstyle)
 	{
 	case log_traditional:
@@ -725,8 +731,9 @@ logrequest(const char *request, off_t size)
 		FILE	*rlog = current->openreferer
 			? current->openreferer
 			: config.system->openreferer;
-		fprintf(alog, "%s - - [%s] \"%s %s %s\" %03d %" PRIoff "\n",
+		fprintf(alog, "%s - %s [%s] \"%s %s %s\" %03d %" PRIoff "\n",
 			env.remote_host,
+			dynuser,
 			timestamp,
 			env.request_method, dynrequest,
 			env.server_protocol,
@@ -739,10 +746,11 @@ logrequest(const char *request, off_t size)
 		break;
 	case log_virtual:
 		/* this is combined format + virtual hostname */
-		fprintf(alog, "%s %s - - [%s] \"%s %s %s\" %03d %" PRIoff
+		fprintf(alog, "%s %s - %s [%s] \"%s %s %s\" %03d %" PRIoff
 				" \"%s\" \"%s\"\n",
 			current ? current->hostname : config.system->hostname,
 			env.remote_host,
+			dynuser,
 			timestamp,
 			env.request_method, dynrequest,
 			env.server_protocol,
@@ -752,9 +760,10 @@ logrequest(const char *request, off_t size)
 			dynagent);
 		break;
 	case log_combined:
-		fprintf(alog, "%s - - [%s] \"%s %s %s\" %03d %" PRIoff
+		fprintf(alog, "%s - %s [%s] \"%s %s %s\" %03d %" PRIoff
 				" \"%s\" \"%s\"\n",
 			env.remote_host,
+			dynuser,
 			timestamp,
 			env.request_method, dynrequest,
 			env.server_protocol,
