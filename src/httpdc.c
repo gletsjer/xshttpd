@@ -38,6 +38,8 @@ static	void	cmd_reload	(const char *);
 static	void	cmd_restart	(const char *);
 static	void	cmd_version	(const char *);
 static	void	control		(const char *);
+static	void	loadpidfile	(const char *);
+static	void	getpidfilename	(char **);
 
 static	command	commands[]=
 {
@@ -203,7 +205,11 @@ cmd_reload(const char *args)
 static	void
 cmd_version(const char *args)
 {
+	char	*pidfile;
+
+	getpidfilename(&pidfile);
 	printf("%s\n", SERVER_IDENT);
+	printf("Pid file: %s\n", pidfile);
 	(void)args;
 }
 
@@ -245,34 +251,39 @@ getpidfilename(char **pidfilename)
 	char		*p, buffer[BUFSIZ], config_path[XS_PATH_MAX];
 	FILE		*conffile;
 
-	snprintf(config_path, XS_PATH_MAX, "%s/httpd.conf", calcpath(rootdir));
-	if (!(conffile = fopen(config_path, "r")))
+	if (!pidfilename)
 		return;
 
-	while (fgets(buffer, BUFSIZ, conffile))
+	*pidfilename = NULL;
+	snprintf(config_path, XS_PATH_MAX, "%s/httpd.conf", calcpath(rootdir));
+
+	if ((conffile = fopen(config_path, "r")))
 	{
-		if (strncasecmp(buffer, "PidFile", 7))
-			continue;
-		for (p = buffer + 7; *p && isspace((int)*p); p++)
-			/* DO NOTHING */;
-		STRDUP(*pidfilename, p);
-		for (p = *pidfilename; *p; p++)
-			if (isspace((int)*p))
-				*p = '\0';
-		break;
+		while (fgets(buffer, BUFSIZ, conffile))
+		{
+			if (strncasecmp(buffer, "PidFile", 7))
+				continue;
+			for (p = buffer + 7; *p && isspace((int)*p); p++)
+				/* DO NOTHING */;
+			STRDUP(*pidfilename, p);
+			for (p = *pidfilename; *p; p++)
+				if (isspace((int)*p))
+					*p = '\0';
+			break;
+		}
+		fclose(conffile);
 	}
-	fclose(conffile);
+
+	if (!*pidfilename)
+		STRDUP(*pidfilename, calcpath(PID_PATH));
 }
 
 static	void
-loadpidfile(const char *pidfilename)
+loadpidfile(const char *pidname)
 {
-	char	buffer[BUFSIZ], pidname[XS_PATH_MAX];
+	char	buffer[BUFSIZ];
 	FILE	*pidfile;
 
-	strlcpy(pidname,
-		pidfilename == NULL ? calcpath(PID_PATH) : pidfilename,
-		XS_PATH_MAX);
 	if ((pidfile = fopen(pidname, "r")))
 	{
 		if (!fgets(buffer, BUFSIZ, pidfile))
@@ -284,6 +295,7 @@ loadpidfile(const char *pidfilename)
 				errx(1, "Arguments line in `%s' is corrupt\n",
 				     pidname);
 		}
+		fclose(pidfile);
 	}
 	else
 	{
@@ -298,10 +310,11 @@ main(int argc, char **argv)
 {
 	char		buffer[BUFSIZ];
 	char		*pidfilename = NULL;
+	char		*cmd = NULL;
 	int		option;
 
 	strlcpy(rootdir, ROOT_DIR, BUFSIZ);
-	while ((option = getopt(argc, argv, "d:p:")) != EOF)
+	while ((option = getopt(argc, argv, "d:p:v")) != EOF)
 	{
 		switch(option)
 		{
@@ -311,6 +324,9 @@ main(int argc, char **argv)
 		case 'p':
 			pidfilename = optarg;
 			break;
+		case 'v':
+			cmd = "version";
+			break;
 		default:
 			err(1, "Usage: %s [-d rootdir] [-p pidfile]", argv[0]);
 		}
@@ -319,9 +335,12 @@ main(int argc, char **argv)
 		getpidfilename(&pidfilename);
 
 	if (argc != optind)
+		cmd = argv[optind];
+
+	if (cmd)
 	{
 		loadpidfile(pidfilename);
-		control(argv[optind]);
+		control(cmd);
 		return 0;
 	}
 
