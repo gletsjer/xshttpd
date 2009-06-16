@@ -5,7 +5,7 @@ AS_SHELL_SANITIZE
 AC_CONFIG_SRCDIR([src/httpd.c])
 AC_CONFIG_LIBOBJ_DIR([libcompat])
 AC_CONFIG_AUX_DIR([aux])
-AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 no-dist-gzip silent-rules])
+AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 no-dist-gzip])
 AC_DEFINE_UNQUOTED(SERVER_IDENT, "${SERVER_IDENT}", [Server version])
 AC_CONFIG_HEADERS([config.h])
 
