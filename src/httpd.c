@@ -756,7 +756,7 @@ logrequest(const char *request, off_t size)
 			env.server_protocol,
 			session.rstatus,
 			size > 0 ? size : 0,
-			referer ? referer : "-",
+			referer[0] ? referer : "-",
 			dynagent);
 		break;
 	case log_combined:
@@ -769,7 +769,7 @@ logrequest(const char *request, off_t size)
 			env.server_protocol,
 			session.rstatus,
 			size > 0 ? size : 0,
-			referer ? referer : "-",
+			referer[0] ? referer : "-",
 			dynagent);
 		break;
 	case log_none:
