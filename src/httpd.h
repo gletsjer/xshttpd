@@ -14,6 +14,7 @@ extern	gid_t	origegid;
 extern	uid_t	origeuid;
 
 void	stdheaders		(bool, bool, bool);
+void	maplist_stdheaders	(struct maplist, bool, bool);
 void	alarm_handler		(int);
 void	xserror			(int, const char *, ...) PRINTF_LIKE(2, 3);
 void	redirect		(const char *, bool, bool) NONNULL;

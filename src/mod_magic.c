@@ -24,14 +24,28 @@ bool	mime_magic_config(const char *, const char *);
 bool	mime_magic_open	(void);
 
 bool
-mime_magic(const char *filename, int fd, struct maplist response_headers)
+mime_magic(const char *filename, int fd, struct maplist rh)
 {
 	const char	*mimetype;
 	char		input[RWBUFSIZE];
+	size_t		sz;
 	ssize_t		rd;
 
 	if (!filename || !filename[0])
 		return false;
+
+	for (sz = 0; sz < rh.size; sz++)
+		if (!strcasecmp(rh.elements[sz].index, "Content-type"))
+		{
+			if (strcasecmp(rh.elements[sz].value, OCTET_STREAM))
+				return true;
+			else
+				break;
+		}
+
+	/* Not reached if Content-type is properly defined already;
+	 * that is set and not equal to application/octet-stream
+	 */
 
 	if (lseek(fd, (off_t)0, SEEK_SET) < 0)
 	{
@@ -45,7 +59,13 @@ mime_magic(const char *filename, int fd, struct maplist response_headers)
 		lseek(fd, (off_t)0, SEEK_SET);
 	}
 
-	maplist_append(response_headers, "Content-type", mimetype);
+	if (sz < rh.size)
+	{
+		FREE(rh.elements[sz].value);
+		STRDUP(rh.elements[sz].value, mimetype);
+	}
+	else
+		maplist_append(rh, "Content-type", mimetype);
 	return true;
 }
 
@@ -81,9 +101,7 @@ struct module magic_module =
 {
 	.name = "magic mime detection",
 	.init = mime_magic_open,
-#if 0
 	.file_headers = mime_magic,
-#endif
 	.config_general = mime_magic_config,
 };
 

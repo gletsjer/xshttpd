@@ -47,6 +47,8 @@ but not able to overwrite your data - nor should it be able to write logfiles */
 #define	ICON_DIR	"icons"
 #define UHTML_DIR	".html"
 
+#define OCTET_STREAM	"application/octet-stream"
+
 /* The default PATH environment variable for CGI binaries */
 #define SCRIPT_PATH	"/bin:/sbin:/usr/bin:/usr/sbin:" \
 			"/usr/local/bin:/usr/local/sbin"

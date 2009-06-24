@@ -124,6 +124,20 @@ stdheaders(bool lastmod, bool texthtml, bool endline)
 		secputs("\r\n");
 }
 
+void
+maplist_stdheaders(struct maplist rh, bool lastmod, bool texthtml)
+{
+	maplist_append(rh, "Date", currenttime);
+	maplist_append(rh, "Server", config.serverident);
+	if (lastmod)
+	{
+		maplist_append(rh, "Last-modified", currenttime);
+		maplist_append(rh, "Expires", currenttime);
+	}
+	if (texthtml)
+		maplist_append(rh, "Content-type", "text/html");
+}
+
 static	void
 filedescrs()
 {

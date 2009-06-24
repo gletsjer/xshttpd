@@ -177,6 +177,7 @@ sendheaders(int fd, off_t size)
 	char		*qenv, *etag;
 	time_t		modtime;
 	struct tm	reqtime;
+	struct maplist	rh = session.response_headers;
 
 	dynamic = false;
 
@@ -337,68 +338,82 @@ sendheaders(int fd, off_t size)
 		}
 	}
 
-	/* Store headers for future module manipulation */
-	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
-		if (mod->file_headers)
-			mod->file_headers(getenv("SCRIPT_FILENAME"),
-				fd,
-				session.response_headers);
+	/* All preconditions satisfied - do headers */
+	maplist_free(rh);
+	maplist_append(rh, "Status", "%s 200 OK", env.server_protocol);
+	maplist_stdheaders(rh, false, false);
 
-	/* All preconditions satisfied */
-	if (secprintf("%s 200 OK\r\n", env.server_protocol) < 0)
-		return false;
-	stdheaders(false, false, false);
 	if (cfvalues.charset)
-		secprintf("Content-type: %s; charset=%s\r\n",
+		maplist_append(rh, "Content-type", "%s; charset=%s",
 			cfvalues.mimetype, cfvalues.charset);
 	else
-		secprintf("Content-type: %s\r\n", cfvalues.mimetype);
+		maplist_append(rh, "Content-type", cfvalues.mimetype);
 
 	if (dynamic || unksize)
 	{
 		if (session.httpversion >= 11)
 		{
-			secprintf("Cache-control: no-cache\r\n");
-			secputs("Transfer-encoding: chunked\r\n");
+			maplist_append(rh, "Cache-control", "no-cache");
+			maplist_append(rh, "Transfer-encoding", "chunked");
 			if (config.usecontentmd5 && session.trailers)
-				secprintf("Trailer: Content-MD5\r\n");
+				maplist_append(rh, "Trailer", "Content-MD5");
 		}
 		else
-			secprintf("Pragma: no-cache\r\n");
+			maplist_append(rh, "Pragma", "no-cache");
 	}
 	else
 	{
 		char	modified[32];
 		char	*checksum;
 
-		secprintf("Content-length: %" PRIoff "\r\n", size);
+		maplist_append(rh, "Pragma", "%" PRIoff, size);
 		if (config.usecontentmd5 &&
 				(checksum = checksum_file(orig_pathname)))
-			secprintf("Content-MD5: %s\r\n", checksum);
+			maplist_append(rh, "Content-MD5", checksum);
 
 		strftime(modified, sizeof(modified),
 			"%a, %d %b %Y %H:%M:%S GMT", gmtime(&modtime));
-		secprintf("Last-modified: %s\r\n", modified);
+		maplist_append(rh, "Last-modified", modified);
 	}
 
 	if (etag)
-		secprintf("ETag: %s\r\n", etag);
+		maplist_append(rh, "ETag", etag);
 
 	if (cfvalues.encoding)
-		secprintf("Content-encoding: %s\r\n", cfvalues.encoding);
+		maplist_append(rh, "Content-encoding", cfvalues.encoding);
 
 	if (cfvalues.language)
-		secprintf("Content-language: %s\r\n", cfvalues.language);
+		maplist_append(rh, "Content-language", cfvalues.language);
 
 	if (cfvalues.p3pref && cfvalues.p3pcp)
-		secprintf("P3P: policyref=\"%s\", CP=\"%s\"\r\n",
+		maplist_append(rh, "P3P", "policyref=\"%s\", CP=\"%s\"",
 			cfvalues.p3pref, cfvalues.p3pcp);
 	else if (cfvalues.p3pref)
-		secprintf("P3P: policy-ref=\"%s\"\r\n", cfvalues.p3pref);
+		maplist_append(rh, "P3P", "policyref=\"%s\"", cfvalues.p3pref);
 	else if (cfvalues.p3pcp)
-		secprintf("P3P: CP=\"%s\"\r\n", cfvalues.p3pcp);
+		maplist_append(rh, "P3P", "CP=\"%s\"", cfvalues.p3pcp);
 
-	secprintf("\r\n");
+	/* Insert module headers */
+	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
+		if (mod->file_headers)
+			mod->file_headers(getenv("SCRIPT_FILENAME"), fd, rh);
+
+	/* Write headers */
+	if (session.response_headers.size < 1 ||
+			strcasecmp(rh.elements[0].index,
+				"Status"))
+		return false;
+
+	if (secprintf("%s\r\n", rh.elements[0].value) < 0)
+		return false;
+
+	for (size_t sz = 1; sz < rh.size; sz++)
+		secprintf("%s: %s\r\n",
+			rh.elements[sz].index,
+			rh.elements[sz].value);
+
+	secputs("\r\n");
+	maplist_free(session.response_headers);
 	return true;
 }
 
@@ -1888,7 +1903,7 @@ getfiletype(void)
 	{
 		if (!cfvalues.mimetype)
 		{
-			STRDUP(cfvalues.mimetype, "application/octet-stream");
+			STRDUP(cfvalues.mimetype, OCTET_STREAM);
 			return false;
 		}
 		else
@@ -1923,7 +1938,7 @@ getfiletype(void)
 	}
 
 	/* set fallback default mimetype */
-	STRDUP(cfvalues.mimetype, "application/octet-stream");
+	STRDUP(cfvalues.mimetype, OCTET_STREAM);
 	return false;
 }
 

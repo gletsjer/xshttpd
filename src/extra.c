@@ -458,16 +458,21 @@ get_temp_fd(void)
 }
 
 int
-maplist_append(struct maplist list, const char *index, const char *value)
+maplist_append(struct maplist list, const char *index, const char *value, ...)
 {
+	va_list		ap;
+
 	if (!list.size)
 		MALLOC(list.elements, struct mapping, 1);
 	else
 		REALLOC(list.elements, struct mapping, list.size + 1);
 
+	va_start(ap, value);
+
 	STRDUP(list.elements[list.size].index, index);
-	STRDUP(list.elements[list.size].value, value);
+	vasprintf(&list.elements[list.size].value, value, ap);
 	list.size++;
+	va_end(ap);
 
 	return list.size;
 }
