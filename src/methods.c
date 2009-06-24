@@ -337,6 +337,13 @@ sendheaders(int fd, off_t size)
 		}
 	}
 
+	/* Store headers for future module manipulation */
+	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
+		if (mod->file_headers)
+			mod->file_headers(getenv("SCRIPT_FILENAME"),
+				fd,
+				session.response_headers);
+
 	/* All preconditions satisfied */
 	if (secprintf("%s 200 OK\r\n", env.server_protocol) < 0)
 		return false;
@@ -1533,7 +1540,7 @@ do_trace(const char *params)
 	size_t		outlen, mlen;
 	ssize_t		num;
 
-	num = readheaders(0, &http_headers);
+	num = readheaders(0, http_headers);
 	if (num < 0)
 	{
 		xserror(400, "Unable to read request line");
@@ -1562,7 +1569,7 @@ do_trace(const char *params)
 		outlen += sprintf(&output[outlen], "%s: %s\r\n", idx, val);
 	}
 	
-	freeheaders(&http_headers);
+	maplist_free(http_headers);
 	secprintf("%s 200 OK\r\n", env.server_protocol);
 	stdheaders(false, false, false);
 	secprintf("Content-length: %zu\r\n", outlen);
@@ -1610,17 +1617,17 @@ do_proxy(const char *proxy, const char *params)
 
 	/* Quick hack to add all headers */
 	struct	curl_slist	*curl_headers = NULL;
-	for (size_t sz = 0; sz < session.http_headers.size; sz++)
+	for (size_t sz = 0; sz < session.request_headers.size; sz++)
 	{
 		char	*header = NULL;
 
 		if (!strcasecmp("host",
-				session.http_headers.elements[sz].index))
+				session.request_headers.elements[sz].index))
 			continue;
 
 		asprintf(&header, "%s: %s",
-			session.http_headers.elements[sz].index,
-			session.http_headers.elements[sz].value);
+			session.request_headers.elements[sz].index,
+			session.request_headers.elements[sz].value);
 		curl_headers = curl_slist_append(curl_headers, header);
 		free(header);
 	}

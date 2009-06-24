@@ -541,7 +541,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		bool		ctype, status, lastmod, server, pragma;
 
 		ctype = status = lastmod = server = pragma = false;
-		if (readheaders(p[0], &http_headers) < 0)
+		if (readheaders(p[0], http_headers) < 0)
 		{
 			/* Script header read error */
 			if (logfile)
@@ -673,7 +673,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			if (config.usecontentmd5 && session.trailers)
 				checksum_init();
 		}
-		freeheaders(&http_headers);
+		maplist_free(http_headers);
 	}
 	else /* nph */
 	{

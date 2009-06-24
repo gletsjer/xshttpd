@@ -5,32 +5,47 @@
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<string.h>
+#include	<sys/types.h>
+#include	<unistd.h>
 
 #include	<magic.h>
 
+#include	"htconfig.h"
 #include	"malloc.h"
 #include	"modules.h"
 #include	"constants.h"
+#include	"extra.h"
 
 magic_t		magic_cookie = NULL;
 char		*magic_filename = NULL;
 
-bool	mime_magic	(const char *);
+bool	mime_magic	(const char *, int, struct maplist);
 bool	mime_magic_config(const char *, const char *);
 bool	mime_magic_open	(void);
 
 bool
-mime_magic(const char *filename)
+mime_magic(const char *filename, int fd, struct maplist response_headers)
 {
 	const char	*mimetype;
+	char		input[RWBUFSIZE];
+	ssize_t		rd;
 
 	if (!filename || !filename[0])
 		return false;
 
-	if (!(mimetype = magic_file(magic_cookie, filename)))
-		return false;
+	if (lseek(fd, (off_t)0, SEEK_SET) < 0)
+	{
+		mimetype = magic_file(magic_cookie, filename);
+	}
+	else
+	{
+		if ((rd = read(fd, input, sizeof(input))) < 0)
+			return false;
+		mimetype = magic_buffer(magic_cookie, input, (size_t)rd);
+		lseek(fd, (off_t)0, SEEK_SET);
+	}
 
-	setenv("CONTENT_TYPE", mimetype, 1);
+	maplist_append(response_headers, "Content-type", mimetype);
 	return true;
 }
 
@@ -66,7 +81,9 @@ struct module magic_module =
 {
 	.name = "magic mime detection",
 	.init = mime_magic_open,
-	.head_handler = mime_magic,
+#if 0
+	.file_headers = mime_magic,
+#endif
 	.config_general = mime_magic_config,
 };
 

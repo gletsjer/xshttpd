@@ -7,6 +7,7 @@
 
 /* defined in htconfig.h */
 struct	mapping;
+struct	maplist;
 
 struct tm *	localtimenow	(void) WARNUNUSED;
 char *	gmtimestamp		(void) WARNUNUSED;
@@ -25,5 +26,7 @@ void	free_string_arrayp	(char **);
 ssize_t	fgetfields		(FILE *, size_t, ...);
 ssize_t	fgetmfields		(FILE *, char ***);
 int	get_temp_fd		(void);
+int	maplist_append		(struct maplist, const char *, const char *);
+void	maplist_free		(struct maplist);
 
 #endif		/* EXTRA_H */

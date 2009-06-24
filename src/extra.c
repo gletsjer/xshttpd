@@ -457,3 +457,33 @@ get_temp_fd(void)
 	return fd;
 }
 
+int
+maplist_append(struct maplist list, const char *index, const char *value)
+{
+	if (!list.size)
+		MALLOC(list.elements, struct mapping, 1);
+	else
+		REALLOC(list.elements, struct mapping, list.size + 1);
+
+	STRDUP(list.elements[list.size].index, index);
+	STRDUP(list.elements[list.size].value, value);
+	list.size++;
+
+	return list.size;
+}
+
+void
+maplist_free(struct maplist list)
+{
+	size_t		sz;
+
+	for (sz = 0; sz < list.size; sz++)
+	{
+		free(list.elements[sz].index);
+		free(list.elements[sz].value);
+	}
+	free(list.elements);
+	list.size = 0;
+	list.elements = NULL;
+}
+

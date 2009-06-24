@@ -7,6 +7,8 @@
 
 #include	"config.h"
 
+struct	maplist;
+
 extern const char	*module_names[];
 
 bool	init_modules(void);
@@ -26,7 +28,7 @@ struct module
 	const char	*file_encoding;
 	bool	(*init) (void);
 	bool	(*file_handler)	(const char *filename, int fdin, int fdout);
-	bool	(*head_handler)	(const char *filename);
+	bool	(*file_headers)	(const char *filename, int fdin, struct maplist);
 	struct encoding_filter	*inflate_filter;
 	struct encoding_filter	*deflate_filter;
 	bool	(*auth_basic)	(const char *username, const char *password);

@@ -868,16 +868,16 @@ process_request(void)
 			goto METHOD;
 		}
 
-		if (readheaders(0, &session.http_headers) < 0)
+		if (readheaders(0, session.request_headers) < 0)
 		{
 			xserror(400, "Unable to read request headers");
 			return;
 		}
-		for (size_t sz = 0; sz < session.http_headers.size; sz++)
+		for (size_t sz = 0; sz < session.request_headers.size; sz++)
 		{
-			const char	*idx = session.http_headers.elements[sz]
+			const char	*idx = session.request_headers.elements[sz]
 						.index;
-			const char	*val = session.http_headers.elements[sz]
+			const char	*val = session.request_headers.elements[sz]
 						.value;
 
 			if (!strcasecmp("Content-length", idx))
@@ -1578,8 +1578,10 @@ setup_environment()
 	/* start with empty environment */
 	memset(&env, 0, sizeof(struct env));
 	*environ = NULL;
-	if (session.http_headers.size)
-		freeheaders(&session.http_headers);
+	if (session.request_headers.size)
+		maplist_free(session.request_headers);
+	if (session.response_headers.size)
+		maplist_free(session.response_headers);
 	memset(&session, 0, sizeof(struct session));
 
 	setenv("SERVER_SOFTWARE", SERVER_IDENT, 1);
