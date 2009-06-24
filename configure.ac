@@ -147,6 +147,14 @@ XS_CHECK_WITH(ldap, LDAP authentication support, no, [
 		], [XS_FATAL(ldap)])
 	])
 
+XS_CHECK_WITH(magic, Magic MIME detection support, no, [
+	XS_FUNC_IN_LIB(magic_open, HAVE_MAGIC, magic, magic,, [
+		modules="${modules} magic"
+		AC_SUBST(magic_cflags)
+		AC_SUBST(magic_ldflags)
+		], [XS_FATAL(magic)])
+	])
+
 XS_CHECK_WITH(perl, PERL persistent interpreter, no, [
 	AC_PATH_PROG(perlpath, perl)
 	AS_IF([test -n "${perlpath}"], [
@@ -246,6 +254,7 @@ AM_CONDITIONAL(MOD_RUBY,   [echo "${modules}" | grep -q ruby])
 AM_CONDITIONAL(MOD_LDAP,   [echo "${modules}" | grep -q ldap])
 AM_CONDITIONAL(MOD_GZIP,   [echo "${modules}" | grep -q gzip])
 AM_CONDITIONAL(MOD_BZIP2,   [echo "${modules}" | grep -q bzip2])
+AM_CONDITIONAL(MOD_MAGIC,   [echo "${modules}" | grep -q magic])
 AC_DEFINE_UNQUOTED(MODULES, [${mod_name}], [Modules enabled during compilation])
 
 dnl Generate configure output.
