@@ -26,7 +26,7 @@ void	free_string_arrayp	(char **);
 ssize_t	fgetfields		(FILE *, size_t, ...);
 ssize_t	fgetmfields		(FILE *, char ***);
 int	get_temp_fd		(void);
-int	maplist_append		(struct maplist, const char *, const char *, ...) PRINTF_LIKE(3, 4);
-void	maplist_free		(struct maplist);
+int	maplist_append		(struct maplist *, const char *, const char *, ...) PRINTF_LIKE(3, 4);
+void	maplist_free		(struct maplist *);
 
 #endif		/* EXTRA_H */

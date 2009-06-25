@@ -177,7 +177,7 @@ sendheaders(int fd, off_t size)
 	char		*qenv, *etag;
 	time_t		modtime;
 	struct tm	reqtime;
-	struct maplist	rh = session.response_headers;
+	struct maplist	*rh = &session.response_headers;
 
 	dynamic = false;
 
@@ -400,20 +400,20 @@ sendheaders(int fd, off_t size)
 
 	/* Write headers */
 	if (session.response_headers.size < 1 ||
-			strcasecmp(rh.elements[0].index,
+			strcasecmp(rh->elements[0].index,
 				"Status"))
 		return false;
 
-	if (secprintf("%s\r\n", rh.elements[0].value) < 0)
+	if (secprintf("%s\r\n", rh->elements[0].value) < 0)
 		return false;
 
-	for (size_t sz = 1; sz < rh.size; sz++)
+	for (size_t sz = 1; sz < rh->size; sz++)
 		secprintf("%s: %s\r\n",
-			rh.elements[sz].index,
-			rh.elements[sz].value);
+			rh->elements[sz].index,
+			rh->elements[sz].value);
 
 	secputs("\r\n");
-	maplist_free(session.response_headers);
+	maplist_free(&session.response_headers);
 	return true;
 }
 
@@ -1555,7 +1555,7 @@ do_trace(const char *params)
 	size_t		outlen, mlen;
 	ssize_t		num;
 
-	num = readheaders(0, http_headers);
+	num = readheaders(0, &http_headers);
 	if (num < 0)
 	{
 		xserror(400, "Unable to read request line");
@@ -1584,7 +1584,7 @@ do_trace(const char *params)
 		outlen += sprintf(&output[outlen], "%s: %s\r\n", idx, val);
 	}
 	
-	maplist_free(http_headers);
+	maplist_free(&http_headers);
 	secprintf("%s 200 OK\r\n", env.server_protocol);
 	stdheaders(false, false, false);
 	secprintf("Content-length: %zu\r\n", outlen);

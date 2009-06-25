@@ -19,12 +19,12 @@
 magic_t		magic_cookie = NULL;
 char		*magic_filename = NULL;
 
-bool	mime_magic	(const char *, int, struct maplist);
+bool	mime_magic	(const char *, int, struct maplist *);
 bool	mime_magic_config(const char *, const char *);
 bool	mime_magic_open	(void);
 
 bool
-mime_magic(const char *filename, int fd, struct maplist rh)
+mime_magic(const char *filename, int fd, struct maplist *rh)
 {
 	const char	*mimetype;
 	char		input[RWBUFSIZE];
@@ -34,10 +34,10 @@ mime_magic(const char *filename, int fd, struct maplist rh)
 	if (!filename || !filename[0])
 		return false;
 
-	for (sz = 0; sz < rh.size; sz++)
-		if (!strcasecmp(rh.elements[sz].index, "Content-type"))
+	for (sz = 0; sz < rh->size; sz++)
+		if (!strcasecmp(rh->elements[sz].index, "Content-type"))
 		{
-			if (strcasecmp(rh.elements[sz].value, OCTET_STREAM))
+			if (strcasecmp(rh->elements[sz].value, OCTET_STREAM))
 				return true;
 			else
 				break;
@@ -59,10 +59,10 @@ mime_magic(const char *filename, int fd, struct maplist rh)
 		lseek(fd, (off_t)0, SEEK_SET);
 	}
 
-	if (sz < rh.size)
+	if (sz < rh->size)
 	{
-		FREE(rh.elements[sz].value);
-		STRDUP(rh.elements[sz].value, mimetype);
+		FREE(rh->elements[sz].value);
+		STRDUP(rh->elements[sz].value, mimetype);
 	}
 	else
 		maplist_append(rh, "Content-type", mimetype);
@@ -72,8 +72,11 @@ mime_magic(const char *filename, int fd, struct maplist rh)
 bool
 mime_magic_config(const char *name, const char *value)
 {
-	if (!name && !value && magic_filename)
-		FREE(magic_filename);
+	if (!name && !value)
+	{
+		if (magic_filename)
+			FREE(magic_filename);
+	}
 	else if (!strcasecmp(name, "MimeMagicFile"))
 		STRDUP(magic_filename, value);
 	else

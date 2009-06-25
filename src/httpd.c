@@ -125,7 +125,7 @@ stdheaders(bool lastmod, bool texthtml, bool endline)
 }
 
 void
-maplist_stdheaders(struct maplist rh, bool lastmod, bool texthtml)
+maplist_stdheaders(struct maplist *rh, bool lastmod, bool texthtml)
 {
 	maplist_append(rh, "Date", currenttime);
 	maplist_append(rh, "Server", config.serverident);
@@ -882,7 +882,7 @@ process_request(void)
 			goto METHOD;
 		}
 
-		if (readheaders(0, session.request_headers) < 0)
+		if (readheaders(0, &session.request_headers) < 0)
 		{
 			xserror(400, "Unable to read request headers");
 			return;
@@ -1593,9 +1593,9 @@ setup_environment()
 	memset(&env, 0, sizeof(struct env));
 	*environ = NULL;
 	if (session.request_headers.size)
-		maplist_free(session.request_headers);
+		maplist_free(&session.request_headers);
 	if (session.response_headers.size)
-		maplist_free(session.response_headers);
+		maplist_free(&session.response_headers);
 	memset(&session, 0, sizeof(struct session));
 
 	setenv("SERVER_SOFTWARE", SERVER_IDENT, 1);

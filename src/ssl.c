@@ -801,12 +801,12 @@ readline(int rd, char *buf, size_t len)
 }
 
 ssize_t
-readheaders(int rd, struct maplist headlist)
+readheaders(int rd, struct maplist *headlist)
 {
 	char		input[LINEBUFSIZE];
 
-	headlist.size = 0;
-	headlist.elements = NULL;
+	headlist->size = 0;
+	headlist->elements = NULL;
 	while (1)
 	{
 		char	*value;
@@ -836,12 +836,12 @@ readheaders(int rd, struct maplist headlist)
 			while (*value && isspace(*value))
 				value++;
 
-			val = headlist.elements[headlist.size-1].value;
+			val = headlist->elements[headlist->size-1].value;
 			len = strlen(val) + strlen(value) + 2;
 			REALLOC(val, char, len);
 			strcat(val, " ");
 			strcat(val, value);
-			headlist.elements[headlist.size-1].value = val;
+			headlist->elements[headlist->size-1].value = val;
 		}
 		else if ((value = strchr(input, ':')))
 		{
@@ -850,10 +850,10 @@ readheaders(int rd, struct maplist headlist)
 			*value++ = '\0';
 			while (*value && isspace(*value))
 				value++;
-			for (sz = 0; sz < headlist.size; sz++)
+			for (sz = 0; sz < headlist->size; sz++)
 			{
 				/* append to earlier header */
-				const char * const idx = headlist.elements[sz].index;
+				const char * const idx = headlist->elements[sz].index;
 				if (!strcasecmp(idx, "set-cookie"))
 					continue;
 				if (!strcasecmp(idx, input))
@@ -861,35 +861,35 @@ readheaders(int rd, struct maplist headlist)
 					size_t	len;
 					char	*val;
 					
-					val = headlist.elements[sz].value;
+					val = headlist->elements[sz].value;
 					len = strlen(val) + strlen(value) + 3;
 					REALLOC(val, char, len);
 					strcat(val, ", ");
 					strcat(val, value);
-					headlist.elements[sz].value = val;
+					headlist->elements[sz].value = val;
 					break;
 				}
 			}
 			/* add new header */
-			if (sz == headlist.size)
+			if (sz == headlist->size)
 			{
-				REALLOC(headlist.elements,
+				REALLOC(headlist->elements,
 					struct mapping, sz + 1);
-				STRDUP(headlist.elements[sz].index, input);
-				STRDUP(headlist.elements[sz].value, value);
-				headlist.size++;
+				STRDUP(headlist->elements[sz].index, input);
+				STRDUP(headlist->elements[sz].value, value);
+				headlist->size++;
 			}
 		}
-		else if (!headlist.size)
+		else if (!headlist->size)
 		{
 			/* first 'status' line is special */
-			MALLOC(headlist.elements, struct mapping, 1);
-			STRDUP(headlist.elements[0].index, "Status");
-			STRDUP(headlist.elements[0].value, input);
-			headlist.size = 1;
+			MALLOC(headlist->elements, struct mapping, 1);
+			STRDUP(headlist->elements[0].index, "Status");
+			STRDUP(headlist->elements[0].value, input);
+			headlist->size = 1;
 		}
 	}
 
-	return (ssize_t)headlist.size;
+	return (ssize_t)headlist->size;
 }
 

@@ -30,7 +30,7 @@ void	endssl(void);
 void	initreadmode(bool);
 ssize_t	secread(int, void *, size_t) NONNULL;
 size_t	secfread(void *, size_t, size_t, FILE *) NONNULL;
-ssize_t	readheaders(int, struct maplist);
+ssize_t	readheaders(int, struct maplist *);
 
 ssize_t	secwrite(const char *, size_t);
 size_t	secfwrite(const char *, size_t, size_t, FILE *);
