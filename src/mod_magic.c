@@ -31,7 +31,7 @@ mime_magic(const char *filename, int fd, struct maplist *rh)
 	size_t		sz;
 	ssize_t		rd;
 
-	if (!filename || !filename[0])
+	if (!filename || !filename[0] || !magic_cookie || !magic_filename)
 		return false;
 
 	for (sz = 0; sz < rh->size; sz++)
@@ -88,6 +88,9 @@ mime_magic_config(const char *name, const char *value)
 bool
 mime_magic_open(void)
 {
+	if (!magic_filename)
+		return false;
+
 	if (!(magic_cookie = magic_open(MAGIC_MIME_TYPE | MAGIC_CHECK)))
 		return false;
 

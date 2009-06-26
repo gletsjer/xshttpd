@@ -147,7 +147,7 @@ XS_CHECK_WITH(ldap, LDAP authentication support, no, [
 		], [XS_FATAL(ldap)])
 	])
 
-XS_CHECK_WITH(magic, Magic MIME detection support, no, [
+XS_CHECK_WITH(magic, Magic MIME detection support, yes, [
 	XS_FUNC_IN_LIB(magic_open, HAVE_MAGIC, magic, magic,, [
 		modules="${modules} magic"
 		AC_SUBST(magic_cflags)
