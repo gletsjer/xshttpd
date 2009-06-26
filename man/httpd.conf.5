@@ -275,6 +275,22 @@ option will affect performance, but it should reduce bandwidth usage.
 There is currently no setting to exclude certain (types of) files
 from this compression once enabled.
 .El
+.It Sy mod_magic
+.Bl -tag -width Ds
+.It Sy MimeMagicFile Aq
+Location of the libmagic configuration file. If this is set, then
+libmagic will be used as an alternative for finding the MIME type
+of a file when the standard
+.Xr mime.types 5
+file doesn't give a conclusive result, for instance when the
+requested filename does not include an extension.
+This option should point to the main configuration file, without any
+.Pa .mime
+or
+.Pa .mgc
+extension, for example
+.Pa /usr/share/misc/magic .
+.El
 .El
 .Ss Socket Options
 It is possible to bind to multiple sockets at the same time

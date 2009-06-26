@@ -22,6 +22,7 @@ likely be extended in the near future:
 
 init		module initialisation
 file_handler	handle representation (interpretation) of a stored file
+file_headers	modify http headers before sending a stored file
 auth_basic	perform basic authentication (username, password)
 auth_digest	perform digest authentication (username, cookie)
 config_general	read global configuration options (httpd.conf)
