@@ -398,12 +398,13 @@ sendheaders(int fd, off_t size)
 		if (mod->file_headers)
 			mod->file_headers(getenv("SCRIPT_FILENAME"), fd, rh);
 
-	/* Write headers */
+	/* Sanity check: must start with status header */
 	if (session.response_headers.size < 1 ||
 			strcasecmp(rh->elements[0].index,
 				"Status"))
 		return false;
 
+	/* Write headers */
 	if (secprintf("%s\r\n", rh->elements[0].value) < 0)
 		return false;
 
