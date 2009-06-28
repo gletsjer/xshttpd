@@ -266,5 +266,5 @@ AC_SUBST(SERVER_IDENT)
 AC_SUBST(mod_decl)
 AC_SUBST(mod_list)
 AC_SUBST(mod_name)
-AC_CONFIG_FILES([Makefile config/Makefile contrib/Makefile fonts/Makefile icons/Makefile man/Makefile libcompat/Makefile src/Makefile man/httpd.1])
+AC_CONFIG_FILES([Makefile config/Makefile contrib/Makefile fonts/Makefile icons/Makefile man/Makefile libcompat/Makefile src/Makefile])
 AC_OUTPUT

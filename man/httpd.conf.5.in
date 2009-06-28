@@ -56,7 +56,7 @@ file.
 .Ss Global Options
 The following options can be set in the global section:
 .Bl -tag -width Ds
-.It Sy SystemRoot Ar directory Aq /usr/local/lib/httpd
+.It Sy SystemRoot Ar directory Aq @rootdir@
 The main httpd directory which contains all the data subdirectories
 (like
 .Pa htdocs , cgi-bin , logs ,
