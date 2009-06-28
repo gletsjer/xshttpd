@@ -13,7 +13,7 @@ do_subst = sed 's,[@]rootdir[@],$(rootdir),g'
 
 $(PREBUILD):
 	@for m in $(man1_MANS) $(man5_MANS) $(man7_MANS);\
-	 do $(do_subst) < $$m.in > $$m;\
+	 do $(do_subst) < $(srcdir)/$$m.in > $$m;\
 	 done
 	@touch $(PREBUILD)
 
