@@ -88,11 +88,12 @@ to
 in
 .Xr httpd.conf 5 .
 .It Sy Restrict
-The argument to a restrict command should be a list containing
-one of more IP addresses, prefixes or IP subnets (in CIDR)
-notation. Access to the matching files will only be granted if
-the IP of the visitor matches one of the restrict address
-blocks. All other visitors will be presented with a
+The argument to a restrict command should be a list of one or
+more IP addresses, IP prefixes or IP subnets in CIDR notation.
+Multiple arguments should be separated by commas. Access to the
+matching files will only be granted if the IP of the visitor
+matches one of the restrict address blocks. All other visitors
+will be presented with a
 .Ql 403 Permission Denied
 error.
 .It Sy NoPrivs
