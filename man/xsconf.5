@@ -22,7 +22,7 @@ These patterns are standard
 .Xr fnmatch 3
 patterns. The special case
 .Li [*]
-will match every file in a directory.
+will match all files in a directory.
 .Pp
 The filename may be prefixed by a method name and a slash
 to indicate that the following block only applies when the
@@ -101,7 +101,7 @@ Boolean setting; if set to
 .Ql true
 then all matching files will be retrieved using the unpriviliged
 account of the webserver (by default
-.Ql www/www )
+.Ql nobody/nogroup )
 instead of under your own UID.
 This can be useful if you want a file permission of say 600 to mean:
 do not allow retrieval.
