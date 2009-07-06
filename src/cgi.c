@@ -31,12 +31,12 @@
 #endif		/* HAVE_MEMORY_H */
 #include	<stdarg.h>
 
+#include	"htconfig.h"
 #include	"httpd.h"
 #include	"ssi.h"
 #include	"ssl.h"
 #include	"cgi.h"
 #include	"fcgi.h"
-#include	"htconfig.h"
 #include	"hash.h"
 #include	"extra.h"
 #include	"malloc.h"

@@ -458,7 +458,7 @@ get_temp_fd(void)
 }
 
 int
-maplist_append(struct maplist *list, const char *index, const char *value, ...)
+maplist_append(struct maplist *list, const char *idx, const char *value, ...)
 {
 	va_list		ap;
 
@@ -469,7 +469,7 @@ maplist_append(struct maplist *list, const char *index, const char *value, ...)
 
 	va_start(ap, value);
 
-	STRDUP(list->elements[list->size].index, index);
+	STRDUP(list->elements[list->size].index, idx);
 	vasprintf(&list->elements[list->size].value, value, ap);
 	list->size++;
 	va_end(ap);

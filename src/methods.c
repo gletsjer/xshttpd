@@ -347,7 +347,7 @@ sendheaders(int fd, off_t size)
 		maplist_append(rh, "Content-type", "%s; charset=%s",
 			cfvalues.mimetype, cfvalues.charset);
 	else
-		maplist_append(rh, "Content-type", cfvalues.mimetype);
+		maplist_append(rh, "Content-type", "%s", cfvalues.mimetype);
 
 	if (dynamic || unksize)
 	{
@@ -369,21 +369,21 @@ sendheaders(int fd, off_t size)
 		maplist_append(rh, "Pragma", "%" PRIoff, size);
 		if (config.usecontentmd5 &&
 				(checksum = checksum_file(orig_pathname)))
-			maplist_append(rh, "Content-MD5", checksum);
+			maplist_append(rh, "Content-MD5", "%s", checksum);
 
 		strftime(modified, sizeof(modified),
 			"%a, %d %b %Y %H:%M:%S GMT", gmtime(&modtime));
-		maplist_append(rh, "Last-modified", modified);
+		maplist_append(rh, "Last-modified", "%s", modified);
 	}
 
 	if (etag)
-		maplist_append(rh, "ETag", etag);
+		maplist_append(rh, "ETag", "%s", etag);
 
 	if (cfvalues.encoding)
-		maplist_append(rh, "Content-encoding", cfvalues.encoding);
+		maplist_append(rh, "Content-encoding", "%s", cfvalues.encoding);
 
 	if (cfvalues.language)
-		maplist_append(rh, "Content-language", cfvalues.language);
+		maplist_append(rh, "Content-language", "%s", cfvalues.language);
 
 	if (cfvalues.p3pref && cfvalues.p3pcp)
 		maplist_append(rh, "P3P", "policyref=\"%s\", CP=\"%s\"",
@@ -588,7 +588,7 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 	else /* dynamic content only */
 	{
 		off_t		usize = 0;
-		int		errval;
+		xs_error_t	errval;
 
 		if (session.httpversion >= 11)
 		{
@@ -598,6 +598,13 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 		}
 		alarm((size / MINBYTESPERSEC) + 60);
 		errval = sendwithdirectives(fd, &usize);
+#if 0
+		for (struct module *mod, **mods = modules; (mod = *mods); mods++)
+			if (mod->html_handler)
+				mod->html_handler(NULL, fd, secwrite,
+					&errval, &usize);
+#endif
+
 		if (usize)
 			size = usize;
 		close(fd);

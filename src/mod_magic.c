@@ -10,7 +10,7 @@
 
 #include	<magic.h>
 
-#include	"htconfig.h"
+#include	"httypes.h"
 #include	"malloc.h"
 #include	"modules.h"
 #include	"constants.h"
@@ -65,7 +65,7 @@ mime_magic(const char *filename, int fd, struct maplist *rh)
 		STRDUP(rh->elements[sz].value, mimetype);
 	}
 	else
-		maplist_append(rh, "Content-type", mimetype);
+		maplist_append(rh, "Content-type", "%s", mimetype);
 	return true;
 }
 

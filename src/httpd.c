@@ -127,12 +127,12 @@ stdheaders(bool lastmod, bool texthtml, bool endline)
 void
 maplist_stdheaders(struct maplist *rh, bool lastmod, bool texthtml)
 {
-	maplist_append(rh, "Date", currenttime);
-	maplist_append(rh, "Server", config.serverident);
+	maplist_append(rh, "Date", "%s", currenttime);
+	maplist_append(rh, "Server", "%s", config.serverident);
 	if (lastmod)
 	{
-		maplist_append(rh, "Last-modified", currenttime);
-		maplist_append(rh, "Expires", currenttime);
+		maplist_append(rh, "Last-modified", "%s", currenttime);
+		maplist_append(rh, "Expires", "%s", currenttime);
 	}
 	if (texthtml)
 		maplist_append(rh, "Content-type", "text/html");
@@ -1768,8 +1768,6 @@ main(int argc, char **argv, char **envp)
 		}
 	}
 	load_config();
-	/* sanity chck */
-	counter_versioncheck();
 
 #ifdef		HAVE_SETPRIORITY
 	if (setpriority(PRIO_PROCESS, (pid_t)0, config.priority))

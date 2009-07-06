@@ -6,6 +6,7 @@
 #include	<stdbool.h>
 
 #include	"config.h"
+#include	"httypes.h"
 
 struct	maplist;
 
@@ -28,6 +29,7 @@ struct module
 	const char	*file_encoding;
 	bool	(*init) (void);
 	bool	(*file_handler)	(const char *filename, int fdin, int fdout);
+	bool	(*html_handler)	(const char *filename, int fdin, xs_error_t *xserr, off_t *size);
 	bool	(*file_headers)	(const char *filename, int fdin, struct maplist *);
 	struct encoding_filter	*inflate_filter;
 	struct encoding_filter	*deflate_filter;

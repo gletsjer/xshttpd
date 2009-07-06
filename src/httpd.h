@@ -5,7 +5,7 @@
 
 /* Based on xs-httpd/2.3 */
 #include	"config.h"
-#include	"htconfig.h"
+#include	"httypes.h"
 #include	<sys/types.h>
 #include	<stdbool.h>
 

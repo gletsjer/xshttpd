@@ -74,3 +74,12 @@ mod_magic_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
 mod_magic_so_AR = $(CC) $(mod_magic_so_LDFLAGS) -o
 endif
 
+# if MOD_SSI
+# lib_LIBRARIES += mod_ssi.so
+# mod_ssi_so_SOURCES = mod_ssi.c
+# mod_ssi_so_CFLAGS = $(SO_CFLAGS)
+# mod_ssi_so_LIBADD = libxs.a
+# mod_ssi_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
+# mod_ssi_so_AR = $(CC) $(mod_ssi_so_LDFLAGS) -o
+# endif
+
