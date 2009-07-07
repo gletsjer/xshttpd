@@ -5,7 +5,7 @@ noinst_LIBRARIES = libxs.a
 
 httpd_SOURCES = httpd.c authenticate.c cgi.c cloader.c convert.c fcgi.c \
 	methods.c modules.c path.c pcre.c ssi.c ssl.c xsfiles.c
-httpd_CFLAGS = $(httpd_cflags) -DBUILD_HTTPD
+httpd_CFLAGS = $(httpd_cflags) $(libxs_cflags) -DBUILD_HTTPD
 httpd_LDFLAGS = $(httpd_ldflags) $(libxs_ldflags) -Wl,--rpath -Wl,/usr/local/lib/httpd/module
 httpd_LDADD = $(LDADD) $(httpd_dlopen)
 
