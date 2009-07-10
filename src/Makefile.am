@@ -21,7 +21,7 @@ DEFAULT_INCLUDES = -I$(top_builddir)
 
 EXTRA_DIST = alternative.h authenticate.h cgi.h cloader.h config.h \
 	constants.h compiler.h convert.h decode.h extra.h fcgi.h fcgi_api.h \
-	hash.h htconfig.h httpd.h malloc.h methods.h modules.h \
+	hash.h htconfig.h httpd.h httypes.h malloc.h methods.h modules.h \
 	path.h pcre.h ssi.h ssl.h xsfiles.h xscounter.h xscrypt.h
 
 include $(srcdir)/Modules.am
