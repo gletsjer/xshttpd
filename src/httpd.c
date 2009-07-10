@@ -795,6 +795,12 @@ logrequest(const char *request, off_t size)
 	free(dynagent);
 }
 
+ssize_t
+read_callback(char *buf, size_t len)
+{
+	return secread(0, buf, len);
+}
+
 static	void
 process_request(void)
 {
@@ -862,6 +868,36 @@ process_request(void)
 			*p-- = '\0';
 
 	alarm(180);
+	if (!ver)
+	{
+		session.headers = false;
+		session.httpversion = 9;
+		setenv("SERVER_PROTOCOL", "HTTP/0.9", 1);
+		env.server_protocol = getenv("SERVER_PROTOCOL");
+	}
+	else if (readheaders(0, &session.request_headers) < 0)
+	{
+		xserror(400, "Unable to read request headers");
+		return;
+	}
+	else /* HTTP-like protocol with headers */
+	{
+		/* fill in reserved Status: header */
+		if (session.request_headers.size &&
+			!strcasecmp(session.request_headers.elements[0].index,
+				"Status"))
+		{
+			FREE(session.request_headers.elements[0].value);
+			STRDUP(session.request_headers.elements[0].value, line);
+		}
+#if 0
+		/* XXX: implemented protocol handling modules */
+		for (struct module *mod, **mods = modules; (mod = *mods); mods++)
+			if (mod->protocol_handler)
+				mod->protocl_handler(...);
+#endif
+	}
+
 	if (!strncasecmp(ver, "HTTP/", 5))
 	{
 		if (!strncmp(ver + 5, "1.0", 3))
@@ -882,11 +918,6 @@ process_request(void)
 			goto METHOD;
 		}
 
-		if (readheaders(0, &session.request_headers) < 0)
-		{
-			xserror(400, "Unable to read request headers");
-			return;
-		}
 		for (size_t sz = 0; sz < session.request_headers.size; sz++)
 		{
 			const char	*idx = session.request_headers.elements[sz]
@@ -965,15 +996,7 @@ process_request(void)
 			}
 		}
 	}
-	else if (!strncasecmp(ver, "HTCPCP/", 7))
-	{
-		session.httpversion = 10;
-		setenv("SERVER_PROTOCOL", "HTCPCP/1.0", 1);
-		env.server_protocol = getenv("SERVER_PROTOCOL");
-		xserror(418, "Duh... I'm a webserver Jim, not a coffeepot!");
-		return;
-	}
-	else if (strlen(ver))
+	else /* strlen(ver) > 0 */
 	{
 		session.httpversion = 11;
 		setenv("SERVER_PROTOCOL", "HTTP/1.1", 1);
@@ -981,13 +1004,6 @@ process_request(void)
 		xserror(400, "Unknown protocol");
 		/* not persistent */
 		return;
-	}
-	else
-	{
-		session.headers = false;
-		session.httpversion = 9;
-		setenv("SERVER_PROTOCOL", "HTTP/0.9", 1);
-		env.server_protocol = getenv("SERVER_PROTOCOL");
 	}
 
 	if (!getenv("CONTENT_LENGTH"))

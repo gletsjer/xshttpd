@@ -21,6 +21,10 @@ struct encoding_filter
 	int	(*close)	(void *fdp);
 };
 
+typedef ssize_t (*readline_callback_t)(char *, size_t);
+typedef ssize_t (*read_callback_t)(char *, size_t);
+typedef ssize_t (*write_callback_t)(const char *, size_t);
+
 struct module
 {
 	const char	*name;
@@ -29,8 +33,7 @@ struct module
 	const char	*file_encoding;
 	bool	(*init) (void);
 	bool	(*file_handler)	(const char *filename, int fdin, int fdout);
-	bool	(*html_handler)	(const char *filename, int fdin, xs_error_t *xserr, off_t *size);
-	bool	(*file_headers)	(const char *filename, int fdin, struct maplist *);
+	bool	(*file_headers)	(const char *filename, int fdin, struct maplist *response_headers);
 	struct encoding_filter	*inflate_filter;
 	struct encoding_filter	*deflate_filter;
 	bool	(*auth_basic)	(const char *username, const char *password);

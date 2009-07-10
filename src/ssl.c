@@ -826,6 +826,26 @@ readheaders(int rd, struct maplist *headlist)
 
 		if (!input[0])
 			break;
+		if (!headlist->size)
+		{
+			char	*p;
+
+			/* Reserve first field for 'status' line */
+			headlist->size = 1;
+			MALLOC(headlist->elements, struct mapping, 1);
+			STRDUP(headlist->elements[0].index, "Status");
+			if ((value = strchr(input, ':')))
+			{
+				STRDUP(headlist->elements[0].value, input);
+				continue;
+			}
+			else
+				STRDUP(headlist->elements[0].value, "200 OK");
+
+			if ((p = strchr(input, ' ')))
+				if (!strchr(p + 1, ' '))
+					return 1;
+		}
 		if (isspace(input[0]))
 		{
 			size_t	len;
@@ -879,14 +899,6 @@ readheaders(int rd, struct maplist *headlist)
 				STRDUP(headlist->elements[sz].value, value);
 				headlist->size++;
 			}
-		}
-		else if (!headlist->size)
-		{
-			/* first 'status' line is special */
-			MALLOC(headlist->elements, struct mapping, 1);
-			STRDUP(headlist->elements[0].index, "Status");
-			STRDUP(headlist->elements[0].value, input);
-			headlist->size = 1;
 		}
 	}
 
