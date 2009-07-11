@@ -125,16 +125,16 @@ stdheaders(bool lastmod, bool texthtml, bool endline)
 }
 
 void
-maplist_stdheaders(struct maplist *rh, bool lastmod, bool texthtml)
+maplist_stdheaders(struct maplist *rh, xs_rhflags_t flags)
 {
 	maplist_append(rh, "Date", "%s", currenttime);
 	maplist_append(rh, "Server", "%s", config.serverident);
-	if (lastmod)
+	if (flags & rh_lastmod)
 	{
 		maplist_append(rh, "Last-modified", "%s", currenttime);
 		maplist_append(rh, "Expires", "%s", currenttime);
 	}
-	if (texthtml)
+	if (flags & rh_texthtml)
 		maplist_append(rh, "Content-type", "text/html");
 }
 
@@ -574,12 +574,12 @@ xserror(int code, const char *format, ...)
 }
 
 void
-redirect(const char *redir, bool permanent, bool pass_env)
+redirect(const char *redir, xs_redirflags_t flags)
 {
 	const	char	*qs = NULL;
 	char		*errmsg = NULL;
 
-	if (pass_env)
+	if (flags & redir_env)
 		qs = env.query_string;
 	if (!session.headonly)
 	{
@@ -592,7 +592,7 @@ redirect(const char *redir, bool permanent, bool pass_env)
 			"<body><h1>Document has moved</h1>\n"
 			"<p>This document has %s moved to "
 			"<a href=\"%s%s%s\">%s</a>.</p></body></html>\n",
-			permanent ?  "permanently" : "",
+			flags & redir_perm ?  "permanently" : "",
 			redir, qs ? "?" : "", qs ? qs : "", redir);
 	}
 	if (session.headers)
@@ -600,15 +600,15 @@ redirect(const char *redir, bool permanent, bool pass_env)
 		if (qs)
 			secprintf("%s %s moved\r\nLocation: %s?%s\r\n",
 				env.server_protocol,
-				permanent ? "301 Permanently" : "302 Temporarily", redir, qs);
+				flags & redir_perm ? "301 Permanently" : "302 Temporarily", redir, qs);
 		else
 			secprintf("%s %s moved\r\nLocation: %s\r\n",
 				env.server_protocol,
-				permanent ? "301 Permanently" : "302 Temporarily", redir);
+				flags & redir_perm ? "301 Permanently" : "302 Temporarily", redir);
 		secprintf("Content-length: %zu\n", errmsg ? strlen(errmsg) : 0);
 		stdheaders(true, true, true);
 	}
-	session.rstatus = permanent ? 301 : 302;
+	session.rstatus = flags & redir_perm ? 301 : 302;
 	if (!session.headonly)
 	{
 		secputs(errmsg);
@@ -795,6 +795,7 @@ logrequest(const char *request, off_t size)
 	free(dynagent);
 }
 
+ssize_t read_callback(char *, size_t);
 ssize_t
 read_callback(char *buf, size_t len)
 {

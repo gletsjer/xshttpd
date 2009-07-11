@@ -28,6 +28,7 @@
 
 #include	"httpd.h"
 #include	"htconfig.h"
+#include	"httypes.h"
 #include	"methods.h"
 #include	"extra.h"
 #include	"pcre.h"
@@ -115,10 +116,10 @@ v6masktonum(unsigned int mask, struct in6_addr *addr6)
 bool
 check_file_redirect(const char *base, const char *filename)
 {
-	int	fd;
-	ssize_t	size;
-	bool	permanent = false;
-	char	total[XS_PATH_MAX];
+	int		fd;
+	ssize_t		size;
+	char		total[XS_PATH_MAX];
+	xs_redirflags_t	flags = 0;
 
 	if (!filename || !*filename)
 		return false;
@@ -130,7 +131,7 @@ check_file_redirect(const char *base, const char *filename)
 		snprintf(total, XS_PATH_MAX, "%s%s.Redir", base, filename);
 		if ((fd = open(total, O_RDONLY, 0)) < 0)
 			return false;
-		permanent = true;
+		flags &= redir_perm;
 	}
 	if ((size = read(fd, total, XS_PATH_MAX)) <= 0)
 	{
@@ -144,7 +145,7 @@ check_file_redirect(const char *base, const char *filename)
 	total[size] = '\0';
 	p = total;
 	subst = strsep(&p, " \t\r\n");
-	redirect(subst, permanent, true);
+	redirect(subst, flags & redir_env);
 	return true;
 }
 
@@ -215,7 +216,7 @@ check_redirect(const char *cffile, const char *filename)
 			if (subst && *subst)
 			{
 				newloc = mknewurl(request, subst);
-				redirect(newloc, 'R' == command[0], 0);
+				redirect(newloc, 'R' == command[0] ? redir_perm : 0);
 				free(subst);
 				exittrue = true;
 			}
@@ -263,7 +264,7 @@ check_redirect(const char *cffile, const char *filename)
 		{
 			const char	*newloc = mknewurl(request, command);
 
-			redirect(newloc, false, true);
+			redirect(newloc, redir_env);
 			exittrue = true;
 		}
 

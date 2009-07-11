@@ -341,7 +341,7 @@ sendheaders(int fd, off_t size)
 	/* All preconditions satisfied - do headers */
 	maplist_free(rh);
 	maplist_append(rh, "Status", "%s 200 OK", env.server_protocol);
-	maplist_stdheaders(rh, false, false);
+	maplist_stdheaders(rh, rh_dflt);
 
 	if (cfvalues.charset)
 		maplist_append(rh, "Content-type", "%s; charset=%s",
@@ -1250,7 +1250,7 @@ do_get(char *params)
 				question ? "?" : "",
 				question ? question : "");
 
-			redirect(total, 1, 0);
+			redirect(total, redir_perm);
 			free_xsconf(&cfvalues);
 			return;
 		}
