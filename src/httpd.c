@@ -870,14 +870,8 @@ process_request(void)
 	else /* HTTP-like protocol with headers */
 	{
 		/* fill in reserved Status: header */
-		if (session.request_headers.size &&
-			!strcasecmp(session.request_headers.elements[0].index,
-				"Status"))
-		{
-			FREE(session.request_headers.elements[0].value);
-			asprintf(&session.request_headers.elements[0].value,
-				"%s %s %s", line, url, ver);
-		}
+		maplist_append(&session.request_headers, append_replace,
+			"Status", "%s %s %s", line, url, ver);
 #if 0
 		/* XXX: implemented protocol handling modules */
 		for (struct module *mod, **mods = modules; (mod = *mods); mods++)
