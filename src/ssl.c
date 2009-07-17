@@ -834,17 +834,18 @@ readheaders(int rd, struct maplist *headlist)
 			headlist->size = 1;
 			MALLOC(headlist->elements, struct mapping, 1);
 			STRDUP(headlist->elements[0].index, "Status");
-			if ((value = strchr(input, ':')))
+			if (!(value = strchr(input, ':')))
 			{
 				STRDUP(headlist->elements[0].value, input);
+				if ((p = strchr(input, ' ')))
+					if (!strchr(p + 1, ' '))
+						/* no version: no headers */
+						return 1;
 				continue;
 			}
 			else
 				STRDUP(headlist->elements[0].value, "200 OK");
 
-			if ((p = strchr(input, ' ')))
-				if (!strchr(p + 1, ' '))
-					return 1;
 		}
 		if (isspace(input[0]))
 		{

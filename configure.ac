@@ -123,7 +123,7 @@ XS_CHECK_WITH(pcre, PCRE support, yes, [XS_TRY_CONFIG(pcre, libxs)])
 
 XS_CHECK_WITH(curl, CURL transfer support, no, [XS_TRY_CONFIG(curl, httpd)])
 
-XS_CHECK_WITH(ssi, Server Side Include support, yes, [modules="${modules} ssi"])
+#XS_CHECK_WITH(ssi, Server Side Include support, yes, [modules="${modules} ssi"])
 
 XS_CHECK_WITH(gzip, GZIP support, yes, [
 	XS_FUNC_IN_LIB(gzopen, HAVE_GZIP, z, gzip,, [
@@ -257,7 +257,7 @@ AM_CONDITIONAL(MOD_LDAP,   [echo "${modules}" | grep -q ldap])
 AM_CONDITIONAL(MOD_GZIP,   [echo "${modules}" | grep -q gzip])
 AM_CONDITIONAL(MOD_BZIP2,   [echo "${modules}" | grep -q bzip2])
 AM_CONDITIONAL(MOD_MAGIC,   [echo "${modules}" | grep -q magic])
-AM_CONDITIONAL(MOD_SSI,   [echo "${modules}" | grep -q ssi])
+#AM_CONDITIONAL(MOD_SSI,   [echo "${modules}" | grep -q ssi])
 AC_DEFINE_UNQUOTED(MODULES, [${mod_name}], [Modules enabled during compilation])
 
 dnl Generate configure output.

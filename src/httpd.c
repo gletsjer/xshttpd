@@ -124,20 +124,6 @@ stdheaders(bool lastmod, bool texthtml, bool endline)
 		secputs("\r\n");
 }
 
-void
-maplist_stdheaders(struct maplist *rh, xs_rhflags_t flags)
-{
-	maplist_append(rh, "Date", "%s", currenttime);
-	maplist_append(rh, "Server", "%s", config.serverident);
-	if (flags & rh_lastmod)
-	{
-		maplist_append(rh, "Last-modified", "%s", currenttime);
-		maplist_append(rh, "Expires", "%s", currenttime);
-	}
-	if (flags & rh_texthtml)
-		maplist_append(rh, "Content-type", "text/html");
-}
-
 static	void
 filedescrs()
 {
@@ -889,7 +875,8 @@ process_request(void)
 				"Status"))
 		{
 			FREE(session.request_headers.elements[0].value);
-			STRDUP(session.request_headers.elements[0].value, line);
+			asprintf(&session.request_headers.elements[0].value,
+				"%s %s %s", line, url, ver);
 		}
 #if 0
 		/* XXX: implemented protocol handling modules */

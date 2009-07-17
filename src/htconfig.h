@@ -121,6 +121,8 @@ extern struct session
 	char		dateformat[512];
 	unsigned int	httpversion;	/* 9, 10, 11 */
 	unsigned int	rstatus;	/* 200, 301, .. */
+	off_t		size;
+	time_t		modtime;
 	bool		headers;
 	bool		headonly;
 	bool		postonly;
@@ -142,6 +144,7 @@ extern struct env
 	const char *	request_method;
 	const char *	request_uri;
 	const char *	server_protocol;
+	const char *	etag;
 	off_t		content_length;
 } env;
 

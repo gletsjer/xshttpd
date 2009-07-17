@@ -458,9 +458,29 @@ get_temp_fd(void)
 }
 
 int
-maplist_append(struct maplist *list, const char *idx, const char *value, ...)
+maplist_append(struct maplist *list, xs_appendflags_t flags, const char *idx, const char *value, ...)
 {
 	va_list		ap;
+
+	if (flags & (append_ifempty | append_replace))
+	for (size_t sz = 0; sz < list->size; sz++)
+	{
+		if (!strcasecmp(list->elements[sz].index, idx))
+		{
+			if (flags & append_ifempty)
+			{
+				return list->size;
+			}
+			if (flags & append_replace)
+			{
+				va_start(ap, value);
+				FREE(list->elements[sz].value);
+				vasprintf(&list->elements[sz].value, value, ap);
+				va_end(ap);
+				return list->size;
+			}
+		}
+	}
 
 	if (!list->size)
 		MALLOC(list->elements, struct mapping, 1);
@@ -469,6 +489,18 @@ maplist_append(struct maplist *list, const char *idx, const char *value, ...)
 
 	va_start(ap, value);
 
+	if (flags & append_prepend)
+	{
+		for (size_t sz = list->size; sz > 0; sz--)
+			list->elements[sz] = list->elements[sz-1];
+		STRDUP(list->elements[0].index, idx);
+		vasprintf(&list->elements[0].value, value, ap);
+		va_end(ap);
+		list->size++;
+		return list->size;
+	}
+
+	/* non-existend or duplicate okay: append at the end */
 	STRDUP(list->elements[list->size].index, idx);
 	vasprintf(&list->elements[list->size].value, value, ap);
 	list->size++;

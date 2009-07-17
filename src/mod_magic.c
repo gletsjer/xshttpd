@@ -65,7 +65,7 @@ mime_magic(const char *filename, int fd, struct maplist *rh)
 		STRDUP(rh->elements[sz].value, mimetype);
 	}
 	else
-		maplist_append(rh, "Content-type", "%s", mimetype);
+		maplist_append(rh, 0, "Content-type", "%s", mimetype);
 	return true;
 }
 

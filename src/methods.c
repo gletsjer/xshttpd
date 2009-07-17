@@ -68,7 +68,8 @@
 #include	"fcgi.h"
 
 static bool	getfiletype		(void);
-static bool	sendheaders		(int, off_t);
+static bool	sendheaders		(int);
+static bool	writeheaders		(int);
 static void	senduncompressed	(int, struct encoding_filter *);
 static void	sendcompressed		(int, const char *);
 static char *	find_file		(const char *, const char *, const char *)	MALLOC_FUNC;
@@ -172,12 +173,11 @@ make_etag(struct stat *sb)
 }
 
 static bool
-sendheaders(int fd, off_t size)
+sendheaders(int fd)
 {
-	char		*qenv, *etag;
+	char		*qenv;
 	time_t		modtime;
 	struct tm	reqtime;
-	struct maplist	*rh = &session.response_headers;
 
 	dynamic = false;
 
@@ -202,20 +202,20 @@ sendheaders(int fd, off_t size)
 		}
 	}
 
-	modtime = 0;
-	etag = NULL;
+	modtime = session.modtime = 0;
+	env.etag = NULL;
 	if (!dynamic)
 	{
 		struct stat	statbuf;
 
 		if (!fstat(fd, &statbuf))
 		{
-			modtime = statbuf.st_mtime;
-			etag = make_etag(&statbuf);
+			modtime = session.modtime = statbuf.st_mtime;
+			env.etag = make_etag(&statbuf);
 		}
 	}
 
-	if (etag &&
+	if (env.etag &&
 		((qenv = getenv("HTTP_IF_MATCH")) ||
 		 (qenv = getenv("HTTP_IF_NONE_MATCH"))))
 	{
@@ -228,7 +228,7 @@ sendheaders(int fd, off_t size)
 		{
 			if (!list[i] || list[i][0])
 				continue;
-			if (!strcmp(list[i], etag))
+			if (!strcmp(list[i], env.etag))
 				break;
 			else if (!strcmp(list[i], "*"))
 				break;
@@ -338,60 +338,86 @@ sendheaders(int fd, off_t size)
 		}
 	}
 
+	writeheaders(fd);
+	maplist_free(&session.response_headers);
+	return true;
+}
+
+bool
+writeheaders(int fd)
+{
+	struct maplist	*rh = &session.response_headers;
+	const xs_appendflags_t	O = append_ifempty, F = append_replace;
+
 	/* All preconditions satisfied - do headers */
-	maplist_free(rh);
-	maplist_append(rh, "Status", "%s 200 OK", env.server_protocol);
-	maplist_stdheaders(rh, rh_dflt);
+	maplist_append(rh, append_prepend | append_ifempty,
+		"Status", "%s 200 OK", env.server_protocol);
+
+	maplist_append(rh, F, "Date", "%s", currenttime);
+	maplist_append(rh, F, "Server", "%s", config.serverident);
 
 	if (cfvalues.charset)
-		maplist_append(rh, "Content-type", "%s; charset=%s",
+		maplist_append(rh, O, "Content-type", "%s; charset=%s",
 			cfvalues.mimetype, cfvalues.charset);
+	else if (cfvalues.mimetype)
+		maplist_append(rh, O, "Content-type", "%s", cfvalues.mimetype);
 	else
-		maplist_append(rh, "Content-type", "%s", cfvalues.mimetype);
+		maplist_append(rh, O, "Content-type", "text/html");
 
 	if (dynamic || unksize)
 	{
 		if (session.httpversion >= 11)
 		{
-			maplist_append(rh, "Cache-control", "no-cache");
-			maplist_append(rh, "Transfer-encoding", "chunked");
+			maplist_append(rh, O, "Cache-control", "no-cache");
+			maplist_append(rh, F, "Transfer-encoding", "chunked");
 			if (config.usecontentmd5 && session.trailers)
-				maplist_append(rh, "Trailer", "Content-MD5");
+				maplist_append(rh, F, "Trailer", "Content-MD5");
 		}
 		else
-			maplist_append(rh, "Pragma", "no-cache");
+			maplist_append(rh, O, "Pragma", "no-cache");
 	}
 	else
 	{
 		char	modified[32];
 		char	*checksum;
 
-		maplist_append(rh, "Pragma", "%" PRIoff, size);
+		if (session.size >= 0)
+			maplist_append(rh, F, "Content-length", "%" PRIoff,
+				session.size);
 		if (config.usecontentmd5 &&
 				(checksum = checksum_file(orig_pathname)))
-			maplist_append(rh, "Content-MD5", "%s", checksum);
+			maplist_append(rh, F, "Content-MD5", "%s", checksum);
 
-		strftime(modified, sizeof(modified),
-			"%a, %d %b %Y %H:%M:%S GMT", gmtime(&modtime));
-		maplist_append(rh, "Last-modified", "%s", modified);
+		if (session.modtime)
+		{
+			strftime(modified, sizeof(modified),
+				"%a, %d %b %Y %H:%M:%S GMT",
+				gmtime(&session.modtime));
+			maplist_append(rh, O, "Last-modified", "%s", modified);
+		}
+		else
+		{
+			maplist_append(rh, O, "Last-modified", "%s", currenttime);
+			maplist_append(rh, O, "Expires", "%s", currenttime);
+		}
 	}
 
-	if (etag)
-		maplist_append(rh, "ETag", "%s", etag);
+	if (env.etag)
+		maplist_append(rh, O, "ETag", "%s", env.etag);
 
 	if (cfvalues.encoding)
-		maplist_append(rh, "Content-encoding", "%s", cfvalues.encoding);
+		maplist_append(rh, F, "Content-encoding", "%s", cfvalues.encoding);
 
 	if (cfvalues.language)
-		maplist_append(rh, "Content-language", "%s", cfvalues.language);
+		maplist_append(rh, O, "Content-language", "%s", cfvalues.language);
 
 	if (cfvalues.p3pref && cfvalues.p3pcp)
-		maplist_append(rh, "P3P", "policyref=\"%s\", CP=\"%s\"",
+		maplist_append(rh, O, "P3P", "policyref=\"%s\", CP=\"%s\"",
 			cfvalues.p3pref, cfvalues.p3pcp);
 	else if (cfvalues.p3pref)
-		maplist_append(rh, "P3P", "policyref=\"%s\"", cfvalues.p3pref);
+		maplist_append(rh, O, "P3P", "policyref=\"%s\"", cfvalues.p3pref);
 	else if (cfvalues.p3pcp)
-		maplist_append(rh, "P3P", "CP=\"%s\"", cfvalues.p3pcp);
+		maplist_append(rh, O, "P3P", "CP=\"%s\"", cfvalues.p3pcp);
 
 	/* Insert module headers */
 	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
@@ -399,13 +425,9 @@ sendheaders(int fd, off_t size)
 			mod->file_headers(getenv("SCRIPT_FILENAME"), fd, rh);
 
 	/* Sanity check: must start with status header */
-	if (session.response_headers.size < 1 ||
-			strcasecmp(rh->elements[0].index,
-				"Status"))
+	if (rh->size < 1 || strcasecmp(rh->elements[0].index, "Status"))
 		return false;
-
-	/* Write headers */
-	if (secprintf("%s\r\n", rh->elements[0].value) < 0)
+	else if (secprintf("%s\r\n", rh->elements[0].value) < 0)
 		return false;
 
 	for (size_t sz = 1; sz < rh->size; sz++)
@@ -415,6 +437,7 @@ sendheaders(int fd, off_t size)
 
 	secputs("\r\n");
 	maplist_free(&session.response_headers);
+
 	return true;
 }
 
@@ -455,10 +478,10 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 		close(fd);
 		return;
 	}
-	size = statbuf.st_size;
+	size = session.size = statbuf.st_size;
 	if (session.headers)
 	{
-		if (!sendheaders(fd, size))
+		if (!sendheaders(fd))
 		{
 			close(fd);
 			return;
@@ -1547,42 +1570,37 @@ do_head(char *params)
 void
 do_options(const char *params)
 {
-	secprintf("%s 200 OK\r\n", env.server_protocol);
-	stdheaders(false, false, false);
-	secputs("Content-length: 0\r\n"
-		"Allow: GET, HEAD, POST, PUT, DELETE, OPTIONS, TRACE\r\n"
-		"\r\n");
+	session.size = 0;
+	maplist_append(&session.response_headers, append_replace,
+		"Allow", "GET, HEAD, POST, PUT, DELETE, OPTIONS, TRACE");
+	writeheaders(STDOUT_FILENO);
+	maplist_free(&session.response_headers);
 	(void)params;
 }
 
 void
 do_trace(const char *params)
 {
-	struct	maplist		http_headers;
+	struct	maplist		http_headers = session.request_headers;
+	struct	maplist		*rh = &session.response_headers;
 	char		*output;
-	size_t		outlen, mlen;
-	ssize_t		num;
+	size_t		outlen, mlen, sz;
 
-	num = readheaders(0, &http_headers);
-	if (num < 0)
-	{
-		xserror(400, "Unable to read request line");
-		return;
-	}
 	mlen = LINEBUFSIZE;
 	MALLOC(output, char, mlen);
 
-	if (num && !strcasecmp(http_headers.elements[0].index, "Status"))
+	sz = 0;
+	if (!strcasecmp(http_headers.elements[sz].index, "Status"))
 		outlen = snprintf(output, mlen, "%s\r\n",
-			http_headers.elements[1].value);
+			http_headers.elements[sz++].value);
 	else
 		outlen = snprintf(output, mlen, "TRACE %s %s\r\n",
 			params, env.server_protocol);
 
-	for (size_t i = 0; i < http_headers.size; i++)
+	for (; sz < http_headers.size; sz++)
 	{
-		const char * const idx = http_headers.elements[i].index;
-		const char * const val = http_headers.elements[i].value;
+		const char * const idx = http_headers.elements[sz].index;
+		const char * const val = http_headers.elements[sz].value;
 
 		if (outlen + strlen(idx) + strlen(val) + 4 >= mlen)
 		{
@@ -1592,11 +1610,11 @@ do_trace(const char *params)
 		outlen += sprintf(&output[outlen], "%s: %s\r\n", idx, val);
 	}
 	
+	session.size = outlen;
+	STRDUP(cfvalues.mimetype, "message/http");
+	writeheaders(STDOUT_FILENO);
 	maplist_free(&http_headers);
-	secprintf("%s 200 OK\r\n", env.server_protocol);
-	stdheaders(false, false, false);
-	secprintf("Content-length: %zu\r\n", outlen);
-	secputs("Content-type: message/http\r\n\r\n");
+	maplist_free(rh);
 
 	secputs(output);
 	free(output);
