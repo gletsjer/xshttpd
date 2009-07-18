@@ -69,7 +69,6 @@
 
 static bool	getfiletype		(void);
 static bool	sendheaders		(int);
-static bool	writeheaders		(int);
 static void	senduncompressed	(int, struct encoding_filter *);
 static void	sendcompressed		(int, const char *);
 static char *	find_file		(const char *, const char *, const char *)	MALLOC_FUNC;
@@ -258,8 +257,9 @@ sendheaders(int fd)
 		{
 			session.headonly = true;
 			session.rstatus = 304;
-			secprintf("%s 304 Not modified\r\n",
-				env.server_protocol);
+			maplist_append(&session.request_headers,
+				append_prepend | append_replace,
+				"Status", "304 Not modified");
 		}
 	}
 	else if ((qenv = getenv("HTTP_IF_UNMODIFIED_SINCE")))
@@ -351,7 +351,7 @@ writeheaders(int fd)
 
 	/* All preconditions satisfied - do headers */
 	maplist_append(rh, append_prepend | append_ifempty,
-		"Status", "%s 200 OK", env.server_protocol);
+		"Status", "200 OK");
 
 	maplist_append(rh, F, "Date", "%s", currenttime);
 	maplist_append(rh, F, "Server", "%s", config.serverident);
@@ -375,6 +375,9 @@ writeheaders(int fd)
 		}
 		else
 			maplist_append(rh, O, "Pragma", "no-cache");
+
+		maplist_append(rh, O, "Last-modified", "%s", currenttime);
+		maplist_append(rh, O, "Expires", "%s", currenttime);
 	}
 	else
 	{
@@ -388,17 +391,13 @@ writeheaders(int fd)
 				(checksum = checksum_file(orig_pathname)))
 			maplist_append(rh, F, "Content-MD5", "%s", checksum);
 
+		/* Don't fake Last-modified w/o known value */
 		if (session.modtime)
 		{
 			strftime(modified, sizeof(modified),
 				"%a, %d %b %Y %H:%M:%S GMT",
 				gmtime(&session.modtime));
 			maplist_append(rh, O, "Last-modified", "%s", modified);
-		}
-		else
-		{
-			maplist_append(rh, O, "Last-modified", "%s", currenttime);
-			maplist_append(rh, O, "Expires", "%s", currenttime);
 		}
 	}
 
@@ -427,7 +426,8 @@ writeheaders(int fd)
 	/* Sanity check: must start with status header */
 	if (rh->size < 1 || strcasecmp(rh->elements[0].index, "Status"))
 		return false;
-	else if (secprintf("%s\r\n", rh->elements[0].value) < 0)
+	else if (secprintf("%s %s\r\n",
+			env.server_protocol, rh->elements[0].value) < 0)
 		return false;
 
 	for (size_t sz = 1; sz < rh->size; sz++)

@@ -27,6 +27,7 @@
 #include	"extra.h"
 #include	"malloc.h"
 #include	"modules.h"
+#include	"methods.h"
 #include	"hash.h"
 
 static unsigned long	secret;
@@ -257,7 +258,9 @@ bool
 denied_access(bool digest, bool stale)
 {
 	char		*errmsg;
+	struct maplist	*rh = &session.response_headers;
 
+	maplist_free(rh);
 	asprintf(&errmsg,
 		"\r\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 		"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
@@ -269,23 +272,23 @@ denied_access(bool digest, bool stale)
 		"</body></html>\n");
 	if (session.headers)
 	{
-		secprintf("%s 401 Wrong user/password combination\r\n",
-			env.server_protocol);
+		maplist_append(rh, append_prepend,
+			"Status", "401 Wrong user/password combination");
 		if (digest)
-		{
-			secprintf("WWW-Authenticate: digest realm=\""
-				REALM "\", nonce=\"%s\"%s%s\r\n",
+			maplist_append(rh, append_default,
+				"WWW-Authenticate",
+				"digest realm=\"" REALM "\", "
+				"nonce=\"%s\"%s%s\r\n",
 				fresh_nonce(),
 				rfc2617_digest
 				 ? ", qop=\"auth\", algorithm=md5"
 				 : "",
 				stale ? ", stale=true" : "");
-		}
 		else
-			secputs("WWW-Authenticate: basic realm=\""
-				REALM "\"\r\n");
-		secprintf("Content-length: %zu\r\n", strlen(errmsg));
-		stdheaders(1, 1, 1);
+			maplist_append(rh, append_default, "WWW-Authenticate",
+				"basic realm=\"" REALM "\"");
+		session.size = strlen(errmsg);
+		writeheaders(STDOUT_FILENO);
 	}
 	secputs(errmsg);
 	free(errmsg);

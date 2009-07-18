@@ -18,4 +18,6 @@ void	do_options		(const char *);
 void	do_trace		(const char *);
 void	do_proxy		(const char *, const char *);
 
+bool	writeheaders		(int);
+
 #endif		/* METHODS_H */

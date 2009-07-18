@@ -110,20 +110,6 @@ static	void	setup_environment	(void);
 static	void	standalone_main		(void)	NORETURN;
 static	void	standalone_socket	(int)	NORETURN;
 
-void
-stdheaders(bool lastmod, bool texthtml, bool endline)
-{
-	secprintf("Date: %s\r\nServer: %s\r\n",
-		currenttime, config.serverident);
-	if (lastmod)
-		secprintf("Last-modified: %s\r\nExpires: %s\r\n",
-			currenttime, currenttime);
-	if (texthtml)
-		secputs("Content-type: text/html\r\n");
-	if (endline)
-		secputs("\r\n");
-}
-
 static	void
 filedescrs()
 {
@@ -534,21 +520,23 @@ xserror(int code, const char *format, ...)
 	}
 	if (session.headers)
 	{
-		/* Write error message */
-		const ssize_t	ret = secprintf("%s %03d %s\r\n",
-					env.server_protocol, code, message);
+		struct maplist	*rh = &session.response_headers;
 
-		if (ret <= 0)
+		maplist_free(rh);
+		maplist_append(rh, append_prepend,
+			"Status", "%03d %s", code, message);
+
+		session.size = errmsg ? strlen(errmsg) : 0;
+		if ((getenv("HTTP_ALLOW")))
+			maplist_append(rh, append_default,
+				"Allow", "%s", getenv("HTTP_ALLOW"));
+
+		if (!writeheaders(STDOUT_FILENO))
 		{
 			/* Write failed: don't write the rest */
+			session.headonly = true;
 			session.persistent = false;
-			return;
 		}
-		secprintf("Content-length: %zu\r\n",
-			errmsg ? strlen(errmsg) : 0);
-		if ((getenv("HTTP_ALLOW")))
-			secprintf("Allow: %s\r\n", getenv("HTTP_ALLOW"));
-		stdheaders(true, true, true);
 	}
 	if (!session.headonly)
 	{
@@ -583,16 +571,19 @@ redirect(const char *redir, xs_redirflags_t flags)
 	}
 	if (session.headers)
 	{
+		struct maplist	*rh = &session.response_headers;
+
+		maplist_free(rh);
+		maplist_append(rh, append_prepend, "Status", "%s moved",
+			flags & redir_perm ? "301 Permanently" : "302 Temporarily");
 		if (qs)
-			secprintf("%s %s moved\r\nLocation: %s?%s\r\n",
-				env.server_protocol,
-				flags & redir_perm ? "301 Permanently" : "302 Temporarily", redir, qs);
+			maplist_append(rh, append_default,
+				"Location", "%s?%s", redir, qs);
 		else
-			secprintf("%s %s moved\r\nLocation: %s\r\n",
-				env.server_protocol,
-				flags & redir_perm ? "301 Permanently" : "302 Temporarily", redir);
-		secprintf("Content-length: %zu\n", errmsg ? strlen(errmsg) : 0);
-		stdheaders(true, true, true);
+			maplist_append(rh, append_default,
+				"Location", "%s", redir);
+		session.size = errmsg ? strlen(errmsg) : 0;
+		writeheaders(STDOUT_FILENO);
 	}
 	session.rstatus = flags & redir_perm ? 301 : 302;
 	if (!session.headonly)
