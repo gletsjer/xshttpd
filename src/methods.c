@@ -339,7 +339,6 @@ sendheaders(int fd)
 	}
 
 	writeheaders(fd);
-	maplist_free(&session.response_headers);
 	return true;
 }
 
@@ -384,9 +383,8 @@ writeheaders(int fd)
 		char	modified[32];
 		char	*checksum;
 
-		if (session.size >= 0)
-			maplist_append(rh, F, "Content-length", "%" PRIoff,
-				session.size);
+		maplist_append(rh, F, "Content-length", "%" PRIoff,
+			session.size);
 		if (config.usecontentmd5 &&
 				(checksum = checksum_file(orig_pathname)))
 			maplist_append(rh, F, "Content-MD5", "%s", checksum);
