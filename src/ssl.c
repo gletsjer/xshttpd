@@ -826,7 +826,7 @@ readheaders(int rd, struct maplist *headlist)
 
 		if (!input[0])
 			break;
-		if (!headlist->size)
+		if (!headlist->size && strncasecmp("Status:", input, 7))
 		{
 			char	*p;
 
