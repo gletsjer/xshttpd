@@ -338,6 +338,12 @@ sendfileheaders(int fd)
 		}
 	}
 
+	/* Insert module headers */
+	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
+		if (mod->file_headers)
+			mod->file_headers(getenv("SCRIPT_FILENAME"), fd,
+				&session.response_headers);
+
 	writeheaders();
 	return true;
 }
@@ -446,8 +452,8 @@ writeheaders(void)
 
 	/* Insert module headers */
 	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
-		if (mod->file_headers)
-			mod->file_headers(getenv("SCRIPT_FILENAME"), &headers);
+		if (mod->http_headers)
+			mod->http_headers(getenv("SCRIPT_FILENAME"), &headers);
 
 	/* Write headers */
 	secwrite(headers, hp - headers);
