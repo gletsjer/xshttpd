@@ -355,11 +355,16 @@ writeheaders(int fd)
 	maplist_append(rh, F, "Date", "%s", currenttime);
 	maplist_append(rh, F, "Server", "%s", config.serverident);
 
-	if (cfvalues.charset)
+	if (cfvalues.mimetype && cfvalues.charset &&
+			!strncasecmp(cfvalues.mimetype, "text/", 5))
+		/* charset only applies to text/.. documents */
 		maplist_append(rh, O, "Content-type", "%s; charset=%s",
 			cfvalues.mimetype, cfvalues.charset);
 	else if (cfvalues.mimetype)
 		maplist_append(rh, O, "Content-type", "%s", cfvalues.mimetype);
+	else if (cfvalues.charset)
+		maplist_append(rh, O, "Content-type", "text/html; charset=%s",
+			cfvalues.charset);
 	else
 		maplist_append(rh, O, "Content-type", "text/html");
 
