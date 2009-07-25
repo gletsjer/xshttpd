@@ -68,7 +68,7 @@
 #include	"fcgi.h"
 
 static bool	getfiletype		(void);
-static bool	sendheaders		(int);
+static bool	sendfileheaders		(int);
 static void	senduncompressed	(int, struct encoding_filter *);
 static void	sendcompressed		(int, const char *);
 static char *	find_file		(const char *, const char *, const char *)	MALLOC_FUNC;
@@ -172,7 +172,7 @@ make_etag(struct stat *sb)
 }
 
 static bool
-sendheaders(int fd)
+sendfileheaders(int fd)
 {
 	char		*qenv;
 	time_t		modtime;
@@ -338,12 +338,12 @@ sendheaders(int fd)
 		}
 	}
 
-	writeheaders(fd);
+	writeheaders();
 	return true;
 }
 
 bool
-writeheaders(int fd)
+writeheaders(void)
 {
 	struct maplist	*rh = &session.response_headers;
 	const xs_appendflags_t	O = append_ifempty, F = append_replace;
@@ -421,26 +421,36 @@ writeheaders(int fd)
 	else if (cfvalues.p3pcp)
 		maplist_append(rh, O, "P3P", "CP=\"%s\"", cfvalues.p3pcp);
 
-	/* Insert module headers */
-	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
-		if (mod->file_headers)
-			mod->file_headers(getenv("SCRIPT_FILENAME"), fd, rh);
+	/* Write headers to buffer */
+	char	*headers, *hp;
+	size_t	headlen = 4 + strlen(env.server_protocol);
+
+	for (size_t sz = 0; sz < rh->size; sz++)
+		headlen += strlen(rh->elements[sz].index) +
+			strlen(rh->elements[sz].value) + 4;
 
 	/* Sanity check: must start with status header */
 	if (rh->size < 1 || strcasecmp(rh->elements[0].index, "Status"))
 		return false;
-	else if (secprintf("%s %s\r\n",
-			env.server_protocol, rh->elements[0].value) < 0)
-		return false;
+
+	MALLOC(headers, char, headlen);
+	hp = headers + sprintf(headers, "%s %s\r\n",
+		env.server_protocol, rh->elements[0].value);
 
 	for (size_t sz = 1; sz < rh->size; sz++)
-		secprintf("%s: %s\r\n",
-			rh->elements[sz].index,
-			rh->elements[sz].value);
+		hp += sprintf(hp, "%s: %s\r\n",
+			rh->elements[sz].index, rh->elements[sz].value);
 
-	secputs("\r\n");
 	maplist_free(&session.response_headers);
+	hp += sprintf(hp, "\r\n");
 
+	/* Insert module headers */
+	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
+		if (mod->file_headers)
+			mod->file_headers(getenv("SCRIPT_FILENAME"), &headers);
+
+	/* Write headers */
+	secwrite(headers, hp - headers);
 	return true;
 }
 
@@ -484,7 +494,7 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 	size = session.size = statbuf.st_size;
 	if (session.headers)
 	{
-		if (!sendheaders(fd))
+		if (!sendfileheaders(fd))
 		{
 			close(fd);
 			return;
@@ -518,7 +528,7 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 		if (config.usesendfile && !cursock->usessl &&
 			!session.chunked && !ec_filter && valid_size_t_size)
 		{
-			if (sendfile(fd, 1, 0, size, NULL, NULL, 0) < 0)
+			if (sendfile(fd, 1, 0, 0, NULL, NULL, 0) < 0)
 				xserror(599, "Aborted sendfile for `%s'",
 					env.remote_host ? env.remote_host : "(none)");
 		}
@@ -1576,7 +1586,7 @@ do_options(const char *params)
 	session.size = 0;
 	maplist_append(&session.response_headers, append_replace,
 		"Allow", "GET, HEAD, POST, PUT, DELETE, OPTIONS, TRACE");
-	writeheaders(STDOUT_FILENO);
+	writeheaders();
 	maplist_free(&session.response_headers);
 	(void)params;
 }
@@ -1615,7 +1625,7 @@ do_trace(const char *params)
 	
 	session.size = outlen;
 	STRDUP(cfvalues.mimetype, "message/http");
-	writeheaders(STDOUT_FILENO);
+	writeheaders();
 	maplist_free(&http_headers);
 	maplist_free(rh);
 

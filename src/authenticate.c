@@ -288,7 +288,7 @@ denied_access(bool digest, bool stale)
 			maplist_append(rh, append_default, "WWW-Authenticate",
 				"basic realm=\"" REALM "\"");
 		session.size = strlen(errmsg);
-		writeheaders(STDOUT_FILENO);
+		writeheaders();
 	}
 	secputs(errmsg);
 	free(errmsg);

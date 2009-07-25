@@ -531,7 +531,7 @@ xserror(int code, const char *format, ...)
 			maplist_append(rh, append_default,
 				"Allow", "%s", getenv("HTTP_ALLOW"));
 
-		if (!writeheaders(STDOUT_FILENO))
+		if (!writeheaders())
 		{
 			/* Write failed: don't write the rest */
 			session.headonly = true;
@@ -583,7 +583,7 @@ redirect(const char *redir, xs_redirflags_t flags)
 			maplist_append(rh, append_default,
 				"Location", "%s", redir);
 		session.size = errmsg ? strlen(errmsg) : 0;
-		writeheaders(STDOUT_FILENO);
+		writeheaders();
 	}
 	session.rstatus = flags & redir_perm ? 301 : 302;
 	if (!session.headonly)

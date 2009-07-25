@@ -33,7 +33,7 @@ struct module
 	const char	*file_encoding;
 	bool	(*init) (void);
 	bool	(*file_handler)	(const char *filename, int fdin, int fdout);
-	bool	(*file_headers)	(const char *filename, int fdin, struct maplist *response_headers);
+	bool	(*file_headers)	(const char *filename, char **headers);
 	struct encoding_filter	*inflate_filter;
 	struct encoding_filter	*deflate_filter;
 	bool	(*auth_basic)	(const char *username, const char *password);
