@@ -121,16 +121,20 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	FILE		*logfile;
 	int		q[2];
 	bool		ssl_post = false;
-	struct	sigaction	action;
+	struct	sigaction	action, ignore;
 
 	child = (pid_t)-1;
 #ifdef		HAVE_SIGEMPTYSET
 	sigemptyset(&action.sa_mask);
+	sigemptyset(&ignore.sa_mask);
 #else		/* Not HAVE_SIGEMPYSET */
 	action.sa_mask = 0;
+	ignore.sa_mask = 0;
 #endif		/* HAVE_SIGEMPTYSET */
 	action.sa_handler = time_is_up;
 	action.sa_flags = 0;
+	ignore.sa_handler = SIG_IGN;
+	ignore.sa_flags = 0;
 	sigaction(SIGALRM, &action, NULL);
 
 	(void)alarm(60 * config.scripttimeout);
@@ -250,6 +254,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	}
 	else
 
+	sigaction(SIGCHLD, &ignore, &action);
 	switch (child = fork())
 	{
 	case -1:
@@ -766,4 +771,5 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		int	chldstat;
 		waitpid(child, &chldstat, 0);
 	}
+	sigaction(SIGCHLD, &action, NULL);
 }
