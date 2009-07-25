@@ -257,7 +257,7 @@ sendheaders(int fd)
 		{
 			session.headonly = true;
 			session.rstatus = 304;
-			maplist_append(&session.request_headers,
+			maplist_append(&session.response_headers,
 				append_prepend | append_replace,
 				"Status", "304 Not modified");
 		}
