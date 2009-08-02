@@ -68,7 +68,7 @@
 #include	"fcgi.h"
 
 static bool	getfiletype		(void);
-static bool	sendfileheaders		(int);
+static bool	fileheaders		(int);
 static void	senduncompressed	(int, struct encoding_filter *);
 static void	sendcompressed		(int, const char *);
 static char *	find_file		(const char *, const char *, const char *)	MALLOC_FUNC;
@@ -172,7 +172,7 @@ make_etag(struct stat *sb)
 }
 
 static bool
-sendfileheaders(int fd)
+fileheaders(int fd)
 {
 	char		*qenv;
 	time_t		modtime;
@@ -202,7 +202,7 @@ sendfileheaders(int fd)
 	}
 
 	modtime = session.modtime = 0;
-	env.etag = NULL;
+	session.etag = NULL;
 	if (!dynamic)
 	{
 		struct stat	statbuf;
@@ -210,11 +210,11 @@ sendfileheaders(int fd)
 		if (!fstat(fd, &statbuf))
 		{
 			modtime = session.modtime = statbuf.st_mtime;
-			env.etag = make_etag(&statbuf);
+			session.etag = make_etag(&statbuf);
 		}
 	}
 
-	if (env.etag &&
+	if (session.etag &&
 		((qenv = getenv("HTTP_IF_MATCH")) ||
 		 (qenv = getenv("HTTP_IF_NONE_MATCH"))))
 	{
@@ -227,7 +227,7 @@ sendfileheaders(int fd)
 		{
 			if (!list[i] || list[i][0])
 				continue;
-			if (!strcmp(list[i], env.etag))
+			if (!strcmp(list[i], session.etag))
 				break;
 			else if (!strcmp(list[i], "*"))
 				break;
@@ -410,8 +410,8 @@ writeheaders(void)
 		}
 	}
 
-	if (env.etag)
-		maplist_append(rh, O, "ETag", "%s", env.etag);
+	if (session.etag)
+		maplist_append(rh, O, "ETag", "%s", session.etag);
 
 	if (cfvalues.encoding)
 		maplist_append(rh, F, "Content-encoding", "%s", cfvalues.encoding);
@@ -500,7 +500,7 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 	size = session.size = statbuf.st_size;
 	if (session.headers)
 	{
-		if (!sendfileheaders(fd))
+		if (!fileheaders(fd))
 		{
 			close(fd);
 			return;

@@ -15,6 +15,9 @@
 #include	"ssl.h"
 #include	"httypes.h"
 
+/* Virtual configuration structure
+ * contains all values specific to a vhost entry in the configuration
+ */
 extern struct virtual
 {
 	char *		hostname;
@@ -50,6 +53,9 @@ extern struct virtual
 	struct virtual *	next;
 } *current;
 
+/* SSL configuration structure
+ * contains all values specific to a ssl entry in the socket configuration
+ */
 struct ssl_vhost
 {
 	char *			hostname;
@@ -58,6 +64,9 @@ struct ssl_vhost
 	struct ssl_vhost *	next;
 };
 
+/* Socket configuration structure
+ * contains all values specific to a socket entry in the configuration
+ */
 struct socket_config
 {
 	char *		socketname;
@@ -84,6 +93,9 @@ struct socket_config
 	struct socket_config *	next;
 } *cursock;
 
+/* Global configuration structure
+ * contains all global configuration options
+ */
 extern struct configuration
 {
 	char *		systemroot;
@@ -116,6 +128,10 @@ extern struct configuration
 	struct socket_config *	sockets;
 } config;
 
+/* Session structure
+ * contains global values that are specific
+ * for the current request/response session
+ */
 extern struct session
 {
 	char		dateformat[512];
@@ -123,6 +139,7 @@ extern struct session
 	unsigned int	rstatus;	/* 200, 301, .. */
 	off_t		size;
 	time_t		modtime;
+	const char *	etag;		/* not malloced */
 	bool		headers;
 	bool		headonly;
 	bool		postonly;
@@ -134,6 +151,10 @@ extern struct session
 	struct maplist	response_headers;
 } session;
 
+/* Environment structure
+ * contains global values that refer directly
+ * to corresponding environment variables (getenv)
+ */
 extern struct env
 {
 	const char *	authorization;
@@ -144,7 +165,6 @@ extern struct env
 	const char *	request_method;
 	const char *	request_uri;
 	const char *	server_protocol;
-	const char *	etag;
 	off_t		content_length;
 } env;
 
