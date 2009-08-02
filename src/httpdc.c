@@ -310,7 +310,7 @@ main(int argc, char **argv)
 {
 	char		buffer[BUFSIZ];
 	char		*pidfilename = NULL;
-	char		*cmd = NULL;
+	const char	*cmd = NULL;
 	int		option;
 
 	strlcpy(rootdir, ROOT_DIR, BUFSIZ);
