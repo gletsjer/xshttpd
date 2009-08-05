@@ -19,53 +19,48 @@
 magic_t		magic_cookie = NULL;
 char		*magic_filename = NULL;
 
-bool	mime_magic	(const char *, int, struct maplist *);
+bool	mime_magic	(const char *, char **);
 bool	mime_magic_config(const char *, const char *);
 bool	mime_magic_open	(void);
 
 bool
-mime_magic(const char *filename, int fd, struct maplist *rh)
+mime_magic(const char *filename, char **headerp)
 {
 	const char	*mimetype;
 	char		input[RWBUFSIZE];
-	size_t		sz;
+	int		fd;
 	ssize_t		rd;
+	char		*headers = *headerp;
+	char		*type, *nl;
 
 	if (!filename || !filename[0] || !magic_cookie || !magic_filename)
 		return false;
 
-	for (sz = 0; sz < rh->size; sz++)
-		if (!strcasecmp(rh->elements[sz].index, "Content-type"))
-		{
-			if (strcasecmp(rh->elements[sz].value, OCTET_STREAM))
-				return true;
-			else
-				break;
-		}
+	if ((type = strcasestr(headers, "Content-type: ")) &&
+			strncasecmp(type + strlen("Content-type: "),
+				OCTET_STREAM, strlen(OCTET_STREAM)))
+		return true;
 
 	/* Not reached if Content-type is properly defined already;
 	 * that is set and not equal to application/octet-stream
 	 */
 
-	if (lseek(fd, (off_t)0, SEEK_SET) < 0)
-	{
-		mimetype = magic_file(magic_cookie, filename);
-	}
-	else
-	{
-		if ((rd = read(fd, input, sizeof(input))) < 0)
-			return false;
-		mimetype = magic_buffer(magic_cookie, input, (size_t)rd);
-		lseek(fd, (off_t)0, SEEK_SET);
-	}
+	if (!(mimetype = magic_file(magic_cookie, filename)))
+		return false;
 
-	if (sz < rh->size)
+	if (!type || strlen(mimetype) > strlen(OCTET_STREAM))
+		REALLOC(headers, char, strlen(headers) + strlen(mimetype) + 20);
+
+	if (type)
 	{
-		FREE(rh->elements[sz].value);
-		STRDUP(rh->elements[sz].value, mimetype);
+		type = strcasestr(headers, "Content-type: ");
+		nl = strstr(type, "\r\n") + 2;
+		memmove(type, nl, strlen(nl) + 1);
 	}
-	else
-		maplist_append(rh, 0, "Content-type", "%s", mimetype);
+	nl = strstr(headers, "\r\n\r\n");
+	sprintf(nl + 2, "Content-type: %s\r\n\r\n", mimetype);
+
+	headerp = &headers;
 	return true;
 }
 
@@ -107,7 +102,7 @@ struct module magic_module =
 {
 	.name = "magic mime detection",
 	.init = mime_magic_open,
-	.file_headers = mime_magic,
+	.http_headers = mime_magic,
 	.config_general = mime_magic_config,
 };
 
