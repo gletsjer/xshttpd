@@ -1094,7 +1094,7 @@ do_get(char *params)
 		setenv("PWD", base, 1);
 		filename = current->indexfiles[0];
 		strlcat(real_path, filename, XS_PATH_MAX);
-		asprintf(&newpath, "%s%s", base, real_path);
+		asprintf(&newpath, "%s%s", base, filename);
 		setenv("SCRIPT_FILENAME", newpath, 1);
 		free(newpath);
 	}
