@@ -6,9 +6,6 @@
 #include	<stdbool.h>
 
 #include	"config.h"
-#include	"httypes.h"
-
-struct	maplist;
 
 extern const char	*module_names[];
 
@@ -16,8 +13,8 @@ bool	init_modules(void);
 
 struct encoding_filter
 {
-	void *	(*open)	(int fd);
-	int	(*read)	(void *fdp, char *buf, size_t len);
+	void *	(*open)		(int fd);
+	int	(*read)		(void *fdp, char *buf, size_t len);
 	int	(*close)	(void *fdp);
 };
 
@@ -33,7 +30,6 @@ struct module
 	const char	*file_encoding;
 	bool	(*init) (void);
 	bool	(*file_handler)	(const char *filename, int fdin, int fdout);
-	bool	(*file_headers)	(const char *filename, int fd, struct maplist *response_headers);
 	bool	(*http_headers)	(const char *filename, char **headers);
 	struct encoding_filter	*inflate_filter;
 	struct encoding_filter	*deflate_filter;

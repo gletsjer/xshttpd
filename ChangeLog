@@ -1,6 +1,13 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 11
+- Completely rewrite HTTP response header generation and handling
+- Fix charset header suffix: only use with text/* documents
+- Fix SCRIPT_FILENAME variable and #last-mod SSI for directory index files
+- Fix SIGCHLD handling for CGI processes (ignore)
+- HTCPCP/1.0 handling has been removed (due to return as module later)
+
 Changes since 3.7 beta 10
 - Modules can now modify HTTP response headers before sending
 - Add mod_magic and MimeMagicFilename for extra mime-type detection

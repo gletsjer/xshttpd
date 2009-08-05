@@ -69,7 +69,7 @@ if MOD_MAGIC
 lib_LIBRARIES += mod_magic.so
 mod_magic_so_SOURCES = mod_magic.c
 mod_magic_so_CFLAGS = $(SO_CFLAGS) @magic_cflags@
-mod_magic_so_LIBADD = @magic_ldflags@ libxs.a
+mod_magic_so_LIBADD = @magic_ldflags@
 mod_magic_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
 mod_magic_so_AR = $(CC) $(mod_magic_so_LDFLAGS) -o
 endif
