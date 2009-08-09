@@ -139,12 +139,12 @@ check_digest_auth(const char *authfile, bool *stale)
 	char		ha2[MD5_DIGEST_STRING_LENGTH],
 			digest[MD5_DIGEST_STRING_LENGTH],
 			*line;
-	struct		mapping		*authreq;
 	char		*user, *realm, *nonce, *cnonce, *uri,
 			*response, *qop, *nc;
 	char		*passwd, *a2, *digplain, *ha1;
 	char		*idx, *val;
 	size_t		sz, fields, len;
+	struct maplist	authreq;
 
 	*stale = false;
 
@@ -154,19 +154,17 @@ check_digest_auth(const char *authfile, bool *stale)
 	STRDUP(line, env.authorization + 7);
 
 	/* grab element from line */
-	fields = eqstring_to_array(line, NULL);
+	fields = eqstring_to_array(line, &authreq);
 	if (!fields)
 	{
 		free(line);
 		return false;
 	}
-	MALLOC(authreq, struct mapping, fields);
-	fields = eqstring_to_array(line, authreq);
 	user = realm = nonce = cnonce = uri = response = qop = nc = NULL;
-	for (sz = 0; sz < fields; sz++)
+	for (sz = 0; sz < authreq.size; sz++)
 	{
-		idx = authreq[sz].index;
-		val = authreq[sz].value;
+		idx = authreq.elements[sz].index;
+		val = authreq.elements[sz].value;
 		if (!strcmp(idx, "username"))
 			user = val;
 		else if (!strcmp(idx, "realm"))
@@ -188,14 +186,14 @@ check_digest_auth(const char *authfile, bool *stale)
 
 	if (!user || !realm || !nonce || !uri || !response)
 	{
-		free(authreq);
+		maplist_free(&authreq);
 		free(line);
 		return false; /* fail */
 	}
 	passwd = ha1 = NULL;
 	if (!get_crypted_password(authfile, user, &passwd, &ha1) || !passwd)
 	{
-		free(authreq);
+		maplist_free(&authreq);
 		free(line);
 		return false; /* not found */
 	}
@@ -203,7 +201,7 @@ check_digest_auth(const char *authfile, bool *stale)
 	free(passwd);
 	if (!ha1)
 	{
-		free(authreq);
+		maplist_free(&authreq);
 		free(line);
 		return false;
 	}
@@ -212,8 +210,8 @@ check_digest_auth(const char *authfile, bool *stale)
 	if (strlen(ha1) > MD5_DIGEST_STRING_LENGTH)
 	{
 		free(ha1);
-		free(authreq);
 		free(line);
+		maplist_free(&authreq);
 		return false; /* no valid hash */
 	}
 
@@ -234,7 +232,7 @@ check_digest_auth(const char *authfile, bool *stale)
 
 	if (strcmp(response, digest))
 	{
-		free(authreq);
+		maplist_free(&authreq);
 		free(line);
 		return false; /* no match */
 	}
@@ -242,14 +240,14 @@ check_digest_auth(const char *authfile, bool *stale)
 	if (!valid_nonce(nonce))
 	{
 		*stale = true;
-		free(authreq);
+		maplist_free(&authreq);
 		free(line);
 		return false; /* invalid nonce */
 	}
 
 	setenv("AUTH_TYPE", "Digest", 1);
 	setenv("REMOTE_USER", user, 1);
-	free(authreq);
+	maplist_free(&authreq);
 	free(line);
 	return true;
 }

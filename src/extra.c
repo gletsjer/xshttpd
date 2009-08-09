@@ -124,7 +124,7 @@ match_list(char *list, const char *browser)
 #define ISALNUM(p) (((p) >= '0' && (p) <= '9') || ((p) >= 'a' && (p) <= 'z') ||\
 		((p) >= 'A' && (p) <= 'Z') || (p) == '-' || (p) == '_')
 size_t
-eqstring_to_array(char *string, struct mapping *map)
+eqstring_to_array(char *string, struct maplist *list)
 {
 	size_t		num;
 	char		*p, *q;
@@ -132,6 +132,14 @@ eqstring_to_array(char *string, struct mapping *map)
 
 	if (!string)
 		return 0;
+
+	if (list)
+	{
+		maplist_free(list);
+		list->size = eqstring_to_array(string, NULL);
+		MALLOC(list->elements, struct mapping, list->size);
+	}
+
 	num = 0;
 	state = s_findkey;
 	for (p = string; *p; p++)
@@ -141,10 +149,10 @@ eqstring_to_array(char *string, struct mapping *map)
 		case s_findkey:
 			if (ISALNUM(*p))
 			{
-				if (map)
+				if (list)
 				{
-					map[num].index = p;
-					map[num].value = NULL;
+					list->elements[num].index = p;
+					list->elements[num].value = NULL;
 				}
 				num++;
 				state = s_findeq;
@@ -159,18 +167,18 @@ eqstring_to_array(char *string, struct mapping *map)
 		case s_findval:
 			if ('"' == *p && (q = strchr(p + 1, '"')))
 			{
-				if (map)
+				if (list)
 				{
 					*p = *q = '\0';
-					map[num-1].value = p + 1;
+					list->elements[num-1].value = p + 1;
 					p = q;
 				}
 				state = s_findnext;
 			}
 			else if (ISALNUM(*p))
 			{
-				if (map)
-					map[num-1].value = p;
+				if (list)
+					list->elements[num-1].value = p;
 				state = s_findnext;
 			}
 			break;
@@ -181,7 +189,7 @@ eqstring_to_array(char *string, struct mapping *map)
 			}
 			break;
 		}
-		if (!ISALNUM(*p) && map)
+		if (!ISALNUM(*p) && list)
 			*p = '\0';
 	}
 	return num;
@@ -473,8 +481,10 @@ maplist_append(struct maplist *list, xs_appendflags_t flags, const char *idx, co
 			}
 			if (flags & append_replace)
 			{
-				va_start(ap, value);
 				FREE(list->elements[sz].value);
+				if (!value)
+					return list->size;
+				va_start(ap, value);
 				vasprintf(&list->elements[sz].value, value, ap);
 				va_end(ap);
 				return list->size;
@@ -487,24 +497,34 @@ maplist_append(struct maplist *list, xs_appendflags_t flags, const char *idx, co
 	else
 		REALLOC(list->elements, struct mapping, list->size + 1);
 
-	va_start(ap, value);
-
 	if (flags & append_prepend)
 	{
 		for (size_t sz = list->size; sz > 0; sz--)
 			list->elements[sz] = list->elements[sz-1];
 		STRDUP(list->elements[0].index, idx);
-		vasprintf(&list->elements[0].value, value, ap);
-		va_end(ap);
+		if (value)
+		{
+			va_start(ap, value);
+			vasprintf(&list->elements[0].value, value, ap);
+			va_end(ap);
+		}
+		else
+			list->elements[0].value = NULL;
 		list->size++;
 		return list->size;
 	}
 
 	/* non-existend or duplicate okay: append at the end */
 	STRDUP(list->elements[list->size].index, idx);
-	vasprintf(&list->elements[list->size].value, value, ap);
+	if (value)
+	{
+		va_start(ap, value);
+		vasprintf(&list->elements[list->size].value, value, ap);
+		va_end(ap);
+	}
+	else
+		list->elements[list->size].value = NULL;
 	list->size++;
-	va_end(ap);
 
 	return list->size;
 }

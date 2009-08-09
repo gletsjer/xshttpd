@@ -47,7 +47,7 @@ extern struct virtual
 	FILE *		openreferer;
 	FILE *		openerror;
 	FILE *		openscript;
-	logstyle_t	logstyle;
+	xs_logstyle_t	logstyle;
 	char *		sslcertificate;
 	char *		sslprivatekey;
 	struct virtual *	next;
@@ -73,7 +73,7 @@ struct socket_config
 	char *		address;
 	char *		port;
 	sa_family_t	family;
-	sslauth_t	sslauth;
+	xs_sslauth_t	sslauth;
 	bool		usessl;
 	unsigned int	instances;
 	char *		sslcertificate;
