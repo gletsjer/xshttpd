@@ -868,7 +868,8 @@ readheaders(int rd, struct maplist *headlist)
 			strcat(val, value);
 			headlist->elements[headlist->size-1].value = val;
 		}
-		else if (!strncasecmp(input, "Status:", 7) && input[7])
+		else if (headlist->size &&
+				!strncasecmp(input, "Status:", 7) && input[7])
 		{
 			FREE(headlist->elements[0].value);
 			STRDUP(headlist->elements[0].value, input + 8);
