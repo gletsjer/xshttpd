@@ -36,8 +36,11 @@
 #include		<pcre.h>
 #endif		/* HAVE_PCRE */
 
-static int	netbufind, netbufsiz;
-static char	netbuf[MYBUFSIZ];
+static int	netbufind[2], netbufsiz[2];
+static char	netbuf[2][MYBUFSIZ];
+#define	bufind	netbufind[rd ? 1 : 0]
+#define	bufsiz	netbufsiz[rd ? 1 : 0]
+#define	sockbuf	netbuf[rd ? 1 : 0]
 
 static int	pem_passwd_cb(char *, int, int, void *);
 #ifdef	 	HANDLE_SSL_TLSEXT
@@ -52,8 +55,8 @@ initreadmode(bool reset)
 
 	if (reset)
 	{
-		netbufind = netbufsiz = 0;
-		netbuf[netbufind] = '\0';
+		netbufind[0] = netbufsiz[0] = 0;
+		netbuf[0][0] = '\0';
 	}
 	while ((readerror = ERR_get_error()))
 	{
@@ -737,7 +740,7 @@ secprintf(const char *format, ...)
 ssize_t
 secread(int rd, void *buf, size_t len)
 {
-	const size_t	inbuffer = netbufsiz - netbufind;
+	const size_t	inbuffer = bufsiz - bufind;
 	char		*cbuf = buf;
 
 	if (!len)
@@ -747,15 +750,15 @@ secread(int rd, void *buf, size_t len)
 	{
 		if (len >= inbuffer)
 		{
-			memcpy(buf, &netbuf[netbufind], inbuffer);
-			netbufsiz = netbufind = 0;
+			memcpy(buf, &sockbuf[bufind], inbuffer);
+			bufsiz = bufind = 0;
 			cbuf += inbuffer;
 			len -= inbuffer;
 		}
 		else
 		{
-			memcpy(buf, &netbuf[netbufind], len);
-			netbufind += len;
+			memcpy(buf, &sockbuf[bufind], len);
+			bufind += len;
 			return len;
 		}
 	}
@@ -772,11 +775,11 @@ readline(int rd, char *buf, size_t len)
 	{
 		if (buf2 >= buf + len)
 			return(ERR_LINE);
-		if (netbufind >= netbufsiz)
+		if (bufind >= bufsiz)
 		{
 			/* empty buffer: read new data */
-			netbufind = 0;
-			if ((netbufsiz = secread_internal(rd, netbuf, MYBUFSIZ)) < 0)
+			bufind = 0;
+			if ((bufsiz = secread_internal(rd, sockbuf, MYBUFSIZ)) < 0)
 				switch (errno)
 				{
 				case EINTR:
@@ -785,18 +788,16 @@ readline(int rd, char *buf, size_t len)
 				default:
 					return(ERR_QUIT);
 				}
-			else if (!netbufsiz)
+			else if (!bufsiz)
 				/* no error, no data */
 				return(ERR_CLOSE);
 		}
-		ch = *(buf2++) = netbuf[netbufind++];
+		ch = *(buf2++) = sockbuf[bufind++];
 	} while (ch != '\n');
 	*buf2 = '\0';
 	while (buf2-- > buf)
-		if (*buf2 <= ' ' && *buf2 > 0)
+		if (*buf2 < ' ' && *buf2 > 0)
 			*buf2 = '\0';
-		else
-			break;
 	return(ERR_NONE);
 }
 
@@ -807,6 +808,9 @@ readheaders(int rd, struct maplist *headlist)
 
 	headlist->size = 0;
 	headlist->elements = NULL;
+	if (rd)
+		bufind = bufsiz = 0;
+
 	while (1)
 	{
 		char	*value;
@@ -863,6 +867,11 @@ readheaders(int rd, struct maplist *headlist)
 			strcat(val, " ");
 			strcat(val, value);
 			headlist->elements[headlist->size-1].value = val;
+		}
+		else if (!strncasecmp(input, "Status:", 7) && input[7])
+		{
+			FREE(headlist->elements[0].value);
+			STRDUP(headlist->elements[0].value, input + 8);
 		}
 		else if ((value = strchr(input, ':')))
 		{
