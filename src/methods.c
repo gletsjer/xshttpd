@@ -388,8 +388,9 @@ writeheaders(void)
 		char	modified[32];
 		char	*checksum;
 
-		maplist_append(rh, F, "Content-length", "%" PRIoff,
-			session.size);
+		if (session.rstatus != 204 && session.rstatus != 304)
+			maplist_append(rh, F, "Content-length", "%" PRIoff,
+				session.size);
 		if (config.usecontentmd5 &&
 				(checksum = checksum_file(orig_pathname)))
 			maplist_append(rh, F, "Content-MD5", "%s", checksum);
