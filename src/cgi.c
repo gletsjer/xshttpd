@@ -667,6 +667,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				append(&head, false, "Transfer-encoding: chunked\r\n");
 			if (config.usecontentmd5 && session.trailers)
 				append(&head, false, "Trailer: Content-MD5\r\n");
+			if (session.httpversion >= 11)
+				append(&head, false, "Connection: close\r\n");
 			append(&head, false, "Date: %s\r\n", currenttime);
 			secprintf("%s\r\n", head);
 			if (head)
