@@ -147,6 +147,7 @@ check_digest_auth(const char *authfile, bool *stale)
 	struct maplist	authreq;
 
 	*stale = false;
+	authreq.size = 0;
 
 	/* digest auth, rfc 2069 */
 	if (strncmp(env.authorization, "Digest ", 7))
@@ -276,7 +277,7 @@ denied_access(bool digest, bool stale)
 			maplist_append(rh, append_default,
 				"WWW-Authenticate",
 				"digest realm=\"" REALM "\", "
-				"nonce=\"%s\"%s%s\r\n",
+				"nonce=\"%s\"%s%s",
 				fresh_nonce(),
 				rfc2617_digest
 				 ? ", qop=\"auth\", algorithm=md5"

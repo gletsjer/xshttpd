@@ -135,7 +135,8 @@ eqstring_to_array(char *string, struct maplist *list)
 
 	if (list)
 	{
-		maplist_free(list);
+		if (list->size)
+			maplist_free(list);
 		list->size = eqstring_to_array(string, NULL);
 		MALLOC(list->elements, struct mapping, list->size);
 	}
@@ -191,6 +192,18 @@ eqstring_to_array(char *string, struct maplist *list)
 		}
 		if (!ISALNUM(*p) && list)
 			*p = '\0';
+	}
+	if (list)
+	{
+		/* Copy all data into malloc'ed maplist */
+		for (int i = 0; i < num; i++)
+		{
+			STRDUP(list->elements[i].index,
+				list->elements[i].index);
+			if (list->elements[i].value)
+				STRDUP(list->elements[i].value,
+					list->elements[i].value);
+		}
 	}
 	return num;
 }
