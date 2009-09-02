@@ -144,10 +144,9 @@ check_digest_auth(const char *authfile, bool *stale)
 	char		*passwd, *a2, *digplain, *ha1;
 	char		*idx, *val;
 	size_t		sz, fields, len;
-	struct maplist	authreq;
+	struct maplist	*authreq = NULL;
 
 	*stale = false;
-	authreq.size = 0;
 
 	/* digest auth, rfc 2069 */
 	if (strncmp(env.authorization, "Digest ", 7))
@@ -162,10 +161,10 @@ check_digest_auth(const char *authfile, bool *stale)
 		return false;
 	}
 	user = realm = nonce = cnonce = uri = response = qop = nc = NULL;
-	for (sz = 0; sz < authreq.size; sz++)
+	for (sz = 0; sz < authreq->size; sz++)
 	{
-		idx = authreq.elements[sz].index;
-		val = authreq.elements[sz].value;
+		idx = authreq->elements[sz].index;
+		val = authreq->elements[sz].value;
 		if (!strcmp(idx, "username"))
 			user = val;
 		else if (!strcmp(idx, "realm"))
@@ -187,14 +186,14 @@ check_digest_auth(const char *authfile, bool *stale)
 
 	if (!user || !realm || !nonce || !uri || !response)
 	{
-		maplist_free(&authreq);
+		maplist_free(authreq);
 		free(line);
 		return false; /* fail */
 	}
 	passwd = ha1 = NULL;
 	if (!get_crypted_password(authfile, user, &passwd, &ha1) || !passwd)
 	{
-		maplist_free(&authreq);
+		maplist_free(authreq);
 		free(line);
 		return false; /* not found */
 	}
@@ -202,7 +201,7 @@ check_digest_auth(const char *authfile, bool *stale)
 	free(passwd);
 	if (!ha1)
 	{
-		maplist_free(&authreq);
+		maplist_free(authreq);
 		free(line);
 		return false;
 	}
@@ -212,7 +211,7 @@ check_digest_auth(const char *authfile, bool *stale)
 	{
 		free(ha1);
 		free(line);
-		maplist_free(&authreq);
+		maplist_free(authreq);
 		return false; /* no valid hash */
 	}
 
@@ -233,7 +232,7 @@ check_digest_auth(const char *authfile, bool *stale)
 
 	if (strcmp(response, digest))
 	{
-		maplist_free(&authreq);
+		maplist_free(authreq);
 		free(line);
 		return false; /* no match */
 	}
@@ -241,14 +240,14 @@ check_digest_auth(const char *authfile, bool *stale)
 	if (!valid_nonce(nonce))
 	{
 		*stale = true;
-		maplist_free(&authreq);
+		maplist_free(authreq);
 		free(line);
 		return false; /* invalid nonce */
 	}
 
 	setenv("AUTH_TYPE", "Digest", 1);
 	setenv("REMOTE_USER", user, 1);
-	maplist_free(&authreq);
+	maplist_free(authreq);
 	free(line);
 	return true;
 }

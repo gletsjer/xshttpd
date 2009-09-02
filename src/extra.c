@@ -124,26 +124,28 @@ match_list(char *list, const char *browser)
 #define ISALNUM(p) (((p) >= '0' && (p) <= '9') || ((p) >= 'a' && (p) <= 'z') ||\
 		((p) >= 'A' && (p) <= 'Z') || (p) == '-' || (p) == '_')
 size_t
-eqstring_to_array(char *string, struct maplist *list)
+eqstring_to_array(char *string, struct maplist **plist)
 {
 	size_t		num;
 	char		*p, *q;
+	const char	*is = NULL , *vs = NULL , *idx = NULL;
+	struct maplist	*list = NULL;
 	enum { s_findkey, s_findeq, s_findval, s_findnext }	state;
 
 	if (!string)
 		return 0;
 
-	if (list)
+	if (plist)
 	{
-		if (list->size)
-			maplist_free(list);
-		list->size = eqstring_to_array(string, NULL);
+		MALLOC(list, struct maplist, 1);
+		list->size = 0;
 		MALLOC(list->elements, struct mapping, list->size);
+		*plist = list;
 	}
 
 	num = 0;
 	state = s_findkey;
-	for (p = string; *p; p++)
+	for (p = string; p == string || p[-1]; p++)
 	{
 		switch (state)
 		{
@@ -151,35 +153,36 @@ eqstring_to_array(char *string, struct maplist *list)
 			if (ISALNUM(*p))
 			{
 				if (list)
-				{
-					list->elements[num].index = p;
-					list->elements[num].value = NULL;
-				}
+					is = p;
 				num++;
 				state = s_findeq;
 			}
 			break;
 		case s_findeq:
 			if ('=' == *p)
-			{
 				state = s_findval;
+			if (list && !ISALNUM(*p))
+			{
+				idx = strndup(is, p - is);
+				maplist_append(list, append_replace, idx, NULL);
 			}
 			break;
 		case s_findval:
-			if ('"' == *p && (q = strchr(p + 1, '"')))
+			if ('"' == *p && (q = strchr(++p, '"')))
 			{
 				if (list)
 				{
-					*p = *q = '\0';
-					list->elements[num-1].value = p + 1;
-					p = q;
+					maplist_append(list, append_replace,
+						idx, "%*.*s", q - p, q - p, p);
+					idx = NULL;
 				}
-				state = s_findnext;
+				p = q;
+				state = s_findkey;
 			}
 			else if (ISALNUM(*p))
 			{
 				if (list)
-					list->elements[num-1].value = p;
+					vs = p;
 				state = s_findnext;
 			}
 			break;
@@ -187,22 +190,15 @@ eqstring_to_array(char *string, struct maplist *list)
 			if (!ISALNUM(*p))
 			{
 				state = s_findkey;
+				if (list)
+				{
+					maplist_append(list, append_replace,
+						idx, "%*.*s",
+						p - vs, p - vs, vs);
+					idx = NULL;
+				}
 			}
 			break;
-		}
-		if (!ISALNUM(*p) && list)
-			*p = '\0';
-	}
-	if (list)
-	{
-		/* Copy all data into malloc'ed maplist */
-		for (int i = 0; i < num; i++)
-		{
-			STRDUP(list->elements[i].index,
-				list->elements[i].index);
-			if (list->elements[i].value)
-				STRDUP(list->elements[i].value,
-					list->elements[i].value);
 		}
 	}
 	return num;
