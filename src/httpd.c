@@ -867,7 +867,7 @@ process_request(void)
 		/* XXX: implemented protocol handling modules */
 		for (struct module *mod, **mods = modules; (mod = *mods); mods++)
 			if (mod->protocol_handler)
-				mod->protocl_handler(...);
+				mod->protocol_handler(...);
 #endif
 	}
 
