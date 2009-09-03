@@ -173,7 +173,8 @@ eqstring_to_array(char *string, struct maplist **plist)
 				if (list)
 				{
 					maplist_append(list, append_replace,
-						idx, "%*.*s", q - p, q - p, p);
+						idx, "%*.*s",
+						(int)(q - p), (int)(q - p), p);
 					idx = NULL;
 				}
 				p = q;
@@ -194,7 +195,8 @@ eqstring_to_array(char *string, struct maplist **plist)
 				{
 					maplist_append(list, append_replace,
 						idx, "%*.*s",
-						p - vs, p - vs, vs);
+						(int)(p - vs), (int)(p - vs),
+						vs);
 					idx = NULL;
 				}
 			}
