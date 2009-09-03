@@ -60,6 +60,23 @@
 			(dst) = _dst;					\
 		} while (0)
 
+#define		STRNDUP(dst,str,sz)					\
+		do							\
+		{							\
+			const char *_var = (str);			\
+			char *_dst = NULL;				\
+			if (_var)					\
+			{						\
+				_dst = strndup(_var, (sz));		\
+				if (!_dst)				\
+				{					\
+					err(1, "strndup for %s failed", #dst);\
+					/* NOTREACHED */		\
+				}					\
+			}						\
+			(dst) = _dst;					\
+		} while (0)
+
 #define		FREE(var)						\
 		do							\
 		{							\

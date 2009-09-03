@@ -163,7 +163,7 @@ eqstring_to_array(char *string, struct maplist **plist)
 				state = s_findval;
 			if (list && !ISALNUM(*p))
 			{
-				idx = strndup(is, p - is);
+				STRNDUP(idx, is, p - is);
 				maplist_append(list, append_replace, idx, NULL);
 			}
 			break;

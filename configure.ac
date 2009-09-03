@@ -77,7 +77,7 @@ AS_IF([test "$ac_cv_search_inet_aton" = no], [AC_LIBOBJ(inet_aton)])
 AS_IF([test "$ac_cv_search_fparseln" = no], [AC_LIBOBJ(fparseln)])
 AC_CHECK_FUNC(asprintf,, [AC_LIBOBJ(snprintf)])
 AC_CHECK_FUNC(setegid,,   [AC_LIBOBJ(seteuid)])
-AC_REPLACE_FUNCS(closefrom err fgetln killpg memmem mkstemp setenv seteuid setgroups setproctitle srandomdev strlcat strcasestr strlcpy strptime strsep)
+AC_REPLACE_FUNCS(closefrom err fgetln killpg memmem mkstemp setenv seteuid setgroups setproctitle srandomdev strlcat strcasestr strndup strlcpy strptime strsep)
 
 dnl Check in6_addr layout; must follow socket library check.
 AC_CHECK_TYPES(struct in6_addr,,, [#include <netinet/in.h>])
