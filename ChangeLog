@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 12
+- Include alternative for strndup() function
+
 Changes since 3.7 beta 11
 - Completely rewrite HTTP response header generation and handling
 - Fix charset header suffix: only use with text/* documents
