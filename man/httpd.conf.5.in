@@ -291,6 +291,24 @@ or
 extension, for example
 .Pa /usr/share/misc/magic .
 .El
+.It Sy mod_rpaf
+.Bl -tag -width Ds
+.It Sy RpafProxyIPs Aq
+List of IP addresses of reverse proxies sitting in front of the webserver.
+The webserver will fake the connection address for incoming connections
+coming from any of these addresses.
+In stead of the proxy address, the IP address from one of the request
+headers will be set as
+.Ev REMOTE_ADDR
+on the webserver; so that scripts will think connections come directly
+from the faked address.
+.It Sy RpafHeader Aq Client-IP
+Name of the header set by a reverse proxy that contains the original
+IP address of an incoming connection. For incoming connections from
+any of the reverse proxies listed in
+.Sy RpafProxyIPs
+the address from this header will be set as the connection address.
+.El
 .El
 .Ss Socket Options
 It is possible to bind to multiple sockets at the same time

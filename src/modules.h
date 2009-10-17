@@ -30,6 +30,7 @@ struct module
 	const char	*file_encoding;
 	bool	(*init) (void);
 	bool	(*file_handler)	(const char *filename, int fdin, int fdout);
+	bool	(*http_request)	(const char *filename, const char *headers);
 	bool	(*http_headers)	(const char *filename, char **headers);
 	struct encoding_filter	*inflate_filter;
 	struct encoding_filter	*deflate_filter;

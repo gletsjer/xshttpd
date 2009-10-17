@@ -784,10 +784,11 @@ process_request(void)
 {
 	char		line[LINEBUFSIZE],
 			http_host[NI_MAXHOST], http_host_long[NI_MAXHOST],
-			*params, *browser, *url, *ver;
+			*params, *browser, *url, *ver, *headstr;
 
 	setup_environment();
 
+	headstr = NULL;
 	session.headers = true;
 	session.httpversion = 11;
 	env.server_protocol = "HTTP/1.1";
@@ -873,6 +874,8 @@ process_request(void)
 
 	if (!strncasecmp(ver, "HTTP/", 5))
 	{
+		size_t		headlen = 0;
+
 		if (!strncmp(ver + 5, "1.0", 3))
 		{
 			setenv("SERVER_PROTOCOL", "HTTP/1.0", 1);
@@ -897,6 +900,8 @@ process_request(void)
 						.index;
 			const char	*val = session.request_headers.elements[sz]
 						.value;
+
+			headlen += strlen(idx) + 2 + strlen(val) + 2;
 
 			if (!strcasecmp("Content-length", idx))
 			{
@@ -967,6 +972,16 @@ process_request(void)
 					setenv(name, val, 1);
 				free(name);
 			}
+		}
+
+		MALLOC(headstr, char, headlen + 1);
+		char	*h = headstr;
+
+		for (size_t sz = 0; sz < session.request_headers.size; sz++)
+		{
+			h += sprintf(h, "%s: %s\r\n",
+				session.request_headers.elements[sz].index,
+				session.request_headers.elements[sz].value);
 		}
 	}
 	else /* strlen(ver) > 0 */
@@ -1184,6 +1199,11 @@ METHOD:
 	setenv("REQUEST_URI", params, 1);
 	env.request_method = getenv("REQUEST_METHOD");
 	env.request_uri = getenv("REQUEST_URI");
+
+	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
+		if (mod->http_request)
+			mod->http_request(params, headstr);
+
 	if (!strcasecmp("GET", line))
 		do_get(params);
 	else if (!strcasecmp("HEAD", line))
