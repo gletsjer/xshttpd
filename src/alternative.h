@@ -132,6 +132,14 @@ char *	strptime	(const char *, const char *, struct tm *);
 char *	strsep		(char **, const char *);
 #endif		/* HAVE_STRSEP */
 
+#ifndef		HAVE_STRNDUP
+char *	strndup		(const char *str, size_t n);
+#endif		/* HAVE_STRNDUP */
+
+#ifndef		HAVE_STRERROR
+const char *	strerror	(int code);
+#endif		/* HAVE_STRERROR */
+
 #ifndef		HAVE_SRANDOMDEV
 void	srandomdev	(void);
 #endif		/* HAVE_SRANDOMDEV */
