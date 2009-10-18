@@ -27,9 +27,6 @@ bool
 mime_magic(const char *filename, char **headerp)
 {
 	const char	*mimetype;
-	char		input[RWBUFSIZE];
-	int		fd;
-	ssize_t		rd;
 	char		*headers = *headerp;
 	char		*type, *nl;
 
