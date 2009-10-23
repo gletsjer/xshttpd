@@ -80,6 +80,9 @@ struct socket_config
 	char *		sslprivatekey;
 	char *		sslcafile;
 	char *		sslcapath;
+	char *		sslcrlfile;
+	char *		sslcrlpath;
+	char *		sslcalist;
 	char *		sslmatchsdn;
 	char *		sslmatchidn;
 	char *		sslcipherlist;

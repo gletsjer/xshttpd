@@ -448,12 +448,34 @@ loadssl(struct socket_config *lsock, struct ssl_vhost *sslvhost)
 	if (!lsock->sslcafile && !lsock->sslcapath)
 		/* TODO: warn */;
 	else if (!SSL_CTX_load_verify_locations(ssl_ctx,
-			lsock->sslcafile ? calcpath(lsock->sslcafile) : NULL,
-			lsock->sslcapath ? calcpath(lsock->sslcapath) : NULL))
+			lsock->sslcafile, lsock->sslcapath))
 		errx(1, "Cannot load SSL CAfile %s and CApath %s: %s", 
-			lsock->sslcafile ? calcpath(lsock->sslcafile) : "",
-			lsock->sslcapath ? calcpath(lsock->sslcapath) : "",
+			lsock->sslcafile, lsock->sslcapath,
 			ERR_reason_error_string(ERR_get_error()));
+
+	if (!lsock->sslcrlfile && !lsock->sslcrlpath)
+		/* TODO: warn */;
+	else if (!SSL_CTX_load_verify_locations(ssl_ctx,
+			lsock->sslcrlfile, lsock->sslcrlpath))
+		errx(1, "Cannot load SSL CAfile %s and CApath %s: %s", 
+			lsock->sslcrlfile, lsock->sslcrlpath,
+			ERR_reason_error_string(ERR_get_error()));
+	else
+	{
+		/* explicitly enable CRL checks */
+		X509_STORE	*store = SSL_CTX_get_cert_store(ssl_ctx);
+
+		X509_STORE_set_flags(store,
+			X509_V_FLAG_CRL_CHECK | X509_V_FLAG_CRL_CHECK_ALL);
+	}
+
+	if (lsock->sslcalist)
+	{
+		STACK_OF(X509_NAME)	*list;
+
+		list = SSL_load_client_CA_file(lsock->sslcalist);
+		SSL_CTX_set_client_CA_list(ssl_ctx, list);
+	}
 
 	/* read dh parameters from private keyfile */
 	BIO	*bio = BIO_new_file(calcpath(sslvhost ? vc->sslprivatekey : lsock->sslprivatekey), "r");

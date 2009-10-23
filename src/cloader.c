@@ -287,6 +287,12 @@ load_config()
 						STRDUP(lsock->sslcafile, calcpath(value));
 					else if (!strcasecmp("SSLCApath", key))
 						STRDUP(lsock->sslcapath, calcpath(value));
+					else if (!strcasecmp("SSLCRLfile", key))
+						STRDUP(lsock->sslcrlfile, calcpath(value));
+					else if (!strcasecmp("SSLCRLpath", key))
+						STRDUP(lsock->sslcrlpath, calcpath(value));
+					else if (!strcasecmp("SSLCAlist", key))
+						STRDUP(lsock->sslcalist, calcpath(value));
 					else if (!strcasecmp("SSLMatchSDN", key))
 						STRDUP(lsock->sslmatchsdn, value);
 					else if (!strcasecmp("SSLMatchIDN", key))

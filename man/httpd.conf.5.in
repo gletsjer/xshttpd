@@ -426,9 +426,37 @@ This may be an absolute path or a path relative to
 Both
 .Sy SSLCAfile
 and
-.Sy SSLCAfile
+.Sy SSLCApath
 may be set, in which case both locations will be checked for
 certification authority certificates.
+.It Sy SSLCRLfile Ar filename Aq
+The location of the certificate revocation lists to be
+used for validation of client certificates. This is unset by
+default.
+This may be an absolute path or a path relative to
+.Sy SystemRoot .
+.It Sy SSLCRLpath Ar directory Aq
+The location of the certificate revocation lists
+to be used for validation of client certs.
+This is unset by default.
+This may be an absolute path or a path relative to
+.Sy SystemRoot .
+Both
+.Sy SSLCRLfile
+and
+.Sy SSLCRLpath
+may be set, in which case both locations will be checked for
+certificate revocation lists.
+.It Sy SSLCAlist
+Sets the list of acceptable certificate authorities sent to
+the client when requesting a client certificate.
+This only has any effect when client certificates are requested
+by setting
+.Sy SSLAuthentication
+to
+.Ql optional
+or
+.Ql strict .
 .It Sy SSLMatchSDN Ar pcre Aq
 If
 .Sy SSLAuthentication
