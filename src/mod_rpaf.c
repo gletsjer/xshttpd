@@ -55,7 +55,7 @@ rpaf(const char *filename, const char *headers)
 	setenv("PROXY_ADDR", getenv("REMOTE_ADDR"), 1);
 	setenv("PROXY_HOST", getenv("REMOTE_HOST"), 1);
 	setenv("REMOTE_ADDR", clientip, 1);
-	unsetenv("REMOTE_HOST");
+	setenv("REMOTE_HOST", clientip, 1);
 	(void) filename;
 	return true;
 }
