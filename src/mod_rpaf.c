@@ -6,7 +6,10 @@
 #include	<stdlib.h>
 #include	<string.h>
 #include	<sys/types.h>
+#include	<sys/socket.h>
 #include	<unistd.h>
+#include	<netinet/in.h>
+#include	<netdb.h>
 
 #include	"httypes.h"
 #include	"malloc.h"
@@ -18,15 +21,42 @@ char		**rpafproxyips = NULL;
 char		*rpafheader = NULL;
 size_t		rpafproxyipnum = 0;
 
-bool	rpaf	(const char *, const char *);
-bool	rpaf_config(const char *, const char *);
+bool	rpaf		(const char *, const char *);
+bool	rpaf_config	(const char *, const char *);
 bool	rpaf_open	(void);
+
+static	const char *rpaf_gethostname	(const char *);
+
+static	const char *
+rpaf_gethostname(const char *addr)
+{
+#ifdef		HAVE_GETNAMEINFO
+	struct sockaddr_storage	saddr;
+	socklen_t		salen;
+	static char		remotehost[NI_MAXHOST];
+
+	if (inet_pton(AF_INET, addr,
+			&((struct sockaddr_in *)&saddr)->sin_addr) > 0)
+		salen = sizeof(struct sockaddr_in);
+	else if (inet_pton(AF_INET6, addr,
+			&((struct sockaddr_in6 *)&saddr)->sin6_addr) > 0)
+		salen = sizeof(struct sockaddr_in6);
+	else
+		return NULL;
+
+	if (!getnameinfo((struct sockaddr *)&saddr, salen,
+			remotehost, NI_MAXHOST, NULL, 0, 0))
+		return remotehost;
+#endif		/* HAVE_GETNAMEINFO */
+	return NULL;
+}
 
 bool
 rpaf(const char *filename, const char *headers)
 {
 	size_t		sz, len;
 	char		*clientip, *remoteaddr;
+	const char	*remotename;
 
 	if (!rpafheader)
 		return false;
@@ -51,11 +81,12 @@ rpaf(const char *filename, const char *headers)
 	/* Replace REMOTE_ADDR by Client-IP address */
 	len = strspn(clientip, "0123456789abcdef:.");
 	clientip = strndup(clientip, len);
+	remotename = rpaf_gethostname(clientip);
 
 	setenv("PROXY_ADDR", getenv("REMOTE_ADDR"), 1);
 	setenv("PROXY_HOST", getenv("REMOTE_HOST"), 1);
 	setenv("REMOTE_ADDR", clientip, 1);
-	setenv("REMOTE_HOST", clientip, 1);
+	setenv("REMOTE_HOST", remotename ? remotename : clientip, 1);
 	(void) filename;
 	return true;
 }
