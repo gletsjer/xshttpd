@@ -20,6 +20,7 @@
 char		**rpafproxyips = NULL;
 char		*rpafheader = NULL;
 size_t		rpafproxyipnum = 0;
+bool		usednslookup = true;
 
 bool	rpaf		(const char *, const char *);
 bool	rpaf_config	(const char *, const char *);
@@ -81,7 +82,7 @@ rpaf(const char *filename, const char *headers)
 	/* Replace REMOTE_ADDR by Client-IP address */
 	len = strspn(clientip, "0123456789abcdef:.");
 	clientip = strndup(clientip, len);
-	remotename = rpaf_gethostname(clientip);
+	remotename = usednslookup ? rpaf_gethostname(clientip) : NULL;
 
 	setenv("PROXY_ADDR", getenv("REMOTE_ADDR"), 1);
 	setenv("PROXY_HOST", getenv("REMOTE_HOST"), 1);
@@ -148,6 +149,8 @@ rpaf_config(const char *name, const char *value)
 			FREE(rpafheader);
 		STRDUP(rpafheader, value);
 	}
+	else if (!strcasecmp(name, "UseDnsLookup"))
+		usednslookup = !strcasecmp("true", value);
 	else
 		return false;
 
