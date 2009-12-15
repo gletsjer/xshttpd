@@ -682,7 +682,7 @@ server_error(int code, const char *readable, const char *cgi)
 void
 logrequest(const char *request, off_t size)
 {
-	char		*dynrequest, *dynagent, *dynuser, *dynhost, *p;
+	char		*dynrequest, *dynagent, *dynuser, *p;
 	const char	*timestamp = gmtimestamp();
 	FILE		*alog;
 
@@ -715,10 +715,6 @@ logrequest(const char *request, off_t size)
 		if ('\"' == *p)
 			*p = '\'';
 
-	STRDUP(dynhost, getenv("REMOTE_HOST"));
-	if (!dynhost)
-		STRDUP(dynhost, getenv("REMOTE_ADDR"));
-
 	switch (current->logstyle)
 	{
 	case log_traditional:
@@ -727,7 +723,7 @@ logrequest(const char *request, off_t size)
 			? current->openreferer
 			: config.system->openreferer;
 		fprintf(alog, "%s - %s [%s] \"%s %s %s\" %03d %" PRIoff "\n",
-			dynhost,
+			env.remote_host,
 			dynuser,
 			timestamp,
 			env.request_method, dynrequest,
@@ -744,7 +740,7 @@ logrequest(const char *request, off_t size)
 		fprintf(alog, "%s %s - %s [%s] \"%s %s %s\" %03d %" PRIoff
 				" \"%s\" \"%s\"\n",
 			current ? current->hostname : config.system->hostname,
-			dynhost,
+			env.remote_host,
 			dynuser,
 			timestamp,
 			env.request_method, dynrequest,
@@ -757,7 +753,7 @@ logrequest(const char *request, off_t size)
 	case log_combined:
 		fprintf(alog, "%s - %s [%s] \"%s %s %s\" %03d %" PRIoff
 				" \"%s\" \"%s\"\n",
-			dynhost,
+			env.remote_host,
 			dynuser,
 			timestamp,
 			env.request_method, dynrequest,
@@ -772,7 +768,6 @@ logrequest(const char *request, off_t size)
 		break;
 	}
 
-	FREE(dynhost);
 	FREE(dynrequest);
 	FREE(dynagent);
 }
@@ -1208,6 +1203,12 @@ METHOD:
 	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
 		if (mod->http_request)
 			mod->http_request(params, headstr);
+
+	/* Fix environment references based on proxy feedback */
+	env.remote_addr = getenv("REMOTE_ADDR");
+	env.remote_host = getenv("REMOTE_HOST");
+	strlcpy(remoteaddr, env.remote_addr, sizeof(remoteaddr));
+	strlcpy(remotehost, env.remote_host, sizeof(remotehost));
 
 	if (!strcasecmp("GET", line))
 		do_get(params);
