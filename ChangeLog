@@ -1,6 +1,10 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 14
+- Use REMOTE_ADDR from mod_rpaf for internal references as well
+- Set QUERY_STRING even if it is empty
+
 Changes since 3.7 beta 13
 - Add mod_rpaf to enable reverse proxy address forwarding
 - Add SSLCRLfile, SSLCRLpath, SSLCAlist options

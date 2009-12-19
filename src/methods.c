@@ -1043,6 +1043,8 @@ do_get(char *params)
 		free(qs);
 		*question = '\0';
 	}
+	else
+		setenv("QUERY_STRING", "", 1);
 
 	if (*file)
 		wasdir = (file[strlen(file) - 1] == '/');
