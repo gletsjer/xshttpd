@@ -148,9 +148,9 @@ xsc_initcounter(const char *filename, off_t *size)
 		return false;
 	}
 	retry = 0;
-	while ((fd2 = open(lockfile = calcpath(CNT_LOCK),
-		O_WRONLY | O_CREAT | O_EXCL,
-		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0 && retry++ < 10)
+	lockfile = calcpath(CNT_LOCK);
+	while ((fd2 = open(lockfile, O_WRONLY | O_CREAT | O_EXCL,
+		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0 && retry++ < 5)
 	{
 		usleep(300);
 	}

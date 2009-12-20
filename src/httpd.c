@@ -686,6 +686,12 @@ logrequest(const char *request, off_t size)
 	const char	*timestamp = gmtimestamp();
 	FILE		*alog;
 
+	if (!current)
+	{
+		warnx("Failed to log request without context");
+		return;
+	}
+
 	if (!current->openaccess)
 		if (!config.system->openaccess)
 		{
@@ -739,7 +745,7 @@ logrequest(const char *request, off_t size)
 		/* this is combined format + virtual hostname */
 		fprintf(alog, "%s %s - %s [%s] \"%s %s %s\" %03d %" PRIoff
 				" \"%s\" \"%s\"\n",
-			current ? current->hostname : config.system->hostname,
+			current->hostname ? current->hostname : config.system->hostname,
 			env.remote_host,
 			dynuser,
 			timestamp,
@@ -847,7 +853,7 @@ process_request(void)
 			*p-- = '\0';
 
 	alarm(180);
-	if (!ver)
+	if (!*ver)
 	{
 		session.headers = false;
 		session.httpversion = 9;

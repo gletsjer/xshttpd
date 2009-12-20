@@ -493,7 +493,7 @@ maplist_append(struct maplist *list, xs_appendflags_t flags, const char *idx, co
 			if (flags & append_replace)
 			{
 				FREE(list->elements[sz].value);
-				if (!value)
+				if (!value || !*value)
 					return list->size;
 				va_start(ap, value);
 				vasprintf(&list->elements[sz].value, value, ap);
@@ -513,7 +513,7 @@ maplist_append(struct maplist *list, xs_appendflags_t flags, const char *idx, co
 		for (size_t sz = list->size; sz > 0; sz--)
 			list->elements[sz] = list->elements[sz-1];
 		STRDUP(list->elements[0].index, idx);
-		if (value)
+		if (value && *value)
 		{
 			va_start(ap, value);
 			vasprintf(&list->elements[0].value, value, ap);
@@ -527,7 +527,7 @@ maplist_append(struct maplist *list, xs_appendflags_t flags, const char *idx, co
 
 	/* non-existend or duplicate okay: append at the end */
 	STRDUP(list->elements[list->size].index, idx);
-	if (value)
+	if (value && *value)
 	{
 		va_start(ap, value);
 		vasprintf(&list->elements[list->size].value, value, ap);
