@@ -10,6 +10,7 @@
 #include	<unistd.h>
 #include	<netinet/in.h>
 #include	<netdb.h>
+#include	<resolv.h>
 
 #include	"httypes.h"
 #include	"malloc.h"
@@ -21,6 +22,8 @@ char		**rpafproxyips = NULL;
 char		*rpafheader = NULL;
 size_t		rpafproxyipnum = 0;
 bool		usednslookup = true;
+unsigned int	dnsattempts = 0;
+unsigned int	dnstimeout = 0;
 
 bool	rpaf		(const char *, const char *);
 bool	rpaf_config	(const char *, const char *);
@@ -45,9 +48,32 @@ rpaf_gethostname(const char *addr)
 	else
 		return NULL;
 
+	if (dnsattempts || dnstimeout)
+	{
+		char    buf[80];
+
+		buf[0] = '\0';
+		if (dnsattempts)
+			snprintf(buf, sizeof(buf), "attempts:%u",
+				dnsattempts);
+		if (dnstimeout)
+			snprintf(buf, sizeof(buf), "%s%stimeout:%u",
+				buf,
+				dnsattempts ? " " : "",
+				dnstimeout);
+		// strlcat(buf, " debug", sizeof(buf));
+
+		setenv("RES_OPTIONS", buf, 1);
+		res_init();
+	}
+
 	if (!getnameinfo((struct sockaddr *)&saddr, salen,
 			remotehost, NI_MAXHOST, NULL, 0, 0))
+	{
+		unsetenv("RES_OPTIONS");
 		return remotehost;
+	}
+	unsetenv("RES_OPTIONS");
 #endif		/* HAVE_GETNAMEINFO */
 	return NULL;
 }
@@ -151,6 +177,10 @@ rpaf_config(const char *name, const char *value)
 	}
 	else if (!strcasecmp(name, "UseDnsLookup"))
 		usednslookup = !strcasecmp("true", value);
+	else if (!strcasecmp(name, "DnsAttempts"))
+		dnsattempts = strtoul(value, NULL, 10);
+	else if (!strcasecmp(name, "DnsTimeout"))
+		usednslookup = strtoul(value, NULL, 10);
 	else
 		return false;
 

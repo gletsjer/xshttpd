@@ -36,6 +36,7 @@
 #include	<fcntl.h>
 #include	<stdio.h>
 #include	<errno.h>
+#include	<resolv.h>
 #include	<netdb.h>
 #ifndef		NI_MAXSERV
 #define		NI_MAXSERV	32
@@ -1526,6 +1527,27 @@ standalone_socket(int id)
 		strlcpy(remotehost, remoteaddr, NI_MAXHOST);
 		if (config.usednslookup)
 		{
+			if (config.dnsattempts || config.dnstimeout)
+			{
+				char	buf[80];
+
+				buf[0] = '\0';
+				if (config.dnsattempts)
+					snprintf(buf, sizeof(buf),
+						"attempts:%u",
+						config.dnsattempts);
+				if (config.dnstimeout)
+					snprintf(buf, sizeof(buf),
+						"%s%stimeout:%u",
+						buf,
+						config.dnsattempts ? " " : "",
+						config.dnstimeout);
+				// strlcat(buf, " debug", sizeof(buf));
+
+				setenv("RES_OPTIONS", buf, 1);
+				res_init();
+			}
+
 #ifdef		HAVE_GETNAMEINFO
 			getnameinfo((struct sockaddr *)&saddr, clen,
 				remotehost, NI_MAXHOST, NULL, 0, 0);

@@ -79,7 +79,7 @@ struct config_option
 	char		*key;
 	char		*value;
 	struct config_option	*next;
-} *unknown_options = NULL;
+} *global_options = NULL, *unknown_options = NULL;
 
 void
 load_config()
@@ -167,6 +167,8 @@ load_config()
 			{
 				if (!subtype)
 				{
+					bool	unknown_option = false;
+
 					if (!strcasecmp("SystemRoot", key))
 					{
 						if (!config.systemroot)
@@ -205,6 +207,10 @@ load_config()
 						config.usecontentmd5 = !strcasecmp("true", value);
 					else if (!strcasecmp("UsePut", key))
 						config.useput = !strcasecmp("true", value);
+					else if (!strcasecmp("DnsTimeout", key))
+						config.dnstimeout = strtoul(value, NULL, 10);
+					else if (!strcasecmp("DnsAttempts", key))
+						config.dnsattempts = strtoul(value, NULL, 10);
 					else if (!strcasecmp("ScriptCpuLimit", key))
 						config.scriptcpulimit = strtoul(value, NULL, 10);
 					else if (!strcasecmp("ScriptTimeout", key))
@@ -236,14 +242,24 @@ load_config()
 						string_to_arraypn(value, &config.modules);
 					else
 					{
-						/* Might be a module option: store for later */
-						struct	config_option	*option;
+						unknown_option = true;
+					}
 
-						MALLOC(option, struct config_option, 1);
-						STRDUP(option->key, key);
-						STRDUP(option->value, value);
+					/* Might be a module option: store for later */
+					struct	config_option	*option;
+
+					MALLOC(option, struct config_option, 1);
+					STRDUP(option->key, key);
+					STRDUP(option->value, value);
+					if (unknown_option)
+					{
 						option->next = unknown_options;
 						unknown_options = option;
+					}
+					else
+					{
+						option->next = global_options;
+						global_options = option;
 					}
 				}
 				else if (subtype == sub_socket)
@@ -669,6 +685,13 @@ module_config()
 	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
 		if (mod->config_general)
 			mod->config_general(NULL, NULL);
+
+	for (struct config_option *option = global_options;
+			option; option = option->next)
+		for (struct module *mod, **mods = modules;
+				(mod = *mods); mods++)
+			if (mod->config_general)
+				mod->config_general(option->key, option->value);
 
 	for (struct config_option *option = unknown_options;
 			option; option = option->next)

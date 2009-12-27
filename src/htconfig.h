@@ -108,6 +108,8 @@ extern struct configuration
 	int		scriptpriority;
 	unsigned int	scriptcpulimit;
 	unsigned int	scripttimeout;
+	unsigned int	dnstimeout;
+	unsigned int	dnsattempts;
 	bool		execasuser;
 	bool		usevirtualuid;
 	bool		uselocalscript;
