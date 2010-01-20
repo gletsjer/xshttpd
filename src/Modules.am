@@ -11,7 +11,7 @@ if MOD_PERL
 lib_LIBRARIES += mod_perl.so
 mod_perl_so_SOURCES = mod_perl.c
 mod_perl_so_CFLAGS = $(mod_CFLAGS) @perl_cflags@
-mod_perl_so_LIBADD = $(mod_LIBADD) @perl_ldflags@ libxs.a
+mod_perl_so_LIBADD = libxs.a $(mod_LIBADD) @perl_ldflags@
 mod_perl_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
 mod_perl_so_AR = $(CC) $(mod_perl_so_LDFLAGS) -o
 endif
@@ -47,7 +47,7 @@ if MOD_GZIP
 lib_LIBRARIES += mod_gzip.so mod_compress.so
 mod_gzip_so_SOURCES = mod_gzip.c
 mod_gzip_so_CFLAGS = $(mod_CFLAGS) @gzip_cflags@
-mod_gzip_so_LIBADD = $(mod_LIBADD) @gzip_ldflags@ libxs.a
+mod_gzip_so_LIBADD = libxs.a $(mod_LIBADD) @gzip_ldflags@
 mod_gzip_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
 mod_gzip_so_AR = $(CC) $(mod_gzip_so_LDFLAGS) -o
 mod_compress_so_SOURCES = mod_compress.c
@@ -88,7 +88,7 @@ endif
 # lib_LIBRARIES += mod_ssi.so
 # mod_ssi_so_SOURCES = mod_ssi.c
 # mod_ssi_so_CFLAGS = $(mod_CFLAGS)
-# mod_ssi_so_LIBADD = $(mod_LIBADD) libxs.a
+# mod_ssi_so_LIBADD = libxs.a $(mod_LIBADD)
 # mod_ssi_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
 # mod_ssi_so_AR = $(CC) $(mod_ssi_so_LDFLAGS) -o
 # endif
