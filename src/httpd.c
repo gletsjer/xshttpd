@@ -100,7 +100,7 @@ static	void	detach			(void);
 static	void	setcurrenttime		(void);
 static	void	child_handler		(int);
 static	void	term_handler		(int)	NORETURN;
-static	void	write_pidfile		(void);
+static	bool	write_pidfile		(pid_t);
 static	void	open_logs		(int);
 static	void	core_handler		(int)	NORETURN;
 static	void	set_signals		(void);
@@ -124,14 +124,21 @@ filedescrs()
 static	void
 detach()
 {
-	pid_t		x;
+	const pid_t		pid = fork();
 
+	if (pid > 0)
+	{
+		if (!write_pidfile(pid))
+		{
+			kill(pid, SIGTERM);
+			exit(1);
+		}
+		exit(0);
+	}
+	else if (pid == -1)
+		err(1, "fork()");
 	if (chdir("/"))
 		err(1, "chdir(`/')");
-	if ((x = fork()) > 0)
-		exit(0);
-	else if (x == -1)
-		err(1, "fork()");
 #ifdef		HAVE_SETSID
 	if (setsid() == -1)
 		err(1, "setsid() failed");
@@ -183,14 +190,14 @@ term_handler(int sig)
 	/* NOTREACHED */
 }
 
-static	void
-write_pidfile(void)
+static	bool
+write_pidfile(pid_t pid)
 {
 	FILE		*pidlog;
 	int		pidlock;
 
 	if (!mainhttpd)
-		return;
+		return true;
 
 #ifdef		O_EXLOCK
 	pidlock = open(calcpath(config.pidfile),
@@ -203,10 +210,14 @@ write_pidfile(void)
 			S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 
 	if ((pidlock < 0) || !(pidlog = fdopen(pidlock, "w")))
-		errx(1, "Cannot open pidfile `%s'", config.pidfile);
+	{
+		warn("Cannot open pidfile `%s'", config.pidfile);
+		return false;
+	}
 
-	fprintf(pidlog, "%" PRIpid "\n%s\n", getpid(), startparams);
+	fprintf(pidlog, "%" PRIpid "\n%s\n", pid, startparams);
 	fflush(pidlog);
+	return true;
 }
 
 static	void
@@ -1241,7 +1252,6 @@ standalone_main()
 	char			id = 'B';
 
 	detach();
-	write_pidfile();
 	open_logs(0);
 
 	/* initialise modules */
