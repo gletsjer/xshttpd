@@ -73,10 +73,12 @@ user_unknown()
 static	void
 post_on_non_cgi()
 {
-	printf("<p>You or your browser has attempted to use the <b>POST</b>\n");
-	printf("method on something that is not a CGI binary. <b>POST</b>\n");
-	printf("may only be used on CGI binaries. You can try using the\n");
-	printf("<b>GET</b> and/or <b>HEAD</b> methods instead.</p>\n");
+	printf("<p>You or your browser has attempted to use the <b>POST</b>,\n");
+	printf("<b>PUT</b> or <b>DELETE</b> method on something that is\n");
+	printf("not a CGI binary.\n");
+	printf("These operations may only be performed on CGI binaries.\n");
+	printf("You should try using the <b>GET</b> and/or <b>HEAD</b>\n");
+	printf("methods instead.</p>\n");
 
 	printf("<p><a href=\"/\">Get out of here!</a></p>\n");
 }
