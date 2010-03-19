@@ -43,7 +43,7 @@ check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 	 * Search for the group first. Most directory have separate branches
 	 * for users/groups.
 	 */
-	asprintf(&filter, "(cn=%s)", group);
+	ASPRINTF(&filter, "(cn=%s)", group);
 
 	if (ldap_search_ext_s (ld, ldapdn, LDAP_SCOPE_SUBTREE, filter, attrs,
 			0, NULL, NULL, NULL, 0, &res) != LDAP_SUCCESS)
@@ -198,7 +198,7 @@ check_auth_ldap_full(const char *user, const char *pass)
 	 * This search may look confusing. Basically, we do a search for the
 	 * user in the tree given, _including all subtrees_.
 	 */
-	asprintf (&filter, "(%s=%s)", ldap.attr, user);
+	ASPRINTF (&filter, "(%s=%s)", ldap.attr, user);
 
 	if (ldap_search_ext_s (ld, ldap.dn, LDAP_SCOPE_SUBTREE, filter, NULL, 0, NULL, NULL, NULL, 0, &res) != LDAP_SUCCESS)
 		goto leave;
@@ -269,7 +269,7 @@ ldap_config_local(const char *name, const char *value)
 	{
 		if (ldap.uri)
 			free(ldap.uri);
-		asprintf(&ldap.uri, "ldap://%s", value);
+		ASPRINTF(&ldap.uri, "ldap://%s", value);
 	}
 	else if (!strcasecmp(name, "LdapURI"))
 	{

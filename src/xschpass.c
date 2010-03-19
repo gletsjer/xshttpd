@@ -33,7 +33,7 @@ xserror(int code, const char *format, ...)
 	char		*msg, *htmlmsg;
 
 	va_start(ap, format);
-	vasprintf(&msg, format, ap);
+	VASPRINTF(&msg, format, ap);
 	va_end(ap);
 
 	/* error message should not contain any html */

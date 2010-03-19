@@ -27,7 +27,7 @@ generate_ha1(const char *user, const char *passwd)
 	size_t		len;
 
 	/* calculate h(a1) */
-	len = asprintf(&a1, "%s:%s:%s", user, REALM, passwd);
+	ASPRINTFVAL(len, &a1, "%s:%s:%s", user, REALM, passwd);
 	md5data(a1, len, ha1);
 	free(a1);
 

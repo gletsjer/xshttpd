@@ -1091,7 +1091,7 @@ do_get(char *params)
 		setenv("PWD", base, 1);
 		filename = current->indexfiles[0];
 		strlcat(real_path, filename, XS_PATH_MAX);
-		asprintf(&newpath, "%s%s", base, filename);
+		ASPRINTF(&newpath, "%s%s", base, filename);
 		setenv("SCRIPT_FILENAME", newpath, 1);
 		free(newpath);
 	}
@@ -1417,7 +1417,6 @@ do_get(char *params)
 	}
 
 	/* Determine Content-Encoding for data sent */
-	const char	*accenc = getenv("HTTP_ACCEPT_ENCODING");
 	if (inflate_module &&
 			inflate_module->inflate_filter &&
 			inflate_module->file_encoding)
@@ -1426,6 +1425,7 @@ do_get(char *params)
 		 * browser groks encoding => send unmodified
 		 * browser doesn't grok it => apply decode filter
 		 */
+		const char	*accenc = getenv("HTTP_ACCEPT_ENCODING");
 		char		**encodings = NULL;
 		size_t		sz;
 		const size_t	encsz = accenc
@@ -1445,6 +1445,8 @@ do_get(char *params)
 	}
 	else if (csearch)
 	{
+		const char	*accenc = getenv("HTTP_ACCEPT_ENCODING");
+
 		/* File stored encoded on disk:
 		 * browser groks encoding => send unmodified
 		 * browser doesn't grok it => run decode program
@@ -1653,10 +1655,10 @@ do_proxy(const char *proxy, const char *params)
 			(p = strstr(proxy, ":https")))
 		{
 			*p = '\0'; /* or libcurl will try host:https:443 */
-			asprintf(&request, "https://%s%s", proxy, params);
+			ASPRINTF(&request, "https://%s%s", proxy, params);
 		}
 		else
-			asprintf(&request, "http://%s%s", proxy, params);
+			ASPRINTF(&request, "http://%s%s", proxy, params);
 	}
 	else
 		STRDUP(request, params);
@@ -1682,7 +1684,7 @@ do_proxy(const char *proxy, const char *params)
 				session.request_headers.elements[sz].index))
 			continue;
 
-		asprintf(&header, "%s: %s",
+		ASPRINTF(&header, "%s: %s",
 			session.request_headers.elements[sz].index,
 			session.request_headers.elements[sz].value);
 		curl_headers = curl_slist_append(curl_headers, header);

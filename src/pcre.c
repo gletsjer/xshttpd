@@ -23,7 +23,7 @@ pcre_subst(const char * const string, const char * const pattern, const char * c
 	if (!match)
 		return NULL;
 
-	asprintf(&result, "%.*s%s%s", (int)(match - string), string,
+	ASPRINTF(&result, "%.*s%s%s", (int)(match - string), string,
 		replacement, match + strlen(pattern));
 
 	return result;

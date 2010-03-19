@@ -180,9 +180,10 @@ cmd_start(const char *args)
 		printf("Restarting httpd... ");
 
 	fflush(stdout);
-	system(startparams);
-	printf("Done!\n");
-	printf("Executed: %s\n", startparams);
+	if (!system(startparams))
+		printf("Done!\nExecuted: %s\n", startparams);
+	else
+		printf("Failed to run: %s\n", startparams);
 	(void)args;
 }
 

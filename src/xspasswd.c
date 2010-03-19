@@ -116,14 +116,14 @@ main(int argc, char **argv)
 			char	*ha1 = generate_ha1(username, password);
 
 			if (ha1)
-				asprintf(&total, "%c%s:%s:%s\n",
+				ASPRINTF(&total, "%c%s:%s:%s\n",
 					(passwdlock ? 'L' : 'U'),
 					username, pwd, ha1);
 			else
 				errx(1, "Digest authentication error");
 		}
 		else
-			asprintf(&total, "%c%s:%s\n",
+			ASPRINTF(&total, "%c%s:%s\n",
 				(passwdlock ? 'L' : 'U'), username, pwd);
 		free(passone);
 	}
@@ -138,7 +138,7 @@ main(int argc, char **argv)
 	if (delete && !authinp)
 		err(1, "Cannot open authentication file");
 
-	asprintf(&newfile, "%s.new", filename);
+	ASPRINTF(&newfile, "%s.new", filename);
 	if (!(authout = fopen(newfile, "w")))
 		err(1, "Cannot write new authentication file");
 

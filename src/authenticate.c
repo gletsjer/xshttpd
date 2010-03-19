@@ -216,15 +216,15 @@ check_digest_auth(const char *authfile, bool *stale)
 	}
 
 	/* calculate h(a2) */
-	len = asprintf(&a2, "%s:%s", env.request_method, uri);
+	ASPRINTFVAL(len, &a2, "%s:%s", env.request_method, uri);
 	md5data(a2, len, ha2);
 	free(a2);
 
 	/* calculate digest from h(a1) and h(a2) */
 	if (!qop)
-		len = asprintf(&digplain, "%s:%s:%s", ha1, nonce, ha2);
+		ASPRINTFVAL(len, &digplain, "%s:%s:%s", ha1, nonce, ha2);
 	else
-		len = asprintf(&digplain, "%s:%s:%s:%s:%s:%s",
+		ASPRINTFVAL(len, &digplain, "%s:%s:%s:%s:%s:%s",
 			ha1, nonce, nc, cnonce, qop, ha2);
 	md5data(digplain, len, digest);
 	free(digplain);
@@ -259,7 +259,7 @@ denied_access(bool digest, bool stale)
 	struct maplist	*rh = &session.response_headers;
 
 	maplist_free(rh);
-	asprintf(&errmsg,
+	STRDUP(errmsg,
 		"\r\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 		"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
 		"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
@@ -453,7 +453,7 @@ fresh_nonce(void)
 	char	*buf;
 	size_t	len;
 
-	len = asprintf(&buf, "%" PRItimex ":%lu:%s",
+	ASPRINTFVAL(len, &buf, "%" PRItimex ":%lu:%s",
 		ts, secret, env.remote_addr);
 	md5data(buf, len, bufhex);
 	free(buf);
@@ -478,7 +478,7 @@ valid_nonce(const char *nonce)
 	ptr++;
 	ts = strtol(nonce, NULL, 16);
 
-	len = asprintf(&buf, "%" PRItimex ":%lu:%s",
+	ASPRINTFVAL(len, &buf, "%" PRItimex ":%lu:%s",
 		ts, secret, env.remote_addr);
 	md5data(buf, len, bufhex);
 	free(buf);

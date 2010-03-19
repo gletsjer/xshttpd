@@ -33,8 +33,8 @@ init_modules(void)
 	MALLOC(modules, struct module *, num_mod + 1);
 	for (size_t i = 0; i < num_mod; i++)
 	{
-		asprintf(&soname, "%s/mod_%s.so", module_dir,config.modules[i]);
-		asprintf(&modname, "%s_module", config.modules[i]);
+		ASPRINTF(&soname, "%s/mod_%s.so", module_dir,config.modules[i]);
+		ASPRINTF(&modname, "%s_module", config.modules[i]);
 		handle = dlopen(soname, RTLD_LAZY);
 		if (!handle)
 			errx(1, "Cannot load module %s: %s",

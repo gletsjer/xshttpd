@@ -756,11 +756,11 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		char	*request;
 
 		if (env.query_string)
-			asprintf(&request, "%s%s?%s", path,
+			ASPRINTF(&request, "%s%s?%s", path,
 				env.path_info ? env.path_info : "",
 				env.query_string);
 		else
-			asprintf(&request, "%s%s", path,
+			ASPRINTF(&request, "%s%s", path,
 				env.path_info ? env.path_info : "");
 		logrequest(request, totalwritten);
 		free(request);

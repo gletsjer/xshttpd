@@ -87,5 +87,58 @@
 			}						\
 		} while(0)
 
+#define		NOTNULL(var)						\
+		do							\
+		{							\
+			if (!(var))					\
+			{						\
+				err(1, "memory allocation failed");	\
+				/* NOTREACHED */			\
+			}						\
+		} while(0)
+
+#define		ASPRINTF(str,fmt,...)					\
+		do							\
+		{							\
+			if (asprintf(str, fmt, ##__VA_ARGS__) < 0)	\
+			{						\
+				err(1, "asprintf for %s failed", #str);	\
+				/* NOTREACHED */			\
+			}						\
+		} while(0)
+
+#define		ASPRINTFVAL(num,str,fmt,...)				\
+		do							\
+		{							\
+			int _num = asprintf(str, fmt, ##__VA_ARGS__);	\
+			if (_num < 0)					\
+			{						\
+				err(1, "asprintf for %s failed", #str);	\
+				/* NOTREACHED */			\
+			}						\
+			(num) = _num;					\
+		} while(0)
+
+#define		VASPRINTF(str,fmt,ap)					\
+		do							\
+		{							\
+			if (vasprintf(str, fmt, ap) < 0)		\
+			{						\
+				err(1, "vasprintf for %s failed", #str);\
+				/* NOTREACHED */			\
+			}						\
+		} while(0)
+
+#define		VASPRINTFVAL(num,str,fmt,ap)				\
+		do							\
+		{							\
+			int _num = vasprintf(str, fmt, ap);		\
+			if (_num < 0)					\
+			{						\
+				err(1, "vasprintf for %s failed", #str);\
+				/* NOTREACHED */			\
+			}						\
+			(num) = _num;					\
+		} while(0)
 
 #endif		/* MALLOC_H */

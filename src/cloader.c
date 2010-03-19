@@ -119,7 +119,7 @@ load_config()
 	{
 		char	*preproccmd;
 
-		asprintf(&preproccmd, "%s %s", config_preprocessor, config_path);
+		ASPRINTF(&preproccmd, "%s %s", config_preprocessor, config_path);
 		confd = popen(preproccmd, "r");
 		free(preproccmd);
 	}

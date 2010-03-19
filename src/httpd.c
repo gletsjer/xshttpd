@@ -492,7 +492,7 @@ xserror(int code, const char *format, ...)
 
 	alarm(180);
 	va_start(ap, format);
-	vasprintf(&message, format, ap);
+	VASPRINTF(&message, format, ap);
 	va_end(ap);
 
 	/* message should not contain html */
@@ -520,7 +520,7 @@ xserror(int code, const char *format, ...)
 	/* display error */
 	if (!session.headonly)
 	{
-		asprintf(&errmsg,
+		ASPRINTF(&errmsg,
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 			"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
 			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
@@ -569,7 +569,7 @@ redirect(const char *redir, xs_redirflags_t flags)
 		qs = env.query_string;
 	if (!session.headonly)
 	{
-		asprintf(&errmsg,
+		ASPRINTF(&errmsg,
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 			"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.1//EN\" "
 			"\"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd\">\n"
@@ -620,7 +620,7 @@ server_error(int code, const char *readable, const char *cgi)
 		return;
 	}
 	setenv("ERROR_CODE", cgi, 1);
-	asprintf(&errmsg, "%03d %s", code, readable);
+	ASPRINTF(&errmsg, "%03d %s", code, readable);
 	setenv("ERROR_READABLE", errmsg, 1);
 	free(errmsg);
 	setenv("ERROR_URL", orig, 1);
@@ -642,7 +642,7 @@ server_error(int code, const char *readable, const char *cgi)
 		{
 			char	*tpath = NULL;
 
-			asprintf(&tpath, "/~%s/%s%s",
+			ASPRINTF(&tpath, "/~%s/%s%s",
 				username, current->execdir, filename);
 			STRDUP(cgipath, convertpath(tpath));
 			free(tpath);
@@ -650,7 +650,7 @@ server_error(int code, const char *readable, const char *cgi)
 	}
 	else	/* Look for virtual host error script */
 	{
-		asprintf(&cgipath, "%s%s",
+		ASPRINTF(&cgipath, "%s%s",
 			calcpath(current->phexecdir), filename);
 	}
 
@@ -662,7 +662,7 @@ server_error(int code, const char *readable, const char *cgi)
 		{
 			/* Last resort: try system error script */
 			free(cgipath);
-			asprintf(&cgipath, "%s%s",
+			ASPRINTF(&cgipath, "%s%s",
 				calcpath(config.system->phexecdir), filename);
 			if (stat(cgipath, &statbuf))
 			{
@@ -976,7 +976,7 @@ process_request(void)
 				char	*ptr;
 				char	*name;
 
-				asprintf(&name, "HTTP_%s", idx);
+				ASPRINTF(&name, "HTTP_%s", idx);
 				for (ptr = name + 5; *ptr; ptr++)
 					if (*ptr >= 'A' && *ptr <= 'Z')
 						/* DO NOTHING */;

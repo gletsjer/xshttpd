@@ -496,7 +496,7 @@ maplist_append(struct maplist *list, xs_appendflags_t flags, const char *idx, co
 				if (!value || !*value)
 					return list->size;
 				va_start(ap, value);
-				vasprintf(&list->elements[sz].value, value, ap);
+				VASPRINTF(&list->elements[sz].value, value, ap);
 				va_end(ap);
 				return list->size;
 			}
@@ -516,7 +516,7 @@ maplist_append(struct maplist *list, xs_appendflags_t flags, const char *idx, co
 		if (value && *value)
 		{
 			va_start(ap, value);
-			vasprintf(&list->elements[0].value, value, ap);
+			VASPRINTF(&list->elements[0].value, value, ap);
 			va_end(ap);
 		}
 		else
@@ -530,7 +530,7 @@ maplist_append(struct maplist *list, xs_appendflags_t flags, const char *idx, co
 	if (value && *value)
 	{
 		va_start(ap, value);
-		vasprintf(&list->elements[list->size].value, value, ap);
+		VASPRINTF(&list->elements[list->size].value, value, ap);
 		va_end(ap);
 	}
 	else

@@ -497,7 +497,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 					authfiles[i][0] != '/')
 				{
 					temp = NULL;
-					asprintf(&temp, "%.*s/%s",
+					ASPRINTF(&temp, "%.*s/%s",
 						(int)(slash - cffile),
 						cffile, authfiles[i]);
 					free(authfiles[i]);

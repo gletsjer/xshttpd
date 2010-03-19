@@ -748,7 +748,8 @@ secprintf(const char *format, ...)
 		return 0;
 
 	va_start(ap, format);
-	const int	len = vasprintf(&str, format, ap);
+	int	len;
+	VASPRINTFVAL(len, &str, format, ap);
 	va_end(ap);
 
 	if (!len)
