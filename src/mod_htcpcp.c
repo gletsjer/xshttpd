@@ -24,7 +24,6 @@ htcpcp(struct maplist *qh, read_callback_t rcb, write_callback_t wcb)
 {
 	const char	err_msg[] = "It's a webserver Jim, not a coffeepot!";
 	const char	body_msg[] = "I'm a teapot with an identity crisis.";
-	const int	O = append_ifempty;
 	char		*msg,
 			timestamp[80];
 	int		msglen;
@@ -59,6 +58,7 @@ htcpcp(struct maplist *qh, read_callback_t rcb, write_callback_t wcb)
 	wcb(msg, msglen);
 	FREE(msg);
 
+	(void) rcb;
 	return true;
 }
 

@@ -879,10 +879,6 @@ process_request(void)
 	}
 	else /* HTTP-like protocol with headers */
 	{
-		char	*body, *protocol;
-		size_t	body_len;
-		bool	rb;
-
 		/* fill in reserved Status: header */
 		maplist_append(&session.request_headers, append_replace,
 			"Status", "%s %s %s", line, url, ver);

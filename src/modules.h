@@ -5,6 +5,7 @@
 
 #include	<stdbool.h>
 
+#include	"httypes.h"
 #include	"config.h"
 
 extern const char	*module_names[];
