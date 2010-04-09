@@ -84,6 +84,15 @@ mod_rpaf_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
 mod_rpaf_so_AR = $(CC) $(mod_rpaf_so_LDFLAGS) -o
 endif
 
+if MOD_HTCPCP
+lib_LIBRARIES += mod_htcpcp.so
+mod_htcpcp_so_SOURCES = mod_htcpcp.c
+mod_htcpcp_so_CFLAGS = $(mod_CFLAGS) @htcpcp_cflags@
+mod_htcpcp_so_LIBADD = $(mod_LIBADD) @htcpcp_ldflags@
+mod_htcpcp_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
+mod_htcpcp_so_AR = $(CC) $(mod_htcpcp_so_LDFLAGS) -o
+endif
+
 # if MOD_SSI
 # lib_LIBRARIES += mod_ssi.so
 # mod_ssi_so_SOURCES = mod_ssi.c

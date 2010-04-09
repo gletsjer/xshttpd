@@ -163,6 +163,12 @@ XS_CHECK_WITH(rpaf, Reverse Proxy Add Forward, yes, [
 		AC_SUBST(rpaf_ldflags)
 	])
 
+XS_CHECK_WITH(htcpcp, Hyper Text Coffee Pot Control Protocol, yes, [
+		modules="${modules} htcpcp"
+		AC_SUBST(htcpcp_cflags)
+		AC_SUBST(htcpcp_ldflags)
+	])
+
 XS_CHECK_WITH(perl, PERL persistent interpreter, no, [
 	AC_PATH_PROG(perlpath, perl)
 	AS_IF([test -n "${perlpath}"], [
@@ -264,6 +270,7 @@ AM_CONDITIONAL(MOD_GZIP,   [echo "${modules}" | grep -q gzip])
 AM_CONDITIONAL(MOD_BZIP2,   [echo "${modules}" | grep -q bzip2])
 AM_CONDITIONAL(MOD_MAGIC,   [echo "${modules}" | grep -q magic])
 AM_CONDITIONAL(MOD_RPAF,   [echo "${modules}" | grep -q rpaf])
+AM_CONDITIONAL(MOD_HTCPCP,   [echo "${modules}" | grep -q htcpcp])
 #AM_CONDITIONAL(MOD_SSI,   [echo "${modules}" | grep -q ssi])
 AC_DEFINE_UNQUOTED(MODULES, [${mod_name}], [Modules enabled during compilation])
 

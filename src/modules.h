@@ -32,6 +32,8 @@ struct module
 	bool	(*file_handler)	(const char *filename, int fdin, int fdout);
 	bool	(*http_request)	(const char *filename, const char *headers);
 	bool	(*http_headers)	(const char *filename, char **headers);
+	bool	(*protocol_handler)	(struct maplist *query_headers,
+			read_callback_t rcb, write_callback_t);
 	struct encoding_filter	*inflate_filter;
 	struct encoding_filter	*deflate_filter;
 	bool	(*auth_basic)	(const char *username, const char *password);
