@@ -56,11 +56,12 @@ file.
 .Ss Global Options
 The following options can be set in the global section:
 .Bl -tag -width Ds
-.It Sy SystemRoot Ar directory Aq @rootdir@
-The main httpd directory which contains all the data subdirectories
-(like
-.Pa htdocs , cgi-bin , logs ,
-\&...).
+.It Sy SystemRoot Ar directory Aq @wwwdir@
+The main httpd directory which contains the WWW data subdirectories
+.Pa htdocs
+and
+.Pa cgi-bin .
+This option has been deprecated and should not be used.
 .It Sy PidFile Ar filename Aq /var/run/httpd.pid
 The file to store the current pid and the last startup
 command line. This will be used by
@@ -95,7 +96,7 @@ If enabled, files in virtual host directories will be
 retrieved with the permissions of the owner over the virtual
 host rootdir. This can be useful if different users maintain
 different sites.
-.It Sy VirtualHostDir Ar directory Ao . Ac
+.It Sy VirtualHostDir Ar directory Ao @wwwdir@ Ac
 When virtual hosts are enabled, the server also supports
 .Qq automatic
 detection of virtual hostnames - that is without specific
@@ -106,8 +107,7 @@ contains subdirectories with names that match a requested
 hostname, then this subdirectory will be used as the HTML
 root directory for the virtual host data. The
 .Ar directory
-may be an absolute path or relative to
-.Sy SystemRoot .
+must be an absolute path.
 .It Sy UseServerSideInclude Ar boolean Aq true
 By default all HTML files will be parsed for server-side
 include directives. The output of CGI scripts with the
@@ -363,11 +363,12 @@ option is set then the https (443) port will be used by
 default, instead of http (80). Note that you may include
 both blocks with and without
 .Sy UseSSL .
-.It Sy SSLCertificate Ar filename Aq conf/cert.pem
+.It Sy SSLCertificate Ar filename Aq cert.pem
 The location of the x509 certificate to be used for SSL
 connections. This may be an absolute path or relative to
-.Sy SystemRoot .
-.It Sy SSLPrivateKey Ar filename Aq conf/key.pem
+the configuration directory
+.Pa ( @configdir@ ) .
+.It Sy SSLPrivateKey Ar filename Aq key.pem
 The location of the x509 certificate's key to be used for SSL connections.
 This may be contained in the same file as the
 .Sy SSLCertificate
@@ -416,13 +417,15 @@ default; although an example
 .Pa caroot.pem
 file is included in the distribution.
 This may be an absolute path or a path relative to
-.Sy SystemRoot .
+the configuration directory
+.Pa ( @configdir@ ) .
 .It Sy SSLCApath Ar directory Aq
 The location of the list of files containing x509 root
 certificates to be used for validation of client certs. This
 is unset by default.
 This may be an absolute path or a path relative to
-.Sy SystemRoot .
+the configuration directory
+.Pa ( @configdir@ ) .
 Both
 .Sy SSLCAfile
 and
@@ -434,13 +437,15 @@ The location of the certificate revocation lists to be
 used for validation of client certificates. This is unset by
 default.
 This may be an absolute path or a path relative to
-.Sy SystemRoot .
+the configuration directory
+.Pa ( @configdir@ ) .
 .It Sy SSLCRLpath Ar directory Aq
 The location of the certificate revocation lists
 to be used for validation of client certs.
 This is unset by default.
 This may be an absolute path or a path relative to
-.Sy SystemRoot .
+the configuration directory
+.Pa ( @configdir@ ) .
 Both
 .Sy SSLCRLfile
 and
@@ -524,7 +529,7 @@ argument.
 .It Sy HtmlDir Ar directory Aq htdocs
 The main directory containing all the HTML files. This
 defaults to
-.Sy SystemRoot Ns Pa /htdocs/
+.Sy @htmldir@
 for the main server and
 .Pa .html
 for users (path relative to user's homedir).
@@ -568,8 +573,6 @@ program.
 Location where the icons used by
 .Xr xsindex 1
 are to be stored on disk.
-This may be an absolute path or a path relative to
-.Sy SystemRoot .
 .It Sy LogAccess Ar filename Aq
 Logfile to use for normal HTTP requests (answered with a
 .Li 2xx

@@ -333,7 +333,7 @@ load_config()
 					else if (!strcasecmp("SSLCRLpath", key))
 						lsock->sslcrlpath = checkpath("SSLCRLpath", CONFIG_DIR, value);
 					else if (!strcasecmp("SSLCAlist", key))
-						lsock->sslcalist = checkpath("SSLCAlist", CONFIG_DIR, value);
+						STRDUP(lsock->sslcalist, value);
 					else if (!strcasecmp("SSLMatchSDN", key))
 						STRDUP(lsock->sslmatchsdn, value);
 					else if (!strcasecmp("SSLMatchIDN", key))

@@ -9,7 +9,9 @@ PREBUILD = .prebuild
 BUILT_SOURCES = $(PREBUILD)
 EXTRA_DIST = httpd.1.in httpd.conf.5.in
 
-do_subst = sed -e 's,[@]rootdir[@],$(rootdir),g' \
+do_subst = sed -e 's,[@]wwwdir[@],$(wwwdir),g' \
+	-e 's,[@]configdir[@],$(configdir),g' \
+	-e 's,[@]htmldir[@],$(htmldir),g' \
 	-e 's,[@]SERVER_IDENT[@],$(SERVER_IDENT),g'
 
 $(PREBUILD):

@@ -21,11 +21,10 @@ UserId		nobody
 GroupId		nogroup
 # Hostname	www.stack.nl
 # HtmlDir	htdocs
-# PhExecDir	cgi-bin
 # IndexFiles	index.html, index.xhtml
-LogAccess	logs/access_log
-LogError	logs/error_log
-LogScript	logs/script_log
+LogAccess	access_log
+LogError	error_log
+LogScript	script_log
 LogStyle	virtual
 </System>
 
