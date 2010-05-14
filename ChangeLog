@@ -2,8 +2,13 @@ This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
 Changes since 3.7 beta 15
+- Fix library linking order
+- Write pidfile before daemonise (avoids race condition)
+- Fix protocol module handler
+- Add mod_htcpcp HTCPCP handling module
 - Internal config directories/filenames are now always absolute pathnames;
   Config parser will reject filenames if the absolute path cannot be determined
+- Default installation directories changed: no dashes, absolute pathnames
 - Quote ETag header as appropriate
 
 Changes since 3.7 beta 14
