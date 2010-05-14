@@ -81,6 +81,33 @@ struct config_option
 	struct config_option	*next;
 } *global_options = NULL, *unknown_options = NULL;
 
+static char *checkpath(const char *directive, const char *prefix, const char *value) MALLOC_FUNC;
+
+static char *
+checkpath(const char *directive, const char *prefix, const char *value)
+{
+	char	*result = NULL;
+
+	if (!value)
+		errx(1, "Directive '%s' missing argument", directive);
+
+	if (value[0] != '/')
+	{
+		if (strchr(value, '/'))
+			errx(1, "Directive '%s' must be absolute pathname or file without '/'", directive);
+
+		if (!prefix || prefix[0] != '/')
+			errx(1, "Directive '%s' must be absolute pathname", directive);
+
+		ASPRINTF(&result, "%s/%s", prefix, value);
+		return result;
+	}
+
+	STRDUP(result, value);
+	return result;
+}
+	
+
 void
 load_config()
 {
@@ -175,7 +202,7 @@ load_config()
 							STRDUP(config.systemroot, value);
 					}
 					else if (!strcasecmp("PidFile", key))
-						STRDUP(config.pidfile, value);
+						config.pidfile = checkpath("PidFile", RUN_DIR, value);
 					else if (!strcasecmp("ExecAsUser", key))
 						if (!strcasecmp("true", value))
 							config.execasuser = true;
@@ -188,7 +215,7 @@ load_config()
 					else if (!strcasecmp("UseDnsLookup", key))
 						config.usednslookup = !strcasecmp("true", value);
 					else if (!strcasecmp("VirtualHostDir", key))
-						STRDUP(config.virtualhostdir, value);
+						config.virtualhostdir = checkpath("VirtualHostDir", WWW_DIR, value);
 					else if (!strcasecmp("UseLocalScript", key))
 						config.uselocalscript = !strcasecmp("true", value);
 					else if (!strcasecmp("UseAcceptFilter", key))
@@ -290,25 +317,23 @@ load_config()
 					else if (!strcasecmp("SSLCertificate", key))
 					{
 						lsock->usessl = true;
-						STRDUP(lsock->sslcertificate,
-							calcpath(value));
+						lsock->sslcertificate = checkpath("SSLCertificate", CONFIG_DIR, value);
 					}
 					else if (!strcasecmp("SSLPrivateKey", key))
 					{
 						lsock->usessl = true;
-						STRDUP(lsock->sslprivatekey,
-							calcpath(value));
+						lsock->sslprivatekey = checkpath("SSLCertificate", CONFIG_DIR, value);
 					}
 					else if (!strcasecmp("SSLCAfile", key))
-						STRDUP(lsock->sslcafile, calcpath(value));
+						lsock->sslcafile = checkpath("SSLCAfile", CONFIG_DIR, value);
 					else if (!strcasecmp("SSLCApath", key))
-						STRDUP(lsock->sslcapath, calcpath(value));
+						lsock->sslcapath = checkpath("SSLCApath", CONFIG_DIR, value);
 					else if (!strcasecmp("SSLCRLfile", key))
-						STRDUP(lsock->sslcrlfile, calcpath(value));
+						lsock->sslcrlfile = checkpath("SSLCRLfile", CONFIG_DIR, value);
 					else if (!strcasecmp("SSLCRLpath", key))
-						STRDUP(lsock->sslcrlpath, calcpath(value));
+						lsock->sslcrlpath = checkpath("SSLCRLpath", CONFIG_DIR, value);
 					else if (!strcasecmp("SSLCAlist", key))
-						STRDUP(lsock->sslcalist, calcpath(value));
+						lsock->sslcalist = checkpath("SSLCAlist", CONFIG_DIR, value);
 					else if (!strcasecmp("SSLMatchSDN", key))
 						STRDUP(lsock->sslmatchsdn, value);
 					else if (!strcasecmp("SSLMatchIDN", key))
@@ -362,31 +387,31 @@ load_config()
 				else if (!strcasecmp("PathInfoScripts", key))
 					string_to_arraypn(value, &current->uidscripts);
 				else if (!strcasecmp("HtmlDir", key))
-					STRDUP(current->htmldir, value);
+					current->htmldir = checkpath("HtmlDir", NULL, value);
 				else if (!strcasecmp("ExecDir", key))
 					STRDUP(current->execdir, value);
 				else if (!strcasecmp("PhExecDir", key))
-					STRDUP(current->phexecdir, value);
+					current->phexecdir = checkpath("PhExecDir", NULL, value);
 				else if (!strcasecmp("IconDir", key))
-					STRDUP(current->icondir, calcpath(value));
+					STRDUP(current->icondir, value);
 				else if (!strcasecmp("PhIconDir", key))
-					STRDUP(current->phicondir, calcpath(value));
+					current->phicondir = checkpath("PhIconDir", NULL, value);
 				else if (!strcasecmp("LogAccess", key))
-					STRDUP(current->logaccess, value);
+					current->logaccess = checkpath("LogAccess", LOG_DIR, value);
 				else if (!strcasecmp("LogError", key))
-					STRDUP(current->logerror, value);
+					current->logerror = checkpath("LogError", LOG_DIR, value);
 				else if (!strcasecmp("LogScript", key))
-					STRDUP(current->logscript, value);
+					current->logscript = checkpath("LogScript", LOG_DIR, value);
 				else if (!strcasecmp("LogReferer", key))
-					STRDUP(current->logreferer, value);
+					current->logreferer = checkpath("LogReferer", LOG_DIR, value);
 				else if (!strcasecmp("LogRefererIgnoreDomain", key))
 					STRDUP(current->thisdomain, value);
 				else if (!strcasecmp("RedirFile", key))
-					STRDUP(current->redirfile, calcpath(value));
+					current->redirfile = checkpath("RedirFile", CONFIG_DIR, value);
 				else if (!strcasecmp("FcgiPath", key))
-					STRDUP(current->fcgipath, value);
+					current->fcgipath = checkpath("FcgiPath", RUN_DIR, value);
 				else if (!strcasecmp("FcgiSocket", key))
-					STRDUP(current->fcgisocket, value);
+					current->fcgisocket = checkpath("FcgiSocket", RUN_DIR, value);
 				else if (!strcasecmp("PhpFcgiChildren", key))
 					current->phpfcgichildren = strtoul(value, NULL, 10);
 				else if (!strcasecmp("PhpFcgiRequests", key))
@@ -435,14 +460,12 @@ load_config()
 						key);
 				else if (!strcasecmp("SSLCertificate", key))
 #ifdef		HANDLE_SSL_TLSEXT
-					STRDUP(current->sslcertificate,
-						calcpath(value));
+					current->sslcertificate = checkpath("SSLCertificate", CONFIG_DIR, value);
 #else		/* HANDLE_SSL_TLSEXT */
 					errx(1, "Vhost SSLCertificate not allowed: SSL library doesn't support TLSEXT");
 #endif		/* HANDLE_SSL_TLSEXT */
 				else if (!strcasecmp("SSLPrivateKey", key))
-					STRDUP(current->sslprivatekey,
-						calcpath(value));
+					current->sslprivatekey = checkpath("SSLPrivateKey", CONFIG_DIR, value);
 				else
 					errx(1, "illegal directive: '%s'", key);
 			}
@@ -587,21 +610,21 @@ load_config()
 		STRDUP(config.system->hostname, thishostname);
 	}
 	if (!config.system->htmldir)
-		STRDUP(config.system->htmldir, HTML_DIR);
+		config.system->htmldir = checkpath("HtmlDir", WWW_DIR, HTML_DIR);
 	if (!config.system->execdir)
 		STRDUP(config.system->execdir, CGI_DIR);
 	if (!config.system->phexecdir)
-		STRDUP(config.system->phexecdir, PHEXEC_DIR);
+		config.system->phexecdir = checkpath("ExecDir", WWW_DIR, PHEXEC_DIR);
 	if (!config.system->icondir)
 		STRDUP(config.system->icondir, ICON_DIR);
 	if (!config.system->phicondir)
-		STRDUP(config.system->phicondir, PHICON_DIR);
+		config.system->phicondir = checkpath("PhIconDir", SHDATA_DIR, PHICON_DIR);
 	if (!config.system->logaccess)
-		STRDUP(config.system->logaccess, BITBUCKETNAME);
+		config.system->logaccess = checkpath("LogAccess", LOG_DIR, "access_log");
 	if (!config.system->logerror)
-		STRDUP(config.system->logerror, BITBUCKETNAME);
+		config.system->logerror = checkpath("LogError", LOG_DIR, "error_log");
 	if (!config.system->logreferer)
-		STRDUP(config.system->logreferer, BITBUCKETNAME);
+		config.system->logreferer = checkpath("LogReferer", LOG_DIR, BITBUCKETNAME);
 	if (!config.system->logstyle)
 		config.system->logstyle = log_combined;
 	if (!config.system->userid)
@@ -662,11 +685,11 @@ load_config()
 		if (!current->execdir)
 			STRDUP(current->execdir, CGI_DIR);
 		if (!current->phexecdir)
-			STRDUP(current->phexecdir, PHEXEC_DIR);
+			current->phexecdir = checkpath("PhExecDir", SHDATA_DIR, PHEXEC_DIR);
 		if (!current->icondir)
 			STRDUP(current->icondir, ICON_DIR);
 		if (!current->phicondir)
-			STRDUP(current->phicondir, PHICON_DIR);
+			current->phicondir = checkpath("PhIconDir", SHDATA_DIR, PHICON_DIR);
 		if (!current->logstyle)
 			current->logstyle = config.system->logstyle;
 		if (!current->userid)

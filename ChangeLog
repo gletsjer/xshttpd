@@ -1,6 +1,10 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 15
+- Internal config directories/filenames are now always absolute pathnames;
+  Config parser will reject filenames if the absolute path cannot be determined
+
 Changes since 3.7 beta 14
 - Use REMOTE_ADDR from mod_rpaf for internal references as well
 - Set QUERY_STRING even if it is empty

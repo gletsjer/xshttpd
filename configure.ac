@@ -219,23 +219,24 @@ dnl Select directory layout
 hier=xs
 AC_MSG_CHECKING([for --enable-hier])
 AC_ARG_ENABLE(hier,
-	AC_HELP_STRING([--enable-hier=[xs|gnu]], [set hierarchy layout]), [
+	AC_HELP_STRING([--enable-hier=[xs|bsd|gnu]], [set hierarchy layout]), [
 	hier=${enable_hier}
 	AC_MSG_RESULT(${enable_hier})
 	], AC_MSG_RESULT(${hier}))
 [eval $(sed '1,/^\['${hier}'\]$/d; /^$/,$d; s/		*//; s/=/='"'"'/; s/$/'"'"'/' ${srcdir}/dirs.conf)]
 
+rootdir='$(prefix)/lib/httpd'
 AC_ARG_WITH([rootdir],
 	AS_HELP_STRING([--with-rootdir=DIR],
 		[directory to install data files @<:@LIBDIR/httpd@:>@]),
 	[rootdir="${withval}"])
 
 dnl Various installation directories - relative to ${rootdir}.
-fontdir='$(rootdir)/gfxcount'
-phexecdir='$(rootdir)/cgi-bin'
-phicondir='$(rootdir)/icons'
-htmldir='$(rootdir)/htdocs'
-XS_ARG_DIRS(root bin man config contrib font html log module phexec phicon run)
+htmldir='$(wwwdir)/htdocs'
+phexecdir='$(wwwdir)/cgi-bin'
+phicondir='$(shdatadir)/icons'
+fontdir='$(shdatadir)/gfxcount'
+XS_ARG_DIRS(root www bin man config shdata contrib font html log module phexec phicon run)
 
 dnl User may tweak compilation behaviour.
 XS_ARG_DEFAULT(warnings, HAVE_GDB, no, [enable extra compiler warnings])

@@ -952,14 +952,11 @@ do_get(char *params)
 		file = params;
 		*base = '\0';
 		if (current == config.system &&
-			(http_host = getenv("HTTP_HOST")))
+			(http_host = getenv("HTTP_HOST")) &&
+			config.virtualhostdir)
 		{
-			if (config.virtualhostdir)
-				snprintf(base, XS_PATH_MAX, "%s/%s",
-					calcpath(config.virtualhostdir),
-					http_host);
-			else
-				strlcpy(base, calcpath(http_host), XS_PATH_MAX);
+			snprintf(base, XS_PATH_MAX, "%s/%s",
+				config.virtualhostdir, http_host);
 			if (stat(base, &statbuf) || !S_ISDIR(statbuf.st_mode))
 				*base = '\0';
 			else if (config.usevirtualuid)
@@ -986,21 +983,21 @@ do_get(char *params)
 			struct stat	sb;
 			script = 1;
 			file += size + 2;
-			strlcpy(base, calcpath(current->phexecdir), XS_PATH_MAX);
+			strlcpy(base, current->phexecdir, XS_PATH_MAX);
 			if ((lstat(base, &sb) < 0) || !S_ISDIR(sb.st_mode))
-				strlcpy(base, calcpath(config.system->phexecdir), XS_PATH_MAX);
+				strlcpy(base, config.system->phexecdir, XS_PATH_MAX);
 
 		}
 		else if (!strncmp(params + 1, current->icondir, strlen(current->icondir)))
 		{
 			struct stat	sb;
 			file += strlen(current->icondir) + 2;
-			strlcpy(base, calcpath(current->phicondir), XS_PATH_MAX);
+			strlcpy(base, current->phicondir, XS_PATH_MAX);
 			if ((lstat(base, &sb) < 0) || !S_ISDIR(sb.st_mode))
-				strlcpy(base, calcpath(config.system->phicondir), XS_PATH_MAX);
+				strlcpy(base, config.system->phicondir, XS_PATH_MAX);
 		}
 		else
-			strlcpy(base, calcpath(current->htmldir), XS_PATH_MAX);
+			strlcpy(base, current->htmldir, XS_PATH_MAX);
 		/* base may be empty */
 		strlcat(base, "/", XS_PATH_MAX);
 
@@ -1759,7 +1756,7 @@ loadfiletypes(char *orgbase, char *base)
 	{
 		const char * const	mimepath = base
 			? find_file(orgbase, base, ".mimetypes")
-			: calcpath(MIME_TYPES);
+			: MIME_TYPES;
 
 		if (!mimepath || !(mime = fopen(mimepath, "r")))
 		{
@@ -1822,7 +1819,7 @@ loadcompresstypes()
 		free_ctype(ctype);
 		ctype = temp;
 	}
-	path = calcpath(COMPRESS_METHODS);
+	path = COMPRESS_METHODS;
 	if (!(methods = fopen(path, "r")))
 		/* configuration file is optional: silently ignore */
 		return;
@@ -1888,7 +1885,7 @@ loadscripttypes(char *orgbase, char *base)
 			free_ctype(itype);
 			itype = n;
 		}
-		if (!(methods = fopen(calcpath(SCRIPT_METHODS), "r")))
+		if (!(methods = fopen(SCRIPT_METHODS, "r")))
 			/* missing script.methods is not fatal */
 			return;
 	}

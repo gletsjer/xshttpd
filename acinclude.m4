@@ -36,7 +36,7 @@ AC_DEFUN([XS_FUNC_IN_LIB], [
 	AS_IF([test -n "${LIBS}"], [
 		$4_ldflags="${$4_ldflags} ${LIBS} $5"
 		])
-	AS_IF([test x${ac_cv_search_$1} != x -a x${ac_cv_search_$1} != xno],
+	AS_IF([test "x${ac_cv_search_$1}" != x -a "x${ac_cv_search_$1}" != xno],
 		[$6], [$7])
 	LIBS=
 	])

@@ -36,7 +36,7 @@ main(void)
 	char		counterfile[XS_PATH_MAX], lockfile[XS_PATH_MAX];
 	char		xscount_version;
 
-	strlcpy(counterfile, calcpath(CNT_DATA), XS_PATH_MAX);
+	strlcpy(counterfile, CNT_DATA, XS_PATH_MAX);
 	if ((fdin  = open(counterfile, O_RDONLY, 0)) < 0)
 		err(1, "Could not open(%s)", counterfile);
 
@@ -49,7 +49,7 @@ main(void)
 	if (lseek(fdin, (off_t)0, SEEK_SET) < 0)
 		err(1, "lseek()");
 
-	snprintf(lockfile, XS_PATH_MAX, "%s.rfxs", calcpath(CNT_LOCK));
+	snprintf(lockfile, XS_PATH_MAX, "%s.rfxs", CNT_LOCK);
 	if ((fdout = open(lockfile, O_WRONLY | O_CREAT | O_TRUNC, 0644)) < 0)
 		err(1, "Could not open(%s)", lockfile);
 

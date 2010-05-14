@@ -428,21 +428,21 @@ loadssl(struct socket_config *lsock, struct ssl_vhost *sslvhost)
 	SSL_CTX_set_default_passwd_cb_userdata(ssl_ctx, lsock->sslprivatekey);
 
 	if (!SSL_CTX_use_certificate_file(ssl_ctx,
-			calcpath(sslvhost ? vc->sslcertificate : lsock->sslcertificate),
+			sslvhost ? vc->sslcertificate : lsock->sslcertificate,
 			SSL_FILETYPE_PEM))
 		errx(1, "Cannot load SSL cert %s: %s", 
-			calcpath(sslvhost ? vc->sslcertificate : lsock->sslcertificate),
+			sslvhost ? vc->sslcertificate : lsock->sslcertificate,
 			ERR_reason_error_string(ERR_get_error()));
 	if (!SSL_CTX_use_PrivateKey_file(ssl_ctx,
-			calcpath(sslvhost ? vc->sslprivatekey : lsock->sslprivatekey),
+			sslvhost ? vc->sslprivatekey : lsock->sslprivatekey,
 			SSL_FILETYPE_PEM))
 		errx(1, "Cannot load SSL key %s: %s", 
-			calcpath(sslvhost ? vc->sslprivatekey : lsock->sslprivatekey),
+			sslvhost ? vc->sslprivatekey : lsock->sslprivatekey,
 			ERR_reason_error_string(ERR_get_error()));
 	if (!SSL_CTX_check_private_key(ssl_ctx))
 		errx(1, "Cannot check private SSL %s %s: %s",
-			calcpath(sslvhost ? vc->sslprivatekey : lsock->sslcertificate),
-			calcpath(sslvhost ? vc->sslprivatekey : lsock->sslprivatekey),
+			sslvhost ? vc->sslprivatekey : lsock->sslcertificate,
+			sslvhost ? vc->sslprivatekey : lsock->sslprivatekey,
 			ERR_reason_error_string(ERR_get_error()));
 
 	if (!lsock->sslcafile && !lsock->sslcapath)
@@ -478,7 +478,7 @@ loadssl(struct socket_config *lsock, struct ssl_vhost *sslvhost)
 	}
 
 	/* read dh parameters from private keyfile */
-	BIO	*bio = BIO_new_file(calcpath(sslvhost ? vc->sslprivatekey : lsock->sslprivatekey), "r");
+	BIO	*bio = BIO_new_file(sslvhost ? vc->sslprivatekey : lsock->sslprivatekey, "r");
 	if (bio)
 	{
 		DSA		*dsa;
@@ -495,7 +495,7 @@ loadssl(struct socket_config *lsock, struct ssl_vhost *sslvhost)
 		if (!dh)
 		{
 			BIO_free(bio);
-			bio = BIO_new_file(calcpath(sslvhost ? vc->sslcertificate : lsock->sslcertificate), "r");
+			bio = BIO_new_file(sslvhost ? vc->sslcertificate : lsock->sslcertificate, "r");
 			if (bio)
 			{
 				dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);

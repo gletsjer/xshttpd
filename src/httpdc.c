@@ -256,7 +256,7 @@ getpidfilename(char **pidfilename)
 		return;
 
 	*pidfilename = NULL;
-	snprintf(config_path, XS_PATH_MAX, "%s/httpd.conf", calcpath(rootdir));
+	snprintf(config_path, XS_PATH_MAX, "%s/httpd.conf", rootdir);
 
 	if ((conffile = fopen(config_path, "r")))
 	{
@@ -276,7 +276,7 @@ getpidfilename(char **pidfilename)
 	}
 
 	if (!*pidfilename)
-		STRDUP(*pidfilename, calcpath(PID_PATH));
+		STRDUP(*pidfilename, PID_PATH);
 }
 
 static	void

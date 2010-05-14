@@ -54,7 +54,7 @@ main(int argc, char **argv)
 			mode = MODE_LAST;
 			break;
 		case 'v':
-			counterfile = calcpath(CNT_DATA);
+			counterfile = CNT_DATA;
 			if ((fd = open(counterfile, O_RDONLY, 0)) < 0)
 				err(1, "Could not open(%s)", counterfile);
 			if (read(fd, &xscount_version, 1) != 1)
@@ -78,7 +78,7 @@ main(int argc, char **argv)
 
 	strlcpy(url, argv[optind], BUFSIZ);
 
-	counterfile = calcpath(CNT_DATA);
+	counterfile = CNT_DATA;
 	if ((fd = open(counterfile, wrset ? O_RDWR : O_RDONLY, 0)) < 0)
 		err(1, "Could not open(%s)", counterfile);
 

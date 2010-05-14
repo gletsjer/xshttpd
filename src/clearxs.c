@@ -68,15 +68,15 @@ main(int argc, char **argv)
 	if (argc != optind)
 		errx(1, "Too many arguments");
 
-	strlcpy(counterfile, calcpath(CNT_DATA), XS_PATH_MAX);
+	strlcpy(counterfile, CNT_DATA, XS_PATH_MAX);
 	if ((fdin  = open(counterfile, O_RDONLY, 0)) < 0)
 		err(1, "Could not open(%s)", counterfile);
 
-	strlcpy(clockfile, calcpath(CNT_LOCK), XS_PATH_MAX);
+	strlcpy(clockfile, CNT_LOCK, XS_PATH_MAX);
 	if ((fdout = open(clockfile, O_WRONLY | O_CREAT | O_TRUNC, 0)) < 0)
 		err(1, "Could not open(%s)", clockfile);
 
-	strlcpy(lockfile, calcpath(CNT_CLEAR), XS_PATH_MAX);
+	strlcpy(lockfile, CNT_CLEAR, XS_PATH_MAX);
 	if ((fdout = open(lockfile, O_WRONLY | O_CREAT | O_TRUNC, 0)) < 0)
 		err(1, "Could not open(%s)", lockfile);
 

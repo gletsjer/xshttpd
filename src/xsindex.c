@@ -193,7 +193,7 @@ main(int argc, char **argv)
 	exlist			*exclude, *exhead;
 
 	exclude = NULL;
-	mimefile = calcpath(MIME_INDEX);
+	mimefile = MIME_INDEX;
 	while ((option = getopt(argc, argv, "bfm:st:x:")) != EOF)
 	{
 		switch(option)

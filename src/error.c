@@ -65,7 +65,7 @@ user_unknown()
 		len, len, error_url_escaped + 2);
 	printf("<p>You may look at the <a href=\"/\">main index page</a>");
 	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTML_DIR);
-	if (!access(calcpath(filename), F_OK))
+	if (!access(calcpath(WWW_DIR, filename), F_OK))
 		printf(" or the <a href=\"/users.html\">user list</a>\n");
 	printf(".</p>\n");
 }
@@ -117,7 +117,7 @@ not_found()
 	} else
 	{
 		prefix[0] = 0;
-		strlcpy(base, calcpath(HTML_DIR), XS_PATH_MAX);
+		strlcpy(base, HTML_DIR, XS_PATH_MAX);
 		begin = error_url;
 	}
 
@@ -165,7 +165,7 @@ not_found()
 		printf("<p>Y");
 	printf("ou may take a look at <a href=\"/\">the main index</a>");
 	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTML_DIR);
-	if (!access(calcpath(filename), F_OK))
+	if (!access(calcpath(WWW_DIR, filename), F_OK))
 		printf(" or the <a href=\"/users.html\">user list</a>\n");
 	printf(".</p>\n");
 }
@@ -289,7 +289,7 @@ local_no_page()
 	printf("<p>Perhaps you meant somebody else; in this case, please\n");
 	printf("have a look at the <a href=\"/\">main index</a>");
 	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTML_DIR);
-	if (!access(calcpath(filename), F_OK))
+	if (!access(calcpath(WWW_DIR, filename), F_OK))
 		printf(" or the <a href=\"/users.html\">user list</a>\n");
 	printf(".</p>\n");
 }
@@ -326,7 +326,7 @@ local_no_pay()
 	printf("<p>Return to the <a href=\"/\">main index</a>\n");
 	printf("for more information about our society");
 	snprintf(filename, XS_PATH_MAX, "%s/users.html", HTML_DIR);
-	if (!access(calcpath(filename), F_OK))
+	if (!access(calcpath(WWW_DIR, filename), F_OK))
 		printf(" or the <a href=\"/users.html\">user list</a>\n");
 	printf(".</p>\n");
 }

@@ -11,22 +11,23 @@
 #include	"path.h"
 
 const	char	*
-calcpath(const char *filename)
+calcpath(const char *prefix, const char *filename)
 {
 	static	char	buffer[XS_PATH_MAX];
-	const	char	*rootdir;
-
-#ifdef		BUILD_HTTPD
-	rootdir = config.systemroot;
-#else		/* BUILD_HTTPD */
-	rootdir = getenv("ROOT_DIR") ? getenv("ROOT_DIR") : ROOT_DIR;
-#endif		/* BUILD_HTTPD */
 
 	if (*filename == '/')
 		strlcpy(buffer, filename, XS_PATH_MAX);
-	else if (rootdir)
-		snprintf(buffer, XS_PATH_MAX, "%s/%s", rootdir, filename);
+	else if (prefix && prefix[strlen(prefix)-1] == '/')
+		snprintf(buffer, XS_PATH_MAX, "%s%s", prefix, filename);
+	else if (prefix)
+		snprintf(buffer, XS_PATH_MAX, "%s/%s", prefix, filename);
+#ifdef		BUILD_HTTPD
+	else if (config.systemroot)
+		snprintf(buffer, XS_PATH_MAX, "%s/%s",
+			config.systemroot, filename);
+#endif		/* BUILD_HTTPD */
 	else
-		snprintf(buffer, XS_PATH_MAX, ROOT_DIR "/%s", filename);
+		snprintf(buffer, XS_PATH_MAX, "/%s", filename);
+
 	return (buffer);
 }

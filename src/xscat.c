@@ -35,7 +35,7 @@ main(int argc, char *argv[])
 	char		xscount_version;
 
 	if (argc < 2)
-		counterfile = calcpath(CNT_DATA);
+		counterfile = CNT_DATA;
 	else
 		counterfile = argv[1];
 

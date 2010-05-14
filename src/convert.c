@@ -56,10 +56,8 @@ convertpath(const char *org)
 	else if (*org != '/')
 		snprintf(path, XS_PATH_MAX, "%s/%s", getenv("PWD"), org);
 	else if (current == config.users)
-		snprintf(path, XS_PATH_MAX, "%s%s",
-			calcpath(config.system->htmldir), org);
+		snprintf(path, XS_PATH_MAX, "%s%s", config.system->htmldir, org);
 	else /* use htdocs dir for this vhost */
-		snprintf(path, XS_PATH_MAX, "%s%s",
-			calcpath(current->htmldir), org);
+		snprintf(path, XS_PATH_MAX, "%s%s", current->htmldir, org);
 	return (path);
 }

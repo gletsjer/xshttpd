@@ -200,12 +200,12 @@ write_pidfile(pid_t pid)
 		return true;
 
 #ifdef		O_EXLOCK
-	pidlock = open(calcpath(config.pidfile),
+	pidlock = open(config.pidfile,
 		O_WRONLY | O_TRUNC | O_CREAT | O_NONBLOCK | O_EXLOCK,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 	if ((pidlock < 0) && (EOPNOTSUPP == errno))
 #endif		/* O_EXLOCK */
-		pidlock = open(calcpath(config.pidfile),
+		pidlock = open(config.pidfile,
 			O_WRONLY | O_TRUNC | O_CREAT,
 			S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH);
 
@@ -257,7 +257,7 @@ open_logs(int sig)
 				if (current->openaccess)
 					fclose(current->openaccess);
 				if (!(current->openaccess =
-					fopen(calcpath(current->logaccess), "a")))
+					fopen(current->logaccess, "a")))
 				{
 					err(1, "fopen(`%s' [append])",
 						current->logaccess);
@@ -286,7 +286,7 @@ open_logs(int sig)
 				if (current->openreferer)
 					fclose(current->openreferer);
 				if (!(current->openreferer =
-					fopen(calcpath(current->logreferer), "a")))
+					fopen(current->logreferer, "a")))
 				{
 					err(1, "fopen(`%s' [append])",
 						current->logreferer);
@@ -315,7 +315,7 @@ open_logs(int sig)
 				if (current->openerror)
 					fclose(current->openerror);
 				if (!(current->openerror =
-					fopen(calcpath(current->logerror), "a")))
+					fopen(current->logerror, "a")))
 				{
 					err(1, "fopen(`%s' [append])",
 						current->logerror);
@@ -344,7 +344,7 @@ open_logs(int sig)
 				if (current->openscript)
 					fclose(current->openscript);
 				if (!(current->openscript =
-					fopen(calcpath(current->logscript), "a")))
+					fopen(current->logscript, "a")))
 				{
 					err(1, "fopen(`%s' [append])",
 						current->logscript);
@@ -650,8 +650,7 @@ server_error(int code, const char *readable, const char *cgi)
 	}
 	else	/* Look for virtual host error script */
 	{
-		ASPRINTF(&cgipath, "%s%s",
-			calcpath(current->phexecdir), filename);
+		ASPRINTF(&cgipath, "%s/%s", current->phexecdir, filename);
 	}
 
 	/* local block */
@@ -662,8 +661,7 @@ server_error(int code, const char *readable, const char *cgi)
 		{
 			/* Last resort: try system error script */
 			free(cgipath);
-			ASPRINTF(&cgipath, "%s%s",
-				calcpath(config.system->phexecdir), filename);
+			ASPRINTF(&cgipath, "%s/%s", config.system->phexecdir, filename);
 			if (stat(cgipath, &statbuf))
 			{
 				xserror(code, "%s", readable);
@@ -1700,7 +1698,7 @@ main(int argc, char **argv, char **envp)
 #else		/* Not PATH_PREPROCESSOR */
 	config_preprocessor = NULL;
 #endif		/* PATH_PREPROCESSOR */
-	STRDUP(config_path, calcpath(HTTPD_CONF));
+	STRDUP(config_path, HTTPD_CONF);
 	while ((option = getopt(argc, argv, "a:c:d:g:m:n:p:u:NP:v")) != EOF)
 	{
 		switch(option)

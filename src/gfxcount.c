@@ -223,18 +223,17 @@ int
 main(int argc, char **argv)
 {
 	struct	stat	statbuf;
-	char		*pathinfo, buffer[BUFSIZ];
+	char		*pathinfo;
 
 	alarm(240);
 	pathinfo = getenv("PATH_INFO");
 	pathtranslated = getenv("PATH_TRANSLATED");
 	strlcpy(dirname, pathtranslated ? pathtranslated : "", XS_PATH_MAX);
 	if (!dirname[0])
-		strlcpy(dirname, calcpath(FONT_DIRT "digital"), XS_PATH_MAX);
+		strlcpy(dirname, calcpath(FONT_DIR, "digital"), XS_PATH_MAX);
 	if (pathinfo && !strncmp(pathinfo, "/fonts/", 7))
 	{
-		snprintf(buffer, BUFSIZ, "%s%s", FONT_DIRT, pathinfo + 7);
-		strlcpy(dirname, calcpath(buffer), XS_PATH_MAX);
+		strlcpy(dirname, calcpath(FONT_DIR, pathinfo + 7), XS_PATH_MAX);
 	}
 	if (dirname[0] && (dirname[strlen(dirname) - 1] != '/'))
 	{

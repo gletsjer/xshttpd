@@ -95,7 +95,7 @@ xsc_initdummy(off_t *size)
 	int		fd;
 	countstr	dummy;
 
-	if ((fd = open(calcpath(CNT_DATA), O_WRONLY | O_CREAT,
+	if ((fd = open(CNT_DATA, O_WRONLY | O_CREAT,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
 	{
 		*size += secprintf("[Failed to create dummies: %s]\n",
@@ -139,7 +139,7 @@ xsc_initcounter(const char *filename, off_t *size)
 	char		datafile[XS_PATH_MAX];
 	const	char	*lockfile;
 
-	strlcpy(datafile, calcpath(CNT_DATA), XS_PATH_MAX);
+	strlcpy(datafile, CNT_DATA, XS_PATH_MAX);
 	if ((fd = open(datafile, O_RDONLY,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
 	{
@@ -148,7 +148,7 @@ xsc_initcounter(const char *filename, off_t *size)
 		return false;
 	}
 	retry = 0;
-	lockfile = calcpath(CNT_LOCK);
+	lockfile = CNT_LOCK;
 	while ((fd2 = open(lockfile, O_WRONLY | O_CREAT | O_EXCL,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0 && retry++ < 5)
 	{
@@ -215,7 +215,7 @@ counter_versioncheck()
 	const char	*counterfile;
 	char		xscount_version;
 
-	counterfile = calcpath(CNT_DATA);
+	counterfile = CNT_DATA;
 	if ((fd = open(counterfile, O_RDONLY, 0)) < 0)
 		/* no data yet: that's fine */
 		return;
@@ -258,7 +258,7 @@ xsc_counter(countermode mode, const char *args, off_t *size)
 	counter.lastseen = (time_t)0;
 
 	REOPEN:
-	if ((fd = open(calcpath(CNT_DATA), O_RDWR,
+	if ((fd = open(CNT_DATA, O_RDWR,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0)
 	{
 		if (!xsc_initdummy(size))
