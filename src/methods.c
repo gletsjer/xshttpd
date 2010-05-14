@@ -406,7 +406,7 @@ writeheaders(void)
 	}
 
 	if (session.etag)
-		maplist_append(rh, O, "ETag", "%s", session.etag);
+		maplist_append(rh, O, "ETag", "\"%s\"", session.etag);
 
 	if (cfvalues.encoding)
 		maplist_append(rh, F, "Content-encoding", "%s", cfvalues.encoding);
