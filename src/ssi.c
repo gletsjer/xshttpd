@@ -236,7 +236,7 @@ counter_versioncheck()
 static	bool
 xsc_counter(countermode mode, const char *args, off_t *size)
 {
-	int			fd = -1, timer, total, x, y, z, comp;
+	int			fd = -1, total, x, y, z, comp;
 	bool			already = false;
 	static	countstr	counter;
 	char			*p, filename[sizeof(counter.filename)];
@@ -253,7 +253,6 @@ xsc_counter(countermode mode, const char *args, off_t *size)
 		goto ALREADY;
 	cnt_readbefore = true;
 
-	timer = 0;
 	counter.total = counter.today = counter.month = 0;
 	counter.lastseen = (time_t)0;
 

@@ -260,7 +260,7 @@ qstring_to_arraypn(const char *value, char ***array)
 size_t
 string_to_array(const char *value, char **array)
 {
-	size_t	num, len;
+	size_t	num;
 	char	*valuecopy;
 	char	*prev = NULL, *next;
 
@@ -269,9 +269,7 @@ string_to_array(const char *value, char **array)
 
 	STRDUP(valuecopy, value);
 	next = valuecopy;
-
 	num = 0;
-	len = strlen(valuecopy);
 
 	while ((prev = strsep(&next, ", \t")))
 		if (*prev)

@@ -29,7 +29,7 @@ typedef	struct	countold
 int
 main(int argc, char *argv[])
 {
-	int		num, fdin;
+	int		fdin;
 	countstr	counter;
 	const char	*counterfile;
 	char		xscount_version;
@@ -50,7 +50,6 @@ main(int argc, char *argv[])
 	if (lseek(fdin, (off_t)0, SEEK_SET) < 0)
 		err(1, "lseek()");
 
-	num = 0;
 	while (read(fdin, &counter, sizeof(counter)) == sizeof(counter))
 	{
 		printf("%10lu\t%8u\t%3zu: %s\n",
