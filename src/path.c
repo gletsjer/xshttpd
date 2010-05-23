@@ -21,11 +21,6 @@ calcpath(const char *prefix, const char *filename)
 		snprintf(buffer, XS_PATH_MAX, "%s%s", prefix, filename);
 	else if (prefix)
 		snprintf(buffer, XS_PATH_MAX, "%s/%s", prefix, filename);
-#ifdef		BUILD_HTTPD
-	else if (config.systemroot)
-		snprintf(buffer, XS_PATH_MAX, "%s/%s",
-			config.systemroot, filename);
-#endif		/* BUILD_HTTPD */
 	else
 		snprintf(buffer, XS_PATH_MAX, "/%s", filename);
 

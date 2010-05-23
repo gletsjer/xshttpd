@@ -1652,7 +1652,6 @@ setup_environment()
 	setenv("SERVER_SOFTWARE", SERVER_IDENT, 1);
 	setenv("SERVER_NAME", config.system->hostname, 1);
 	setenv("GATEWAY_INTERFACE", "CGI/1.1", 1);
-	setenv("ROOT_DIR", config.systemroot, 1);
 	setenv("SERVER_PORT",
 		!strcmp(cursock->port, "http") ? "80" :
 		!strcmp(cursock->port, "https") ? "443" :
@@ -1843,7 +1842,7 @@ main(int argc, char **argv, char **envp)
 	}
 	if (config.sockets)
 		SET_OPTION(opt_port,  config.sockets[0].port);
-	SET_OPTION(opt_dir,  config.systemroot);
+	SET_OPTION(opt_dir,  config.system->htmldir);
 	SET_OPTION(opt_host, config.system->hostname);
 	if (uid)
 		config.system->userid = uid;

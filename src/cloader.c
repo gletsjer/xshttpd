@@ -197,10 +197,7 @@ load_config()
 					bool	unknown_option = false;
 
 					if (!strcasecmp("SystemRoot", key))
-					{
-						if (!config.systemroot)
-							STRDUP(config.systemroot, value);
-					}
+						warnx("Ignoring SystemRoot directive: no longer supported");
 					else if (!strcasecmp("PidFile", key))
 						config.pidfile = checkpath("PidFile", RUN_DIR, value);
 					else if (!strcasecmp("ExecAsUser", key))
@@ -567,8 +564,6 @@ load_config()
 		warn("Not reading configuration file");
 
 	/* Fill in missing defaults */
-	if (!config.systemroot)
-		STRDUP(config.systemroot, ROOT_DIR);
 	if (!config.sockets)
 		config.sockets = lsock;
 	for (lsock = config.sockets; lsock; lsock = lsock->next)

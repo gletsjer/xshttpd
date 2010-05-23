@@ -225,18 +225,12 @@ AC_ARG_ENABLE(hier,
 	], AC_MSG_RESULT(${hier}))
 [eval $(sed '1,/^\['${hier}'\]$/d; /^$/,$d; s/		*//; s/=/='"'"'/; s/$/'"'"'/' ${srcdir}/dirs.conf)]
 
-rootdir='$(prefix)/lib/httpd'
-AC_ARG_WITH([rootdir],
-	AS_HELP_STRING([--with-rootdir=DIR],
-		[directory to install data files @<:@LIBDIR/httpd@:>@]),
-	[rootdir="${withval}"])
-
-dnl Various installation directories - relative to ${rootdir}.
+dnl Various installation directories
 htmldir='$(wwwdir)/htdocs'
 phexecdir='$(wwwdir)/cgi-bin'
 phicondir='$(shdatadir)/icons'
 fontdir='$(shdatadir)/gfxcount'
-XS_ARG_DIRS(root www bin man config shdata contrib font html log module phexec phicon run)
+XS_ARG_DIRS(www bin man config shdata contrib font html log module phexec phicon run)
 
 dnl User may tweak compilation behaviour.
 XS_ARG_DEFAULT(warnings, HAVE_GDB, no, [enable extra compiler warnings])

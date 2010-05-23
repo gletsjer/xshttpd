@@ -27,7 +27,7 @@ typedef	struct
 
 static	pid_t	httpdpid;	/* a value of 0 denotes no running httpd */
 static	char	startparams[BUFSIZ];
-char		rootdir[XS_PATH_MAX];
+char		configdir[XS_PATH_MAX];
 
 static	void	cmd_help	(const char *);
 static	void	cmd_status	(const char *);
@@ -249,14 +249,14 @@ control(const char *args)
 static	void
 getpidfilename(char **pidfilename)
 {
-	char		*p, buffer[BUFSIZ], config_path[XS_PATH_MAX];
+	char		*p, *config_path, buffer[BUFSIZ];
 	FILE		*conffile;
 
 	if (!pidfilename)
 		return;
 
 	*pidfilename = NULL;
-	snprintf(config_path, XS_PATH_MAX, "%s/httpd.conf", rootdir);
+	STRDUP(config_path, calcpath(configdir, "httpd.conf"));
 
 	if ((conffile = fopen(config_path, "r")))
 	{
@@ -314,13 +314,13 @@ main(int argc, char **argv)
 	const char	*cmd = NULL;
 	int		option;
 
-	strlcpy(rootdir, ROOT_DIR, BUFSIZ);
+	strlcpy(configdir, CONFIG_DIR, BUFSIZ);
 	while ((option = getopt(argc, argv, "d:p:v")) != EOF)
 	{
 		switch(option)
 		{
 		case 'd':
-			strlcpy(rootdir, optarg, XS_PATH_MAX);
+			strlcpy(configdir, optarg, XS_PATH_MAX);
 			break;
 		case 'p':
 			pidfilename = optarg;
@@ -329,7 +329,7 @@ main(int argc, char **argv)
 			cmd = "version";
 			break;
 		default:
-			err(1, "Usage: %s [-d rootdir] [-p pidfile]", argv[0]);
+			err(1, "Usage: %s [-d configdir] [-p pidfile]", argv[0]);
 		}
 	}
 	if (!pidfilename)

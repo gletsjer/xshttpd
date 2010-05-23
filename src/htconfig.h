@@ -101,7 +101,6 @@ struct socket_config
  */
 extern struct configuration
 {
-	char *		systemroot;
 	char *		pidfile;
 	unsigned int	instances;
 	int		priority;
