@@ -259,6 +259,45 @@ check_redirect(const char *cffile, const char *filename)
 				exittrue = true;
 			}
 		}
+		else if (!strcasecmp(command, "error") &&
+				ret >= 3 &&
+				pcre_match(request, argv[2]) > 0)
+		{
+			const int	errcode = atoi(argv[1]);
+			char	*args, *p;
+
+			if (errcode < 400 || errcode >= 600)
+				/* ignore */;
+			else if (ret > 3)
+			{
+				/* Reconstruct args */
+				size_t	sz = 0;
+				int	i;
+
+				for (i = 3; i < ret; i++)
+					sz += strlen(argv[i]) + 1;
+
+				MALLOC(args, char, sz);
+				p = args;
+				for (i = 3; i < ret; i++)
+				{
+					p = stpcpy(p, argv[i]);
+					*p++ = ' ';
+				}
+				if (sz)
+					p[-1] = '\0';
+				xserror(errcode, "%s", args);
+				FREE(args);
+				exittrue = 1;
+			}
+			else
+			{
+				xserror(404, errcode == 404
+					? "Requested URL not found"
+					: "Access denied");
+				exittrue = 1;
+			}
+		}
 		else if (1 == ret)
 			/* no command: redir to url */
 		{
