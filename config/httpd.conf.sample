@@ -3,8 +3,6 @@
 # Carefully read 'man httpd.conf' for an explanation of all settings
 # The configuration file is optional, XS will work without
 
-SystemRoot	/usr/local/lib/httpd
-
 PidFile		/var/run/httpd.pid
 VirtualHostDir	vhosts
 
