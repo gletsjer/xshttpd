@@ -903,8 +903,11 @@ do_get(char *params)
 	{
 		if (check_redirect(current->redirfile, params))
 			return;
-		xserror(404, "Requested URL not found");
-		return;
+		if (!current->htmldir)
+		{
+			xserror(404, "Requested URL not found");
+			return;
+		}
 	}
 
 	/* check for user path */

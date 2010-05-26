@@ -675,8 +675,8 @@ load_config()
 	{
 		if (!current->hostname)
 			errx(1, "illegal virtual block without hostname");
-		if (!(!!current->htmldir ^ !!current->redirfile))
-			errx(1, "virtual block must contain either htmldir or redirfile");
+		if (!current->htmldir && !current->redirfile)
+			errx(1, "virtual block must contain htmldir or redirfile");
 		if (!current->execdir)
 			STRDUP(current->execdir, CGI_DIR);
 		if (!current->phexecdir)

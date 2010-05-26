@@ -12,6 +12,7 @@ Changes since 3.7 beta 15
 - Removed SystemRoot config directive and --rootdir compile option
 - Quote ETag header as appropriate
 - New 'error' directive in .redir files
+- VHost block may contain both the RedirFile and HtmlDir directive
 
 Changes since 3.7 beta 14
 - Use REMOTE_ADDR from mod_rpaf for internal references as well
