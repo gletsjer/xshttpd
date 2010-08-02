@@ -56,12 +56,6 @@ file.
 .Ss Global Options
 The following options can be set in the global section:
 .Bl -tag -width Ds
-.It Sy SystemRoot Ar directory Aq @wwwdir@
-The main httpd directory which contains the WWW data subdirectories
-.Pa htdocs
-and
-.Pa cgi-bin .
-This option has been deprecated and should not be used.
 .It Sy PidFile Ar filename Aq /var/run/httpd.pid
 The file to store the current pid and the last startup
 command line. This will be used by
@@ -121,7 +115,7 @@ performance of the webserver).
 If enabled all directories will be checked for the presence
 of a
 .Pa .xsscripts
-file - or the presens of
+file - or the presence of
 .Sy Execute
 directives in
 .Xr xsconf 5
@@ -187,8 +181,8 @@ of uid-shifting programs dumping their state on disk.
 .It Sy UseSendfile Ar boolean Aq true
 Specify if
 .Xr sendfile 2
-should be used to transfer (binary) datafiles over an unencrypted
-connection (images, stylesheets, etc). This may speed-up transfers
+should be used to transfer (binary) data files over an unencrypted
+connection (images, style sheets, etc.). This may speed-up transfers
 of such files. However on some systems it hinders rather than
 improves performance, so it is possible to turn this off. This
 option has no effect when sendfile is not available on your system.
@@ -254,7 +248,19 @@ then a default list of modules will be loaded.
 The list of default modules can be queried with the command
 .Ql httpd -v .
 .El
-.Ss Global module optinos
+.Pp
+The following options from old versions have been removed and 
+are no longer used in the installed version.
+.Bl -tag -width Ds
+.It Sy SystemRoot Ar directory Aq /usr/local/lib/httpd
+Used to set the installation version for data and configuration files.
+Files are now installed in diverse locations, specified at compilation time.
+Per virtual host file locations (HTML data, CGI scripts, icons, log files)
+can be set using directives listed in the
+.Sx Section Options
+paragraph below. 
+.El
+.Ss Global module options
 If webserver modules are enabled, additional configuration
 options may be available in the global section. If the relevant
 module is not available, then using such an option will generate
@@ -611,8 +617,8 @@ it is wise to start the domain with a dot (.) to match all
 hosts in the domain as well. You may also give a machine
 name instead of a domain name. Note: This only affects
 .Ql traditional
-logging where a sperate referrer logfile is used. It will be
-ignored when using more modern logstyles.
+logging where a separate referrer logfile is used. It will be
+ignored when using more modern log styles.
 .It Sy LogStyle Xo
 .Bro Cm traditional Ns | Ns Cm combined Ns | Ns Cm virtual Brc Aq combined
 .Xc
@@ -632,7 +638,7 @@ the webserver.
 Redirect all requests for this host according to the rules
 listed in
 .Ar filename .
-This file uses the regular expression mathing rules detailed in
+This file uses the regular expression matching rules detailed in
 .Xr xsredir 5 .
 If this command is present,
 .Sy HtmlDir
@@ -642,7 +648,7 @@ All requests are redirected; if none of the rules match, a
 error will be returned.
 .It Sy IndexFiles Ar filename Oo Ar filename ... Oc Aq index.html index.htm index.xhtml index.xml index.php
 Defines the filename(s) that should be used when the user
-asks for a directory. The webserver will never autogenerate
+asks for a directory. The webserver will never auto-generate
 a directory index: you can use
 .Xr xsindex 1
 for that. You can specify multiple filenames separated by
