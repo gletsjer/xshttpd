@@ -33,9 +33,9 @@ perl_init(void)
 
 	/* perl_parse() doesn't like const arguments: pass dynamic */
 	if (perlscript)
-		STRDUP(path, calcpath(perlscript));
+		STRDUP(path, calcpath(CONTRIB_DIR, perlscript));
 	else
-		STRDUP(path, calcpath("contrib/persistent.pl"));
+		STRDUP(path, calcpath(CONTRIB_DIR, "persistent.pl"));
 	if (!access(path, R_OK))
 	{
 		embedding[0] = embedding[1] = path;
