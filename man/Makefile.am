@@ -17,7 +17,7 @@ do_subst = sed -e 's,[@]wwwdir[@],$(wwwdir),g' \
 
 $(PREBUILD): $(build_MANS)
 	@for m in $(build_MANS);\
-	 do $(do_subst) < $(srcdir)/$${m%%.in} > $$m;\
+	 do $(do_subst) $(srcdir)/$$m > $${m%%.in};\
 	 done
 	@touch $(PREBUILD)
 
