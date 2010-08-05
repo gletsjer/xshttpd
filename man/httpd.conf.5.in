@@ -90,7 +90,7 @@ If enabled, files in virtual host directories will be
 retrieved with the permissions of the owner over the virtual
 host rootdir. This can be useful if different users maintain
 different sites.
-.It Sy VirtualHostDir Ar directory Ao @wwwdir@ Ac
+.It Sy VirtualHostDir Ar directory Ao /usr/local/lib/httpd Ac
 When virtual hosts are enabled, the server also supports
 .Qq automatic
 detection of virtual hostnames - that is without specific
@@ -373,7 +373,7 @@ both blocks with and without
 The location of the x509 certificate to be used for SSL
 connections. This may be an absolute path or relative to
 the configuration directory
-.Pa ( @configdir@ ) .
+.Pa ( /usr/local/lib/httpd/conf ) .
 .It Sy SSLPrivateKey Ar filename Aq key.pem
 The location of the x509 certificate's key to be used for SSL connections.
 This may be contained in the same file as the
@@ -424,14 +424,14 @@ default; although an example
 file is included in the distribution.
 This may be an absolute path or a path relative to
 the configuration directory
-.Pa ( @configdir@ ) .
+.Pa ( /usr/local/lib/httpd/conf ) .
 .It Sy SSLCApath Ar directory Aq
 The location of the list of files containing x509 root
 certificates to be used for validation of client certs. This
 is unset by default.
 This may be an absolute path or a path relative to
 the configuration directory
-.Pa ( @configdir@ ) .
+.Pa ( /usr/local/lib/httpd/conf ) .
 Both
 .Sy SSLCAfile
 and
@@ -444,14 +444,14 @@ used for validation of client certificates. This is unset by
 default.
 This may be an absolute path or a path relative to
 the configuration directory
-.Pa ( @configdir@ ) .
+.Pa ( /usr/local/lib/httpd/conf ) .
 .It Sy SSLCRLpath Ar directory Aq
 The location of the certificate revocation lists
 to be used for validation of client certs.
 This is unset by default.
 This may be an absolute path or a path relative to
 the configuration directory
-.Pa ( @configdir@ ) .
+.Pa ( /usr/local/lib/httpd/conf ) .
 Both
 .Sy SSLCRLfile
 and
@@ -535,13 +535,14 @@ argument.
 .It Sy HtmlDir Ar directory Aq htdocs
 The main directory containing all the HTML files. This
 defaults to
-.Sy @htmldir@
+.Pa /usr/local/lib/httpd/htdocs
 for the main server and
 .Pa .html
 for users (path relative to user's homedir).
 It is a mandatory option in
 .Sy Virtual
-sections.
+sections (path may be relative to
+.Pa /usr/local/lib/httpd ) .
 .Pp
 For the
 .Sy Users

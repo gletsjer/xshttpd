@@ -384,15 +384,15 @@ load_config()
 				else if (!strcasecmp("PathInfoScripts", key))
 					string_to_arraypn(value, &current->uidscripts);
 				else if (!strcasecmp("HtmlDir", key))
-					current->htmldir = checkpath("HtmlDir", NULL, value);
+					current->htmldir = checkpath("HtmlDir", WWW_DIR, value);
 				else if (!strcasecmp("ExecDir", key))
 					STRDUP(current->execdir, value);
 				else if (!strcasecmp("PhExecDir", key))
-					current->phexecdir = checkpath("PhExecDir", NULL, value);
+					current->phexecdir = checkpath("PhExecDir", WWW_DIR, value);
 				else if (!strcasecmp("IconDir", key))
 					STRDUP(current->icondir, value);
 				else if (!strcasecmp("PhIconDir", key))
-					current->phicondir = checkpath("PhIconDir", NULL, value);
+					current->phicondir = checkpath("PhIconDir", SHDATA_DIR, value);
 				else if (!strcasecmp("LogAccess", key))
 					current->logaccess = checkpath("LogAccess", LOG_DIR, value);
 				else if (!strcasecmp("LogError", key))
