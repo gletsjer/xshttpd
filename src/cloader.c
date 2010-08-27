@@ -93,9 +93,6 @@ checkpath(const char *directive, const char *prefix, const char *value)
 
 	if (value[0] != '/')
 	{
-		if (strchr(value, '/'))
-			errx(1, "Directive '%s' must be absolute pathname or file without '/'", directive);
-
 		if (!prefix || prefix[0] != '/')
 			errx(1, "Directive '%s' must be absolute pathname", directive);
 
