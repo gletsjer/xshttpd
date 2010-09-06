@@ -18,23 +18,23 @@ but not able to overwrite your data - nor should it be able to write logfiles */
 
 /* Configuration default file locations */
 
-#define	HTTPD_CONF	CONFIG_DIRT "httpd.conf"
+#define	HTTPD_CONF	CONFIG_DIR "/httpd.conf"
 
-#define	MIME_TYPES	CONFIG_DIRT "mime.types"
-#define	MIME_INDEX	CONFIG_DIRT "mime.index"
+#define	MIME_TYPES	CONFIG_DIR "/mime.types"
+#define	MIME_INDEX	CONFIG_DIR "/mime.index"
 
-#define SCRIPT_METHODS	CONFIG_DIRT "script.methods"
-#define	COMPRESS_METHODS CONFIG_DIRT "compress.methods"
+#define SCRIPT_METHODS	CONFIG_DIR "/script.methods"
+#define	COMPRESS_METHODS CONFIG_DIR "/compress.methods"
 
-#define	CERT_FILE	CONFIG_DIRT "cert.pem"
-#define KEY_FILE	CONFIG_DIRT "key.pem"
+#define	CERT_FILE	CONFIG_DIR "/cert.pem"
+#define KEY_FILE	CONFIG_DIR "/key.pem"
 
-#define CNT_DATA	LOG_DIRT "xs-counter.data"
-#define CNT_LOCK	LOG_DIRT "xs-counter.lock"
-#define CNT_CLEAR	LOG_DIRT "xs-clear.lock"
+#define CNT_DATA	LOG_DIR "/xs-counter.data"
+#define CNT_LOCK	LOG_DIR "/xs-counter.lock"
+#define CNT_CLEAR	LOG_DIR "/xs-clear.lock"
 
 #define BITBUCKETNAME	"/dev/null"
-#define PID_PATH	RUN_DIRT "httpd.pid"
+#define PID_PATH	RUN_DIR "/httpd.pid"
 #define TEMPORARYPREFIX	"/tmp/xs-httpd.XXXX"
 
 #define INDEX_HTML	"index.html"

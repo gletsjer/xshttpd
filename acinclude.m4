@@ -18,9 +18,7 @@ dnl 		$1=${rootdir}/$2)
 dnl 	])
 AC_DEFUN([XS_ARG_DIRS], [
 	m4_foreach_w([loc], [$1], [
-		CFLAGS="${CFLAGS} -[D]AS_TR_CPP(loc[_DIR])=\\\"${loc[dir]}\\\""
-		AC_DEFINE(AS_TR_CPP(loc[_DIRT]), [AS_TR_CPP(loc[_DIR]) "/"],
-			[loc directory with opt. trailing slash])
+		CPPFLAGS="${CPPFLAGS} -[D]AS_TR_CPP(loc[_DIR])=\\\"${loc[dir]}\\\""
 		AS_IF([test "${loc[dir]}" = "${loc[dir]#[/\$]}"],
 			AC_MSG_ERROR([Config directory loc[dir] must refer to an absolute path])
 			AC_SUBST(loc[dir]))

@@ -23,7 +23,7 @@ AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "${ppmtogif}",
 	[ppmtogif-like program used to create graphic counters])
 
 dnl Checks for libraries.
-CFLAGS="${CFLAGS} -I/usr/local/include -I/usr/include"
+CPPFLAGS="${CPPFLAGS} -I/usr/local/include -I/usr/include"
 LDFLAGS="${LDFLAGS} -L/usr/local/lib -Wl,-R/usr/local/lib"
 httpd_cflags="${CFLAGS}"
 libxs_cflags="${CFLAGS}"
