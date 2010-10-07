@@ -5,6 +5,7 @@ AS_SHELL_SANITIZE
 AC_CONFIG_SRCDIR([src/httpd.c])
 AC_CONFIG_LIBOBJ_DIR([libcompat])
 AC_CONFIG_AUX_DIR([aux])
+AC_LANG(C)
 AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 no-dist-gzip])
 AC_DEFINE_UNQUOTED(SERVER_IDENT, "${SERVER_IDENT}", [Server version])
 AC_CONFIG_HEADERS([config.h])
@@ -46,9 +47,9 @@ AC_TYPE_SSIZE_T
 AC_CHECK_TYPES([socklen_t, sa_family_t, in_addr_t, in_port_t],,,
 	[#include <sys/types.h>
 #include <sys/socket.h>])
-AC_CHECK_TYPES([time_t],, AC_DEFINE(time_t, int, [What time looks like]),
-	[#include <sys/types.h>
-#include <time.h>])
+AC_CHECK_TYPES([time_t],, [AC_DEFINE(time_t, int, [What time looks like])],
+	[[#include <sys/types.h>
+#include <time.h>]])
 XS_PRINT_TYPE(uid_t, PRIuid)
 XS_PRINT_TYPE(pid_t, PRIpid)
 XS_PRINT_TYPE(off_t, PRIoff)
@@ -80,18 +81,18 @@ AC_CHECK_FUNC(setegid,,   [AC_LIBOBJ(seteuid)])
 AC_REPLACE_FUNCS(closefrom err fgetln killpg memmem mkstemp setenv seteuid setgroups setproctitle srandomdev strlcat strcasestr strndup strlcpy strptime strsep strerror)
 
 dnl Check in6_addr layout; must follow socket library check.
-AC_CHECK_TYPES(struct in6_addr,,, [#include <netinet/in.h>])
+AC_CHECK_TYPES(struct in6_addr,,, [[#include <netinet/in.h>]])
 AS_IF([test x$ac_cv_type_struct_in6_addr = xyes], [
 	AC_CHECK_MEMBER([struct in6_addr.s6_addr32],,,
-		[#include <netinet/in.h>])
+		[[#include <netinet/in.h>]])
 	AS_IF([test x$ac_cv_member_struct_in6_addr_s6_addr32 = xno], [
 		AH_TEMPLATE(s6_addr32, [in6_addr elements, 32-bit version])
 		AC_CHECK_MEMBER([struct in6_addr._S6_un._S6_u32],
 			AC_DEFINE(s6_addr32, _S6_un._S6_u32),,
-			[#include <netinet/in.h>])
+			[[#include <netinet/in.h>]])
 		AC_CHECK_MEMBER([struct in6_addr.__u6_addr.__u6_addr32],
 			AC_DEFINE(s6_addr32, __u6_addr.__u6_addr32),,
-			[#include <netinet/in.h>])
+			[[#include <netinet/in.h>]])
 		])
 	])
 
@@ -200,11 +201,11 @@ XS_CHECK_WITH(python, Python interpreter, no, [
 
 AC_MSG_CHECKING([if you want configuration preprocessing])
 withval=
-AC_ARG_WITH(preprocessor, [
+AC_ARG_WITH(preprocessor, [[
 Extra options:
 ]AS_HELP_STRING([--with-preprocessor],
-		[optional configuration preprocessor (none)]),
-	[AC_MSG_RESULT(${withval:-no})
+		[optional configuration preprocessor (none)])],
+	[AC_MSG_RESULT([${withval:-no}])
 	 AS_IF([test x$withval = xyes], [withval=m4])
 	 AS_IF([test x$withval != xno], [
 		 AC_PATH_PROG(preprocessor, $withval)
@@ -245,7 +246,7 @@ AS_IF([test x${enable_ssp} = xyes], [
 	AC_MSG_CHECKING([whether ${CC%% *} supports stack protection...])
 	TCFLAGS="${CFLAGS}"
 	CFLAGS="${CFLAGS} -fstack-protector-all -Wstack-protector"
-	AC_COMPILE_IFELSE(AC_LANG_SOURCE([int i = 0;]),
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [int i = 0;])],
 		AC_MSG_RESULT([yes]),
 		AC_MSG_RESULT([no])
 		CFLAGS="${TCFLAGS}")

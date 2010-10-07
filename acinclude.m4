@@ -83,41 +83,41 @@ AC_DEFUN([XS_TRY_CONFIG], [
 
 AC_DEFUN([XS_FUNC_SENDFILE], [
 	AC_MSG_CHECKING([for sendfile])
-	AC_COMPILE_IFELSE(AC_LANG_PROGRAM([#include <sys/types.h>
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
 #ifdef	HAVE_SYS_SENDFILE_H
 #include <sys/sendfile.h>
 #endif
 #include <sys/socket.h>
-#include <sys/uio.h>],
-		[sendfile(0, 0, 0, 0, (void *)0, (void *)0, 0);]),
+#include <sys/uio.h>]],
+		[[sendfile(0, 0, 0, 0, (void *)0, (void *)0, 0);]]),
 		[AC_MSG_RESULT([yes])
 		 AC_DEFINE(HAVE_BSD_SENDFILE, [],
 			 [Define to 1 if you have the BSD-style 'sendfile' function])
 		 ],
-		[AC_COMPILE_IFELSE(AC_LANG_PROGRAM([#include <sys/types.h>
+		[AC_COMPILE_IFELSE(AC_LANG_PROGRAM([[#include <sys/types.h>
 #ifdef	HAVE_SYS_SENDFILE_H
 #include <sys/sendfile.h>
 #endif
 #include <sys/socket.h>
-#include <sys/uio.h>],
-			[sendfile(0, 0, (void *)0, 0);]),
+#include <sys/uio.h>]],
+			[[sendfile(0, 0, (void *)0, 0);]]),
 			AC_MSG_RESULT([yes (Linux-style)])
 			AC_DEFINE(HAVE_LINUX_SENDFILE, [],
 				[Define to 1 if you have the Linux-style 'sendfile' function]),
 			AC_MSG_RESULT([no])
 			)]
-		)
+		])
 	])
 
 dnl XS_PRINT_AS(type, define)
 AC_DEFUN([XS_PRINT_TYPE], [
 	AC_MSG_CHECKING([how to print $1])
-	AC_RUN_IFELSE(AC_LANG_PROGRAM([#include <sys/types.h>],
-		[return 8 * sizeof($1);]),
+	AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>]],
+		[return 8 * sizeof($1);])],
 		[sz=0],
 		[sz=$?])
-	AC_RUN_IFELSE(AC_LANG_PROGRAM([#include <sys/types.h>],
-		[$1 x = ($1)-1; return x < ($1)0;]),
+	AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>],
+		[$1 x = ($1)-1; return x < ($1)0;]])],
 		[val=PRIu$sz],
 		[val=PRId$sz])
 	AC_DEFINE_UNQUOTED($2, [$val], [Define how to print `$1'])
@@ -128,15 +128,15 @@ AC_DEFUN([XS_PRINT_TYPE], [
 dnl XS_DEF_MAX(type, define)
 AC_DEFUN([XS_DEF_MAX], [
 	AC_MSG_CHECKING([max value of $1])
-	AC_RUN_IFELSE(AC_LANG_PROGRAM([#include <sys/types.h>
-#include <sys/limits.h>],
-		[return !$2;]),
-		AC_MSG_RESULT([$2]), [
-		AC_RUN_IFELSE(AC_LANG_PROGRAM([#include <sys/types.h>],
+	AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
+#include <sys/limits.h>]],
+		[return !$2;])],
+		[AC_MSG_RESULT([$2])], [
+		AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>]],
 			[$1 x = ($1)-1; int s = 8 * sizeof($1);
 			 return (x < ($1)0) ? s-1 : s;]),
 			[sz=0],
-			[sz=$?])
+			[sz=$?]])
 		val=$(( (1 << $sz) - 1))
 		AC_DEFINE_UNQUOTED([$2], [$val], [Max value of `$1'])
 		AC_MSG_RESULT([(1 << $sz) - 1])
