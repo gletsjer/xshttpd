@@ -1,6 +1,11 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 17
+- Minor autoconf cleanups and better quoting
+- Only log remote hostname if forward DNS IP matches connecting address
+- Add LdapFilter for more flexible LDAP authentication lookups
+
 Changes since 3.7 beta 16
 - Fix compilation error in mod_perl
 - HtmlDir and PhExecDir may again be relative to WWW_DIR (as before b15)
