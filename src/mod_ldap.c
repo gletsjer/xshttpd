@@ -11,14 +11,15 @@
 
 #include	"ldap.h"
 #include	"malloc.h"
+#include	"pcre.h"
 #include	"modules.h"
 #include	"constants.h"
 
 struct ldap_auth
 {
-	char	*uri, *attr, *dn, *groups;
+	char	*uri, *attr, *dn, *groups, *filter;
 	int	version;
-} ldap;
+} ldap = { NULL, NULL, NULL, NULL, NULL, 3 };
 
 static bool	check_group (LDAP *, char *, const char *, const char *) WARNUNUSED;
 static bool	check_auth_ldap(const char *, const char *, const char *) WARNUNUSED;
@@ -157,6 +158,12 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
                                 free(ldap.groups);
 			STRDUP(ldap.groups, line + 11);
                 }
+		if (!strncasecmp ("ldapfilter=", line, 11))
+                {
+                        if (ldap.filter)
+                                free(ldap.filter);
+			STRDUP(ldap.filter, line + 11);
+                }
 	}
 	fclose(af);
 	return check_auth_ldap_full(user, pass);
@@ -180,7 +187,8 @@ check_auth_ldap_full(const char *user, const char *pass)
 
 	if (!ldap.uri || !strlen(ldap.uri) ||
 			!ldap.dn || !strlen(ldap.dn) ||
-			!ldap.attr || !strlen(ldap.attr))
+			!(ldap.attr || ldap.filter) ||
+			!strlen(ldap.attr ? ldap.attr : ldap.filter))
 		/* LDAP config is incomplete */
 		return false;
 
@@ -194,11 +202,33 @@ check_auth_ldap_full(const char *user, const char *pass)
 	cred.bv_len = strlen(pass);
 	STRDUP(cred.bv_val, cred.bv_len ? pass : NULL);
 
+	/* copy filter with %u replaced by $user */
+	if (ldap.filter)
+	{
+		filter = pcre_subst(ldap.filter, "%u", user);
+		if (!filter && !ldap.attr)
+		{
+			FREE(cred.bv_val);
+			return false;
+		}
+		if (ldap.attr)
+		{
+			char *newfilter = NULL;
+			/* combine ldap.filter and $attr query */
+			ASPRINTF (&newfilter, "(&(%s=%s)(%s))",
+				ldap.attr, user,
+				filter ? filter : ldap.filter);
+			FREE(filter);
+			filter = newfilter;
+		}
+	}
+	else
+		ASPRINTF (&filter, "(%s=%s)", ldap.attr, user);
+
 	/*
 	 * This search may look confusing. Basically, we do a search for the
 	 * user in the tree given, _including all subtrees_.
 	 */
-	ASPRINTF (&filter, "(%s=%s)", ldap.attr, user);
 
 	if (ldap_search_ext_s (ld, ldap.dn, LDAP_SCOPE_SUBTREE, filter, NULL, 0, NULL, NULL, NULL, 0, &res) != LDAP_SUCCESS)
 		goto leave;
@@ -296,6 +326,12 @@ ldap_config_local(const char *name, const char *value)
 		if (ldap.groups)
 			free(ldap.groups);
 		STRDUP(ldap.groups, value);
+	}
+	else if (!strcasecmp(name, "LdapFilter"))
+	{
+		if (ldap.filter)
+			free(ldap.filter);
+		STRDUP(ldap.filter, value);
 	}
 	else
 		return false;

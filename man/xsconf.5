@@ -244,6 +244,19 @@ List of groups of which the user should be a member. If the
 username is found in any of these groups, then access will
 be granted. If no groups are specified, then a matching
 username and password will be enough to be granted access.
+.It Sy LdapFilter
+Using a custom filter is the most flexible way to select
+a user. This allows full LDAP filter expressions to be used.
+In this expression
+.Li %u
+may be used (more than once) to match the user to be authenticated.
+A filter rule may be used in combination with 
+.Sy LdapAttr
+and
+.Sy LdapGroups
+for convenience. But when
+.Li %u
+is used in this expression, there is no need to set attr or groups.
 .El
 .Sh EXAMPLES
 An
