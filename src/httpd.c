@@ -1284,6 +1284,33 @@ standalone_main()
 	/* NOTREACHED */
 }
 
+static bool
+addr_equal(struct sockaddr *socka, struct sockaddr *sockb)
+{
+	if (socka->sa_family == AF_INET && sockb->sa_family == AF_INET)
+	{
+		const struct sockaddr_in *saia = (struct sockaddr_in *)socka;
+		const struct sockaddr_in *saib = (struct sockaddr_in *)sockb;
+		const struct in_addr *iaa = &saia->sin_addr;
+		const struct in_addr *iab = &saib->sin_addr;
+
+		if (memcmp(iaa, iab, sizeof(struct in_addr)) == 0)
+			return true;
+	}
+	else if (socka->sa_family == AF_INET6 && sockb->sa_family == AF_INET6)
+	{
+		const struct sockaddr_in6 *saia = (struct sockaddr_in6 *)socka;
+		const struct sockaddr_in6 *saib = (struct sockaddr_in6 *)sockb;
+		const struct in6_addr *iaa = &saia->sin6_addr;
+		const struct in6_addr *iab = &saib->sin6_addr;
+
+		if (memcmp(iaa, iab, sizeof(struct in6_addr)) == 0)
+			return true;
+	}
+
+	return false;
+}
+
 static	void
 standalone_socket(int id)
 {
@@ -1566,7 +1593,7 @@ standalone_socket(int id)
 			 * Let's abuse getaddrinfo() instead...
 			 */
 			hints.ai_family = PF_INET;
-			hints.ai_flags = AI_CANONNAME;
+			hints.ai_flags = AI_CANONNAME | AI_NUMERICHOST;
 			if (!getaddrinfo(remoteaddr, NULL, &hints, &res))
 			{
 				strlcpy(remotehost, res->ai_canonname, NI_MAXHOST);
@@ -1576,6 +1603,24 @@ standalone_socket(int id)
 			/* Loooser! You will just have to use the IP-adres... */
 # endif		/* HAVE_GETADDRINFO */
 #endif		/* HAVE GETNAMEINFO */
+#ifdef		HAVE_GETADDRINFO
+			if (remotehost[0])
+			{
+				bool		matchreverse = false;
+				struct addrinfo	*pr;
+
+				hints.ai_family = ((struct sockaddr *)&saddr)->sa_family;
+				hints.ai_flags = 0;
+
+				if (!getaddrinfo(remotehost, NULL, &hints, &res))
+					/* check if hostname matches dns ip */
+					for (pr = res; pr; pr = pr->ai_next)
+						if (addr_equal(pr->ai_addr, (struct sockaddr *)&saddr))
+							matchreverse = true;
+				if (!matchreverse)
+					strlcpy(remotehost, remoteaddr, NI_MAXHOST);
+			}
+#endif		/* HAVE_GETADDRINFO */
 		}
 		if (!initssl())
 			continue;
