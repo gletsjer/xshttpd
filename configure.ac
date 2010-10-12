@@ -47,7 +47,7 @@ AC_TYPE_SSIZE_T
 AC_CHECK_TYPES([socklen_t, sa_family_t, in_addr_t, in_port_t],,,
 	[#include <sys/types.h>
 #include <sys/socket.h>])
-AC_CHECK_TYPES([time_t],, [AC_DEFINE(time_t, int, [What time looks like])],
+AC_CHECK_TYPES([time_t], [], AC_DEFINE(time_t, int, [What time looks like]),
 	[[#include <sys/types.h>
 #include <time.h>]])
 XS_PRINT_TYPE(uid_t, PRIuid)
@@ -214,13 +214,13 @@ Extra options:
 				[preprocessor used to parse configuration files])
 			], [XS_FATAL(preprocessor)])
 		])
-	 ], [AC_MSG_RESULT(${withval:-no})])
+	 ], AC_MSG_RESULT(${withval:-no}))
 
 dnl Select directory layout 
 hier=xs
 AC_MSG_CHECKING([for --enable-hier])
 AC_ARG_ENABLE(hier,
-	AC_HELP_STRING([--enable-hier=[xs|bsd|gnu]], [set hierarchy layout]), [
+	AS_HELP_STRING([--enable-hier=[xs|bsd|gnu]], [set hierarchy layout]), [
 	hier=${enable_hier}
 	AC_MSG_RESULT(${enable_hier})
 	], AC_MSG_RESULT(${hier}))
