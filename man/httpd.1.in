@@ -19,7 +19,7 @@
 .Op Fl d Ar directory
 .Op Fl a Ar address
 .Sh DESCRIPTION
-This manual describes the behaviour of xs-httpd/3.7 beta/0.16.
+This manual describes the behaviour of @SERVER_IDENT@.
 .Pp
 Note that the server must run as root in order to use a port number 
 below or equal to 1024 (the default is 80).
