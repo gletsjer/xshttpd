@@ -389,7 +389,7 @@ The
 returns status 0 when it starts successfully and the daemon will continue
 to run in the background. If any fatal error occurs, additional
 information should be available in the logfile
-.Pa logs/error_log .
+.Pa error_log .
 .Sh SEE ALSO
 .Xr httpdc 1 ,
 .Xr xspasswd 1 ,

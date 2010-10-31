@@ -252,7 +252,7 @@ The list of default modules can be queried with the command
 The following options from old versions have been removed and 
 are no longer used in the installed version.
 .Bl -tag -width Ds
-.It Sy SystemRoot Ar directory Aq /usr/local/lib/httpd
+.It Sy SystemRoot Ar directory Aq @wwwdir@
 Used to set the installation version for data and configuration files.
 Files are now installed in diverse locations, specified at compilation time.
 Per virtual host file locations (HTML data, CGI scripts, icons, log files)
@@ -373,7 +373,7 @@ both blocks with and without
 The location of the x509 certificate to be used for SSL
 connections. This may be an absolute path or relative to
 the configuration directory
-.Pa ( /usr/local/lib/httpd/conf ) .
+.Pa ( @configdir@ ) .
 .It Sy SSLPrivateKey Ar filename Aq key.pem
 The location of the x509 certificate's key to be used for SSL connections.
 This may be contained in the same file as the
@@ -424,14 +424,14 @@ default; although an example
 file is included in the distribution.
 This may be an absolute path or a path relative to
 the configuration directory
-.Pa ( /usr/local/lib/httpd/conf ) .
+.Pa ( @configdir@ ) .
 .It Sy SSLCApath Ar directory Aq
 The location of the list of files containing x509 root
 certificates to be used for validation of client certs. This
 is unset by default.
 This may be an absolute path or a path relative to
 the configuration directory
-.Pa ( /usr/local/lib/httpd/conf ) .
+.Pa ( @configdir@ ) .
 Both
 .Sy SSLCAfile
 and
@@ -444,14 +444,14 @@ used for validation of client certificates. This is unset by
 default.
 This may be an absolute path or a path relative to
 the configuration directory
-.Pa ( /usr/local/lib/httpd/conf ) .
+.Pa ( @configdir@ ) .
 .It Sy SSLCRLpath Ar directory Aq
 The location of the certificate revocation lists
 to be used for validation of client certs.
 This is unset by default.
 This may be an absolute path or a path relative to
 the configuration directory
-.Pa ( /usr/local/lib/httpd/conf ) .
+.Pa ( @configdir@ ) .
 Both
 .Sy SSLCRLfile
 and
@@ -535,14 +535,14 @@ argument.
 .It Sy HtmlDir Ar directory Aq htdocs
 The main directory containing all the HTML files. This
 defaults to
-.Pa /usr/local/lib/httpd/htdocs
+.Pa @htmldir@
 for the main server and
 .Pa .html
 for users (path relative to user's homedir).
 It is a mandatory option in
 .Sy Virtual
 sections (path may be relative to
-.Pa /usr/local/lib/httpd ) .
+.Pa @wwwdir@ ) .
 .Pp
 For the
 .Sy Users
