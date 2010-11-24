@@ -58,13 +58,16 @@ initreadmode(bool reset)
 		netbufind[0] = netbufsiz[0] = 0;
 		netbuf[0][0] = '\0';
 	}
-	while ((readerror = ERR_get_error()))
-	{
-		warnx("SSL Error: %s", ERR_reason_error_string(readerror));
-		usleep(200);
-	}
 	if (cursock->ssl)
+	{
+		while ((readerror = ERR_get_error()))
+		{
+			warnx("SSL Error: %s",
+				ERR_reason_error_string(readerror));
+			usleep(200);
+		}
 		setenv("SSL_CIPHER", SSL_get_cipher(cursock->ssl), 1);
+	}
 }
 
 bool
