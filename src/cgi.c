@@ -439,8 +439,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			if ((write(q[1], cbuf, chunksz) < 0) &&
 				(errno != EINTR))
 			{
-				xserror(500, "Connection closed (fd = %d, todo = %zu",
-					q[1], chunksz);
+				xserror(500, "Connection closed - %zu bytes not written",
+					 chunksz);
 				CLOSEFD;
 				return;
 			}
@@ -481,8 +481,9 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			{
 				if ((result < 0) && (errno != EINTR))
 				{
-					xserror(500, "Connection closed (fd = %d, todo = %" PRIoff,
-						q[1], writetodo);
+					xserror(500, "Connection closed - %" PRIoff
+						" of %u bytes not written",
+						writetodo, tobewritten);
 					CLOSEFD;
 					return;
 				}
@@ -727,8 +728,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 				if (written < 0)
 				{
-					secprintf("[Connection closed: %s (fd = %d, temp = %p, todo = %" PRIoff "]\n",
-						strerror(errno), fileno(stdout), temp,
+					secprintf("[Connection closed - %" PRIoff " bytes not written]\n",
 						writetodo);
 					CLOSEFD;
 					return;
