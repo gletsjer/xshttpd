@@ -30,6 +30,7 @@
 #include	<memory.h>
 #endif		/* HAVE_MEMORY_H */
 #include	<stdarg.h>
+#include	<poll.h>
 
 #include	"htconfig.h"
 #include	"httpd.h"
@@ -462,6 +463,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			char		inbuf[RWBUFSIZE];
 			ssize_t		result;
 			size_t		offset, tobewritten;
+			struct pollfd	pfd = { q[1], POLLWRNORM };
 
 			if (writetodo > RWBUFSIZE)
 				tobewritten = RWBUFSIZE;
@@ -477,6 +479,11 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				break;
 			tobewritten = result;
 			offset = 0;
+
+			result = poll(&pfd, 1, 0);
+			if (result < 0 || pfd.revents & (POLLERR | POLLHUP))
+				/* Cannot write - remote end closed? */
+				break;
 			while ((result = write(q[1], inbuf + offset, tobewritten - offset)) < (int)(tobewritten - offset))
 			{
 				if ((result < 0) && (errno != EINTR))
