@@ -685,7 +685,16 @@ server_error(int code, const char *readable, const char *cgi)
 		env.query_string ? env.query_string : "(none)",
 		current ? current->hostname : config.system->hostname,
 		referer[0] ? referer : "(none)");
+
+	/* execute error cgi */
+	bool waspost = session.postonly;
+	session.postonly = false;
+	/* POST should not be redirected to the error CGI
+	 * XXX: close the input here to avoid access?
+	 */
+
 	do_script(orig, cgipath, filename, NULL);
+	session.postonly = waspost;
 	free(cgipath);
 }
 
