@@ -463,7 +463,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			char		inbuf[RWBUFSIZE];
 			ssize_t		result;
 			size_t		offset, tobewritten;
-			struct pollfd	pfd = { q[1], POLLWRNORM };
+			struct pollfd	pfd = { q[1], POLLWRNORM, 0 };
 
 			if (writetodo > RWBUFSIZE)
 				tobewritten = RWBUFSIZE;
@@ -489,7 +489,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				if ((result < 0) && (errno != EINTR))
 				{
 					xserror(500, "Connection closed - %" PRIoff
-						" of %u bytes not written",
+						" of %zu bytes not written",
 						writetodo, tobewritten);
 					CLOSEFD;
 					return;
