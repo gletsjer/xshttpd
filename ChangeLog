@@ -1,6 +1,12 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 18
+- Fix POST handling when input is delayed
+- Fix POST handling when script ignores the input
+- Fix spurious SSL errors
+- Users dirs no longer allowed in vhosts unless UseUsers is set
+
 Changes since 3.7 beta 17
 - Minor autoconf cleanups and better quoting
 - Only log remote hostname if forward DNS IP matches connecting address

@@ -1211,7 +1211,14 @@ process_request(void)
 		}
 	}
 	if (params[0] && params[1] == '~')
+	{
+		if (current && !current->allowusers)
+		{
+			xserror(404, "User is unknown");
+			return;
+		}
 		current = config.users;
+	}
 	else if (!current)
 		current = config.system;
 

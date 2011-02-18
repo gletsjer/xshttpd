@@ -5,4 +5,3 @@
 - Make FastCGI usable
 - Implement mod_dav with full WebDAV commands (fs backend)
 - SCGI, http://python.ca/scgi/
-

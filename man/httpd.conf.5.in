@@ -669,6 +669,19 @@ section, it will default to the definition in the
 .Sy System
 block, or the previously mentioned default if this is also
 unspecified.
+.It Sy UseUsers Ar boolean Aq false
+This flag controles if personal user directories (as defined in the
+.Sy Users
+section) will be made available through this virtual host.
+If access to personal webdirectories is enabled, then these will
+always be made available through the default
+.Sy System
+host.
+However, by default personal directories cannot be accessed through
+any virtual webhost definitions, unless this option is explicitly set.
+This setting is only relevant in a
+.Sy Virtual
+section and will be ignored if it is used in any other section.
 .It Sy SocketName Ar key Aq
 A socket name is optional and should usually not be
 specified. If such a

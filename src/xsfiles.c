@@ -328,7 +328,7 @@ check_allow_host(const char *hostname, char *pattern)
 	/* return 1 if pattern matches - i.e. access granted */
 	if (!hostname || !pattern || !*hostname || !*pattern)
 		return false;
-	
+
 	/* substring match */
 	if (!strncmp(hostname, pattern, strlen(pattern)))
 		return true;

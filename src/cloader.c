@@ -423,6 +423,11 @@ load_config()
 						current->logstyle = log_virtual;
 					else
 						errx(1, "illegal logstyle: '%s'", value);
+				else if (!strcasecmp("UseUsers", key))
+					if (!strcasecmp("true", value))
+						current->allowusers = true;
+					else
+						current->allowusers = false;
 				else if (!strcasecmp("UserId", key))
 				{
 					if (!current->userid && !(current->userid = strtoul(value, NULL, 10)))
@@ -619,6 +624,7 @@ load_config()
 		config.system->logreferer = checkpath("LogReferer", LOG_DIR, BITBUCKETNAME);
 	if (!config.system->logstyle)
 		config.system->logstyle = log_combined;
+	config.system->allowusers = true;
 	if (!config.system->userid)
 	{
 		struct passwd	*pwd;

@@ -48,6 +48,7 @@ extern struct virtual
 	FILE *		openerror;
 	FILE *		openscript;
 	xs_logstyle_t	logstyle;
+	bool		allowusers;
 	char *		sslcertificate;
 	char *		sslprivatekey;
 	struct virtual *	next;
