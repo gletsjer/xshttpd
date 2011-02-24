@@ -976,6 +976,8 @@ do_get(char *params)
 
 	alarm(240);
 
+	dynamic = unksize = false;
+
 	/* Sanitize the requested path */
 	question = strchr(params, '?');
 	while ((temp = strstr(params, "//")))
