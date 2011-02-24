@@ -5,7 +5,10 @@ Changes since 3.7 beta 18
 - Fix POST handling when input is delayed
 - Fix POST handling when script ignores the input
 - Fix spurious SSL errors
-- Users dirs no longer allowed in vhosts unless UseUsers is set
+- Users' dirs no longer allowed in vhosts unless UseUsers is set
+- Honour Range headers for static content and auto-inflated data
+  Currently only single-part range requests are executed
+- Auto-inflated gzip data is no longer sent out in chunks
 
 Changes since 3.7 beta 17
 - Minor autoconf cleanups and better quoting

@@ -75,6 +75,7 @@ static char *	find_file		(const char *, const char *, const char *)	MALLOC_FUNC;
 #ifdef		HAVE_CURL
 static size_t	curl_readhack		(void *, size_t, size_t, FILE *);
 #endif		/* HAVE_CURL */
+static bool	parse_range		(const char * const, off_t *, off_t *);
 
 /* Global structures */
 
@@ -169,6 +170,51 @@ make_etag(struct stat *sb)
 		*p = '\0';
 
 	return etag;
+}
+
+static bool
+parse_range(const char * const range, off_t *firstp, off_t *lastp)
+{
+#ifdef		HAVE_PCRE
+	int			erroffset, rc;
+	const char	*error;
+	const pcre	*re = pcre_compile("bytes=(\\d*)-(\\d*)", 0, &error, &erroffset, NULL);
+	int		ovector[OVSIZE];
+	off_t		first, last;
+
+	if (!re)
+		return false;
+
+	rc = pcre_exec(re, NULL, range, strlen(range), 0, 0, ovector, OVSIZE);
+
+	if (rc < 3)
+		return false;
+
+	if (ovector[2] == ovector[3] && ovector[4] == ovector[5])
+		return false;
+
+	if (ovector[4] < ovector[5])
+		last = strtoll(range + ovector[4], NULL, 10);
+	else
+		last = session.size - 1;
+
+	if (ovector[2] < ovector[3])
+		first = strtoll(range + ovector[2], NULL, 10);
+	else
+	{
+		first = session.size - last;
+		last = session.size - 1;
+	}
+
+	if (0 > first || first > last || last >= session.size)
+		return false;
+
+	*firstp = first;
+	*lastp = last;
+	return true;
+#else		/* HAVE_PCRE */
+	return false;
+#endif
 }
 
 static bool
@@ -338,6 +384,40 @@ fileheaders(int fd)
 		}
 	}
 
+	const char	*range = getenv("HTTP_RANGE");
+	if (range && !dynamic)
+	{
+		off_t		first, last;
+
+		/* note: first or last may be unset and will then be rewritten
+		 * to sensible values in the file
+		 */
+		if (!parse_range(range, &first, &last))
+		{
+			server_error(416, "Invalid range", "BAD_RANGE");
+			return false;
+		}
+		/* result: 0 <= session.first < session.last < session.total */
+		session.rstatus = 206;
+		maplist_append(&session.response_headers,
+			append_prepend | append_replace,
+			"Status", "206 Partial Content");
+		if (unksize)
+			maplist_append(&session.response_headers,
+				append_replace,
+				"Content-range",
+				"bytes %" PRIoff "-%" PRIoff "/*",
+				first, last);
+		else
+			maplist_append(&session.response_headers,
+				append_replace,
+				"Content-range",
+				"bytes %" PRIoff "-%" PRIoff "/%" PRIoff,
+				first, last, session.size);
+		session.size = last - first + 1;
+		session.offset = first;
+	}
+
 	writeheaders();
 	return true;
 }
@@ -349,11 +429,7 @@ writeheaders(void)
 	const xs_appendflags_t	O = append_ifempty, F = append_replace;
 
 	/* All preconditions satisfied - do headers */
-	maplist_append(rh, append_prepend | append_ifempty,
-		"Status", "200 OK");
-
-	maplist_append(rh, F, "Date", "%s", currenttime);
-	maplist_append(rh, F, "Server", "%s", config.serverident);
+	/* Status, Date and Server headers are pre-initialised */
 
 	if (cfvalues.mimetype && cfvalues.charset &&
 			!strncasecmp(cfvalues.mimetype, "text/", 5))
@@ -373,6 +449,7 @@ writeheaders(void)
 		if (session.httpversion >= 11)
 		{
 			maplist_append(rh, O, "Cache-control", "no-cache");
+			maplist_append(rh, F, "Accept-ranges", "none");
 			maplist_append(rh, F, "Transfer-encoding", "chunked");
 			if (config.usecontentmd5 && session.trailers)
 				maplist_append(rh, F, "Trailer", "Content-MD5");
@@ -387,6 +464,9 @@ writeheaders(void)
 	{
 		char	modified[32];
 		char	*checksum;
+
+		if (session.httpversion >= 11 && session.rstatus == 200)
+			maplist_append(rh, F, "Accept-ranges", "bytes");
 
 		if (session.rstatus != 204 && session.rstatus != 304)
 			maplist_append(rh, F, "Content-length", "%" PRIoff,
@@ -482,7 +562,6 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 
 		free(encodings);
 	}
-	unksize = ec_filter ? true : false;
 
 	alarm(180);
 
@@ -492,7 +571,25 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 		close(fd);
 		return;
 	}
-	size = session.size = statbuf.st_size;
+
+	if (ec_filter && ec_filter->size)
+	{
+		size = session.size = ec_filter->size(fd);
+		unksize = size < 0;
+		if (unksize)
+			size = session.size = statbuf.st_size;
+	}
+	else if (ec_filter)
+	{
+		unksize = true;
+		size = session.size = statbuf.st_size;
+	}
+	else
+	{
+		unksize = false;
+		size = session.size = statbuf.st_size;
+	}
+
 	if (session.headers)
 	{
 		if (!fileheaders(fd))
@@ -529,7 +626,7 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 		if (config.usesendfile && !cursock->usessl &&
 			!session.chunked && !ec_filter && valid_size_t_size)
 		{
-			if (sendfile(fd, 1, 0, 0, NULL, NULL, 0) < 0)
+			if (sendfile(fd, 1, session.offset, (size_t)session.size, NULL, NULL, 0) < 0)
 				xserror(599, "Aborted sendfile for `%s'",
 					env.remote_host ? env.remote_host : "(none)");
 		}
@@ -539,7 +636,7 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 		if (config.usesendfile && !cursock->usessl &&
 			!session.chunked && !ec_filter && valid_size_t_size)
 		{
-			if (sendfile(1, fd, NULL, size) < 0)
+			if (sendfile(1, fd, &session.offset, session.size) < 0)
 				xserror(599, "Aborted sendfile for `%s'",
 					env.remote_host ? env.remote_host : "(none)");
 		}
@@ -548,13 +645,13 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 #endif		/* HAVE_SENDFILE */
 #ifdef		HAVE_MMAP
 		/* don't use mmap() for files >12Mb to avoid hogging memory */
-		if (size < 12 * 1048576 && valid_size_t_size && !ec_filter)
+		if (session.size < 12 * 1048576 && valid_size_t_size && !ec_filter)
 		{
 			char		*buffer;
-			size_t		msize = (size_t)size;
+			size_t		msize = (size_t)session.size;
 
 			if ((buffer = (char *)mmap((caddr_t)NULL, msize, PROT_READ,
-				MAP_SHARED, fd, (off_t)0)) == (char *)-1)
+				MAP_SHARED, fd, session.offset)) == (char *)-1)
 				err(1, "[%s] httpd: mmap() failed", currenttime);
 			if ((size_t)(written = secwrite(buffer, msize)) != msize)
 			{
@@ -574,10 +671,11 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 		/* send static content without mmap() */
 		{
 			char		*buffer;
-			ssize_t		readtotal;
+			off_t		readtotal;
 			off_t		writetotal;
 			void		*fdp = NULL;
 			const size_t	rwbufsize = 100 * RWBUFSIZE;
+			ssize_t		readsize;
 
 			MALLOC(buffer, char, rwbufsize);
 			writetotal = 0;
@@ -588,18 +686,27 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 					if (config.usecontentmd5 &&
 							session.trailers)
 						checksum_init();
-					session.chunked = true;
+					if (unksize)
+						session.chunked = true;
 				}
 				fdp = ec_filter->open(fd);
 			}
 
-			readtotal = ec_filter
-				? ec_filter->read(fdp, buffer, rwbufsize)
-				: read(fd, buffer, rwbufsize);
-			while (readtotal > 0)
+			if (ec_filter)
+				ec_filter->seek(fdp, session.offset, SEEK_SET);
+			else
+				lseek(fd, session.offset, SEEK_SET);
+
+			readsize = (off_t)rwbufsize > session.size ? (size_t)session.size : (size_t)rwbufsize;
+			readsize = ec_filter
+				? ec_filter->read(fdp, buffer, readsize)
+				: read(fd, buffer, readsize);
+			if (readsize > 0)
+				readtotal = readsize;
+			while (readsize > 0 && readtotal <= session.size)
 			{
-				if ((written = secwrite(buffer, (size_t)readtotal))
-						!= readtotal)
+				if ((written = secwrite(buffer, (size_t)readsize))
+						!= readsize)
 				{
 					xserror(599, "Aborted for `%s' (No mmap) (%" PRIoff
 							" of %" PRIoff " bytes sent)",
@@ -612,9 +719,11 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 					goto DONE;
 				}
 				writetotal += written;
-				readtotal = ec_filter
+				readsize = ec_filter
 					? ec_filter->read(fdp, buffer, rwbufsize)
 					: read(fd, buffer, rwbufsize);
+				if (readsize > 0)
+					readtotal += readsize;
 			}
 			size = writetotal;
 			FREE(buffer);

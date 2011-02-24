@@ -18,9 +18,10 @@
 void *	compress_open	(int fd);
 int	compress_read	(void *fdp, char *buf, size_t len);
 int	compress_close	(void *fdp);
+off_t	compress_seek	(void *fdp, off_t offset, int whence);
 
 struct encoding_filter	compress_filter =
-	{ compress_open, compress_read, compress_close };
+	{ compress_open, compress_read, compress_close, compress_seek, NULL };
 
 void *
 compress_open(int fdin)
@@ -38,6 +39,12 @@ int
 compress_close(void *fdp)
 {
 	return gzclose((gzFile)fdp);
+}
+
+off_t
+compress_seek(void *fdp, off_t offset, int whence)
+{
+	return gzseek((gzFile)fdp, offset, whence);
 }
 
 struct module compress_module =

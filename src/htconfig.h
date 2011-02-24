@@ -143,6 +143,8 @@ extern struct session
 	unsigned int	httpversion;	/* 9, 10, 11 */
 	unsigned int	rstatus;	/* 200, 301, .. */
 	off_t		size;
+	off_t		offset;
+	off_t		bytes;
 	time_t		modtime;
 	const char *	etag;		/* not malloced */
 	bool		headers;

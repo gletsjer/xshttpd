@@ -17,6 +17,8 @@ struct encoding_filter
 	void *	(*open)		(int fd);
 	int	(*read)		(void *fdp, char *buf, size_t len);
 	int	(*close)	(void *fdp);
+	off_t	(*seek)		(void *fdp, off_t offset, int whence);
+	off_t	(*size)		(int fd);
 };
 
 typedef ssize_t (*readline_callback_t)(char *, size_t);

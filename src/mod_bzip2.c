@@ -16,9 +16,10 @@
 void	*bzip2_open	(int fd);
 int	bzip2_read	(void *fdp, char *buf, size_t len);
 int	bzip2_close	(void *fdp);
+off_t	bzip2_seek	(void *fdp, off_t offset, int whence);
 
 struct encoding_filter	bzip2_filter =
-	{ bzip2_open, bzip2_read, bzip2_close };
+	{ bzip2_open, bzip2_read, bzip2_close, bzip2_seek, NULL };
 
 void *
 bzip2_open(int fd)
@@ -37,6 +38,32 @@ bzip2_close(void *fdp)
 {
 	BZ2_bzclose((BZFILE *)fdp);
 	return 0;
+}
+
+off_t
+bzip2_seek(void *fdp, off_t offset, int whence)
+{
+	char	buf[RWBUFSIZE];
+	size_t	len;
+	off_t	totalread = 0;
+	int	ret;
+
+	/* whence flag is ignored */
+	(void)whence;
+
+	while (totalread < offset)
+	{
+		if (totalread + RWBUFSIZE < offset)
+			len = offset - totalread;
+		else
+			len = RWBUFSIZE;
+		ret = BZ2_bzread((BZFILE *)fdp, buf, len);
+		if (ret < 0)
+			return ret;
+		totalread += ret;
+	}
+
+	return totalread;
 }
 
 struct module bzip2_module =

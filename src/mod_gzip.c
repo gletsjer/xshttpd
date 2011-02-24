@@ -26,13 +26,15 @@ int	gzip_close	(void *fdp);
 void *	gunzip_open	(int fd);
 int	gunzip_read	(void *fdp, char *buf, size_t len);
 int	gunzip_close	(void *fdp);
+off_t	gunzip_seek	(void *fdp, off_t offset, int whence);
+off_t	gunzip_size	(int fd);
 
 /* Variables */
 struct encoding_filter	gzip_filter =
-	{ gzip_open, gzip_read, gzip_close };
+	{ gzip_open, gzip_read, gzip_close, NULL, NULL };
 
 struct encoding_filter	gunzip_filter =
-	{ gunzip_open, gunzip_read, gunzip_close };
+	{ gunzip_open, gunzip_read, gunzip_close, gunzip_seek, gunzip_size };
 
 struct gzstruct
 {
@@ -141,6 +143,30 @@ int
 gunzip_close(void *fdp)
 {
 	return gzclose((gzFile)fdp);
+}
+
+off_t
+gunzip_seek(void *fdp, off_t offset, int whence)
+{
+	return gzseek((gzFile)fdp, offset, whence);
+}
+
+off_t
+gunzip_size(int fdin)
+{
+	unsigned char	buf[4];
+	uint32_t	usize;
+	int		rv;
+
+	rv = lseek(fdin, (off_t)-4, SEEK_END);
+	if (rv >= 0)
+		rv = read(fdin, (char *)buf, sizeof(buf));
+	if (rv < 0)
+		return (off_t)-1;
+
+	lseek(fdin, (off_t)0, SEEK_SET);
+	usize = buf[0] | buf[1] << 8 | buf[2] << 16 | buf[3] << 24;
+	return (off_t)usize;
 }
 
 bool

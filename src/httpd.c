@@ -1242,6 +1242,11 @@ METHOD:
 	strlcpy(remoteaddr, env.remote_addr, sizeof(remoteaddr));
 	strlcpy(remotehost, env.remote_host, sizeof(remotehost));
 
+	struct maplist	*rh = &session.response_headers;
+	maplist_append(rh, append_replace, "Status", "200 OK");
+	maplist_append(rh, append_replace, "Date", "%s", currenttime);
+	maplist_append(rh, append_replace, "Server", "%s", config.serverident);
+
 	if (!strcasecmp("GET", line))
 		do_get(params);
 	else if (!strcasecmp("HEAD", line))
