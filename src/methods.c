@@ -394,10 +394,20 @@ fileheaders(int fd)
 		 */
 		if (!parse_range(range, &first, &last))
 		{
-			server_error(416, "Invalid range", "BAD_RANGE");
+			char	rangespec[25];
+
+			if (!unksize)
+			{
+				snprintf(rangespec, sizeof rangespec,
+					"*/%" PRIoff, session.size);
+				setenv("HTTP_CONTENT_RANGE",  rangespec, 1);
+			}
+			xserror(416, "Invalid range");
 			return false;
 		}
-		/* result: 0 <= session.first < session.last < session.total */
+		/* result: 0 <= first < last < session.size
+		 *  0 <= ses.offset <= ses.offset + ses.bytes <= ses.size
+		 */
 		session.rstatus = 206;
 		maplist_append(&session.response_headers,
 			append_prepend | append_replace,

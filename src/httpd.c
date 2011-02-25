@@ -533,15 +533,19 @@ xserror(int code, const char *format, ...)
 	if (session.headers)
 	{
 		struct maplist	*rh = &session.response_headers;
+		char		*header;
 
 		maplist_free(rh);
 		maplist_append(rh, append_prepend,
 			"Status", "%03d %s", code, message);
 
 		session.size = errmsg ? strlen(errmsg) : 0;
-		if ((getenv("HTTP_ALLOW")))
+		if ((header = getenv("HTTP_ALLOW")))
 			maplist_append(rh, append_default,
-				"Allow", "%s", getenv("HTTP_ALLOW"));
+				"Allow", "%s", header);
+		if ((header = getenv("HTTP_CONTENT_RANGE")))
+			maplist_append(rh, append_default,
+				"Content-range", "%s", header);
 
 		if (!writeheaders())
 		{
