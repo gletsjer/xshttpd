@@ -385,9 +385,9 @@ preloadssl(void)
 void
 loadssl(struct socket_config *lsock, struct ssl_vhost *sslvhost)
 {
-	SSL_CTX		*ssl_ctx;
-	SSL_METHOD	*method = NULL;
-	struct virtual	*vc = NULL;
+	SSL_CTX			*ssl_ctx;
+	const SSL_METHOD	*method = NULL;
+	struct virtual		*vc = NULL;
 
 	if (!lsock->usessl)
 		return;

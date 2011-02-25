@@ -122,6 +122,7 @@ run_fcgi(int fdin, int fdout, int fderr)
 
 	fcgi_disconnect(server);
 	free_env(&fenv);
+	(void) fdin;
 	return 0;
 }
 
@@ -559,6 +560,8 @@ send_stream(fcgi_server * server, off_t length, unsigned char stream_id, int fd)
 	}
 
 	free(buffer);
+
+	(void) fd;
 	return n;
 }
 
