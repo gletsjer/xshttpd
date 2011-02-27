@@ -206,8 +206,12 @@ parse_range(const char * const range, off_t *firstp, off_t *lastp)
 		last = session.size - 1;
 	}
 
-	if (0 > first || first > last || last >= session.size)
+	if (0 > first || first > session.size)
 		return false;
+	if (first > last)
+		last = first;
+	else if (last > session.size)
+		last = session.size ? session.size - 1 : 0;
 
 	*firstp = first;
 	*lastp = last;
