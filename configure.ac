@@ -6,7 +6,7 @@ AC_CONFIG_SRCDIR([src/httpd.c])
 AC_CONFIG_LIBOBJ_DIR([libcompat])
 AC_CONFIG_AUX_DIR([aux])
 AC_LANG(C)
-AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 no-dist-gzip])
+AM_INIT_AUTOMAKE([foreign no-define silent-rules dist-bzip2 no-dist-gzip])
 AC_DEFINE_UNQUOTED(SERVER_IDENT, "${SERVER_IDENT}", [Server version])
 AC_CONFIG_HEADERS([config.h])
 
