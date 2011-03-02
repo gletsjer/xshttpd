@@ -381,7 +381,12 @@ load_config()
 				else if (!strcasecmp("PathInfoScripts", key))
 					string_to_arraypn(value, &current->uidscripts);
 				else if (!strcasecmp("HtmlDir", key))
-					current->htmldir = checkpath("HtmlDir", WWW_DIR, value);
+				{
+					if (subtype == sub_users)
+						STRDUP(current->htmldir, value);
+					else
+						current->htmldir = checkpath("HtmlDir", WWW_DIR, value);
+				}
 				else if (!strcasecmp("ExecDir", key))
 					STRDUP(current->execdir, value);
 				else if (!strcasecmp("PhExecDir", key))

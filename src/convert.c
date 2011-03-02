@@ -47,9 +47,16 @@ convertpath(const char *org)
 				userinfo->pw_name,
 				userpos + 2);
 		}
-		else
+		else if (config.users->htmldir[0] == '~' &&
+				config.users->htmldir[1] == '/')
+			snprintf(path, XS_PATH_MAX, "%s/%s/",
+				userinfo->pw_dir, config.users->htmldir + 2);
+		else if (config.users->htmldir[0] != '/')
 			snprintf(path, XS_PATH_MAX, "%s/%s/",
 				userinfo->pw_dir, config.users->htmldir);
+		else
+			/* Path starts with leading slash */
+			strlcpy(path, config.users->htmldir, XS_PATH_MAX);
 		if (slash)
 			strlcat(path, slash, XS_PATH_MAX);
 	}

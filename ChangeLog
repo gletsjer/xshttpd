@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 20
+- HtmlDir may again be relative to a user's home directory
+
 Changes since 3.7 beta 19
 - Accept Range requests that exceed content size
 
