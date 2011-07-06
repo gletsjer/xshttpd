@@ -15,8 +15,8 @@
 #include	"path.h"
 #include	"convert.h"
 
-const char *
-convertpath(const char *org)
+static const char *
+convertpathandroot(const char *org, size_t *rootlen)
 {
 	static	char		path[XS_PATH_MAX];
 
@@ -34,6 +34,7 @@ convertpath(const char *org)
 		if (!(userinfo = getpwnam(person)))
 		{
 			free(person);
+			*rootlen = strlen(BITBUCKETNAME);
 			return BITBUCKETNAME;
 		}
 		free(person);
@@ -46,6 +47,7 @@ convertpath(const char *org)
 				len, len, config.users->htmldir,
 				userinfo->pw_name,
 				userpos + 2);
+
 		}
 		else if (config.users->htmldir[0] == '~' &&
 				config.users->htmldir[1] == '/')
@@ -57,14 +59,51 @@ convertpath(const char *org)
 		else
 			/* Path starts with leading slash */
 			strlcpy(path, config.users->htmldir, XS_PATH_MAX);
+		*rootlen = strlen(path) - 1;
 		if (slash)
 			strlcat(path, slash, XS_PATH_MAX);
 	}
 	else if (*org != '/')
-		snprintf(path, XS_PATH_MAX, "%s/%s", getenv("PWD"), org);
+	{
+		char	*pwd = getenv("PWD");
+
+		*rootlen = strlen(pwd);
+		snprintf(path, XS_PATH_MAX, "%s/%s", pwd, org);
+	}
 	else if (current == config.users)
+	{
+		*rootlen = strlen(config.system->htmldir);
 		snprintf(path, XS_PATH_MAX, "%s%s", config.system->htmldir, org);
+	}
 	else /* use htdocs dir for this vhost */
+	{
+		*rootlen = strlen(current->htmldir);
 		snprintf(path, XS_PATH_MAX, "%s%s", current->htmldir, org);
+	}
+	while (*rootlen > 0 && path[*rootlen - 1] == '/')
+		*rootlen--;
 	return (path);
 }
+
+const char *
+convertpath(const char *org)
+{
+	size_t	rootlen;
+
+	return convertpathandroot(org, &rootlen);
+}
+
+char *
+getdocroot(const char *org)
+{
+	char	*path;
+	size_t	rootlen;
+
+	path = (char *)convertpathandroot(org, &rootlen);
+	if (rootlen > 0)
+		path[rootlen] = '\0';
+
+	return path;
+}
+
+

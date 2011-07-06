@@ -4,5 +4,6 @@
 #define		CONVERT_H
 
 const	char	*convertpath	(const char *)	NONNULL WARNUNUSED;
+char		*getdocroot	(const char *)	NONNULL WARNUNUSED;
 
 #endif		/* CONVERT_H */

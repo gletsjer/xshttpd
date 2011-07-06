@@ -714,8 +714,7 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 			readsize = ec_filter
 				? ec_filter->read(fdp, buffer, readsize)
 				: read(fd, buffer, readsize);
-			if (readsize > 0)
-				readtotal = readsize;
+			readtotal = readsize;
 			while (readsize > 0 && readtotal <= session.size)
 			{
 				if ((written = secwrite(buffer, (size_t)readsize))

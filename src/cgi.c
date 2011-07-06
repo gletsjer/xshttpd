@@ -42,6 +42,7 @@
 #include	"extra.h"
 #include	"malloc.h"
 #include	"modules.h"
+#include	"convert.h"
 
 static	void		time_is_up(int)	NORETURN;
 static	bool		append(char **, bool, const char * const format, ...)	PRINTF_LIKE(3,4);
@@ -158,8 +159,21 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 	}
 
+	if (env.request_uri)
+		setenv("DOCUMENT_ROOT", getdocroot(env.request_uri), 1);
 	setenv("SCRIPT_FILENAME", fullpath, 1);
 	setenv("REDIRECT_STATUS", "200", 1);
+
+	/* Strip trailing slash from $DOCUMENT_ROOT */
+	if (base && *base)
+	{
+		char	*root;
+
+		STRDUP(root, base);
+		if (root[strlen(root) - 1] == '/')
+			root[strlen(root) - 1] = '\0';
+		FREE(root);
+	}
 
 	nph = (!strncmp(file, "nph-", 4) || strstr(file, "/nph-"));
 	if (config.usessi)

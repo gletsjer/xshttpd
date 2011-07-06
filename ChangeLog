@@ -3,6 +3,7 @@ is not complete. Refer to cvs comments for more information.
 
 Changes since 3.7 beta 20
 - HtmlDir may again be relative to a user's home directory
+- Set DOCUMENT_ROOT environment variable for CGIs
 
 Changes since 3.7 beta 19
 - Accept Range requests that exceed content size

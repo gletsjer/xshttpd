@@ -71,7 +71,6 @@ run_fcgi(int fdin, int fdout, int fderr)
 	while (!request_ended)
 	{
 		fd_set		set;
-		int		ret;
 
 		FD_ZERO(&set);
 		FD_SET(server->socket, &set);
@@ -82,7 +81,7 @@ run_fcgi(int fdin, int fdout, int fderr)
 		 * 	FD_SET(data_file, &set);
 		 */
 
-		ret = select(server->socket + 1, &set, NULL, NULL, 0);
+		select(server->socket + 1, &set, NULL, NULL, 0);
 
 		if (FD_ISSET(server->socket, &set))
 		{
