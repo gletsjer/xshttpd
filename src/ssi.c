@@ -941,7 +941,7 @@ dir_if(int argc, char **argv, off_t *size)
 	b = 0;
 	if (value && *value)
 		for (i = 2; i < argc; i += 2)
-			if (b |= match(value, argv[i]))
+			if ((b |= match(value, argv[i])))
 				break;
 	ssiarray[++ssioutput] = b;
 	return(ERR_NONE);
