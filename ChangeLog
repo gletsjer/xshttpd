@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 21
+- Fix potential crash in mod_ldap, by dean
+
 Changes since 3.7 beta 20
 - HtmlDir may again be relative to a user's home directory
 - Set DOCUMENT_ROOT environment variable for CGIs

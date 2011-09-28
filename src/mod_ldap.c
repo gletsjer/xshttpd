@@ -246,7 +246,7 @@ check_auth_ldap_full(const char *user, const char *pass)
 	if (ldap_sasl_bind_s (ld, dn, LDAP_SASL_SIMPLE, &cred, NULL, NULL, NULL) != LDAP_SUCCESS)
 		goto leave;
 
-	if (!strcmp (ldap.groups, ""))
+	if (!ldap.groups || !strcmp (ldap.groups, ""))
 	{
 		/* no groups specified, so it's a definite go */
 		allow = true;
