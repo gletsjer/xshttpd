@@ -51,6 +51,9 @@ main(int argc, char **argv)
 	FILE		*fp;
 	double		dist, mindist = 0;
 
+	(void)argc;
+	(void)argv;
+
 	if (!(query = getenv("QUERY_STRING")))
 		servererr("Invalid usage, client may not support ISMAP");
 
@@ -168,9 +171,6 @@ main(int argc, char **argv)
 	if (def[0])
 		sendmesg(def);
 	servererr("No default specified");
-	/* NOTREACHED */
-	(void)argc;
-	(void)argv;
 }
 
 static	void

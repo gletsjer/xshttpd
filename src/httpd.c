@@ -111,6 +111,9 @@ static	void	setup_environment	(void);
 static	void	standalone_main		(void)	NORETURN;
 static	void	standalone_socket	(int)	NORETURN;
 
+static	bool	addr_equal
+	(const void * const socka, const void * const sockb)	CONST_FUNC;
+
 static	void
 filedescrs()
 {
@@ -1310,24 +1313,27 @@ standalone_main()
 }
 
 static bool
-addr_equal(struct sockaddr *socka, struct sockaddr *sockb)
+addr_equal(const void * const socka, const void * const sockb)
 {
-	if (socka->sa_family == AF_INET && sockb->sa_family == AF_INET)
+	const sa_family_t	fa = ((const struct sockaddr *)socka)->sa_family;
+	const sa_family_t	fb = ((const struct sockaddr *)sockb)->sa_family;
+
+	if (fa == AF_INET && fb == AF_INET)
 	{
-		const struct sockaddr_in *saia = (struct sockaddr_in *)socka;
-		const struct sockaddr_in *saib = (struct sockaddr_in *)sockb;
-		const struct in_addr *iaa = &saia->sin_addr;
-		const struct in_addr *iab = &saib->sin_addr;
+		const struct sockaddr_in *sia = socka;
+		const struct sockaddr_in *sib = sockb;
+		const struct in_addr *iaa = &sia->sin_addr;
+		const struct in_addr *iab = &sib->sin_addr;
 
 		if (memcmp(iaa, iab, sizeof(struct in_addr)) == 0)
 			return true;
 	}
-	else if (socka->sa_family == AF_INET6 && sockb->sa_family == AF_INET6)
+	else if (fa == AF_INET6 && fb == AF_INET6)
 	{
-		const struct sockaddr_in6 *saia = (struct sockaddr_in6 *)socka;
-		const struct sockaddr_in6 *saib = (struct sockaddr_in6 *)sockb;
-		const struct in6_addr *iaa = &saia->sin6_addr;
-		const struct in6_addr *iab = &saib->sin6_addr;
+		const struct sockaddr_in6 *sia = socka;
+		const struct sockaddr_in6 *sib = sockb;
+		const struct in6_addr *iaa = &sia->sin6_addr;
+		const struct in6_addr *iab = &sib->sin6_addr;
 
 		if (memcmp(iaa, iab, sizeof(struct in6_addr)) == 0)
 			return true;
@@ -1343,9 +1349,9 @@ standalone_socket(int id)
 	unsigned int		count;
 #ifdef		HAVE_GETADDRINFO
 	struct	addrinfo	hints, *res;
-	struct	sockaddr_storage	saddr;
+	struct	sockaddr_storage	*saddr = malloc(sizeof(struct sockaddr_storage));
 #else		/* HAVE_GETADDRINFO */
-	struct	sockaddr	saddr;
+	struct	sockaddr	*saddr = malloc(sizeof(struct sockaddr));
 #endif		/* HAVE_GETADDRINFO */
 	pid_t			*childs;
 
@@ -1396,8 +1402,8 @@ standalone_socket(int id)
 		/* Quick patch to run on old systems */
 		const in_port_t		sport;
 
-		memset(&saddr, 0, sizeof(struct sockaddr));
-		saddr.sa_family = PF_INET;
+		memset(saddr, 0, sizeof(struct sockaddr));
+		saddr->sa_family = PF_INET;
 		if (!strcmp(cursock->port, "http"))
 			sport = 80;
 		else if (!strcmp(cursock->port, "https"))
@@ -1405,9 +1411,9 @@ standalone_socket(int id)
 		else
 			sport = (in_port_t)strtoul(cursock->port, NULL, 10)
 				|| 80;
-		((struct sockaddr_in *)&saddr)->sin_port = htons(sport);
+		((struct sockaddr_in *)saddr)->sin_port = htons(sport);
 
-		if (bind(sd, &saddr, sizeof(struct sockaddr)) == -1)
+		if (bind(sd, saddr, sizeof(struct sockaddr)) == -1)
 			err(1, "bind()");
 	}
 #endif		/* HAVE_GETADDRINFO */
@@ -1534,8 +1540,8 @@ standalone_socket(int id)
 		filedescrs();
 		setproctitle("xs(%c%d): [Reqs: %06d] Waiting for a connection...",
 			id, count + 1, reqs);
-		clen = sizeof(saddr);
-		if ((csd = accept(sd, (struct sockaddr *)&saddr, &clen)) < 0)
+		clen = sizeof(struct sockaddr);
+		if ((csd = accept(sd, (struct sockaddr *)saddr, &clen)) < 0)
 		{
 			mysleep(1);
 			if (errno == EINTR)
@@ -1561,7 +1567,7 @@ standalone_socket(int id)
 
 		strlcpy(remoteaddr, "0.0.0.0", NI_MAXHOST);
 #ifdef		HAVE_GETNAMEINFO
-		if (!getnameinfo((struct sockaddr *)&saddr, clen,
+		if (!getnameinfo((struct sockaddr *)saddr, clen,
 			remoteaddr, NI_MAXHOST, NULL, 0, NI_NUMERICHOST))
 		{
 			/* Fake $REMOTE_ADDR because most people don't
@@ -1574,7 +1580,7 @@ standalone_socket(int id)
 		{
 			/* I don't need libnsl for this... */
 			const in_addr_t		laddr =
-				ntohl(((struct sockaddr_in *)&saddr)
+				ntohl(((struct sockaddr_in *)saddr)
 					->sin_addr.s_addr);
 			snprintf(remoteaddr, NI_MAXHOST, "%u.%u.%u.%u",
 				(laddr & 0xff000000) >> 24,
@@ -1609,7 +1615,7 @@ standalone_socket(int id)
 			}
 
 #ifdef		HAVE_GETNAMEINFO
-			getnameinfo((struct sockaddr *)&saddr, clen,
+			getnameinfo((struct sockaddr *)saddr, clen,
 				remotehost, NI_MAXHOST, NULL, 0, 0);
 #else		/* HAVE_GETNAMEINFO */
 # ifdef		HAVE_GETADDRINFO
@@ -1634,13 +1640,13 @@ standalone_socket(int id)
 				bool		matchreverse = false;
 				struct addrinfo	*pr;
 
-				hints.ai_family = ((struct sockaddr *)&saddr)->sa_family;
+				hints.ai_family = ((struct sockaddr *)saddr)->sa_family;
 				hints.ai_flags = 0;
 
 				if (!getaddrinfo(remotehost, NULL, &hints, &res))
 					/* check if hostname matches dns ip */
 					for (pr = res; pr; pr = pr->ai_next)
-						if (addr_equal(pr->ai_addr, (struct sockaddr *)&saddr))
+						if (addr_equal(pr->ai_addr, (struct sockaddr *)saddr))
 							matchreverse = true;
 				if (!matchreverse)
 					strlcpy(remotehost, remoteaddr, NI_MAXHOST);
@@ -1745,6 +1751,9 @@ main(int argc, char **argv, char **envp)
 	char		*longopt[] = { [2] = NULL };
 	uid_t		uid = 0;
 	gid_t		gid = 0;
+
+	(void)envp;
+	(void)copyright;
 
 	origeuid = geteuid(); origegid = getegid();
 	memset(&config, 0, sizeof config);
@@ -1928,7 +1937,4 @@ main(int argc, char **argv, char **envp)
 	*environ = NULL;
 
 	standalone_main();
-	/* NOTREACHED */
-	(void)envp;
-	(void)copyright;
 }

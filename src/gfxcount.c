@@ -225,6 +225,9 @@ main(int argc, char **argv)
 	struct	stat	statbuf;
 	char		*pathinfo;
 
+	(void)argc;
+	(void)argv;
+
 	alarm(240);
 	pathinfo = getenv("PATH_INFO");
 	pathtranslated = getenv("PATH_TRANSLATED");
@@ -245,9 +248,6 @@ main(int argc, char **argv)
 			"You must supply a number as a query argument");
 	loadfont();
 	buildpicture();
-	/* NOTREACHED */
-	(void)argc;
-	(void)argv;
 }
 
 #else		/* Not PATH_PPMTOGIF */

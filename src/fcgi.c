@@ -497,11 +497,9 @@ handle_record(fcgi_server * server, int fdout, int fderr)
 	case FCGI_UNKNOWN_TYPE:
 		/* ... */
 		return -1;
-		break;
 	default:
 		/* should not get any other type */
 		return -1;
-		break;
 	}
 
 	if (record_header.padding_length !=

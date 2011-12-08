@@ -10,7 +10,7 @@ httpd_LDFLAGS = $(httpd_ldflags) -Wl,--rpath -Wl,/usr/local/lib/httpd/module
 httpd_LDADD = $(LDADD) $(httpd_dlopen)
 
 libxs_a_SOURCES = decode.c hash.c extra.c path.c xscrypt.c
-libxs_a_CFLAGS = -fPIC
+libxs_a_CFLAGS = $(CFLAGS) -fPIC
 
 httpdc_CPPFLAGS = -DBINDIR=\"$(bindir)\"
 

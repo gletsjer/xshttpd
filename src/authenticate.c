@@ -30,8 +30,9 @@
 #include	"methods.h"
 #include	"hash.h"
 
+#define	RFC2617_DIGEST	1
+
 static unsigned long	secret;
-static const bool	rfc2617_digest = true;
 
 static bool	get_crypted_password(const char *, const char *, char **, char **) WARNUNUSED;
 static bool	check_basic_auth(const char *authfile) WARNUNUSED;
@@ -278,9 +279,11 @@ denied_access(bool digest, bool stale)
 				"digest realm=\"" REALM "\", "
 				"nonce=\"%s\"%s%s",
 				fresh_nonce(),
-				rfc2617_digest
-				 ? ", qop=\"auth\", algorithm=md5"
-				 : "",
+#ifdef		RFC2617_DIGEST
+				 ", qop=\"auth\", algorithm=md5",
+#else		/* RFC2617_DIGEST */
+				 "",
+#endif		/* RFC2617_DIGEST */
 				stale ? ", stale=true" : "");
 		else
 			maplist_append(rh, append_default, "WWW-Authenticate",

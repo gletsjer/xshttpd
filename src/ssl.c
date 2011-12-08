@@ -583,7 +583,6 @@ secread_internal(int fd, void *buf, size_t count)
 			case SSL_ERROR_SYSCALL:
 				if (EBADF != errno)
 					warn("SSL_read()");
-					break;
 				/* else: socket closed (by alarm handler) */
 				break;
 			case SSL_ERROR_ZERO_RETURN:

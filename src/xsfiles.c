@@ -384,9 +384,11 @@ check_allow_host(const char *hostname, char *pattern)
 
 		if (!cport && !getaddrinfo(NULL, pattern + 1, &hints, &res))
 		{
+			const struct sockaddr_in6 *r6 = (void *)res->ai_addr;
+			const struct sockaddr_in  *r4 = (void *)res->ai_addr;
 			cport = htons(res->ai_family == AF_INET6
-				? ((struct sockaddr_in6 *)res->ai_addr)->sin6_port
-				: ((struct sockaddr_in *)res->ai_addr)->sin_port);
+				? r6->sin6_port
+				: r4->sin_port);
 			freeaddrinfo(res);
 		}
 		if (lport && cport == lport)

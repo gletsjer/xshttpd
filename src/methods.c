@@ -94,8 +94,8 @@ typedef	struct	ctypes
 	char		*name;
 } ctypes;
 
-static inline void	free_ftype		(struct ftypes *);
-static inline void	free_ctype		(struct ctypes *);
+static void	free_ftype		(struct ftypes *);
+static void	free_ctype		(struct ctypes *);
 
 /* Global variables */
 
@@ -112,7 +112,7 @@ static	char	real_path[XS_PATH_MAX], orig_filename[XS_PATH_MAX],
 static	size_t	curl_readlen;
 #endif		/* HAVE_CURL */
 
-inline void
+void
 free_ftype(ftypes *f)
 {
 	if (!f)
@@ -122,7 +122,7 @@ free_ftype(ftypes *f)
 	free(f);
 }
 
-inline void
+void
 free_ctype(ctypes *c)
 {
 	if (!c)
