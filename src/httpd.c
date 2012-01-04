@@ -592,8 +592,7 @@ redirect(const char *redir, xs_redirflags_t flags)
 	{
 		struct maplist	*rh = &session.response_headers;
 
-		maplist_free(rh);
-		maplist_append(rh, append_prepend, "Status", "%s moved",
+		maplist_append(rh, append_replace, "Status", "%s moved",
 			flags & redir_perm ? "301 Permanently" : "302 Temporarily");
 		if (qs)
 			maplist_append(rh, append_default,
