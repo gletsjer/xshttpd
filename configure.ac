@@ -120,7 +120,7 @@ libxs_ldflags="${libxs_ldflags} ${ssllib}"
 httpd_ldflags="${httpd_ldflags} ${xssl_ldflags}"
 
 dnl User specified additional (non-system) libraries.
-XS_CHECK_WITH(pcre, PCRE support, yes, [XS_TRY_CONFIG(pcre, libxs)])
+XS_CHECK_WITH(pcre, PCRE support, yes, [XS_TRY_CONFIG(pcre, httpd)])
 
 XS_CHECK_WITH(curl, CURL transfer support, no, [XS_TRY_CONFIG(curl, httpd)])
 
