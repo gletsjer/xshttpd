@@ -202,13 +202,14 @@ check_auth_ldap_full(const char *user, const char *pass)
 	cred.bv_len = strlen(pass);
 	STRDUP(cred.bv_val, cred.bv_len ? pass : NULL);
 
-	/* copy filter with %u replaced by $user */
+	/* copy filter, filling in $user */
 	if (ldap.filter)
 	{
-		filter = pcre_subst(ldap.filter, "%u", user);
+		STRDUP(filter, ldap.filter);
 		if (!filter && !ldap.attr)
 		{
 			FREE(cred.bv_val);
+			FREE(filter);
 			return false;
 		}
 		if (ldap.attr)
