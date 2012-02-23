@@ -44,7 +44,7 @@ AC_TYPE_UID_T
 AC_TYPE_PID_T
 AC_TYPE_OFF_T
 AC_TYPE_SSIZE_T
-AC_CHECK_TYPES([socklen_t, sa_family_t, in_addr_t, in_port_t],,,
+AC_CHECK_TYPES([socklen_t, sa_family_t, in_addr_t, in_port_t, struct sockaddr_storage],,,
 	[#include <sys/types.h>
 #include <sys/socket.h>])
 AC_CHECK_TYPES([time_t], [], AC_DEFINE(time_t, int, [What time looks like]),

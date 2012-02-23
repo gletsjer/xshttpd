@@ -1352,11 +1352,15 @@ standalone_socket(int id)
 	int			csd = 0;
 	unsigned int		count;
 #ifdef		HAVE_GETADDRINFO
-	struct	addrinfo	hints, *res;
-	struct	sockaddr_storage	*saddr = malloc(sizeof(struct sockaddr_storage));
-#else		/* HAVE_GETADDRINFO */
-	struct	sockaddr	*saddr = malloc(sizeof(struct sockaddr));
+	struct addrinfo	hints, *res;
 #endif		/* HAVE_GETADDRINFO */
+#ifdef		HAVE_STRUCT_SOCKADDR_STORAGE
+	const socklen_t		salen = sizeof(struct sockaddr_storage);
+	struct sockaddr_storage	*saddr = malloc(salen);
+#else		/* HAVE_STRUCT_SOCKADDR_STORAGE */
+	const socklen_t		salen = sizeof(struct sockaddr);
+	struct sockaddr		*saddr = malloc(salen);
+#endif		/* HAVE_STRUCT_SOCKADDR_STORAGE */
 	pid_t			*childs;
 
 	setproctitle("xs(MAIN): Initializing deamons...");
@@ -1403,10 +1407,10 @@ standalone_socket(int id)
 
 #else		/* HAVE_GETADDRINFO */
 	{
-		/* Quick patch to run on old systems */
+		/* Quick patch to run on old systems - forced IPv4 */
 		const in_port_t		sport;
 
-		memset(saddr, 0, sizeof(struct sockaddr));
+		memset(saddr, 0, salen);
 		saddr->sa_family = PF_INET;
 		if (!strcmp(cursock->port, "http"))
 			sport = 80;
@@ -1417,7 +1421,7 @@ standalone_socket(int id)
 				|| 80;
 		((struct sockaddr_in *)saddr)->sin_port = htons(sport);
 
-		if (bind(sd, saddr, sizeof(struct sockaddr)) == -1)
+		if (bind(sd, saddr, sizeof(struct sockaddr_in)) == -1)
 			err(1, "bind()");
 	}
 #endif		/* HAVE_GETADDRINFO */
@@ -1544,7 +1548,7 @@ standalone_socket(int id)
 		filedescrs();
 		setproctitle("xs(%c%d): [Reqs: %06d] Waiting for a connection...",
 			id, count + 1, reqs);
-		clen = sizeof(struct sockaddr);
+		clen = salen;
 		if ((csd = accept(sd, (struct sockaddr *)saddr, &clen)) < 0)
 		{
 			mysleep(1);
