@@ -15,7 +15,7 @@
 #include	"path.h"
 #include	"convert.h"
 
-static const char *
+static char *
 convertpathandroot(const char *org, size_t *rootlenp)
 {
 	static	char	path[XS_PATH_MAX];
@@ -36,7 +36,8 @@ convertpathandroot(const char *org, size_t *rootlenp)
 		{
 			free(person);
 			*rootlenp = strlen(BITBUCKETNAME);
-			return BITBUCKETNAME;
+			strlcpy(path, BITBUCKETNAME, XS_PATH_MAX);
+			return path;
 		}
 		free(person);
 		/* transform_user_dir */
@@ -102,11 +103,10 @@ getdocroot(const char *org)
 	char	*path;
 	size_t	rootlen;
 
-	path = (char *)convertpathandroot(org, &rootlen);
+	path = convertpathandroot(org, &rootlen);
 	if (rootlen > 0)
 		path[rootlen] = '\0';
 
 	return path;
 }
-
 
