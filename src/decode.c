@@ -20,7 +20,7 @@
 
 /* Static arrays */
 
-static	char	six2pr[64] =
+static	const char	six2pr[64] =
 {
 	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
 	'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -50,8 +50,8 @@ decode(char * const str)
 		}
 		else
 		{
-			int	top = hexdigit(poss[1]);
-			int	bottom = hexdigit(poss[2]);
+			const int	top = hexdigit(poss[1]);
+			const int	bottom = hexdigit(poss[2]);
 
 			if (top < 0 || bottom < 0)
 				return false;

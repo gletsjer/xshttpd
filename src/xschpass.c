@@ -20,17 +20,17 @@
 #include	"xscrypt.h"
 #include	"malloc.h"
 
-static	void	xserror			(int, const char *, ...)	PRINTF_LIKE(2,3) NORETURN;
+static	void	xserror			(int, const char * const, ...)	PRINTF_LIKE(2,3) NORETURN;
 static	void	urldecode		(char *);
-static	void	changepasswd		(const char *, int);
+static	void	changepasswd		(const char * const, int);
 static	void	generateform		(void);
-int	main			(int, char *[]);
 
 static	void
-xserror(int code, const char *format, ...)
+xserror(int code, const char * const format, ...)
 {
 	va_list		ap;
-	char		*msg, *htmlmsg;
+	const char	*htmlmsg;
+	char		*msg;
 
 	va_start(ap, format);
 	VASPRINTF(&msg, format, ap);
@@ -50,7 +50,7 @@ xserror(int code, const char *format, ...)
 static	void
 urldecode(char *what)
 {
-	static	const	char	*hexdigits = "0123456789ABCDEF";
+	static	const	char	hexdigits[] = "0123456789ABCDEF";
 	const	char		*d1, *d2;
 
 	while (*what)
@@ -156,8 +156,9 @@ changepasswd(const char *param, int  cl)
 		if (!found && strlen(buffer) > 1 &&
 			!strncmp(buffer+1, new2, strlen(new2)))
 		{
-			bool	digest;
-			char	*opwent, *eol, *ha1;
+			bool		digest;
+			char		*eol;
+			const char	*opwent, *ha1;
 
 			eol = strchr(buffer + strlen(new2) + 2, ':');
 			digest = eol ? true : false;
@@ -216,7 +217,7 @@ changepasswd(const char *param, int  cl)
 }
 
 static	void
-generateform()
+generateform(void)
 {
 	char	*name = urlencode(getenv("SCRIPT_NAME"), false);
 	char	*info = urlencode(getenv("PATH_INFO"), true);
@@ -237,7 +238,7 @@ generateform()
 }
 
 int
-main(int argc, char **argv)
+main(int argc, const char * const * const argv)
 {
 	const	char	*param, *cl;
 	int		length;

@@ -50,8 +50,8 @@ typedef	enum
 static	bool	xsc_initdummy		(off_t *);
 static	bool	xsc_initcounter		(const char *, off_t *);
 static	bool	xsc_counter		(countermode, const char *, off_t *);
-static	int	call_counter		(countermode, int, char **, off_t *);
-static	int	parse_values		(char *, char **, size_t);
+static	int	call_counter		(countermode, int, char * const * const, off_t *);
+static	int	parse_values		(const char * const, char **, size_t);
 static	int	dir_count_total		(int, char **, off_t *);
 static	int	dir_count_total_gfx	(int, char **, off_t *);
 static	int	dir_count_today		(int, char **, off_t *);
@@ -75,7 +75,7 @@ static	int	dir_switch		(int, char **, off_t *);
 static	int	dir_endswitch	(int, char **, off_t *);
 static	int	dir_case		(int, char **, off_t *);
 static	bool	print_enabled		(void);
-static	int	parsedirectives		(char *, off_t *);
+static	int	parsedirectives		(const char *, off_t *);
 static	int	sendwithdirectives_internal (int, off_t *);
 
 #define		MAXINCLUDES	16
@@ -137,7 +137,7 @@ xsc_initcounter(const char *filename, off_t *size)
 	unsigned int	retry;
 	countstr	counter, counter2;
 	char		datafile[XS_PATH_MAX];
-	const	char	*lockfile;
+	const char * const	lockfile = CNT_LOCK;
 
 	strlcpy(datafile, CNT_DATA, XS_PATH_MAX);
 	if ((fd = open(datafile, O_RDONLY,
@@ -148,7 +148,6 @@ xsc_initcounter(const char *filename, off_t *size)
 		return false;
 	}
 	retry = 0;
-	lockfile = CNT_LOCK;
 	while ((fd2 = open(lockfile, O_WRONLY | O_CREAT | O_EXCL,
 		S_IWUSR | S_IRUSR | S_IRGRP | S_IROTH)) < 0 && retry++ < 5)
 	{
@@ -211,11 +210,10 @@ xsc_initcounter(const char *filename, off_t *size)
 void
 counter_versioncheck()
 {
-	int		fd;
-	const char	*counterfile;
-	char		xscount_version;
+	int			fd;
+	char			xscount_version;
+	const char * const	counterfile = CNT_DATA;
 
-	counterfile = CNT_DATA;
 	if ((fd = open(counterfile, O_RDONLY, 0)) < 0)
 		/* no data yet: that's fine */
 		return;
@@ -234,7 +232,7 @@ counter_versioncheck()
 }
 
 static	bool
-xsc_counter(countermode mode, const char *args, off_t *size)
+xsc_counter(countermode mode, const char * const args, off_t *size)
 {
 	int			fd = -1, total, x, y, z, comp;
 	bool			already = false;
@@ -390,14 +388,13 @@ xsc_counter(countermode mode, const char *args, off_t *size)
 }
 
 static	int
-call_counter(countermode mode, int argc, char **argv, off_t *size)
+call_counter(countermode mode, int argc, char * const * const argv, off_t *size)
 {
-	xs_error_t	ret;
-	uid_t		savedeuid;
-	gid_t		savedegid;
-	const	char	*path;
+	xs_error_t		ret;
+	uid_t			savedeuid;
+	gid_t			savedegid;
+	const char * const	path = argc ? argv[0] : NULL;
 
-	path = argc ? argv[0] : NULL;
 	if (!origeuid)
 	{
 		savedeuid = geteuid(); seteuid(origeuid);
@@ -417,9 +414,10 @@ call_counter(countermode mode, int argc, char **argv, off_t *size)
 }
 
 static	int
-parse_values(char *here, char **mapping, size_t maxsize)
+parse_values(const char * const here, char **mapping, size_t maxsize)
 {
-	char		*p, *e, *word, *args, *end = strstr(here, "-->");
+	char		*p, *e, *word, *args;
+	char * const	end = strstr(here, "-->");
 	enum		{ T_INDEX, T_EQUAL, T_VALUE }	expect;
 	size_t		mapsize;
 	bool		guard;
@@ -580,7 +578,8 @@ dir_date(int argc, char **argv, off_t *size)
 {
 	int		i;
 	char		buffer[MYBUFSIZ];
-	char		*format, *zone, *ozone;
+	const char	*format, *zone;
+	char		*ozone;
 
 	format = session.dateformat;
 	zone = ozone = NULL;
@@ -923,7 +922,7 @@ dir_if(int argc, char **argv, off_t *size)
 		value = getenv("HTTP_REFERER");
 	else if (!strcasecmp(keyword, "var"))
 	{
-		char	*var = NULL;
+		const char	*var = NULL;
 
 		for (i = 0; i < setvarlen; i += 2)
 			if (setvars[i] && !strcmp(setvars[i], argv[1]))
@@ -1077,9 +1076,10 @@ print_enabled()
 }
 
 static	int
-parsedirectives(char *parse, off_t *size)
+parsedirectives(const char * const parse, off_t *size)
 {
-	char		*here, result[MYBUFSIZ], *store;
+	const char		*here;
+	char	result[MYBUFSIZ], *store;
 
 	store = result; here = parse;
 	while (*here)
@@ -1109,7 +1109,7 @@ parsedirectives(char *parse, off_t *size)
 		len = argc = parse_values(here, argv, SSIARGUMENTS);
 		for (directive = directives; directive->name; directive++)
 		{
-			char		*search;
+			const char	*search;
 
 			if (len < 1 || strcasecmp(directive->name, argv[0]))
 				continue;
@@ -1142,7 +1142,7 @@ parsedirectives(char *parse, off_t *size)
 			FREE(argv[argc]);
 		if (!directive->name)
 		{
-			char		*search;
+			const char	*search;
 
 			*size += secputs("[Unknown directive]\n");
 			if ((search = strstr(here, "-->")))
@@ -1167,7 +1167,7 @@ parsedirectives(char *parse, off_t *size)
 static	int
 sendwithdirectives_internal(int fd, off_t *size)
 {
-	char		*line;
+	const char	*line;
 	FILE		*parse;
 	size_t		sz;
 

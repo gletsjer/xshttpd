@@ -94,7 +94,7 @@ append(char **buffer, bool prepend, const char * const format, ...)
 	va_start(ap, format);
 	if (prepend)
 	{
-		char	ch = newbuf[0];
+		const char	ch = newbuf[0];
 
 		memmove(newbuf + llen, newbuf, slen + 1);
 		newbuf[0] = '\0';
@@ -164,17 +164,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	setenv("SCRIPT_FILENAME", fullpath, 1);
 	setenv("REDIRECT_STATUS", "200", 1);
 
-	/* Strip trailing slash from $DOCUMENT_ROOT */
-	if (base && *base)
-	{
-		char	*root;
-
-		STRDUP(root, base);
-		if (root[strlen(root) - 1] == '/')
-			root[strlen(root) - 1] = '\0';
-		FREE(root);
-	}
-
 	nph = (!strncmp(file, "nph-", 4) || strstr(file, "/nph-"));
 	if (config.usessi)
 		dossi = (!strncmp(file, "ssi-", 4) || strstr(file, "/ssi-"));
@@ -206,7 +195,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	ssl_post = session.postonly;
 	if (ssl_post)
 	{
-		char	*expect = getenv("HTTP_EXPECT");
+		const char * const	expect = getenv("HTTP_EXPECT");
 
 		if (pipe(q))
 		{
@@ -378,7 +367,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			if (engine[strcspn(engine, meta)])
 			{
 				unsigned int	len, pos;
-				char		*buffer, *pengine;
+				char		*buffer;
+				const char	*pengine;
 
 				len = 2 + strlen(engine) + strlen(fullpath);
 				MALLOC(buffer, char, len);
@@ -739,8 +729,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 		while ((result = secread(p[0], input, RWBUFSIZE)) > 0)
 		{
-			off_t	writetodo = result;
-			char	*temp = input;
+			off_t		writetodo = result;
+			const char	*temp = input;
 
 			while (writetodo > 0)
 			{

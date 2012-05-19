@@ -29,7 +29,7 @@ typedef	struct	mime
 
 typedef struct	exlist
 {
-	char	*pattern;
+	const char	*pattern;
 	struct	exlist	*next;
 } exlist;
 
@@ -41,10 +41,10 @@ static	mime	*mimes;
 static	const char	*mimefile;
 
 static	void	usage			(void) NORETURN;
-static	void	loadmime		(const char *);
-static	const	char	*encode		(const char *) WARNUNUSED;
+static	void	loadmime		(const char * const);
+static	const	char	*encode		(const char * const) WARNUNUSED;
 static	const	char	*neatsize	(off_t) WARNUNUSED;
-static	const	mime	*findmime	(const char *) WARNUNUSED;
+static	const	mime	*findmime	(const char * const) WARNUNUSED;
 
 static	void
 usage()
@@ -69,7 +69,7 @@ usage()
 }
 
 static	void
-loadmime(const char *name)
+loadmime(const char * const name)
 {
 	FILE		*input;
 	char		buffer[BUFSIZ], *end;
@@ -102,7 +102,7 @@ loadmime(const char *name)
 }
 
 static	const	char	*
-encode(const char *what)
+encode(const char * const what)
 {
 	size_t		len;
 	static	char	buffer[BUFSIZ];
@@ -162,7 +162,7 @@ neatsize(off_t size)
 }
 
 static	const	mime	*
-findmime(const char *ext)
+findmime(const char * const ext)
 {
 	const	mime	*search;
 	const	char	*end;

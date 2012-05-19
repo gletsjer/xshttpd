@@ -20,7 +20,7 @@
 
 /* sizeof(hash) >= MD5_DIGEST_STRING_LENGTH */
 char *
-generate_ha1(const char *user, const char *passwd)
+generate_ha1(const char * const user, const char * const passwd)
 {
 	static	char	ha1[MD5_DIGEST_STRING_LENGTH];
 	char		*a1;
@@ -35,7 +35,7 @@ generate_ha1(const char *user, const char *passwd)
 }
 
 bool
-md5data(const char *data, size_t len, char *bufhex)
+md5data(const char * const data, size_t len, char *bufhex)
 {
 	char    buf[MD5_DIGEST_LENGTH];
 
@@ -45,7 +45,7 @@ md5data(const char *data, size_t len, char *bufhex)
 }
 
 bool
-md5file(const char *filename, char *hash)
+md5file(const char * const filename, char *hash)
 {
 	int		fd, len;
 	MD5_CTX		md5_ctx;
@@ -73,7 +73,7 @@ checksum_init(void)
 }
 
 void
-checksum_update(const char *buffer, size_t count)
+checksum_update(const char * const buffer, size_t count)
 {
 	if (use_checksum)
 		MD5_Update(&md5context, buffer, count);
@@ -96,7 +96,7 @@ checksum_final(void)
 }
 
 char *
-checksum_file(const char *filename)
+checksum_file(const char * const filename)
 {
 	static char	base64_data[MD5_DIGEST_B64_LENGTH];
 	char		digest    [MD5_DIGEST_LENGTH];

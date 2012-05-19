@@ -536,7 +536,7 @@ xserror(int code, const char * const format, ...)
 	if (session.headers)
 	{
 		struct maplist	*rh = &session.response_headers;
-		char		*header;
+		const char	*header;
 
 		maplist_free(rh);
 		maplist_append(rh, append_prepend,
@@ -698,7 +698,7 @@ server_error(int code, const char * const readable, const char * const cgi)
 		referer[0] ? referer : "(none)");
 
 	/* execute error cgi */
-	bool waspost = session.postonly;
+	const bool	waspost = session.postonly;
 	session.postonly = false;
 	/* POST should not be redirected to the error CGI
 	 * XXX: close the input here to avoid access?
@@ -935,10 +935,10 @@ process_request(void)
 
 		for (size_t sz = 0; sz < session.request_headers.size; sz++)
 		{
-			const char	*idx = session.request_headers.elements[sz]
-						.index;
-			const char	*val = session.request_headers.elements[sz]
-						.value;
+			const char * const	idx =
+				session.request_headers.elements[sz].index;
+			const char * const	val =
+				session.request_headers.elements[sz].value;
 
 			headlen += strlen(idx) + 2 + strlen(val) + 2;
 
@@ -1035,7 +1035,7 @@ process_request(void)
 
 	if (!getenv("CONTENT_LENGTH"))
 	{
-		const char	*te = getenv("HTTP_TRANSFER_ENCODING");
+		const char * const	te = getenv("HTTP_TRANSFER_ENCODING");
 
 		if (session.httpversion >= 11 &&
 			(!strcasecmp("POST", line) || !strcasecmp("PUT", line)) &&
@@ -1138,7 +1138,7 @@ process_request(void)
 
 	/* local block */
 	{
-		char	*temp = strchr(http_host, ':');
+		char * const	temp = strchr(http_host, ':');
 
 		if (temp)
 		{
@@ -1327,20 +1327,20 @@ addr_equal(const void * const socka, const void * const sockb)
 
 	if (fa == AF_INET && fb == AF_INET)
 	{
-		const struct sockaddr_in *sia = socka;
-		const struct sockaddr_in *sib = sockb;
-		const struct in_addr *iaa = &sia->sin_addr;
-		const struct in_addr *iab = &sib->sin_addr;
+		const struct sockaddr_in * const sia = socka;
+		const struct sockaddr_in * const sib = sockb;
+		const struct in_addr * const iaa = &sia->sin_addr;
+		const struct in_addr * const iab = &sib->sin_addr;
 
 		if (memcmp(iaa, iab, sizeof(struct in_addr)) == 0)
 			return true;
 	}
 	else if (fa == AF_INET6 && fb == AF_INET6)
 	{
-		const struct sockaddr_in6 *sia = socka;
-		const struct sockaddr_in6 *sib = sockb;
-		const struct in6_addr *iaa = &sia->sin6_addr;
-		const struct in6_addr *iab = &sib->sin6_addr;
+		const struct sockaddr_in6 * const sia = socka;
+		const struct sockaddr_in6 * const sib = sockb;
+		const struct in6_addr * const iaa = &sia->sin6_addr;
+		const struct in6_addr * const iab = &sib->sin6_addr;
 
 		if (memcmp(iaa, iab, sizeof(struct in6_addr)) == 0)
 			return true;
@@ -1695,10 +1695,10 @@ standalone_socket(int id)
 				alarm(10);
 				if (session.chunked)
 				{
-					char	*checksum;
+					const char * const checksum = checksum_final();
 
 					session.chunked = false;
-					if ((checksum = checksum_final()))
+					if (checksum)
 						secprintf("0\r\nContent-MD5: %s\r\n\r\n", checksum);
 					else
 						secputs("0\r\n\r\n");

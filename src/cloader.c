@@ -76,8 +76,8 @@ struct virtual		*current;
 
 struct config_option
 {
-	char		*key;
-	char		*value;
+	const char		*key;
+	const char		*value;
 	struct config_option	*next;
 } *global_options = NULL, *unknown_options = NULL;
 
@@ -111,10 +111,10 @@ load_config()
 	FILE	*confd;
 	char	thishostname[NI_MAXHOST];
 	struct socket_config	*lsock;
-	static const char	*defaultindexfiles[] =
+	static const char * const	defaultindexfiles[] =
 		{ INDEX_HTML, "index.htm", "index.xhtml", "index.xml",
 		  "index.php", NULL };
-	static const char	*defaultuidscripts[] =
+	static const char * const	defaultuidscripts[] =
 		{ "/cgi-bin/imagemap", "/cgi-bin/xschpass", NULL };
 
 	/* default socket for backwards compatibility */
@@ -345,8 +345,8 @@ load_config()
 					else if (!strcasecmp("SSLVhosts", key))
 					{
 #ifdef		HANDLE_SSL_TLSEXT
-						char		**vhosts = NULL;
-						size_t		vsz = string_to_arraypn(value, &vhosts);
+						char			**vhosts = NULL;
+						const size_t	vsz = string_to_arraypn(value, &vhosts);
 						struct ssl_vhost	*vhost, *prev;
 
 						prev = NULL;
@@ -437,8 +437,9 @@ load_config()
 				{
 					if (!current->userid && !(current->userid = strtoul(value, NULL, 10)))
 					{
-						struct passwd	*pwd;
-						if (!(pwd = getpwnam(value)))
+						const struct passwd	*pwd = getpwnam(value);
+
+						if (!pwd)
 							errx(1, "Invalid username: %s", value);
 						current->userid = pwd->pw_uid;
 					}
@@ -447,8 +448,9 @@ load_config()
 				{
 					if (!current->groupid && !(current->groupid = strtoul(value, NULL, 10)))
 					{
-						struct group	*grp;
-						if (!(grp = getgrnam(value)))
+						struct group	*grp = getgrnam(value);
+
+						if (!grp)
 							errx(1, "Invalid groupname: %s", value);
 						current->groupid = grp->gr_gid;
 					}
@@ -632,25 +634,25 @@ load_config()
 	config.system->allowusers = true;
 	if (!config.system->userid)
 	{
-		struct passwd	*pwd;
+		const struct passwd	*pwd = getpwnam(HTTPD_USERID);
 
-		if (!(pwd = getpwnam(HTTPD_USERID)))
+		if (!pwd)
 			errx(1, "Invalid username: %s", HTTPD_USERID);
 		config.system->userid = pwd->pw_uid;
 	}
 	if (!config.system->groupid &&
 		!(config.system->groupid = strtoul(HTTPD_GROUPID, NULL, 10)))
 	{
-		struct group	*grp;
+		struct group	*grp = getgrnam(HTTPD_GROUPID);
 
-		if (!(grp = getgrnam(HTTPD_GROUPID)))
+		if (!grp)
 			errx(1, "Invalid groupname: %s", HTTPD_GROUPID);
 		config.system->groupid = grp->gr_gid;
 	}
 	if (!config.system->indexfiles)
 	{
 		int		i;
-		size_t	sz = sizeof(defaultindexfiles) / sizeof(char *);
+		const size_t	sz = sizeof(defaultindexfiles) / sizeof(char *);
 
 		MALLOC(config.system->indexfiles, char *, sz);
 		for (i = 0; defaultindexfiles[i]; i++)
@@ -661,7 +663,7 @@ load_config()
 	if (!config.system->uidscripts)
 	{
 		int		i;
-		size_t	sz = sizeof(defaultindexfiles) / sizeof(char *);
+		const size_t	sz = sizeof(defaultindexfiles) / sizeof(char *);
 
 		MALLOC(config.system->uidscripts, char *, sz);
 		for (i = 0; defaultuidscripts[i]; i++)
@@ -705,7 +707,7 @@ load_config()
 }
 
 void
-module_config()
+module_config(void)
 {
 	/* Reset module configurations */
 	for (struct module *mod, **mods = modules; (mod = *mods); mods++)
@@ -738,7 +740,7 @@ module_config()
 }
 
 void
-remove_config()
+remove_config(void)
 {
 	/* XXX: Rewrite this to avoid memory leaks */
 	memset(&config, 0, sizeof config);

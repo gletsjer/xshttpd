@@ -28,7 +28,7 @@
 
 static size_t	internal_xstring_to_arrayp(const char * const, char ***, size_t (*)(const char *, char **)) WARNUNUSED;
 static size_t	internal_xstring_to_arraypn(const char * const, char ***, size_t (*)(const char *, char **)) WARNUNUSED;
-static int		qcmp(const char **, const char **);
+static int		qcmp(const char * const * const, const char * const * const);
 
 bool
 mysleep(int sec)
@@ -290,9 +290,9 @@ string_to_array(const char * const value, char **array)
 }
 
 static int
-qcmp(const char **a, const char **b)
+qcmp(const char * const * const a, const char * const * const b)
 {
-	char		*p;
+	const char		*p;
 	double		qvala, qvalb;
 
 	qvala = qvalb = 1;
@@ -315,7 +315,7 @@ qcmp(const char **a, const char **b)
 
 /* Convert comma separated http header into array */
 size_t
-qstring_to_array(const char *value, char **array)
+qstring_to_array(const char * const value, char **array)
 {
 	size_t		num = 0;
 	bool		has_qvalues = false;
@@ -470,7 +470,7 @@ int
 get_temp_fd(void)
 {
 	int	fd;
-	char    prefix[] = TEMPORARYPREFIX;
+	char	prefix[] = TEMPORARYPREFIX;
 
 	if (!(fd = mkstemp(prefix)))
 		return -1;
@@ -481,7 +481,7 @@ get_temp_fd(void)
 }
 
 int
-maplist_append(struct maplist *list, xs_appendflags_t flags, const char *idx, const char *value, ...)
+maplist_append(struct maplist *list, xs_appendflags_t flags, const char * const idx, const char * const value, ...)
 {
 	va_list		ap;
 

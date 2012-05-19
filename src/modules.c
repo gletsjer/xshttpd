@@ -21,7 +21,7 @@ init_modules(void)
 	void		*handle;
 	char		*modname, *soname;
 	struct module	*module;
-	const char	*module_dir = MODULE_DIR;
+	const char	module_dir[] = MODULE_DIR;
 
 	if (!config.modules ||
 			(config.modules[0] && '*' == config.modules[0][0]))

@@ -141,7 +141,9 @@ check_file_redirect(const char * const base, const char * const filename)
 	}
 	close(fd);
 
-	char	*p, *subst;
+	char		*p;
+	const char	*subst;
+
 	total[size] = '\0';
 	p = total;
 	subst = strsep(&p, " \t\r\n");
@@ -152,7 +154,8 @@ check_file_redirect(const char * const base, const char * const filename)
 bool
 check_redirect(const char * const cffile, const char * const filename)
 {
-	char	*request, *command;
+	char		*request;
+	const char	*command;
 	char	**argv;
 	FILE	*fp;
 	bool	guard = true;
@@ -184,8 +187,8 @@ check_redirect(const char * const cffile, const char * const filename)
 		/* use pcre matching */
 		else if (!strcasecmp(command, "ifenv") && ret >= 3)
 		{
-			const char *envvar = argv[1];
-			const char *value = argv[2];
+			const char *		envvar = argv[1];
+			const char * const	value = argv[2];
 
 			if ('$' == *envvar)
 				envvar++;
@@ -203,7 +206,7 @@ check_redirect(const char * const cffile, const char * const filename)
 		else if (!strcasecmp(command, "passexist"))
 		{
 			struct stat	statbuf;
-			const char	*orig = getenv("SCRIPT_FILENAME");
+			const char * const orig = getenv("SCRIPT_FILENAME");
 
 			if (orig && !stat(orig, &statbuf))
 				exitfalse = true;
@@ -248,12 +251,12 @@ check_redirect(const char * const cffile, const char * const filename)
 		}
 		else if (!strcasecmp(command, "forward") && ret >= 3)
 		{
-			const char	*newloc;
 			char	*subst = pcre_subst(request, argv[1], argv[2]);
 
 			if (subst && *subst)
 			{
-				newloc = mknewurl(request, subst);
+				const char * const newloc =
+					mknewurl(request, subst);
 				do_proxy(NULL, newloc);
 				FREE(subst);
 				exittrue = true;
@@ -301,7 +304,7 @@ check_redirect(const char * const cffile, const char * const filename)
 		else if (1 == ret)
 			/* no command: redir to url */
 		{
-			const char	*newloc = mknewurl(request, command);
+			const char * const newloc = mknewurl(request, command);
 
 			redirect(newloc, redir_env);
 			exittrue = true;
@@ -376,16 +379,16 @@ check_allow_host(const char * const hostname, char * const pattern)
 	{
 		in_port_t	cport = strtoul(hostname + 1, NULL, 10);
 		in_port_t	lport = strtoul(getenv("SERVER_PORT"), NULL, 10);
-		struct	addrinfo	hints, *res;
-
-		memset(&hints, 0, sizeof(hints));
-		hints.ai_family = PF_UNSPEC;
-		hints.ai_socktype = SOCK_STREAM;
+		struct	addrinfo	*res;
+		const struct addrinfo	hints = {
+			.ai_family = PF_UNSPEC,
+			.ai_socktype = SOCK_STREAM,
+		};
 
 		if (!cport && !getaddrinfo(NULL, pattern + 1, &hints, &res))
 		{
-			const struct sockaddr_in6 *r6 = (void *)res->ai_addr;
-			const struct sockaddr_in  *r4 = (void *)res->ai_addr;
+			const struct sockaddr_in6 * const r6 = (void *)res->ai_addr;
+			const struct sockaddr_in  * const r4 = (void *)res->ai_addr;
 			cport = htons(res->ai_family == AF_INET6
 				? r6->sin6_port
 				: r4->sin_port);
@@ -525,7 +528,7 @@ check_xsconf(const char * const cffile, const char * const filename, cf_values *
 			!strcasecmp(name, "AuthFile") ||
 			!strcasecmp(name, "AuthFiles"))
 		{
-			const char	*slash = strrchr(cffile, '/');
+			const char	* const slash = strrchr(cffile, '/');
 			char		*temp;
 
 			if (num_authfiles)
@@ -584,11 +587,11 @@ check_xsconf(const char * const cffile, const char * const filename, cf_values *
 		/* SSL client cert options */
 		else if (!strcasecmp(name, "SSLSubjectMatch"))
 		{
-			int	smatch;
-			char	*subject = getenv("SSL_CLIENT_S_DN");
+			const char * const subject = getenv("SSL_CLIENT_S_DN");
+			const int	smatch =
+				subject ? pcre_match(subject, value) : -1;
 
 			sslcheck = true;
-			smatch = subject ? pcre_match(subject, value) : -1;
 			if (smatch < 0)
 				sslallow = false;
 			else
@@ -596,11 +599,11 @@ check_xsconf(const char * const cffile, const char * const filename, cf_values *
 		}
 		else if (!strcasecmp(name, "SSLIssuerMatch"))
 		{
-			int	smatch;
-			char	*issuer = getenv("SSL_CLIENT_I_DN");
+			const char * const issuer = getenv("SSL_CLIENT_I_DN");
+			const int smatch =
+				issuer ? pcre_match(issuer, value) : -1;
 
 			sslcheck = true;
-			smatch = issuer ? pcre_match(issuer, value) : -1;
 			if (smatch < 0)
 				sslallow = false;
 			else

@@ -34,9 +34,9 @@
 
 static unsigned long	secret;
 
-static bool	get_crypted_password(const char *, const char *, char **, char **) WARNUNUSED;
-static bool	check_basic_auth(const char *authfile) WARNUNUSED;
-static bool	check_digest_auth(const char *authfile, bool *stale) WARNUNUSED;
+static bool	get_crypted_password(const char * const, const char * const, char **, char **) WARNUNUSED;
+static bool	check_basic_auth(const char * const authfile) WARNUNUSED;
+static bool	check_digest_auth(const char * const authfile, bool *stale) WARNUNUSED;
 static char 	*fresh_nonce(void) WARNUNUSED;
 static bool	valid_nonce(const char *nonce) NONNULL WARNUNUSED;
 
@@ -46,7 +46,7 @@ static bool	denied_basic(void);
 
 /* returns malloc()ed data! */
 static bool
-get_crypted_password(const char *authfile, const char *user, char **passwd, char **hash)
+get_crypted_password(const char * const authfile, const char * const user, char **passwd, char **hash)
 {
 	char	*line;
 	FILE	*af;
@@ -101,7 +101,7 @@ get_crypted_password(const char *authfile, const char *user, char **passwd, char
 }
 
 static bool
-check_basic_auth(const char *authfile)
+check_basic_auth(const char * const authfile)
 {
 	char		*line, *search, *passwd, *find;
 	bool		allow;
@@ -135,15 +135,15 @@ check_basic_auth(const char *authfile)
 }
 
 static bool
-check_digest_auth(const char *authfile, bool *stale)
+check_digest_auth(const char * const authfile, bool *stale)
 {
 	char		ha2[MD5_DIGEST_STRING_LENGTH],
 			digest[MD5_DIGEST_STRING_LENGTH],
 			*line;
-	char		*user, *realm, *nonce, *cnonce, *uri,
+	const char	*user, *realm, *nonce, *cnonce, *uri,
 			*response, *qop, *nc;
 	char		*passwd, *a2, *digplain, *ha1;
-	char		*idx, *val;
+	const char	*idx, *val;
 	size_t		sz, fields, len;
 	struct maplist	*authreq = NULL;
 
@@ -399,7 +399,7 @@ check_auth(const char *authfile, bool quiet)
 	/* Determine authentication type from file: basic / digest */
 	if (authfile)
 	{
-		char		*p, *line;
+		const char	*p, *line;
 		size_t		sz;
 		int		i = 1;
 
@@ -453,8 +453,8 @@ fresh_nonce(void)
 	static char	nonce[MAX_NONCE_LENGTH];
 	char		bufhex[MD5_DIGEST_STRING_LENGTH];
 	const time_t	ts = time(NULL);
-	char	*buf;
-	size_t	len;
+	char		*buf;
+	size_t		len;
 
 	ASPRINTFVAL(len, &buf, "%" PRItimex ":%lu:%s",
 		ts, secret, env.remote_addr);
@@ -468,11 +468,11 @@ fresh_nonce(void)
 static bool
 valid_nonce(const char *nonce)
 {
-	char	bufhex[MD5_DIGEST_STRING_LENGTH];
+	char		bufhex[MD5_DIGEST_STRING_LENGTH];
 	const char	*ptr;
-	char	*buf;
-	time_t	ts;
-	size_t	len;
+	char		*buf;
+	time_t		ts;
+	size_t		len;
 
 	if (!nonce)
 		return false;		/* invalid */

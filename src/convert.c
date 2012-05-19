@@ -67,7 +67,7 @@ convertpathandroot(const char * const org, size_t *rootlenp)
 	}
 	else if (*org != '/')
 	{
-		char	*pwd = getenv("PWD");
+		const char * const	pwd = getenv("PWD");
 
 		rootlen = strlen(pwd);
 		snprintf(path, XS_PATH_MAX, "%s/%s", pwd, org);

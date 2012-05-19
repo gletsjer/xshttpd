@@ -135,7 +135,7 @@ free_ctype(ctypes *c)
 }
 
 static char *
-make_etag(struct stat *sb)
+make_etag(const struct stat * const sb)
 {
 #define	ETAG_LEN	(sizeof(time_t) + sizeof(ino_t) + sizeof(off_t))
 #define	ETAG_SLEN	(2 * ETAG_LEN + 3)
@@ -177,8 +177,8 @@ parse_range(const char * const range, off_t *firstp, off_t *lastp)
 {
 #ifdef		HAVE_PCRE
 	int			erroffset, rc;
-	const char	*error;
-	const pcre	*re = pcre_compile("bytes=(\\d*)-(\\d*)", 0, &error, &erroffset, NULL);
+	const char		*error;
+	const pcre * const	re = pcre_compile("bytes=(\\d*)-(\\d*)", 0, &error, &erroffset, NULL);
 	int		ovector[OVSIZE];
 	off_t		first, last;
 
@@ -269,7 +269,7 @@ fileheaders(int fd)
 	{
 		size_t	i, m, sz;
 		char	**list = NULL;
-		int	abort_wo_match = !!getenv("HTTP_IF_MATCH");
+		bool	abort_wo_match = !!getenv("HTTP_IF_MATCH");
 
 		sz = qstring_to_arrayp(qenv, &list);
 		for (i = 0; i < sz; i++)
@@ -326,7 +326,8 @@ fileheaders(int fd)
 	if (getenv("HTTP_ACCEPT"))
 	{
 		size_t		i, acsz, len;
-		char		*p, *ac = getenv("HTTP_ACCEPT");
+		const char * const ac = getenv("HTTP_ACCEPT");
+		char		*p;
 		char 		**acceptlist = NULL;
 
 		acsz = qstring_to_arrayp(ac, &acceptlist);
@@ -360,7 +361,8 @@ fileheaders(int fd)
 	if (getenv("HTTP_ACCEPT_CHARSET") && cfvalues.charset)
 	{
 		size_t		i, acsz, len;
-		char		*p, *ac = getenv("HTTP_ACCEPT_CHARSET");
+		const char * const ac = getenv("HTTP_ACCEPT");
+		char		*p;
 		char 		**acceptlist = NULL;
 
 		acsz = qstring_to_arrayp(ac, &acceptlist);
@@ -387,7 +389,7 @@ fileheaders(int fd)
 		}
 	}
 
-	const char	*range = getenv("HTTP_RANGE");
+	const char * const	range = getenv("HTTP_RANGE");
 	if (range && !dynamic)
 	{
 		off_t		first, last;
@@ -438,8 +440,9 @@ fileheaders(int fd)
 bool
 writeheaders(void)
 {
-	struct maplist	*rh = &session.response_headers;
-	const xs_appendflags_t	O = append_ifempty, F = append_replace;
+	struct maplist * const	rh = &session.response_headers;
+	const xs_appendflags_t	O = append_ifempty,
+	      			F = append_replace;
 
 	/* All preconditions satisfied - do headers */
 	/* Status, Date and Server headers are pre-initialised */
@@ -475,22 +478,27 @@ writeheaders(void)
 	}
 	else
 	{
-		char	modified[32];
-		char	*checksum;
-
 		if (session.httpversion >= 11 && session.rstatus == 200)
 			maplist_append(rh, F, "Accept-ranges", "bytes");
 
 		if (session.rstatus != 204 && session.rstatus != 304)
 			maplist_append(rh, F, "Content-length", "%" PRIoff,
 				session.size);
-		if (config.usecontentmd5 &&
-				(checksum = checksum_file(orig_pathname)))
-			maplist_append(rh, F, "Content-MD5", "%s", checksum);
+		if (config.usecontentmd5)
+		{
+			const char * const checksum =
+				checksum_file(orig_pathname);
+			
+			if (checksum)
+				maplist_append(rh, F, "Content-MD5", "%s",
+					checksum);
+		}
 
 		/* Don't fake Last-modified w/o known value */
 		if (session.modtime)
 		{
+			char	modified[32];
+
 			strftime(modified, sizeof(modified),
 				"%a, %d %b %Y %H:%M:%S GMT",
 				gmtime(&session.modtime));
@@ -545,6 +553,7 @@ writeheaders(void)
 
 	/* Write headers */
 	secwrite(headers, strlen(headers));
+	FREE(headers);
 	return true;
 }
 
@@ -556,7 +565,8 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 	struct stat	statbuf;
 
 	/* Optional compress */
-	const char	*temp = getenv("HTTP_ACCEPT_ENCODING");
+	const char * const	temp = getenv("HTTP_ACCEPT_ENCODING");
+
 	if (temp && !cfvalues.encoding && !dynamic && !ec_filter)
 	{
 		char		**encodings = NULL;
@@ -661,7 +671,7 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 		if (session.size < 12 * 1048576 && valid_size_t_size && !ec_filter)
 		{
 			char		*buffer;
-			size_t		msize = (size_t)session.size;
+			const size_t	msize = (size_t)session.size;
 
 			if ((buffer = (char *)mmap((caddr_t)NULL, msize, PROT_READ,
 				MAP_SHARED, fd, session.offset)) == (char *)-1)
@@ -792,18 +802,19 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 static void
 sendcompressed(int fd, const char *method)
 {
-	pid_t		pid;
-	int		processed;
+	const int	processed = get_temp_fd();
 
 	/* local block */
-	if ((processed = get_temp_fd()) < 0)
+	if (processed < 0)
 	{
 		xserror(500, "Unable to open temporary file");
 		err(1, "[%s] httpd: Cannot create temporary file",
 			currenttime);
 	}
 
-	switch(pid = fork())
+	const pid_t	pid = fork();
+
+	switch (pid)
 	{
 	case -1:
 		warn("fork()");
@@ -857,7 +868,7 @@ find_file(const char *orgbase, const char *base, const char *file)
 {
 	static char	path[XS_PATH_MAX];
 	char		*p;
-	size_t		len = strlen(orgbase);
+	const size_t	len = strlen(orgbase);
 	struct stat	sb;
 
 	/* Check after redirection */
@@ -975,16 +986,15 @@ do_get(char *params)
 	char			*temp, *file, *cgi, *question,
 				base[XS_PATH_MAX], orgbase[XS_PATH_MAX],
 				total[XS_PATH_MAX];
-	const	char		*filename, *http_host;
+	const	char		*filename, *http_host, *xsfile;
 	int			fd, script = 0;
 	bool			wasdir, switcheduid = false,
 				delay_redir = false;
 	size_t			size;
 	struct	stat		statbuf;
 	const	struct	passwd	*userinfo;
-	char			*xsfile;
 	const	ctypes		*csearch = NULL, *isearch = NULL;
-	struct module		*inflate_module = NULL;
+	const struct module	*inflate_module = NULL;
 
 	alarm(240);
 
@@ -1106,20 +1116,18 @@ do_get(char *params)
 		size = strlen(current->execdir);
 		if (!strncmp(params + 1, current->execdir, size))
 		{
-			struct stat	sb;
 			script = 1;
 			file += size + 2;
 			strlcpy(base, current->phexecdir, XS_PATH_MAX);
-			if ((lstat(base, &sb) < 0) || !S_ISDIR(sb.st_mode))
+			if ((lstat(base, &statbuf) < 0) || !S_ISDIR(statbuf.st_mode))
 				strlcpy(base, config.system->phexecdir, XS_PATH_MAX);
 
 		}
 		else if (!strncmp(params + 1, current->icondir, strlen(current->icondir)))
 		{
-			struct stat	sb;
 			file += strlen(current->icondir) + 2;
 			strlcpy(base, current->phicondir, XS_PATH_MAX);
-			if ((lstat(base, &sb) < 0) || !S_ISDIR(sb.st_mode))
+			if ((lstat(base, &statbuf) < 0) || !S_ISDIR(statbuf.st_mode))
 				strlcpy(base, config.system->phicondir, XS_PATH_MAX);
 		}
 		else
@@ -1335,7 +1343,7 @@ do_get(char *params)
 	}
 	if (stat(total, &statbuf))
 	{
-		unsigned int	templen = sizeof(total) - strlen(total);
+		const size_t	templen = sizeof(total) - strlen(total);
 
 		temp = strchr(total, '\0');
 
@@ -1438,29 +1446,28 @@ do_get(char *params)
 	/* Check for *.charset preferences */
 	while (!cfvalues.charset)
 	{
-		struct stat	sb;
 		int		cfd, ret;
 
 		snprintf(total, XS_PATH_MAX, "%s%s.charset", base, filename);
-		ret = stat(total, &sb);
-		if (ret < 0 || !sb.st_size || (cfd = open(total, O_RDONLY)) < 0)
+		ret = stat(total, &statbuf);
+		if (ret < 0 || !statbuf.st_size || (cfd = open(total, O_RDONLY)) < 0)
 		{
 			xsfile = find_file(orgbase, base, ".charset");
-			ret = stat(xsfile, &sb);
-			if (ret < 0 || !sb.st_size ||
+			ret = stat(xsfile, &statbuf);
+			if (ret < 0 || !statbuf.st_size ||
 					(cfd = open(xsfile, O_RDONLY)) < 0)
 				break;
 		}
 
-		MALLOC(cfvalues.charset, char, sb.st_size + 1);
-		if (read(cfd, cfvalues.charset, sb.st_size) < 0)
+		MALLOC(cfvalues.charset, char, statbuf.st_size + 1);
+		if (read(cfd, cfvalues.charset, statbuf.st_size) < 0)
 		{
 			FREE(cfvalues.charset);
 			cfvalues.charset = NULL;
 		}
 		else
 		{
-			char	*p = cfvalues.charset + sb.st_size;
+			char	*p = cfvalues.charset + statbuf.st_size;
 			for (*p = '\0'; --p > cfvalues.charset; )
 				if (*p < ' ')
 					*p = '\0';
@@ -1548,7 +1555,7 @@ do_get(char *params)
 		 * browser groks encoding => send unmodified
 		 * browser doesn't grok it => apply decode filter
 		 */
-		const char	*accenc = getenv("HTTP_ACCEPT_ENCODING");
+		const char * const	accenc = getenv("HTTP_ACCEPT_ENCODING");
 		char		**encodings = NULL;
 		size_t		sz;
 		const size_t	encsz = accenc
@@ -1568,7 +1575,7 @@ do_get(char *params)
 	}
 	else if (csearch)
 	{
-		const char	*accenc = getenv("HTTP_ACCEPT_ENCODING");
+		const char * const	accenc = getenv("HTTP_ACCEPT_ENCODING");
 
 		/* File stored encoded on disk:
 		 * browser groks encoding => send unmodified
@@ -1602,7 +1609,7 @@ do_get(char *params)
 	}
 	else if (current->indexfiles)
 	{
-		char	*idx = NULL;
+		const char	*idx = NULL;
 
 		for (int i = 0; (idx = current->indexfiles[i]); i++)
 		{
@@ -1653,7 +1660,7 @@ do_get(char *params)
 void
 do_post(char *params)
 {
-	off_t cl = env.content_length;
+	const off_t	cl = env.content_length;
 
 	session.postonly = true;	/* const: this is a post */
 	session.postread = false;	/* var: modified when data buffer is read */
@@ -1801,7 +1808,7 @@ do_proxy(const char * const proxy, const char * const params)
 	struct	curl_slist	*curl_headers = NULL;
 	for (size_t sz = 0; sz < session.request_headers.size; sz++)
 	{
-		char	*header = NULL;
+		const char	*header = NULL;
 
 		if (!strcasecmp("host",
 				session.request_headers.elements[sz].index))
@@ -1841,7 +1848,7 @@ do_proxy(const char * const proxy, const char * const params)
 static size_t
 curl_readhack(void *buf, size_t size, size_t nmemb, FILE *stream)
 {
-	ssize_t	len;
+	const ssize_t	len;
 
 	if (curl_readlen <= 0)
 		return 0;
@@ -1934,8 +1941,8 @@ loadfiletypes(const char * const orgbase, const char * const base)
 void
 loadcompresstypes()
 {
-	const	char	*path;
-	FILE		*methods;
+	FILE			*methods;
+	const char * const	path = COMPRESS_METHODS;
 
 	while (ctype)
 	{
@@ -1945,7 +1952,6 @@ loadcompresstypes()
 		free_ctype(ctype);
 		ctype = temp;
 	}
-	path = COMPRESS_METHODS;
 	if (!(methods = fopen(path, "r")))
 		/* configuration file is optional: silently ignore */
 		return;
@@ -1984,7 +1990,7 @@ loadscripttypes(const char * const orgbase, const char * const base)
 
 	if (orgbase && base)
 	{
-		char	*cffile;
+		const char	*cffile;
 
 		while (litype)
 		{

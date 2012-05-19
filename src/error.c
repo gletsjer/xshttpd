@@ -40,7 +40,7 @@ static	const	char	*error_code, *error_readable, *error_url,
 static	char		buffer[BUFSIZ];
 
 static void
-error(const char *what)
+error(const char * const what)
 {
 	printf("Content-type: text/html\r\n\r\n");
 	printf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
@@ -55,7 +55,7 @@ error(const char *what)
 }
 
 static	void
-user_unknown()
+user_unknown(void)
 {
 	int		len = 0;
 	char		filename[XS_PATH_MAX], *temp;
@@ -72,7 +72,7 @@ user_unknown()
 }
 
 static	void
-post_on_non_cgi()
+post_on_non_cgi(void)
 {
 	printf("<p>You or your browser has attempted to use the <b>POST</b>,\n");
 	printf("<b>PUT</b> or <b>DELETE</b> method on something that is\n");
@@ -85,7 +85,7 @@ post_on_non_cgi()
 }
 
 static	void
-invalid_path()
+invalid_path(void)
 {
 	printf("<p>You have asked for a URL that the server does not like.\n");
 	printf("In particular, the server does not accept paths with\n");
@@ -94,7 +94,7 @@ invalid_path()
 }
 
 static	void
-not_found()
+not_found(void)
 {
 	char		prefix[BUFSIZ], base[XS_PATH_MAX], filename[XS_PATH_MAX];
 	const	char	*begin, *match;
@@ -172,7 +172,7 @@ not_found()
 }
 
 static	void
-not_regular()
+not_regular(void)
 {
 	printf("<p>What you requested is neither a directory nor a file.\n");
 	printf("This error should never occur. Please notify the\n");
@@ -180,7 +180,7 @@ not_regular()
 }
 
 static	void
-permission()
+permission(void)
 {
 	printf("<p>The file <b>%s</b>, which you tried to retrieve from\n",
 		error_url_escaped);
@@ -191,7 +191,7 @@ permission()
 }
 
 static	void
-dir_not_avail()
+dir_not_avail(void)
 {
 	printf("<p>The directory in which the file <b>%s</b> is located\n",
 		error_url_escaped);
@@ -201,7 +201,7 @@ dir_not_avail()
 }
 
 static	void
-no_relative_urls()
+no_relative_urls(void)
 {
 	printf("<p>Your browser has made a <em>relative</em> request to\n");
 	printf("this server. This server, however, does not support\n");
@@ -210,11 +210,10 @@ no_relative_urls()
 }
 
 static	void
-bad_request()
+bad_request(void)
 {
-	const	char	*temp;
+	const char * const temp = getenv("SERVER_PROTOCOL");
 
-	temp = getenv("SERVER_PROTOCOL");
 	printf("<p>Your browser has made a <em>%s</em> request to\n", temp);
 	printf("this server, which is not valid according to the\n");
 	printf ("specification. The server can not possibly give you a\n");
@@ -223,11 +222,10 @@ bad_request()
 }
 
 static	void
-unknown_method()
+unknown_method(void)
 {
-	const	char	*temp;
+	const char * const temp = getenv("REQUEST_METHOD");
 
-	temp = getenv("REQUEST_METHOD");
 	printf("<p>Your browser has used a retrieval method other than\n");
 	printf("<b>GET</b>, <b>POST</b>, <b>HEAD</b> and <b>OPTIONS</b>.\n");
 	printf("In fact it used the method <b>%s</b>,\n",
@@ -237,7 +235,7 @@ unknown_method()
 }
 
 static	void
-unauthorized()
+unauthorized(void)
 {
 	printf("<p>You have entered a usercode/password combination\n");
 	printf("which is not valid for the URL that you have requested\n");
@@ -245,7 +243,7 @@ unauthorized()
 }
 
 static	void
-precondition_failed()
+precondition_failed(void)
 {
 	printf("<p>You have asked for a certain precondition which is ");
 	printf("not met by the requested data.\n");
@@ -253,7 +251,7 @@ precondition_failed()
 }
 
 static	void
-not_acceptable()
+not_acceptable(void)
 {
 	printf("<p>The requested data is not available in any of the ");
 	printf("formats you deem acceptable.\n");
@@ -261,7 +259,7 @@ not_acceptable()
 }
 
 static	void
-entity_too_large()
+entity_too_large(void)
 {
 	printf("<p>The server is refusing to process a request because ");
 	printf("the request entity is larger than the server ");
@@ -269,7 +267,7 @@ entity_too_large()
 }
 
 static	void
-local_no_page()
+local_no_page(void)
 {
 	char		filename[XS_PATH_MAX], *temp;
 
@@ -296,7 +294,7 @@ local_no_page()
 }
 
 static	void
-local_invalid_link()
+local_invalid_link(void)
 {
 	char		*temp;
 
@@ -312,7 +310,7 @@ local_invalid_link()
 }
 
 static	void
-local_no_pay()
+local_no_pay(void)
 {
 	char		filename[XS_PATH_MAX], *temp;
 
@@ -333,7 +331,7 @@ local_no_pay()
 }
 
 int
-main(int argc, char **argv)
+main(int argc, const char * const * const argv)
 {
 	alarm(240);
 	if (!(error_code = getenv("ERROR_CODE")) ||

@@ -29,16 +29,16 @@ static	pid_t	httpdpid;	/* a value of 0 denotes no running httpd */
 static	char	startparams[BUFSIZ];
 char		configdir[XS_PATH_MAX];
 
-static	void	cmd_help	(const char *);
-static	void	cmd_status	(const char *);
-static	void	cmd_kill	(const char *);
-static	void	cmd_stop	(const char *);
-static	void	cmd_start	(const char *);
-static	void	cmd_reload	(const char *);
-static	void	cmd_restart	(const char *);
-static	void	cmd_version	(const char *);
-static	void	control		(const char *);
-static	void	loadpidfile	(const char *);
+static	void	cmd_help	(const char * const);
+static	void	cmd_status	(const char * const);
+static	void	cmd_kill	(const char * const);
+static	void	cmd_stop	(const char * const);
+static	void	cmd_start	(const char * const);
+static	void	cmd_reload	(const char * const);
+static	void	cmd_restart	(const char * const);
+static	void	cmd_version	(const char * const);
+static	void	control		(const char * const);
+static	void	loadpidfile	(const char * const);
 static	void	getpidfilename	(char **);
 
 static	command	commands[]=
@@ -58,9 +58,9 @@ static	command	commands[]=
 };
 
 static	void
-cmd_help(const char *args)
+cmd_help(const char * const args)
 {
-	command		*search;
+	const command		*search;
 
 	for (search = commands; search->command; search++)
 		printf("%s\t\t%s\n", search->command, search->help);
@@ -68,7 +68,7 @@ cmd_help(const char *args)
 }
 
 static	void
-cmd_status(const char *args)
+cmd_status(const char * const args)
 {
 	if (!httpdpid)
 		return;
@@ -99,7 +99,7 @@ cmd_status(const char *args)
 }
 
 static	void
-cmd_stop(const char *args)
+cmd_stop(const char * const args)
 {
 	if (!httpdpid)
 		return;
@@ -112,7 +112,7 @@ cmd_stop(const char *args)
 }
 
 static	void
-cmd_kill(const char *args)
+cmd_kill(const char * const args)
 {
 	int	timeout;
 
@@ -136,7 +136,7 @@ cmd_kill(const char *args)
 }
 
 static	void
-cmd_restart(const char *args)
+cmd_restart(const char * const args)
 {
 	int		timeout = 600;
 
@@ -172,7 +172,7 @@ cmd_restart(const char *args)
 }
 
 static	void
-cmd_start(const char *args)
+cmd_start(const char * const args)
 {
 	if (!httpdpid)
 		printf("Starting with default options... ");
@@ -188,7 +188,7 @@ cmd_start(const char *args)
 }
 
 static	void
-cmd_reload(const char *args)
+cmd_reload(const char * const args)
 {
 	if (!httpdpid)
 		return;
@@ -204,7 +204,7 @@ cmd_reload(const char *args)
 }
 
 static	void
-cmd_version(const char *args)
+cmd_version(const char * const args)
 {
 	char	*pidfile;
 
@@ -215,10 +215,10 @@ cmd_version(const char *args)
 }
 
 static	void
-control(const char *args)
+control(const char * const args)
 {
 	char		buffer[BUFSIZ], *space;
-	command		*search;
+	const command	*search;
 
 	strlcpy(buffer, args, BUFSIZ);
 	space = buffer;
@@ -280,7 +280,7 @@ getpidfilename(char **pidfilename)
 }
 
 static	void
-loadpidfile(const char *pidname)
+loadpidfile(const char * const pidname)
 {
 	char	buffer[BUFSIZ];
 	FILE	*pidfile;

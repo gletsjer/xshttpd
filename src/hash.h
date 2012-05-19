@@ -15,12 +15,12 @@
 # define	MD5_DIGEST_B64_LENGTH		((4 * MD5_DIGEST_LENGTH + 2) / 3 + 1)
 #endif		/* MD5_DIGEST_B64_LENGTH */
 
-char	*generate_ha1	(const char *, const char *) NONNULL;
-bool	md5data		(const char *, size_t, char *) NONNULL;
-bool	md5file		(const char *, char *) NONNULL;
+char	*generate_ha1	(const char * const, const char * const) NONNULL;
+bool	md5data		(const char * const, size_t, char *) NONNULL;
+bool	md5file		(const char * const, char *) NONNULL;
 void	checksum_init	(void);
-void	checksum_update	(const char *, size_t);
+void	checksum_update	(const char * const, size_t);
 char	*checksum_final	(void);
-char	*checksum_file	(const char *);
+char	*checksum_file	(const char * const);
 
 #endif		/* MD5_H */
