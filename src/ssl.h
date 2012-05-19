@@ -32,9 +32,9 @@ ssize_t	secread(int, void *, size_t) NONNULL;
 size_t	secfread(void *, size_t, size_t, FILE *) NONNULL;
 ssize_t	readheaders(int, struct maplist *) NONNULL;
 
-ssize_t	secwrite(const char *, size_t);
-size_t	secfwrite(const char *, size_t, size_t, FILE *);
-ssize_t	secputs(const char *);
-ssize_t	secprintf(const char *format, ...) PRINTF_LIKE(1, 2);
+ssize_t	secwrite(const char * const , size_t);
+size_t	secfwrite(const char * const , size_t, size_t, FILE *);
+ssize_t	secputs(const char * const);
+ssize_t	secprintf(const char * const format, ...) PRINTF_LIKE(1, 2);
 
 #endif		/* SSL_H */

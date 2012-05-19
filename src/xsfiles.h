@@ -16,12 +16,12 @@ typedef struct cf_values
 	bool	noprivs;
 } cf_values;
 
-bool	check_file_redirect	(const char *, const char *) WARNUNUSED;
-bool	check_redirect		(const char *, const char *) WARNUNUSED;
-bool	check_allow_host	(const char *, char *) WARNUNUSED;
-bool	check_noxs		(const char *) WARNUNUSED;
-bool	check_location		(const char *, const char *) WARNUNUSED;
-bool	check_xsconf		(const char *, const char *, cf_values *) WARNUNUSED;
+bool	check_file_redirect	(const char * const, const char * const) WARNUNUSED;
+bool	check_redirect		(const char * const, const char * const) WARNUNUSED;
+bool	check_allow_host	(const char * const, char * const) WARNUNUSED;
+bool	check_noxs		(const char * const) WARNUNUSED;
+bool	check_location		(const char * const, const char * const) WARNUNUSED;
+bool	check_xsconf		(const char * const, const char * const, cf_values * const) WARNUNUSED;
 void	free_xsconf		(cf_values *) NONNULL;
 
 #endif		/* XSFILES_H */

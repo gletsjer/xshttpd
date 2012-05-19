@@ -29,7 +29,7 @@ generate_ha1(const char *user, const char *passwd)
 	/* calculate h(a1) */
 	ASPRINTFVAL(len, &a1, "%s:%s:%s", user, REALM, passwd);
 	md5data(a1, len, ha1);
-	free(a1);
+	FREE(a1);
 
 	return ha1;
 }

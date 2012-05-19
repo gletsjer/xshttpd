@@ -16,7 +16,7 @@
 #include	"convert.h"
 
 static char *
-convertpathandroot(const char *org, size_t *rootlenp)
+convertpathandroot(const char * const org, size_t *rootlenp)
 {
 	static	char	path[XS_PATH_MAX];
 	size_t		rootlen;
@@ -34,12 +34,12 @@ convertpathandroot(const char *org, size_t *rootlenp)
 			slash++;
 		if (!(userinfo = getpwnam(person)))
 		{
-			free(person);
+			FREE(person);
 			*rootlenp = strlen(BITBUCKETNAME);
 			strlcpy(path, BITBUCKETNAME, XS_PATH_MAX);
 			return path;
 		}
-		free(person);
+		FREE(person);
 		/* transform_user_dir */
 		if ((userpos = strstr(config.users->htmldir, "%u")))
 		{
@@ -90,7 +90,7 @@ convertpathandroot(const char *org, size_t *rootlenp)
 }
 
 const char *
-convertpath(const char *org)
+convertpath(const char * const org)
 {
 	size_t	rootlen;
 
@@ -98,7 +98,7 @@ convertpath(const char *org)
 }
 
 char *
-getdocroot(const char *org)
+getdocroot(const char * const org)
 {
 	char	*path;
 	size_t	rootlen;

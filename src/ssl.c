@@ -143,7 +143,7 @@ ssl_environment(void)
 		if (text)
 		{
 			setenv("SSL_CLIENT_S_DN", text, 1);
-			free(text);
+			FREE(text);
 		}
 		len = X509_NAME_get_text_by_NID(xsname, NID_commonName,
 			NULL, 0);
@@ -153,7 +153,7 @@ ssl_environment(void)
 			X509_NAME_get_text_by_NID(xsname, NID_commonName,
 				text, len + 1);
 			setenv("SSL_CLIENT_S_DN_CN", text, 1);
-			free(text);
+			FREE(text);
 		}
 
 		len = X509_NAME_get_text_by_NID(xsname, NID_pkcs9_emailAddress,
@@ -164,7 +164,7 @@ ssl_environment(void)
 			X509_NAME_get_text_by_NID(xsname,
 				NID_pkcs9_emailAddress, text, len + 1);
 			setenv("SSL_CLIENT_S_DN_Email", text, 1);
-			free(text);
+			FREE(text);
 		}
 		/* issuer */
 		xsname = X509_get_issuer_name(xs);
@@ -172,7 +172,7 @@ ssl_environment(void)
 		if (text)
 		{
 			setenv("SSL_CLIENT_I_DN", text, 1);
-			free(text);
+			FREE(text);
 		}
 		len = X509_NAME_get_text_by_NID(xsname, NID_commonName,
 			NULL, 0);
@@ -182,7 +182,7 @@ ssl_environment(void)
 			X509_NAME_get_text_by_NID(xsname, NID_commonName,
 				text, len + 1);
 			setenv("SSL_CLIENT_I_DN_CN", text, 1);
-			free(text);
+			FREE(text);
 		}
 		len = X509_NAME_get_text_by_NID(xsname, NID_pkcs9_emailAddress,
 			NULL, 0);
@@ -192,7 +192,7 @@ ssl_environment(void)
 			X509_NAME_get_text_by_NID(xsname,
 				NID_pkcs9_emailAddress, text, len + 1);
 			setenv("SSL_CLIENT_I_DN_Email", text, 1);
-			free(text);
+			FREE(text);
 		}
 
 		/* we did accept the cert, but is it valid? */
@@ -251,7 +251,7 @@ sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 				strname, strlen(strname),
 				0, 0, ovector, OVSIZE);
 			validated &= (rc >= 0);
-			free(strname);
+			FREE(strname);
 		}
 		else
 			validated = false;
@@ -267,7 +267,7 @@ sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
 				strname, strlen(strname),
 				0, 0, ovector, OVSIZE);
 			validated &= (rc >= 0);
-			free(strname);
+			FREE(strname);
 		}
 		else
 			validated = false;
@@ -383,7 +383,7 @@ preloadssl(void)
 }
 
 void
-loadssl(struct socket_config *lsock, struct ssl_vhost *sslvhost)
+loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 {
 	SSL_CTX			*ssl_ctx;
 	const SSL_METHOD	*method = NULL;
@@ -635,7 +635,7 @@ secfread(void *buf, size_t size, size_t nmemb, FILE *stream)
 }
 
 ssize_t
-secwrite(const char *buf, size_t count)
+secwrite(const char * const buf, size_t count)
 {
 	int		i;
 	size_t		len[3];
@@ -728,20 +728,20 @@ secwrite(const char *buf, size_t count)
 }
 
 size_t
-secfwrite(const char *buf, size_t size, size_t nmemb, FILE *stream)
+secfwrite(const char * const buf, size_t size, size_t nmemb, FILE *stream)
 {
 	(void)stream;
 	return (size_t)secwrite(buf, size * nmemb);
 }
 
 ssize_t
-secputs(const char *buf)
+secputs(const char * const buf)
 {
 	return buf ? secwrite(buf, strlen(buf)) : 0;
 }
 
 ssize_t
-secprintf(const char *format, ...)
+secprintf(const char * const format, ...)
 {
 	va_list 	ap;
 	char		*str = NULL;
@@ -758,7 +758,7 @@ secprintf(const char *format, ...)
 		return 0;
 
 	const ssize_t	ssz = secwrite(str, strlen(str));
-	free(str);
+	FREE(str);
 	return ssz;
 }
 

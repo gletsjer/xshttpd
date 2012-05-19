@@ -107,7 +107,7 @@ rpaf(const char *filename, const char *headers)
 
 	/* Replace REMOTE_ADDR by Client-IP address */
 	len = strspn(clientip, "0123456789abcdef:.");
-	clientip = strndup(clientip, len);
+	STRNDUP(clientip, clientip, len);
 	remotename = usednslookup ? rpaf_gethostname(clientip) : NULL;
 
 	setenv("PROXY_ADDR", getenv("REMOTE_ADDR"), 1);
@@ -163,7 +163,7 @@ rpaf_config(const char *name, const char *value)
 			if (ows && !ws)
 				start = p;
 			else if (!ows && ws)
-				rpafproxyips[i++] = strndup(start, p - start);
+				STRNDUP(rpafproxyips[i++], start, p - start);
 			ows = ws;
 			if (!*p)
 				break;

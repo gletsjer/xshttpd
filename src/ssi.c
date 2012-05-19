@@ -495,7 +495,7 @@ parse_values(char *here, char **mapping, size_t maxsize)
 	}
 
 	*end = '-';
-	free(args);
+	FREE(args);
 	return (int)mapsize;
 }
 
@@ -599,7 +599,7 @@ dir_date(int argc, char **argv, off_t *size)
 	if (ozone)
 	{
 		setenv("TZ", ozone, 1);
-		free(ozone);
+		FREE(ozone);
 	}
 	else if (zone)
 		unsetenv("TZ");
@@ -1117,7 +1117,7 @@ parsedirectives(char *parse, off_t *size)
 			if (directive->params)
 			{
 				/* remove argv[0..1] */
-				free(argv[0]);
+				FREE(argv[0]);
 				for (argc = 0; argc < len - 2; argc++)
 					argv[argc] = argv[argc + 2];
 			}

@@ -30,7 +30,7 @@ static	char	six2pr[64] =
 };
 
 bool
-decode(char *str)
+decode(char * const str)
 {
 	char		*posd, chr;
 	const	char	*poss;
@@ -64,7 +64,7 @@ decode(char *str)
 }
 
 void
-uudecode(char *buffer)
+uudecode(char * const buffer)
 {
 	unsigned char	pr2six[256], bufplain[32], *bufout = bufplain;
 	unsigned int	nbytesdecoded;
@@ -106,7 +106,7 @@ uudecode(char *buffer)
 }
 
 char	*
-escape(const char *what)
+escape(const char * const what)
 {
 	size_t		len, sz;
 	const char	*p;
@@ -148,7 +148,7 @@ escape(const char *what)
 }
 
 char	*
-urlencode(const char *what, bool delimenc)
+urlencode(const char * const what, bool delimenc)
 {
 	const char	*p;
 	char		*q, *buffer;
@@ -201,7 +201,7 @@ urlencode(const char *what, bool delimenc)
 }
 
 char	*
-shellencode(const char *what)
+shellencode(const char * const what)
 {
 	char		*q, *buffer;
 
@@ -235,7 +235,7 @@ hexdigit(char ch)
 
 /* sizeof(hex) >= 2 * len + 1 */
 void
-hex_encode(const char *bin, size_t len, char *hex)
+hex_encode(const char * const bin, size_t len, char * const hex)
 {
 	for (size_t i = 0; i < len; i++)
 	{
@@ -256,7 +256,7 @@ hex_encode(const char *bin, size_t len, char *hex)
 
 /* sizeof(bin) >= len / 2 */
 void
-hex_decode(const char *hex, size_t len, char *bin)
+hex_decode(const char * const hex, size_t len, char * const bin)
 {
 	for (size_t i = 0; i < len; i += 2)
 	{
@@ -276,10 +276,11 @@ hex_decode(const char *hex, size_t len, char *bin)
 
 /* sizeof(bin) >= (len * 4 + 2) / 3 + 1 */
 int
-base64_encode(const char *msg, size_t len, char *bin)
+base64_encode(const char * const input, size_t len, char * const bin)
 {
 	int		bits;
-	char           *d;
+	const char	*msg = input;
+	char		*d;
 
 	/* 3 bytes becomes 4 chars, but round up and allow for trailing NUL */
 	d = bin;

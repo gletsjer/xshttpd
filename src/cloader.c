@@ -145,7 +145,7 @@ load_config()
 
 		ASPRINTF(&preproccmd, "%s %s", config_preprocessor, config_path);
 		confd = popen(preproccmd, "r");
-		free(preproccmd);
+		FREE(preproccmd);
 	}
 	else
 		confd = fopen(config_path, "r");
@@ -168,7 +168,7 @@ load_config()
 				*(--end) = '\0';
 			if (end <= line)
 			{
-				free(line);
+				FREE(line);
 				continue;
 			}
 			key = line;
@@ -560,7 +560,7 @@ load_config()
 			else
 				errx(1, "illegal directive: '%s'", line);
 
-			free(line);
+			FREE(line);
 		}
 		if (config_preprocessor)
 			pclose(confd);

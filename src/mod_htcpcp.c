@@ -41,7 +41,7 @@ htcpcp(struct maplist *qh, read_callback_t rcb, write_callback_t wcb)
 	strftime(timestamp, sizeof(timestamp),
 		"%a, %d %b %Y %H:%M:%S GMT", gmtime(&now));
 
-	msglen = asprintf(&msg, "HTCPCP/1.0 418 %s\r\n"
+	ASPRINTFVAL(msglen, &msg, "HTCPCP/1.0 418 %s\r\n"
 		"Date: %s\r\n"
 		"Server: %s\r\n"
 		"Content-type: text/plain\r\n"
@@ -52,9 +52,6 @@ htcpcp(struct maplist *qh, read_callback_t rcb, write_callback_t wcb)
 		timestamp,
 		SERVER_IDENT,
 		sizeof(body_msg), body_msg);
-
-	if (msglen < 0)
-		return false;
 
 	wcb(msg, msglen);
 	FREE(msg);

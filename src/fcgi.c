@@ -327,7 +327,7 @@ init_env(fcgi_env * fenv)
 void 
 free_env(fcgi_env * fenv)
 {
-	free(fenv->buffer);
+	FREE(fenv->buffer);
 	fenv->buffer = NULL;
 	fenv->buffer_size = 0;
 	fenv->env_size = 0;
@@ -525,7 +525,7 @@ send_stream(fcgi_server * server, off_t length, unsigned char stream_id, int fd)
 
 	if (n <= 0)
 	{
-		free(buffer);
+		FREE(buffer);
 		return -1;
 	}
 
@@ -541,22 +541,22 @@ send_stream(fcgi_server * server, off_t length, unsigned char stream_id, int fd)
 	if (sizeof(record_header) !=
 	    write(server->socket, &record_header, sizeof(record_header)))
 	{
-		free(buffer);
+		FREE(buffer);
 		return -1;
 	}
 	if (n != write(server->socket, buffer, n))
 	{
-		free(buffer);
+		FREE(buffer);
 		return -1;
 	}
 	if (record_header.padding_length !=
 	    write(server->socket, &padding, record_header.padding_length))
 	{
-		free(buffer);
+		FREE(buffer);
 		return -1;
 	}
 
-	free(buffer);
+	FREE(buffer);
 
 	(void) fd;
 	return n;
@@ -577,16 +577,16 @@ recv_stream(fcgi_server * server, off_t length, int fd)
 
 	if (n <= 0)
 	{
-		free(buffer);
+		FREE(buffer);
 		return -1;
 	}
 
 	if (n != write(fd, buffer, n))
 	{
-		free(buffer);
+		FREE(buffer);
 		return -1;
 	}
 
-	free(buffer);
+	FREE(buffer);
 	return n;
 }

@@ -81,8 +81,8 @@ check_group (LDAP *ld, char *ldapdn, const char *user, const char *group)
 	}
 
 leave:
-	free(filter);
-	free(attrs[0]);
+	FREE(filter);
+	FREE(attrs[0]);
 
 	if (res)
 		ldap_msgfree (res);
@@ -128,26 +128,26 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
 		if (!strncasecmp ("ldaphost=", line, 9))
                 {
                         if (ldap.uri)
-                                free(ldap.uri);
+                                FREE(ldap.uri);
 			MALLOC(ldap.uri, char, strlen(line));
 			sprintf(ldap.uri, "ldap://%s", line + 9);
                 }
 		if (!strncasecmp ("ldapattr=", line, 9))
                 {
                         if (ldap.attr)
-                                free(ldap.attr);
+                                FREE(ldap.attr);
 			STRDUP(ldap.attr, line + 9);
                 }
 		if (!strncasecmp ("ldapuri=", line, 8))
                 {
                         if (ldap.uri)
-                                free(ldap.uri);
+                                FREE(ldap.uri);
 			STRDUP(ldap.uri, line + 8);
                 }
 		if (!strncasecmp ("ldapdn=", line, 7))
                 {
                         if (ldap.dn)
-                                free(ldap.dn);
+                                FREE(ldap.dn);
 			STRDUP(ldap.dn, line + 7);
                 }
 		if (!strncasecmp ("ldapversion=", line, 12))
@@ -155,13 +155,13 @@ check_auth_ldap(const char *authfile, const char *user, const char *pass)
 		if (!strncasecmp ("ldapgroups=", line, 11))
                 {
                         if (ldap.groups)
-                                free(ldap.groups);
+                                FREE(ldap.groups);
 			STRDUP(ldap.groups, line + 11);
                 }
 		if (!strncasecmp ("ldapfilter=", line, 11))
                 {
                         if (ldap.filter)
-                                free(ldap.filter);
+                                FREE(ldap.filter);
 			STRDUP(ldap.filter, line + 11);
                 }
 	}
@@ -280,9 +280,9 @@ check_auth_ldap_full(const char *user, const char *pass)
 	}
 
 leave:
-	free(filter);
+	FREE(filter);
 	if (cred.bv_len)
-		free(cred.bv_val);
+		FREE(cred.bv_val);
 	if (dn)
 		ldap_memfree (dn);
 	if (res)
@@ -299,25 +299,25 @@ ldap_config_local(const char *name, const char *value)
 	else if (!strcasecmp(name, "LdapHost"))
 	{
 		if (ldap.uri)
-			free(ldap.uri);
+			FREE(ldap.uri);
 		ASPRINTF(&ldap.uri, "ldap://%s", value);
 	}
 	else if (!strcasecmp(name, "LdapURI"))
 	{
 		if (ldap.uri)
-			free(ldap.uri);
+			FREE(ldap.uri);
 		STRDUP(ldap.uri, value);
 	}
 	else if (!strcasecmp(name, "LdapAttr"))
 	{
 		if (ldap.attr)
-			free(ldap.attr);
+			FREE(ldap.attr);
 		STRDUP(ldap.attr, value);
 	}
 	else if (!strcasecmp(name, "LdapDN"))
 	{
 		if (ldap.dn)
-			free(ldap.dn);
+			FREE(ldap.dn);
 		STRDUP(ldap.dn, value);
 	}
 	else if (!strcasecmp(name, "LdapVersion"))
@@ -325,13 +325,13 @@ ldap_config_local(const char *name, const char *value)
 	else if (!strcasecmp(name, "LdapGroups"))
 	{
 		if (ldap.groups)
-			free(ldap.groups);
+			FREE(ldap.groups);
 		STRDUP(ldap.groups, value);
 	}
 	else if (!strcasecmp(name, "LdapFilter"))
 	{
 		if (ldap.filter)
-			free(ldap.filter);
+			FREE(ldap.filter);
 		STRDUP(ldap.filter, value);
 	}
 	else

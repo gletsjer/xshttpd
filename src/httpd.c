@@ -487,7 +487,7 @@ set_signals()
 }
 
 void
-xserror(int code, const char *format, ...)
+xserror(int code, const char * const format, ...)
 {
 	va_list		ap;
 	char		*errmsg = NULL;
@@ -515,8 +515,8 @@ xserror(int code, const char *format, ...)
 	if (599 == code)
 	{
 		/* connection closed: don't send error */
-		free(message);
-		free(htmlmessage);
+		FREE(message);
+		FREE(htmlmessage);
 		return;
 	}
 
@@ -564,16 +564,16 @@ xserror(int code, const char *format, ...)
 	if (!session.headonly)
 	{
 		secputs(errmsg);
-		free(errmsg);
+		FREE(errmsg);
 	}
-	free(message);
-	free(htmlmessage);
+	FREE(message);
+	FREE(htmlmessage);
 }
 
 void
-redirect(const char *redir, xs_redirflags_t flags)
+redirect(const char * const redir, xs_redirflags_t flags)
 {
-	const	char	*qs = NULL;
+	const char	*qs = NULL;
 	char		*errmsg = NULL;
 
 	if (flags & redir_env)
@@ -612,13 +612,13 @@ redirect(const char *redir, xs_redirflags_t flags)
 	if (!session.headonly)
 	{
 		secputs(errmsg);
-		free(errmsg);
+		FREE(errmsg);
 	}
 	fflush(stdout);
 }
 
 void
-server_error(int code, const char *readable, const char *cgi)
+server_error(int code, const char * const readable, const char * const cgi)
 {
 	char		*cgipath = NULL, *errmsg = NULL;
 	const char	filename[] = "/error";
@@ -633,14 +633,14 @@ server_error(int code, const char *readable, const char *cgi)
 	setenv("ERROR_CODE", cgi, 1);
 	ASPRINTF(&errmsg, "%03d %s", code, readable);
 	setenv("ERROR_READABLE", errmsg, 1);
-	free(errmsg);
+	FREE(errmsg);
 	setenv("ERROR_URL", orig, 1);
 	setenv("ERROR_URL_EXPANDED", convertpath(orig), 1);
 	if (orig[0])
 	{
 		char	*url = escape(orig);
 		setenv("ERROR_URL_ESCAPED", url, 1);
-		free(url);
+		FREE(url);
 	}
 	else
 		setenv("ERROR_URL_ESCAPED", "", 1);
@@ -656,7 +656,7 @@ server_error(int code, const char *readable, const char *cgi)
 			ASPRINTF(&tpath, "/~%s/%s%s",
 				username, current->execdir, filename);
 			STRDUP(cgipath, convertpath(tpath));
-			free(tpath);
+			FREE(tpath);
 		}
 	}
 	else	/* Look for virtual host error script */
@@ -671,12 +671,12 @@ server_error(int code, const char *readable, const char *cgi)
 		if (stat(cgipath, &statbuf))
 		{
 			/* Last resort: try system error script */
-			free(cgipath);
+			FREE(cgipath);
 			ASPRINTF(&cgipath, "%s/%s", config.system->phexecdir, filename);
 			if (stat(cgipath, &statbuf))
 			{
 				xserror(code, "%s", readable);
-				free(cgipath);
+				FREE(cgipath);
 				return;
 			}
 		}
@@ -706,11 +706,11 @@ server_error(int code, const char *readable, const char *cgi)
 
 	do_script(orig, cgipath, filename, NULL);
 	session.postonly = waspost;
-	free(cgipath);
+	FREE(cgipath);
 }
 
 void
-logrequest(const char *request, off_t size)
+logrequest(const char * const request, off_t size)
 {
 	char		*dynrequest, *dynagent, *dynuser, *p;
 	const char	*timestamp = gmtimestamp();
@@ -892,7 +892,10 @@ process_request(void)
 	}
 	else if (readheaders(0, &session.request_headers) < 0)
 	{
-		xserror(400, "Unable to read request headers");
+		/* Either connection was closed or header rejected;
+		 * the only reject reason being buffer exceeded
+		 */
+		xserror(431, "Request header field too large");
 		return;
 	}
 	else /* HTTP-like protocol with headers */
@@ -1006,7 +1009,7 @@ process_request(void)
 						break;
 				if (!*ptr)
 					setenv(name, val, 1);
-				free(name);
+				FREE(name);
 			}
 		}
 
@@ -1040,7 +1043,7 @@ process_request(void)
 		{
 			xserror(411, "Length Required");
 			if (browser)
-				free(browser);
+				FREE(browser);
 			return;
 		}
 		setenv("CONTENT_LENGTH", "0", 1);
@@ -1052,7 +1055,7 @@ process_request(void)
 		setenv("USER_AGENT_SHORT", "UNKNOWN", 1);
 	}
 	else
-		free(browser);
+		FREE(browser);
 
 	alarm(0);
 	params = url;
@@ -1356,10 +1359,12 @@ standalone_socket(int id)
 #endif		/* HAVE_GETADDRINFO */
 #ifdef		HAVE_STRUCT_SOCKADDR_STORAGE
 	const socklen_t		salen = sizeof(struct sockaddr_storage);
-	struct sockaddr_storage	*saddr = malloc(salen);
+	struct sockaddr_storage	_saddr;
+	struct sockaddr_storage * const saddr = &_saddr;
 #else		/* HAVE_STRUCT_SOCKADDR_STORAGE */
 	const socklen_t		salen = sizeof(struct sockaddr);
-	struct sockaddr		*saddr = malloc(salen);
+	struct sockaddr		_saddr;
+	struct sockaddr * const	saddr = &_saddr;
 #endif		/* HAVE_STRUCT_SOCKADDR_STORAGE */
 	pid_t			*childs;
 
@@ -1793,7 +1798,7 @@ main(int argc, char **argv, char **envp)
 			longopt[opt_host] = optarg;
 			break;
 		case 'c':	/* configfile */
-			free(config_path);
+			FREE(config_path);
 			STRDUP(config_path, optarg);
 			break;
 		case 'd':	/* rootdir */
@@ -1835,12 +1840,12 @@ main(int argc, char **argv, char **envp)
 		}
 		case 'N':	/* nolog */
 			nolog = true;
-			free(config_path);
+			FREE(config_path);
 			STRDUP(config_path, BITBUCKETNAME);
 			break;
 	 	case 'P':	/* preprocessor */
 			if (config_preprocessor)
-				free(config_preprocessor);
+				FREE(config_preprocessor);
 			STRDUP(config_preprocessor, optarg);
 			break;
 		case 'v':	/* version */
@@ -1886,8 +1891,8 @@ main(int argc, char **argv, char **envp)
 #endif		 /* HANDLE_SSL_TLSEXT */
 				);
 			printf("\nAvailable modules:\n\t");
-			for (const char *mod, **mods = module_names;
-					(mod = *mods); mods++)
+			const char * const *mods = module_names;
+			for (const char *mod; (mod = *mods); mods++)
 				printf("%s ", mod);
 			printf("\nConfiguration file:\n"
 #ifdef		PATH_PREPROCESSOR
@@ -1915,7 +1920,7 @@ main(int argc, char **argv, char **envp)
 #define	SET_OPTION(option, config) \
 	if (longopt[option]) { \
 		if (config) \
-			free(config); \
+			FREE(config); \
 		STRDUP(config, longopt[option]); \
 	}
 

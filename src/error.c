@@ -13,6 +13,7 @@
 #include	<pwd.h>
 
 #include	"path.h"
+#include	"malloc.h"
 #include	"decode.h"
 
 static	void	error			(const char *)	NORETURN;
@@ -160,7 +161,7 @@ not_found()
 		printf("Perhaps the path <a href=\"%s\">%s</a> will\n",
 			buffer, escurl);
 		printf ("help.</p>\n<p>Alternatively, y");
-		free(escurl);
+		FREE(escurl);
 	} else
 		printf("<p>Y");
 	printf("ou may take a look at <a href=\"/\">the main index</a>");

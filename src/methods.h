@@ -6,17 +6,17 @@
 #include	"config.h"
 
 void	loadcompresstypes	(void);
-void	loadscripttypes		(char *, char *);
-void	loadfiletypes		(char *, char *);
+void	loadscripttypes		(const char * const, const char * const);
+void	loadfiletypes		(const char * const, const char * const);
 
 void	do_get			(char *);
 void	do_post			(char *);
 void	do_head			(char *);
 void	do_put			(char *);
 void	do_delete		(char *);
-void	do_options		(const char *);
-void	do_trace		(const char *);
-void	do_proxy		(const char *, const char *);
+void	do_options		(const char * const);
+void	do_trace		(const char * const);
+void	do_proxy		(const char * const, const char * const);
 
 bool	writeheaders		(void);
 

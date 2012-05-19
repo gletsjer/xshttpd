@@ -8,7 +8,7 @@
 #include	"httypes.h"
 #include	"config.h"
 
-extern const char	*module_names[];
+extern const char * const module_names[];
 
 bool	init_modules(void);
 

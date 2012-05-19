@@ -3,6 +3,6 @@
 #ifndef		PATH_H
 #define		PATH_H
 
-const	char	*calcpath	(const char *, const char *) NONNULL WARNUNUSED;
+const	char	*calcpath	(const char * const, const char * const) NONNULL WARNUNUSED;
 
 #endif		/* PATH_H */

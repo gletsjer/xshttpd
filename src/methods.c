@@ -117,9 +117,9 @@ free_ftype(ftypes *f)
 {
 	if (!f)
 		return;
-	free(f->name);
-	free(f->ext);
-	free(f);
+	FREE(f->name);
+	FREE(f->ext);
+	FREE(f);
 }
 
 void
@@ -127,11 +127,11 @@ free_ctype(ctypes *c)
 {
 	if (!c)
 		return;
-	free(c->prog);
-	free(c->ext);
+	FREE(c->prog);
+	FREE(c->ext);
 	if (c->name)
-		free(c->name);
-	free(c);
+		FREE(c->name);
+	FREE(c);
 }
 
 static char *
@@ -573,7 +573,7 @@ senduncompressed(int infd, struct encoding_filter *ec_filter)
 						STRDUP(cfvalues.encoding, encodings[i]);
 					}
 
-		free(encodings);
+		FREE(encodings);
 	}
 
 	alarm(180);
@@ -1163,7 +1163,7 @@ do_get(char *params)
 		env.query_string = getenv("QUERY_STRING");
 		qs = shellencode(qs);
 		setenv("QUERY_STRING_UNESCAPED", qs, 1);
-		free(qs);
+		FREE(qs);
 		*question = '\0';
 	}
 	else
@@ -1216,7 +1216,7 @@ do_get(char *params)
 		strlcat(real_path, filename, XS_PATH_MAX);
 		ASPRINTF(&newpath, "%s%s", base, filename);
 		setenv("SCRIPT_FILENAME", newpath, 1);
-		free(newpath);
+		FREE(newpath);
 	}
 	else
 		filename = file;
@@ -1455,7 +1455,7 @@ do_get(char *params)
 		MALLOC(cfvalues.charset, char, sb.st_size + 1);
 		if (read(cfd, cfvalues.charset, sb.st_size) < 0)
 		{
-			free(cfvalues.charset);
+			FREE(cfvalues.charset);
 			cfvalues.charset = NULL;
 		}
 		else
@@ -1673,7 +1673,7 @@ do_post(char *params)
 		}
 		MALLOC(rbuf, char, cl + 1);
 		secread(0, rbuf, cl);
-		free(rbuf);
+		FREE(rbuf);
 	}
 }
 
@@ -1709,7 +1709,7 @@ do_head(char *params)
 }
 
 void
-do_options(const char *params)
+do_options(const char * const params)
 {
 	session.size = 0;
 	maplist_append(&session.response_headers, append_replace,
@@ -1720,7 +1720,7 @@ do_options(const char *params)
 }
 
 void
-do_trace(const char *params)
+do_trace(const char * const params)
 {
 	struct	maplist		http_headers = session.request_headers;
 	struct	maplist		*rh = &session.response_headers;
@@ -1758,12 +1758,12 @@ do_trace(const char *params)
 	maplist_free(rh);
 
 	secputs(output);
-	free(output);
+	FREE(output);
 	(void)params;
 }
 
 void
-do_proxy(const char *proxy, const char *params)
+do_proxy(const char * const proxy, const char * const params)
 {
 #ifdef		HAVE_CURL
 	CURL	*handle = curl_easy_init();
@@ -1811,7 +1811,7 @@ do_proxy(const char *proxy, const char *params)
 			session.request_headers.elements[sz].index,
 			session.request_headers.elements[sz].value);
 		curl_headers = curl_slist_append(curl_headers, header);
-		free(header);
+		FREE(header);
 	}
 
 	curl_easy_setopt(handle, CURLOPT_HTTPHEADER, curl_headers);
@@ -1826,9 +1826,9 @@ do_proxy(const char *proxy, const char *params)
 		xserror(500, "Internal forwarding error");
 	else
 		logrequest(params, 0);
-	free(request);
+	FREE(request);
 	if (curl_headers)
-		free(curl_headers);
+		FREE(curl_headers);
 #else		/* HAVE_CURL */
 	xserror(500, "HTTP request forwarding not supported");
 	(void)proxy;
@@ -1855,7 +1855,7 @@ curl_readhack(void *buf, size_t size, size_t nmemb, FILE *stream)
 #endif		/* HAVE_CURL */
 
 void
-loadfiletypes(char *orgbase, char *base)
+loadfiletypes(const char * const orgbase, const char * const base)
 {
 	FILE		*mime;
 
@@ -1902,8 +1902,8 @@ loadfiletypes(char *orgbase, char *base)
 		if (ret < 2)
 		{
 			if (ret)
-				free(args[0]);
-			free(args);
+				FREE(args[0]);
+			FREE(args);
 			/* this may be a local file: silently ignore errors */
 			continue;
 		}
@@ -1926,7 +1926,7 @@ loadfiletypes(char *orgbase, char *base)
 				ftype = new;
 			prev = new;
 		}
-		free(args);
+		FREE(args);
 	}
 	fclose(mime);
 }
@@ -1978,7 +1978,7 @@ loadcompresstypes()
 }
 
 void
-loadscripttypes(char *orgbase, char *base)
+loadscripttypes(const char * const orgbase, const char * const base)
 {
 	FILE		*methods;
 
@@ -2027,7 +2027,7 @@ loadscripttypes(char *orgbase, char *base)
 		if (ret < 2)
 		{
 			if (ret)
-				free(name);
+				FREE(name);
 			/* this may be a local file: silently ignore errors */
 			continue;
 		}

@@ -173,7 +173,7 @@ changepasswd(const char *param, int  cl)
 				remove(filename);
 				xserror(403, "Password doesn't match");
 			}
-			free(cryptold);
+			FREE(cryptold);
 			found = true;
 			if (buffer[0] != 'U')
 			{
@@ -232,8 +232,8 @@ generateform()
 	printf("<INPUT TYPE=\"submit\" VALUE=\"Change password\"> |\n");
 	printf("<INPUT TYPE=\"reset\" VALUE=\"Clear form\">\n</FORM>");
 	printf("</PRE></BODY></HTML>\n");
-	free(name);
-	free(info);
+	FREE(name);
+	FREE(info);
 }
 
 int

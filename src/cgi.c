@@ -392,7 +392,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				else
 					snprintf(buffer, len, "%s %s", engine, fullpath);
 				(void) execl("/bin/sh", "sh", "-c", buffer, NULL);
-				free(buffer);
+				FREE(buffer);
 			}
 			else
 				(void) execl(engine, engine, fullpath, argv1, NULL);
@@ -429,7 +429,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			if (readline(0, buffer, buflen) != ERR_NONE)
 			{
 				if (cbuf)
-					free(cbuf);
+					FREE(cbuf);
 				CLOSEFD;
 				return;
 			}
@@ -462,7 +462,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		}
 
 		if (cbuf)
-			free(cbuf);
+			FREE(cbuf);
 		session.postread = true;
 		close(q[1]);
 		q[1] = -1;
@@ -694,7 +694,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			append(&head, false, "Date: %s\r\n", currenttime);
 			secprintf("%s\r\n", head);
 			if (head)
-				free(head);
+				FREE(head);
 			/* 304 pages don't even get an empty body */
 			if (session.rstatus != 204 && session.rstatus != 304 &&
 					session.httpversion >= 11)
@@ -784,7 +784,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			ASPRINTF(&request, "%s%s", path,
 				env.path_info ? env.path_info : "");
 		logrequest(request, totalwritten);
-		free(request);
+		FREE(request);
 	}
 	END:
 	fflush(stdout);

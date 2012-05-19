@@ -3,7 +3,7 @@
 #ifndef		CONVERT_H
 #define		CONVERT_H
 
-const	char	*convertpath	(const char *)	NONNULL WARNUNUSED;
-char		*getdocroot	(const char *)	NONNULL WARNUNUSED;
+const	char	*convertpath	(const char * const)	NONNULL WARNUNUSED;
+char		*getdocroot	(const char * const)	NONNULL WARNUNUSED;
 
 #endif		/* CONVERT_H */

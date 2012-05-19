@@ -125,7 +125,7 @@ main(int argc, char **argv)
 		else
 			ASPRINTF(&total, "%c%s:%s\n",
 				(passwdlock ? 'L' : 'U'), username, pwd);
-		free(passone);
+		FREE(passone);
 	}
 
 	/* DECL */
@@ -168,14 +168,14 @@ main(int argc, char **argv)
 		fputs(total, authout);
 		printf("New user `%s' has been created.\n", username);
 	}
-	free(username);
-	free(total);
+	FREE(username);
+	FREE(total);
 	if (authinp)
 		fclose(authinp);
 	fclose(authout);
 	if (rename(newfile, filename))
 		err(1, "Cannot rename authentication file");
-	free(newfile);
+	FREE(newfile);
 	if (!count)
 	{
 		printf("Authentication file is now completely empty: "

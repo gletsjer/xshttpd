@@ -6,14 +6,14 @@
 #include	"config.h"
 #include	<stdbool.h>
 
-bool	decode		(char *) NONNULL;
-void	uudecode	(char *) NONNULL;
-char	*escape		(const char *) MALLOC_FUNC NONNULL;
-char	*urlencode	(const char *, bool) MALLOC_FUNC NONNULL;
-char	*shellencode	(const char *) MALLOC_FUNC NONNULL;
+bool	decode		(char * const) NONNULL;
+void	uudecode	(char * const) NONNULL;
+char	*escape		(const char * const) MALLOC_FUNC NONNULL;
+char	*urlencode	(const char * const, bool) MALLOC_FUNC NONNULL;
+char	*shellencode	(const char * const) MALLOC_FUNC NONNULL;
 int	hexdigit	(char) CONST_FUNC NONNULL;
-void	hex_encode	(const char *bin, size_t len, char *hex) NONNULL;
-void	hex_decode	(const char *hex, size_t len, char *bin) NONNULL;
-int	base64_encode	(const char *msg, size_t len, char *bin) NONNULL;
+void	hex_encode	(const char * const bin, size_t len, char *hex) NONNULL;
+void	hex_decode	(const char * const hex, size_t len, char *bin) NONNULL;
+int	base64_encode	(const char * const msg, size_t len, char *bin) NONNULL;
 
 #endif		/* DECODE_H */

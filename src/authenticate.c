@@ -66,14 +66,14 @@ get_crypted_password(const char *authfile, const char *user, char **passwd, char
 
 		if (sz < strlen(user) + 2)
 		{
-			free(line);
+			FREE(line);
 			continue;
 		}
 
 		if (strncmp(line + 1, user, strlen(user)) ||
 				line[strlen(user)+1] != ':')
 		{
-			free(line);
+			FREE(line);
 			continue;
 		}
 
@@ -81,7 +81,7 @@ get_crypted_password(const char *authfile, const char *user, char **passwd, char
 			lpass++;
 		else
 		{
-			free(line);
+			FREE(line);
 			fclose(af);
 			return false;
 		}
@@ -92,7 +92,7 @@ get_crypted_password(const char *authfile, const char *user, char **passwd, char
 			STRDUP(*passwd, lpass);
 		if (hash)
 			STRDUP(*hash, lhash);
-		free(line);
+		FREE(line);
 		fclose(af);
 		return true; /* found! */
 	}
@@ -124,13 +124,13 @@ check_basic_auth(const char *authfile)
 	passwd = NULL;
 	if (!get_crypted_password(authfile, search, &passwd, NULL) || !passwd)
 	{
-		free(line);
+		FREE(line);
 		return false;
 	}
 
 	allow = !strcmp(passwd, DES_crypt(find, passwd));
-	free(passwd);
-	free(line);
+	FREE(passwd);
+	FREE(line);
 	return allow;
 }
 
@@ -158,7 +158,7 @@ check_digest_auth(const char *authfile, bool *stale)
 	fields = eqstring_to_array(line, &authreq);
 	if (!fields)
 	{
-		free(line);
+		FREE(line);
 		return false;
 	}
 	user = realm = nonce = cnonce = uri = response = qop = nc = NULL;
@@ -188,30 +188,30 @@ check_digest_auth(const char *authfile, bool *stale)
 	if (!user || !realm || !nonce || !uri || !response)
 	{
 		maplist_free(authreq);
-		free(line);
+		FREE(line);
 		return false; /* fail */
 	}
 	passwd = ha1 = NULL;
 	if (!get_crypted_password(authfile, user, &passwd, &ha1) || !passwd)
 	{
 		maplist_free(authreq);
-		free(line);
+		FREE(line);
 		return false; /* not found */
 	}
 
-	free(passwd);
+	FREE(passwd);
 	if (!ha1)
 	{
 		maplist_free(authreq);
-		free(line);
+		FREE(line);
 		return false;
 	}
 
 	/* obtain h(a1) from file */
 	if (strlen(ha1) > MD5_DIGEST_STRING_LENGTH)
 	{
-		free(ha1);
-		free(line);
+		FREE(ha1);
+		FREE(line);
 		maplist_free(authreq);
 		return false; /* no valid hash */
 	}
@@ -219,7 +219,7 @@ check_digest_auth(const char *authfile, bool *stale)
 	/* calculate h(a2) */
 	ASPRINTFVAL(len, &a2, "%s:%s", env.request_method, uri);
 	md5data(a2, len, ha2);
-	free(a2);
+	FREE(a2);
 
 	/* calculate digest from h(a1) and h(a2) */
 	if (!qop)
@@ -228,13 +228,13 @@ check_digest_auth(const char *authfile, bool *stale)
 		ASPRINTFVAL(len, &digplain, "%s:%s:%s:%s:%s:%s",
 			ha1, nonce, nc, cnonce, qop, ha2);
 	md5data(digplain, len, digest);
-	free(digplain);
-	free(ha1);
+	FREE(digplain);
+	FREE(ha1);
 
 	if (strcmp(response, digest))
 	{
 		maplist_free(authreq);
-		free(line);
+		FREE(line);
 		return false; /* no match */
 	}
 
@@ -242,14 +242,14 @@ check_digest_auth(const char *authfile, bool *stale)
 	{
 		*stale = true;
 		maplist_free(authreq);
-		free(line);
+		FREE(line);
 		return false; /* invalid nonce */
 	}
 
 	setenv("AUTH_TYPE", "Digest", 1);
 	setenv("REMOTE_USER", user, 1);
 	maplist_free(authreq);
-	free(line);
+	FREE(line);
 	return true;
 }
 
@@ -292,7 +292,7 @@ denied_access(bool digest, bool stale)
 		writeheaders();
 	}
 	secputs(errmsg);
-	free(errmsg);
+	FREE(errmsg);
 	(void)stale;
 	return false;
 }
@@ -459,7 +459,7 @@ fresh_nonce(void)
 	ASPRINTFVAL(len, &buf, "%" PRItimex ":%lu:%s",
 		ts, secret, env.remote_addr);
 	md5data(buf, len, bufhex);
-	free(buf);
+	FREE(buf);
 
 	snprintf(nonce, MAX_NONCE_LENGTH, "%" PRItimex ":%s", ts, bufhex);
 	return nonce;
@@ -484,7 +484,7 @@ valid_nonce(const char *nonce)
 	ASPRINTFVAL(len, &buf, "%" PRItimex ":%lu:%s",
 		ts, secret, env.remote_addr);
 	md5data(buf, len, bufhex);
-	free(buf);
+	FREE(buf);
 
 	if (strcmp(ptr, bufhex))
 		return false;

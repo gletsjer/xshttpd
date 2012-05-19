@@ -26,8 +26,8 @@
 #include	"httpd.h"
 #include	"malloc.h"
 
-static size_t	internal_xstring_to_arrayp(const char *, char ***, size_t (*)(const char *, char **)) WARNUNUSED;
-static size_t	internal_xstring_to_arraypn(const char *, char ***, size_t (*)(const char *, char **)) WARNUNUSED;
+static size_t	internal_xstring_to_arrayp(const char * const, char ***, size_t (*)(const char *, char **)) WARNUNUSED;
+static size_t	internal_xstring_to_arraypn(const char * const, char ***, size_t (*)(const char *, char **)) WARNUNUSED;
 static int		qcmp(const char **, const char **);
 
 bool
@@ -57,12 +57,12 @@ gmtimestamp(void)
 	return (char *)buffer;
 }
 
-bool
-match(const char *total, const char *pattern)
+static bool
+match_s(const char * const total, const char * const pattern, size_t sz)
 {
-	int		x, y;
+	size_t		x, y;
 
-	for (x = 0, y = 0; pattern[y]; x++, y++)
+	for (x = 0, y = 0; y < sz; x++, y++)
 	{
 		if ((!total[x]) && (pattern[y] != '*'))
 			return false;
@@ -93,9 +93,17 @@ match(const char *total, const char *pattern)
 }
 
 bool
-match_list(char *list, const char *browser)
+match(const char * const total, const char * const pattern)
 {
-	char		*begin, *end, origin;
+	const size_t	sz = strlen(pattern);
+
+	return match_s(total, pattern, sz);
+}
+
+bool
+match_list(const char * const list, const char * const browser)
+{
+	const char	*begin, *end;
 	bool		matches;
 
 	if (!browser)
@@ -107,9 +115,7 @@ match_list(char *list, const char *browser)
 			end = begin;
 			while (*end && (*end != ' '))
 				end++;
-			origin = *end; *end = 0;
-			matches = match(browser, begin);
-			*end = origin;
+			matches = match_s(browser, begin, end - begin);
 			if (matches)
 				return true;
 			begin = end;
@@ -124,10 +130,10 @@ match_list(char *list, const char *browser)
 #define ISALNUM(p) (((p) >= '0' && (p) <= '9') || ((p) >= 'a' && (p) <= 'z') ||\
 		((p) >= 'A' && (p) <= 'Z') || (p) == '-' || (p) == '_')
 size_t
-eqstring_to_array(char *string, struct maplist **plist)
+eqstring_to_array(const char * const string, struct maplist **plist)
 {
 	size_t		num;
-	char		*p, *q;
+	const char	*p, *q;
 	const char	*is = NULL , *vs = NULL , *idx = NULL;
 	struct maplist	*list = NULL;
 	enum { s_findkey, s_findeq, s_findval, s_findnext }	state;
@@ -208,7 +214,7 @@ eqstring_to_array(char *string, struct maplist **plist)
 
 /* like string_to_array, but malloc's data */
 static size_t
-internal_xstring_to_arrayp(const char *value, char ***array, size_t (*xstring_to_array)(const char *, char **))
+internal_xstring_to_arrayp(const char * const value, char ***array, size_t (*xstring_to_array)(const char *, char **))
 {
 	size_t	sz;
 
@@ -219,7 +225,7 @@ internal_xstring_to_arrayp(const char *value, char ***array, size_t (*xstring_to
 }
 
 static size_t
-internal_xstring_to_arraypn(const char *value, char ***array, size_t (*xstring_to_array)(const char *, char **))
+internal_xstring_to_arraypn(const char * const value, char ***array, size_t (*xstring_to_array)(const char *, char **))
 {
 	const size_t	sz =
 		internal_xstring_to_arrayp(value, array, xstring_to_array);
@@ -233,32 +239,32 @@ internal_xstring_to_arraypn(const char *value, char ***array, size_t (*xstring_t
 }
 
 size_t
-string_to_arrayp(const char *value, char ***array)
+string_to_arrayp(const char * const value, char ***array)
 {
 	return internal_xstring_to_arrayp(value, array, &string_to_array);
 }
 
 size_t
-qstring_to_arrayp(const char *value, char ***array)
+qstring_to_arrayp(const char * const value, char ***array)
 {
 	return internal_xstring_to_arrayp(value, array, &qstring_to_array);
 }
 
 size_t
-string_to_arraypn(const char *value, char ***array)
+string_to_arraypn(const char * const value, char ***array)
 {
 	return internal_xstring_to_arraypn(value, array, &string_to_array);
 }
 
 size_t
-qstring_to_arraypn(const char *value, char ***array)
+qstring_to_arraypn(const char * const value, char ***array)
 {
 	return internal_xstring_to_arraypn(value, array, &qstring_to_array);
 }
 
 /* Convert whitespace/comma-separated string into array (config) */
 size_t
-string_to_array(const char *value, char **array)
+string_to_array(const char * const value, char **array)
 {
 	size_t	num;
 	char	*valuecopy;
@@ -279,7 +285,7 @@ string_to_array(const char *value, char **array)
 			num++;
 		}
 
-	free(valuecopy);
+	FREE(valuecopy);
 	return num;
 }
 
@@ -357,7 +363,7 @@ qstring_to_array(const char *value, char **array)
 			{
 				num--;
 				if (array)
-					free(term);
+					FREE(term);
 				term = NULL;
 			}
 
@@ -381,7 +387,7 @@ qstring_to_array(const char *value, char **array)
 		qsort(array, num, sizeof(char *),
 			(int (*)(const void *, const void *))qcmp);
 
-	free(valuecopy);
+	FREE(valuecopy);
 	return num;
 }
 
@@ -391,8 +397,8 @@ free_string_array(char **array, size_t num)
 	if (!array)
 		return;
 	for (size_t i = 0; i < num; i++)
-		free(array[i]);
-	free(array);
+		FREE(array[i]);
+	FREE(array);
 }
 
 void
@@ -401,8 +407,8 @@ free_string_arrayp(char **array)
 	if (!array)
 		return;
 	for (char *p = *array; p; p++)
-		free(p);
-	free(array);
+		FREE(p);
+	FREE(array);
 }
 
 ssize_t
@@ -430,7 +436,7 @@ fgetfields(FILE *fd, size_t num_fields, ...)
 		STRDUP(*argp, fld);
 	}
 	va_end(ap);
-	free(line);
+	FREE(line);
 	return num;
 }
 
@@ -456,7 +462,7 @@ fgetmfields(FILE *fd, char ***fieldsp)
 		STRDUP(fields[num], fld);
 		num++;
 	}
-	free(line);
+	FREE(line);
 	return num;
 }
 
@@ -545,10 +551,10 @@ maplist_free(struct maplist *list)
 
 	for (sz = 0; sz < list->size; sz++)
 	{
-		free(list->elements[sz].index);
-		free(list->elements[sz].value);
+		FREE(list->elements[sz].index);
+		FREE(list->elements[sz].value);
 	}
-	free(list->elements);
+	FREE(list->elements);
 	list->size = 0;
 	list->elements = NULL;
 }

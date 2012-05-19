@@ -43,13 +43,13 @@ perl_init(void)
 		if (!exitstatus)
 		{
 			perl_run(my_perl);
-			free(path);
+			FREE(path);
 			return true;
 		}
 	}
 
 	warn("Perl module not available");
-	free(path);
+	FREE(path);
 	perl_free(my_perl);
 	my_perl = NULL;
 	return false;

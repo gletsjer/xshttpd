@@ -11,8 +11,8 @@
 #include	"modules.h"
 #include	"path.h"
 
-const char	*module_names[] = MODULES;
-struct module	**modules = NULL;
+const char * const	module_names[] = MODULES;
+struct module		**modules = NULL;
 
 bool
 init_modules(void)
@@ -25,7 +25,10 @@ init_modules(void)
 
 	if (!config.modules ||
 			(config.modules[0] && '*' == config.modules[0][0]))
-		config.modules = (char **)module_names;
+	{
+		MALLOC(config.modules, char *, sizeof(module_names));
+		memcpy(config.modules, module_names, sizeof(module_names));
+	}
 
 	for (num_mod = 0; config.modules[num_mod]; num_mod++)
 		/* DO NOTHING */;
@@ -44,8 +47,8 @@ init_modules(void)
 			errx(1, "Cannot load module %s: %s",
 				config.modules[i], dlerror());
 		warnx("Module loaded: %s", module->name);
-		free(modname);
-		free(soname);
+		FREE(modname);
+		FREE(soname);
 		modules[i] = module;
 	}
 	modules[num_mod] = NULL;

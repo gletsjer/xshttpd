@@ -53,7 +53,7 @@ static void	v6masktonum		(unsigned int, struct in6_addr *);
 #endif		/* HAVE_STRUCT_IN6_ADDR */
 
 static char    *
-mknewurl(const char *old, const char *new)
+mknewurl(const char * const old, const char * const new)
 {
 	static char	result[XS_PATH_MAX];
 	char		*p;
@@ -114,7 +114,7 @@ v6masktonum(unsigned int mask, struct in6_addr *addr6)
 #endif		/* HAVE_STRUCT_IN6_ADDR */
 
 bool
-check_file_redirect(const char *base, const char *filename)
+check_file_redirect(const char * const base, const char * const filename)
 {
 	int		fd;
 	ssize_t		size;
@@ -150,7 +150,7 @@ check_file_redirect(const char *base, const char *filename)
 }
 
 bool
-check_redirect(const char *cffile, const char *filename)
+check_redirect(const char * const cffile, const char * const filename)
 {
 	char	*request, *command;
 	char	**argv;
@@ -217,7 +217,7 @@ check_redirect(const char *cffile, const char *filename)
 			{
 				newloc = mknewurl(request, subst);
 				redirect(newloc, 'R' == command[0] ? redir_perm : 0);
-				free(subst);
+				FREE(subst);
 				exittrue = true;
 			}
 		}
@@ -228,7 +228,7 @@ check_redirect(const char *cffile, const char *filename)
 			if (subst && *subst)
 			{
 				do_get(subst);
-				free(subst);
+				FREE(subst);
 				exittrue = true;
 			}
 		}
@@ -242,7 +242,7 @@ check_redirect(const char *cffile, const char *filename)
 			if (subst && *subst)
 			{
 				do_proxy(argv[1], subst);
-				free(subst);
+				FREE(subst);
 				exittrue = true;
 			}
 		}
@@ -255,7 +255,7 @@ check_redirect(const char *cffile, const char *filename)
 			{
 				newloc = mknewurl(request, subst);
 				do_proxy(NULL, newloc);
-				free(subst);
+				FREE(subst);
 				exittrue = true;
 			}
 		}
@@ -308,8 +308,8 @@ check_redirect(const char *cffile, const char *filename)
 		}
 
 		while (ret > 0)
-			free(argv[--ret]);
-		free(argv);
+			FREE(argv[--ret]);
+		FREE(argv);
 		if (exittrue || exitfalse)
 		{
 			fclose(fp);
@@ -321,7 +321,7 @@ check_redirect(const char *cffile, const char *filename)
 }
 
 bool
-check_allow_host(const char *hostname, char *pattern)
+check_allow_host(const char * const hostname, char * const pattern)
 {
 	char	*slash;
 
@@ -399,7 +399,7 @@ check_allow_host(const char *hostname, char *pattern)
 }
 
 bool
-check_noxs(const char *cffile)
+check_noxs(const char * const cffile)
 {
 	FILE	*rfile;
 	char	*allowhost;
@@ -422,11 +422,11 @@ check_noxs(const char *cffile)
 		if (check_allow_host(env.remote_addr, allowhost))
 		{
 			fclose(rfile);
-			free(allowhost);
+			FREE(allowhost);
 			return false; /* access granted */
 		}
 
-		free(allowhost);
+		FREE(allowhost);
 	}
 
 	fclose(rfile);
@@ -435,7 +435,7 @@ check_noxs(const char *cffile)
 }
 
 bool
-check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
+check_xsconf(const char * const cffile, const char * const filename, cf_values * const cfvalues)
 {
 	char	*line;
 	char    **authfiles;
@@ -460,7 +460,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 
 		if (!*line)
 		{
-			free(line);
+			FREE(line);
 			continue;
 		}
 
@@ -476,7 +476,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 			if (!*p)
 			{
 				/* [ without ]; skip it */
-				free(line);
+				FREE(line);
 				continue;
 			}
 			*p = '\0';
@@ -487,7 +487,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 				if (!env.request_method ||
 					strcasecmp(name, env.request_method))
 				{
-					free(line);
+					FREE(line);
 					continue;
 				}
 				name = p;
@@ -495,14 +495,14 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 			/* try simple matching */
 			state = !strcmp(name, "*") ||
 				fnmatch(name, filename, 0) != FNM_NOMATCH;
-			free(line);
+			FREE(line);
 			continue;
 		}
 
 		/* ignore anything else if no match */
 		if (!state)
 		{
-			free(line);
+			FREE(line);
 			continue;
 		}
 
@@ -516,7 +516,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 
 		if (!value || !*value)
 		{
-			free(line);
+			FREE(line);
 			continue;
 		}
 
@@ -541,7 +541,7 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 					ASPRINTF(&temp, "%.*s/%s",
 						(int)(slash - cffile),
 						cffile, authfiles[i]);
-					free(authfiles[i]);
+					FREE(authfiles[i]);
 					authfiles[i] = temp;
 				}
 		}
@@ -647,24 +647,24 @@ check_xsconf(const char *cffile, const char *filename, cf_values *cfvalues)
 }
 
 void
-free_xsconf(cf_values *cfvalues)
+free_xsconf(cf_values * const cfvalues)
 {
 	if (cfvalues->charset)
-		free(cfvalues->charset);
+		FREE(cfvalues->charset);
 	if (cfvalues->mimetype)
-		free(cfvalues->mimetype);
+		FREE(cfvalues->mimetype);
 	if (cfvalues->scripttype)
-		free(cfvalues->scripttype);
+		FREE(cfvalues->scripttype);
 	if (cfvalues->language)
-		free(cfvalues->language);
+		FREE(cfvalues->language);
 	if (cfvalues->encoding)
-		free(cfvalues->encoding);
+		FREE(cfvalues->encoding);
 	if (cfvalues->indexfile)
-		free(cfvalues->indexfile);
+		FREE(cfvalues->indexfile);
 	if (cfvalues->p3pref)
-		free(cfvalues->p3pref);
+		FREE(cfvalues->p3pref);
 	if (cfvalues->p3pcp)
-		free(cfvalues->p3pcp);
+		FREE(cfvalues->p3pcp);
 	if (cfvalues->putscript)
-		free(cfvalues->putscript);
+		FREE(cfvalues->putscript);
 }

@@ -11,7 +11,7 @@
 #include	"path.h"
 
 const	char	*
-calcpath(const char *prefix, const char *filename)
+calcpath(const char * const prefix, const char * const filename)
 {
 	static	char	buffer[XS_PATH_MAX];
 
