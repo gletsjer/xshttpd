@@ -113,6 +113,7 @@ extern struct configuration
 	bool		execasuser;
 	bool		usevirtualuid;
 	bool		uselocalscript;
+	bool		usescriptargs;
 	bool		usednslookup;
 	bool		usestricthostname;
 	bool		useacceptfilter;

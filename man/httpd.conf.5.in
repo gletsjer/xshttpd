@@ -74,7 +74,7 @@ are good candidates.
 The groupname or numeric gid that will be used to process
 all requests.
 .It Sy ExecAsUser Ar boolean Aq true
-If enabled then filenames and CGI's in a user directory will
+If enabled, filenames and CGI's in a user directory will
 be read and executed with the permissions of that user.
 .It Sy DefaultCharset Ar charset Aq us-ascii
 The character set in which text documents will be displayed by
@@ -103,7 +103,7 @@ root directory for the virtual host data. The
 .Ar directory
 must be an absolute path.
 .It Sy UseServerSideInclude Ar boolean Aq true
-By default all HTML files will be parsed for server-side
+By default, all HTML files will be parsed for server-side
 include directives. The output of CGI scripts with the
 filename prefix
 .Ql ssi-
@@ -112,7 +112,7 @@ this setting is turned off, SSI directives will be ignored
 and files are not checked (which may slightly increase
 performance of the webserver).
 .It Sy UseLocalScript Ar boolean Aq true
-If enabled all directories will be checked for the presence
+If enabled, all directories will be checked for the presence
 of a
 .Pa .xsscripts
 file - or the presence of
@@ -128,8 +128,27 @@ files use the exact same syntax as the global
 file, see
 .Xr httpd 1
 for details.
+.It Sy UseScriptArgs Ar boolean Aq false
+If enabled, parameters passed to scripts with a GET request
+will be passed as command line options to the CGI script,
+unless they contain
+.Ql =
+(common name-value pairs).
+This is a mandatory, but little-used, requirement of the
+.Xr CGI/1.1
+standard. It is now disabled by default, because many script
+writers don't seem to expect command line arguments.
+Instead scripts tend to rely exclusively on the
+.Ev QUERY_STRING
+environment variable for its arguments, which always gets set,
+regardless of the parameter contents.
+.Pp
+For example, passing the
+.Fl s
+option to a PHP-interpreted script, could lead to the webserver
+inadvertently returning the script source.
 .It Sy UseDnsLookup Ar boolean Aq true
-By default the IP addresses of incoming connections are
+By default, the IP addresses of incoming connections are
 resolved through DNS and logged with hostname information.
 You can disable this features by setting
 .Sy UseDnsLookup

@@ -3,6 +3,7 @@ is not complete. Refer to cvs comments for more information.
 
 Changes since 3.7 beta 22
 - Fix non-critical HTTP headers with 30x redirects
+- Don't pass CGI command line arguments, unless UseScriptArgs is set
 
 Changes since 3.7 beta 21
 - Fix potential crash in mod_ldap, by dean

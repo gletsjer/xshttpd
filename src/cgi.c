@@ -325,9 +325,16 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			secprintf("[Cannot change directory]\n");
 			exit(1);
 		}
-		argv1 = env.query_string;
-		if (argv1 && strchr(argv1, '='))
-			argv1 = NULL;
+		if (usescriptargs) {
+			/* Mandated by CGI/1.1 standard: pass GET parameters
+			 * as cmdline options/arguments if there is no '='.
+			 * May trigger undesired behaviour in interpreters
+			 * (e.g. passing -s to output the source in PHP)
+			 */
+			argv1 = env.query_string;
+			if (argv1 && strchr(argv1, '='))
+				argv1 = NULL;
+		}
 
 #ifdef		HAVE_SETPRIORITY
 		if (setpriority(PRIO_PROCESS, (pid_t)0, config.scriptpriority))

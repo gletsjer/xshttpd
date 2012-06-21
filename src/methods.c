@@ -1808,7 +1808,7 @@ do_proxy(const char * const proxy, const char * const params)
 	struct	curl_slist	*curl_headers = NULL;
 	for (size_t sz = 0; sz < session.request_headers.size; sz++)
 	{
-		const char	*header = NULL;
+		char	*header = NULL;
 
 		if (!strcasecmp("host",
 				session.request_headers.elements[sz].index))

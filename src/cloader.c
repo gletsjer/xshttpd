@@ -212,6 +212,8 @@ load_config()
 						config.virtualhostdir = checkpath("VirtualHostDir", WWW_DIR, value);
 					else if (!strcasecmp("UseLocalScript", key))
 						config.uselocalscript = !strcasecmp("true", value);
+					else if (!strcasecmp("UseScriptArgs", key))
+						config.usescriptargs = !strcasecmp("true", value);
 					else if (!strcasecmp("UseAcceptFilter", key))
 						config.useacceptfilter = !strcasecmp("true", value);
 					else if (!strcasecmp("UseServerSideInclude", key))
