@@ -13,6 +13,7 @@
 #include	<string.h>
 #include	<ctype.h>
 #include	<stdarg.h>
+#include	<fnmatch.h>
 #ifdef		HAVE_LIBUTIL_H
 #include	<libutil.h>
 #else		/* HAVE_LIBUTIL_H */
@@ -123,6 +124,16 @@ match_list(const char * const list, const char * const browser)
 				begin++;
 		}
 	}
+	return false;
+}
+
+bool
+fnmatch_array(char * const * const patterns, const char * const needle, int flags)
+{
+	for (char * const *p = patterns; *p; p++)
+		if (fnmatch(*p, needle, flags) == 0)
+			return true;
+
 	return false;
 }
 

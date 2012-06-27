@@ -76,6 +76,10 @@ void	warn		(const char *, ...) PRINTF_LIKE(1, 2);
 void	warnx		(const char *, ...) PRINTF_LIKE(1, 2);
 #endif		/* HAVE_ERR */
 
+#ifndef		HAVE_FNMATCH
+int	fnmatch		(const char *, const char *, int);
+#endif		/* HAVE_FNMATCH */
+
 #ifndef		HAVE_INET_ATON
 int	inet_aton	(const char *, struct in_addr *);
 #endif		/* HAVE_INET_ATON */

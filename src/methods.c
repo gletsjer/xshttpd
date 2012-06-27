@@ -1848,7 +1848,7 @@ do_proxy(const char * const proxy, const char * const params)
 static size_t
 curl_readhack(void *buf, size_t size, size_t nmemb, FILE *stream)
 {
-	const ssize_t	len;
+	ssize_t	len;
 
 	if (curl_readlen <= 0)
 		return 0;

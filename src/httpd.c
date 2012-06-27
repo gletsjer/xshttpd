@@ -50,6 +50,7 @@
 #include	<pwd.h>
 #include	<grp.h>
 #include	<unistd.h>
+#include	<fnmatch.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
@@ -1164,16 +1165,10 @@ process_request(void)
 					(!strcasecmp(http_host_long, current->hostname) ||
 					 !strcasecmp(http_host, current->hostname)))
 					break;
-				else if (current->aliases)
-				{
-					char	**aliasp;
-					for (aliasp = current->aliases; *aliasp; aliasp++)
-						if (!strcasecmp(http_host_long, *aliasp) ||
-								!strcasecmp(http_host, *aliasp))
-							break;
-					if (*aliasp)
-						break;
-				}
+				else if (current->aliases &&
+						(fnmatch_array(current->aliases, http_host_long, FNM_CASEFOLD) ||
+						 fnmatch_array(current->aliases, http_host, FNM_CASEFOLD)))
+					break;
 			}
 		if (!current)
 			/* if no hostname matches - find the first matching socketname */
@@ -1193,17 +1188,10 @@ process_request(void)
 			if (!strcasecmp(http_host_long, current->hostname) ||
 					!strcasecmp(http_host, current->hostname))
 				break;
-			else if (current->aliases)
-			{
-				char	**aliasp;
-
-				for (aliasp = current->aliases; *aliasp; aliasp++)
-					if (!strcasecmp(http_host_long, *aliasp) ||
-							!strcasecmp(http_host, *aliasp))
-						break;
-				if (*aliasp)
-					break;
-			}
+			else if (current->aliases &&
+					(fnmatch_array(current->aliases, http_host_long, FNM_CASEFOLD) ||
+					 fnmatch_array(current->aliases, http_host, FNM_CASEFOLD)))
+				break;
 		}
 	}
 	if (config.usestricthostname &&
