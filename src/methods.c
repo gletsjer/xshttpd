@@ -4,22 +4,14 @@
 #include	"config.h"
 
 #include	<inttypes.h>
-#ifdef		HAVE_SYS_RESOURCE_H
 #include	<sys/resource.h>
-#endif		/* HAVE_SYS_RESOURCE_H */
-#ifdef		HAVE_SYS_MMAN_H
 #include	<sys/mman.h>
-#endif		/* HAVE_SYS_MMAN_H */
 #include	<sys/socket.h>
 #include	<sys/wait.h>
 #include	<sys/signal.h>
 #include	<sys/stat.h>
-#ifdef		HAVE_SYS_SELECT_H
 #include	<sys/select.h>
-#endif		/* HAVE_SYS_SELECT_H */
-#ifdef		HAVE_SYS_PARAM_H
 #include	<sys/param.h>
-#endif		/* HAVE_SYS_PARAM_H */
 #ifdef		HAVE_SYS_SENDFILE_H
 #include	<sys/sendfile.h>
 #endif		/* HAVE_SYS_SENDFILE_H */

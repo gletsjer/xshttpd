@@ -1,13 +1,12 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
-Changes since 3.7 beta 22
-- Fix non-critical HTTP headers with 30x redirects
-- Don't pass CGI command line arguments, unless UseScriptArgs is set
-- Allow fnmatch-style wildcards in HostAlias configuration
-
 Changes since 3.7 beta 21
 - Fix potential crash in mod_ldap, by dean
+- Fix non-critical HTTP headers with 30x redirects
+- Add Date and Server headers in HTTP error messages
+- Don't pass CGI command line arguments, unless UseScriptArgs is set
+- Allow fnmatch-style wildcards in HostAlias configuration
 
 Changes since 3.7 beta 20
 - HtmlDir may again be relative to a user's home directory

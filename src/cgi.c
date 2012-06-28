@@ -4,9 +4,7 @@
 #include	"config.h"
 
 #include	<sys/types.h>
-#ifdef		HAVE_SYS_RESOURCE_H
 #include	<sys/resource.h>
-#endif		/* HAVE_SYS_RESOURCE_H */
 #include	<fcntl.h>
 #include	<sys/signal.h>
 #include	<sys/stat.h>

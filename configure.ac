@@ -16,8 +16,6 @@ AC_PROG_CC_C99
 AS_IF([test x$ac_cv_prog_cc_c99 = xno],
 	AC_MSG_FAILURE([ISO C99 capable compiler required]))
 AC_PROG_INSTALL
-dnl AC_LIBTOOL_DLOPEN
-dnl AC_PROG_LIBTOOL
 AC_PROG_RANLIB
 AC_PATH_PROG(ppmtogif, ppmtogif, /bin/true)
 AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "${ppmtogif}",
@@ -33,8 +31,8 @@ libxs_ldflags="${LDFLAGS}"
 
 dnl Checks for header files.
 AC_SYS_LARGEFILE
-AC_CHECK_HEADERS([err.h getopt.h util.h sys/param.h sys/select.h sys/sendfile.h], [], [], [[]])
-AC_CHECK_HEADERS([sys/syslimits.h libutil.h sys/resource.h sys/mman.h], [], [], [#include <sys/cdefs.h>
+AC_CHECK_HEADERS([err.h getopt.h util.h sys/param.h sys/sendfile.h], [], [], [[]])
+AC_CHECK_HEADERS([sys/syslimits.h libutil.h], [], [], [#include <sys/cdefs.h>
 #include <sys/types.h>
 #include <time.h>
 ])
@@ -47,9 +45,6 @@ AC_TYPE_SSIZE_T
 AC_CHECK_TYPES([socklen_t, sa_family_t, in_addr_t, in_port_t, struct sockaddr_storage],,,
 	[#include <sys/types.h>
 #include <sys/socket.h>])
-AC_CHECK_TYPES([time_t], [], AC_DEFINE(time_t, int, [What time looks like]),
-	[[#include <sys/types.h>
-#include <time.h>]])
 XS_PRINT_TYPE(uid_t, PRIuid)
 XS_PRINT_TYPE(pid_t, PRIpid)
 XS_PRINT_TYPE(off_t, PRIoff)

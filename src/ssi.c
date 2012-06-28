@@ -5,9 +5,7 @@
 
 #include	<sys/types.h>
 #include	<sys/stat.h>
-#ifdef		HAVE_SYS_PARAM_H
 #include	<sys/param.h>
-#endif		/* HAVE_SYS_PARAM_H */
 
 #include	<stdio.h>
 #include	<time.h>
@@ -23,9 +21,7 @@
 #include	<string.h>
 
 #include	<sys/wait.h>
-#ifdef		HAVE_SYS_RESOURCE_H
 #include	<sys/resource.h>
-#endif		/* HAVE_SYS_RESOURCE_H */
 
 #include	"htconfig.h"
 #include	"ssi.h"

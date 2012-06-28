@@ -4,23 +4,15 @@
 
 #include	<inttypes.h>
 #include	<stdbool.h>
-#ifdef		HAVE_SYS_RESOURCE_H
 #include	<sys/resource.h>
-#endif		/* HAVE_SYS_RESOURCE_H */
-#ifdef		HAVE_SYS_MMAN_H
 #include	<sys/mman.h>
-#endif		/* HAVE_SYS_MMAN_H */
 #include	<sys/socket.h>
 #include	<sys/wait.h>
 #include	<sys/signal.h>
 #include	<sys/stat.h>
 #include	<sys/utsname.h>
-#ifdef		HAVE_SYS_SELECT_H
 #include	<sys/select.h>
-#endif		/* HAVE_SYS_SELECT_H */
-#ifdef		HAVE_SYS_PARAM_H
 #include	<sys/param.h>
-#endif		/* HAVE_SYS_PARAM_H */
 #ifdef		HAVE_SYS_SYSLIMITS_H
 #include	<sys/syslimits.h>
 #endif		/* HAVE_SYS_SYSLIMITS_H */
