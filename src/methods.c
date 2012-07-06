@@ -353,7 +353,7 @@ fileheaders(int fd)
 	if (getenv("HTTP_ACCEPT_CHARSET") && cfvalues.charset)
 	{
 		size_t		i, acsz, len;
-		const char * const ac = getenv("HTTP_ACCEPT");
+		const char * const ac = getenv("HTTP_ACCEPT_CHARSET");
 		char		*p;
 		char 		**acceptlist = NULL;
 

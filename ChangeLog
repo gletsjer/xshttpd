@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 22
+- Fix character set check
+
 Changes since 3.7 beta 21
 - Fix potential crash in mod_ldap, by dean
 - Fix non-critical HTTP headers with 30x redirects
