@@ -438,7 +438,7 @@ check_noxs(const char * const cffile)
 }
 
 bool
-check_xsconf(const char * const cffile, const char * const filename, cf_values * const cfvalues)
+check_xsconf(const char * const cffile, const char * const filename, const int depth, cf_values * const cfvalues)
 {
 	char	*line;
 	char    **authfiles;
@@ -484,10 +484,20 @@ check_xsconf(const char * const cffile, const char * const filename, cf_values *
 			}
 			*p = '\0';
 
-			if ((p = strchr(name, '/')))
+			p = name;
+			while ((p = strchr(p, '/')))
 			{
 				*p++ = '\0';
-				if (!env.request_method ||
+warnx("depth %d name %s", depth, name);
+				if (name[0] == '.' && !name[1])
+				{
+					if (depth)
+					{
+						FREE(line);
+						continue;
+					}
+				}
+				else if (!env.request_method ||
 					strcasecmp(name, env.request_method))
 				{
 					FREE(line);
@@ -646,6 +656,7 @@ check_xsconf(const char * const cffile, const char * const filename, cf_values *
 	}
 	free_string_array(authfiles, num_authfiles);
 
+	(void)depth;
 	return false;
 }
 

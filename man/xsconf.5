@@ -29,6 +29,12 @@ to indicate that the following block only applies when the
 specified method is used. For instance
 .Li [POST/*.cgi]
 would only match post requests for .cgi files.
+Alternatively the filename may be prefixed by the literal
+.Ql ./
+to indicate that it matches only files in the current directory,
+rather than applying to all subdirectories as well, which is the default.
+Note that this is a special case and not part of the filename match:
+it is not possible to match filenames in subdirectories in this way.
 .Ss Configuration Directives
 All directives can only be used once in a block, unless
 explicitly mentioned otherwise (e.g. Restrict).

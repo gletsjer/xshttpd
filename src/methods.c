@@ -63,7 +63,7 @@ static bool	getfiletype		(void);
 static bool	fileheaders		(int);
 static void	senduncompressed	(int, struct encoding_filter *);
 static void	sendcompressed		(int, const char *);
-static char *	find_file		(const char *, const char *, const char *)	MALLOC_FUNC;
+static char *	find_file		(const char *, const char *, const char *, int *)	MALLOC_FUNC;
 #ifdef		HAVE_CURL
 static size_t	curl_readhack		(void *, size_t, size_t, FILE *);
 #endif		/* HAVE_CURL */
@@ -856,12 +856,13 @@ sendcompressed(int fd, const char *method)
 }
 
 static	char	*
-find_file(const char *orgbase, const char *base, const char *file)
+find_file(const char *orgbase, const char *base, const char *file, int *depthp)
 {
 	static char	path[XS_PATH_MAX];
 	char		*p;
 	const size_t	len = strlen(orgbase);
 	struct stat	sb;
+	int		depth = 0;
 
 	/* Check after redirection */
 	/* Ugly way to do this recursively */
@@ -873,7 +874,12 @@ find_file(const char *orgbase, const char *base, const char *file)
 	{
 		snprintf(p, (size_t)(XS_PATH_MAX - (p - path)), "/%s", file);
 		if (!stat(path, &sb))
+		{
+			if (depthp)
+				*depthp = depth;
 			return path;
+		}
+		depth++;
 	}
 
 	return NULL;
@@ -979,7 +985,9 @@ do_get(char *params)
 				base[XS_PATH_MAX], orgbase[XS_PATH_MAX],
 				total[XS_PATH_MAX];
 	const	char		*filename, *http_host, *xsfile;
-	int			fd, script = 0;
+	int			fd,
+				depth,
+				script = 0;
 	bool			wasdir, switcheduid = false,
 				delay_redir = false;
 	size_t			size;
@@ -1270,14 +1278,14 @@ do_get(char *params)
 
 	/* Check user directives */
 	/* These should all send there own error messages when appropriate */
-	if ((xsfile = find_file(orgbase, base, NOXS_FILE)) && check_noxs(xsfile))
+	if ((xsfile = find_file(orgbase, base, NOXS_FILE, NULL)) && check_noxs(xsfile))
 		return;
-	if ((xsfile = find_file(orgbase, base, AUTH_FILE)) &&
+	if ((xsfile = find_file(orgbase, base, AUTH_FILE, NULL)) &&
 			!check_auth(xsfile, false))
 		return;
 	if (check_file_redirect(base, filename))
 		return;
-	if ((xsfile = find_file(orgbase, base, REDIR_FILE)))
+	if ((xsfile = find_file(orgbase, base, REDIR_FILE, NULL)))
 	{
 		/* try original url first */
 		if (!*file && check_redirect(xsfile, params))
@@ -1285,8 +1293,8 @@ do_get(char *params)
 		if (check_redirect(xsfile, real_path))
 			return;
 	}
-	if ((xsfile = find_file(orgbase, base, CONFIG_FILE)) &&
-			check_xsconf(xsfile, filename, &cfvalues))
+	if ((xsfile = find_file(orgbase, base, CONFIG_FILE, &depth)) &&
+			check_xsconf(xsfile, filename, depth, &cfvalues))
 		return;
 
 	if (cfvalues.noprivs && !origeuid && !switcheduid)
@@ -1444,7 +1452,7 @@ do_get(char *params)
 		ret = stat(total, &statbuf);
 		if (ret < 0 || !statbuf.st_size || (cfd = open(total, O_RDONLY)) < 0)
 		{
-			xsfile = find_file(orgbase, base, ".charset");
+			xsfile = find_file(orgbase, base, ".charset", NULL);
 			ret = stat(xsfile, &statbuf);
 			if (ret < 0 || !statbuf.st_size ||
 					(cfd = open(xsfile, O_RDONLY)) < 0)
@@ -1880,7 +1888,7 @@ loadfiletypes(const char * const orgbase, const char * const base)
 	/* local block */
 	{
 		const char * const	mimepath = base
-			? find_file(orgbase, base, ".mimetypes")
+			? find_file(orgbase, base, ".mimetypes", NULL)
 			: MIME_TYPES;
 
 		if (!mimepath || !(mime = fopen(mimepath, "r")))
@@ -1996,7 +2004,7 @@ loadscripttypes(const char * const orgbase, const char * const base)
 			free_ctype(ditype);
 			ditype = NULL;
 		}
-		if (!(cffile = find_file(orgbase, base, ".xsscripts")) ||
+		if (!(cffile = find_file(orgbase, base, ".xsscripts", NULL)) ||
 				!(methods = fopen(cffile, "r")))
 			return;
 	}
