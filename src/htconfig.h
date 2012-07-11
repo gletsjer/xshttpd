@@ -33,7 +33,6 @@ extern struct virtual
 	char *		logscript;
 	char *		thisdomain;
 	char *		redirfile;
-	char *		umask;
 	char *		fcgipath;
 	char *		fcgisocket;
 	void *		fcgiserver;
@@ -128,6 +127,7 @@ extern struct configuration
 	char *		virtualhostdir;
 	char *		defaultcharset;
 	char *		scriptpath;
+	char *		scriptumask;
 	char *		serverident;
 	char **		modules;
 	struct virtual *	system;

@@ -488,7 +488,6 @@ check_xsconf(const char * const cffile, const char * const filename, const int d
 			while ((p = strchr(p, '/')))
 			{
 				*p++ = '\0';
-warnx("depth %d name %s", depth, name);
 				if (name[0] == '.' && !name[1])
 				{
 					if (depth)

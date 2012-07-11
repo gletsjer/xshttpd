@@ -251,6 +251,21 @@ environment variable that should be presented to CGI
 binaries. This must be a colon separated list of
 directories; no sanity checking is done. A reasonable
 default is provided.
+.It Sy ScriptUmask Ar mask Aq
+The umask that should be used when executing CGI scripts.
+The
+.Xr umask 2
+mode determines the default permissions of files that are
+created. For example a umask value of
+.Ql 022
+causes scripts to be created with mode
+.Ql 644 ,
+which means they will only be writable by the owner, but readable by all.
+.Pp
+This setting has no effect on the permission mode of the logfiles created
+by the webserver.
+By default, the system umask setting will be used - that is the value
+that was active in the process from which the webserver was started.
 .It Sy ServerIdent Bro Cm full No \*(Ba Cm branch No \*(Ba Cm name Brc Aq full
 Set how much of the webserver version details should be included
 in the

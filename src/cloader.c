@@ -232,6 +232,8 @@ load_config()
 						config.scripttimeout = strtoul(value, NULL, 10);
 					else if (!strcasecmp("ScriptEnvPath", key))
 						STRDUP(config.scriptpath, value);
+					else if (!strcasecmp("ScriptUmask", key))
+						STRDUP(config.scriptumask, value);
 					else if (!current &&
 							(!strcasecmp("UserId", key) ||
 							 !strcasecmp("GroupId", key)))
@@ -449,8 +451,6 @@ load_config()
 						current->groupid = grp->gr_gid;
 					}
 				}
-				else if (!strcasecmp("UMask", key))
-					STRDUP(current->umask, value);
 				else if (!strcasecmp("SocketName", key))
 					STRDUP(current->socketname, value);
 				else if (!strcasecmp("LocalMode", key) ||

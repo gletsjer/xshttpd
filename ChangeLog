@@ -4,7 +4,7 @@ is not complete. Refer to cvs comments for more information.
 Changes since 3.7 beta 22
 - Fix character set check
 - Add ./ as .xsconf file prefix to only match files in the current directory
-- Add Umask option for virtual hosts
+- Add ScriptUmask configuration option
 
 Changes since 3.7 beta 21
 - Fix potential crash in mod_ldap, by dean

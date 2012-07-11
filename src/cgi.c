@@ -303,12 +303,10 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 #endif		/* HAVE_SETSID */
 
 		/* Set umask */
-		if (current->umask || config.system->umask)
+		if (config.scriptumask)
 		{
-			const mode_t	umode =
-				current->umask
-				? strtoul(current->umask, NULL, 8)
-				: strtoul(config.system->umask, NULL, 8);
+			const mode_t	umode = strtoul(config.scriptumask, NULL, 8);
+
 			umask(umode);
 		}
 
