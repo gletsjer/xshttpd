@@ -449,6 +449,8 @@ load_config()
 						current->groupid = grp->gr_gid;
 					}
 				}
+				else if (!strcasecmp("UMask", key))
+					STRDUP(current->umask, value);
 				else if (!strcasecmp("SocketName", key))
 					STRDUP(current->socketname, value);
 				else if (!strcasecmp("LocalMode", key) ||
