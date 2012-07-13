@@ -1350,6 +1350,9 @@ standalone_socket(int id)
 
 	setproctitle("xs(MAIN): Initializing deamons...");
 
+	memset(&env, 0, sizeof(struct env));
+	memset(&session, 0, sizeof(struct session));
+
 #ifdef		HAVE_GETADDRINFO
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = cursock->family;

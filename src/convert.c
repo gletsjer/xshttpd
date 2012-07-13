@@ -16,16 +16,17 @@
 #include	"convert.h"
 
 static char *
-convertpathandroot(const char * const org, size_t *rootlenp)
+convertpathandroot(const char *org, size_t *rootlenp)
 {
 	static	char	path[XS_PATH_MAX];
-	size_t		rootlen;
+	size_t		rootlen = 0;
 
+	path[0] = '\0';
 	if (!strncmp(org, "/~", 2))
 	{
-		char			*person, *slash;
-		const	struct	passwd	*userinfo;
-		const	char		*userpos;
+		char		*person, *slash;
+		struct	passwd	*userinfo;
+		const char	*userpos;
 
 		STRDUP(person, org + 2);
 		if ((slash = strchr(person, '/')))

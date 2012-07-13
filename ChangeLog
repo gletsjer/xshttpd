@@ -5,6 +5,7 @@ Changes since 3.7 beta 22
 - Fix character set check
 - Add ./ as .xsconf file prefix to only match files in the current directory
 - Add ScriptUmask configuration option
+- Fix variable initialisation and cleanup
 
 Changes since 3.7 beta 21
 - Fix potential crash in mod_ldap, by dean

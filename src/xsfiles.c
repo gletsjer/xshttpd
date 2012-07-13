@@ -156,7 +156,7 @@ check_redirect(const char * const cffile, const char * const filename)
 {
 	char		*request;
 	const char	*command;
-	char	**argv;
+	char	**argv = NULL;
 	FILE	*fp;
 	bool	guard = true;
 	bool	exittrue = false;
@@ -311,7 +311,10 @@ check_redirect(const char * const cffile, const char * const filename)
 		}
 
 		while (ret > 0)
-			FREE(argv[--ret]);
+		{
+			ret--;
+			FREE(argv[ret]);
+		}
 		FREE(argv);
 		if (exittrue || exitfalse)
 		{
