@@ -124,6 +124,7 @@ extern struct configuration
 	bool		useetag;
 	bool		usecontentmd5;
 	bool		useput;
+	bool		usetrace;
 	char *		virtualhostdir;
 	char *		defaultcharset;
 	char *		scriptpath;

@@ -224,6 +224,10 @@ and/or
 .Sy DeleteScript
 configuration directives as explained in
 .Xr xsconf 5 .
+.It Sy UseTrace Ar boolean Aq true
+Allow handling of HTTP TRACE requests. This is a standard (mandatory)
+HTTP command, but it may be considered a security risk.
+Disable this to avoid exposing request information, such as client cookies.
 .It Sy Priority Ar level Aq 0
 The system priority that the daemon will be running at. A
 lower priority causes more favorable scheduling.

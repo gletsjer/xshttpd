@@ -19,6 +19,7 @@ static char *
 convertpathandroot(const char *org, size_t *rootlenp)
 {
 	static	char	path[XS_PATH_MAX];
+	char		*pwd;
 	size_t		rootlen = 0;
 
 	path[0] = '\0';
@@ -66,10 +67,8 @@ convertpathandroot(const char *org, size_t *rootlenp)
 		if (slash)
 			strlcat(path, slash, XS_PATH_MAX);
 	}
-	else if (*org != '/')
+	else if (*org != '/' && (pwd = getenv("PWD")))
 	{
-		const char * const	pwd = getenv("PWD");
-
 		rootlen = strlen(pwd);
 		snprintf(path, XS_PATH_MAX, "%s/%s", pwd, org);
 	}

@@ -1249,7 +1249,7 @@ METHOD:
 		do_post(params);
 	else if (!strcasecmp("OPTIONS", line))
 		do_options(params);
-	else if (!strcasecmp("TRACE", line))
+	else if (!strcasecmp("TRACE", line) && config.usetrace)
 		do_trace(params);
 	else if (!strcasecmp("PUT", line))
 		do_put(params);

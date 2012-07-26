@@ -1701,8 +1701,8 @@ do_delete(char *params)
 {
 	if (!config.useput)
 	{
-		server_error(405, "Method not allowed", "METHOD_NOT_ALLOWED");
 		setenv("HTTP_ALLOW", "GET, HEAD, POST", 1);
+		server_error(405, "Method not allowed", "METHOD_NOT_ALLOWED");
 		return;
 	}
 	do_get(params);
@@ -1718,9 +1718,15 @@ do_head(char *params)
 void
 do_options(const char * const params)
 {
+	const char	*basic_options = "GET, HEAD, POST",
+			*put_options = config.useput ? ", PUT, DELETE" : "",
+			*option_options = ", OPTIONS",
+			*trace_options = config.usetrace ? ", TRACE" : "";
+
 	session.size = 0;
 	maplist_append(&session.response_headers, append_replace,
-		"Allow", "GET, HEAD, POST, PUT, DELETE, OPTIONS, TRACE");
+		"Allow", "%s%s%s%s",
+		basic_options, put_options, option_options, trace_options);
 	writeheaders();
 	maplist_free(&session.response_headers);
 	(void)params;

@@ -118,6 +118,7 @@ load_config()
 	config.usednslookup = true;
 	config.usessi = true;
 	config.useput = true;
+	config.usetrace = true;
 	config.uselocalscript = true;
 	config.execasuser = true;
 #ifdef		HAVE_SENDFILE
@@ -222,6 +223,8 @@ load_config()
 						config.usecontentmd5 = !strcasecmp("true", value);
 					else if (!strcasecmp("UsePut", key))
 						config.useput = !strcasecmp("true", value);
+					else if (!strcasecmp("UseTrace", key))
+						config.usetrace = !strcasecmp("true", value);
 					else if (!strcasecmp("DnsTimeout", key))
 						config.dnstimeout = strtoul(value, NULL, 10);
 					else if (!strcasecmp("DnsAttempts", key))
