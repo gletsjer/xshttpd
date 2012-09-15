@@ -412,6 +412,9 @@ The location of the x509 certificate to be used for SSL
 connections. This may be an absolute path or relative to
 the configuration directory
 .Pa ( @configdir@ ) .
+This file may include a full certificate chain up to a trusted root.
+When intermedicate certificates are used by the CA, they must be
+listed in this file as well.
 .It Sy SSLPrivateKey Ar filename Aq key.pem
 The location of the x509 certificate's key to be used for SSL connections.
 This may be contained in the same file as the

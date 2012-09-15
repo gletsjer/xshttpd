@@ -432,9 +432,8 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 	SSL_CTX_set_default_passwd_cb(ssl_ctx, pem_passwd_cb);
 	SSL_CTX_set_default_passwd_cb_userdata(ssl_ctx, lsock->sslprivatekey);
 
-	if (!SSL_CTX_use_certificate_file(ssl_ctx,
-			sslvhost ? vc->sslcertificate : lsock->sslcertificate,
-			SSL_FILETYPE_PEM))
+	if (!SSL_CTX_use_certificate_chain_file(ssl_ctx,
+			sslvhost ? vc->sslcertificate : lsock->sslcertificate))
 		errx(1, "Cannot load SSL cert %s: %s", 
 			sslvhost ? vc->sslcertificate : lsock->sslcertificate,
 			ERR_reason_error_string(ERR_get_error()));
