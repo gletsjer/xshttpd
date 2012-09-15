@@ -4,6 +4,8 @@ is not complete. Refer to cvs comments for more information.
 Changes since 3.7 beta 23
 - Add UseTrace option to disable HTTP TRACE
 - Fix error handling in HTTP calls other than GET/POST
+- Disable TLS compression (mitigates against CRIME attack)
+- Set a sensible default set of TLS ciphers
 
 Changes since 3.7 beta 22
 - Fix character set check
