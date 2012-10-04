@@ -52,6 +52,9 @@ extern struct virtual
 	bool		allowusers;
 	char *		sslcertificate;
 	char *		sslprivatekey;
+	bool		usests;
+	bool		stssubdomains;
+	unsigned int	stsmaxage;
 	struct virtual *	next;
 } *current;
 

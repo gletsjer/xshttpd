@@ -471,6 +471,12 @@ load_config()
 #endif		/* HANDLE_SSL_TLSEXT */
 				else if (!strcasecmp("SSLPrivateKey", key))
 					current->sslprivatekey = checkpath("SSLPrivateKey", CONFIG_DIR, value);
+				else if (!strcasecmp("UseSTS", key))
+					current->usests = !strcasecmp("true", value);
+				else if (!strcasecmp("STSMaxAge", key))
+					current->stsmaxage = strtoul(value, NULL, 10);
+				else if (!strcasecmp("STSSubDomains", key))
+					current->stssubdomains = !strcasecmp("true", value);
 				else
 					errx(1, "illegal directive: '%s'", key);
 			}

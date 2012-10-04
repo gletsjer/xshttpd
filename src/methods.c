@@ -498,6 +498,17 @@ writeheaders(void)
 		}
 	}
 
+	if (cursock->usessl && current->usests)
+	{
+		if (current->stssubdomains)
+			maplist_append(rh, O, "Strict-Transport-Security",
+					"max-age=%u; includeSubDomains",
+					current->stsmaxage);
+		else
+			maplist_append(rh, O, "Strict-Transport-Security",
+					"max-age=%u", current->stsmaxage);
+	}
+
 	if (session.etag)
 		maplist_append(rh, O, "ETag", "\"%s\"", session.etag);
 
@@ -1041,6 +1052,16 @@ do_get(char *params)
 			xserror(404, "Requested URL not found");
 			return;
 		}
+	}
+	/* Strict Transport Security vhosts should do https only */
+	if (current->usests && !cursock->usessl)
+	{
+		http_host = getenv("HTTP_HOST");
+		snprintf(total, XS_PATH_MAX, "https://%s%s",
+			http_host ? http_host : current->hostname,
+			params);
+		redirect(total, redir_perm);
+		return;
 	}
 
 	/* check for user path */

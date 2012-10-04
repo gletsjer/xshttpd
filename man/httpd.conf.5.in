@@ -733,6 +733,40 @@ multiple sockets or
 .Sy Virtual
 sections with the same
 .Sy SocketName .
+.It Sy UseSTS Ar boolean Aq false
+Enable
+.Em HTTP Strict Transport Security 
+for this virtual host.
+STS sites should only be visited via SSL/TLS (https).
+Setting this option will generate an HTTP redirect for visitors using
+the insecure HTTP port and adds an extra
+.Ql Strict-Transport-Security
+header for HTTPS pages. This instructs browers to use HTTPS for all
+further requests to this site.
+Note that the
+.Sy STSMaxAge
+option must be set as well; without it STS will be explicitly disabled.
+.It Sy STSMaxAge Ar seconds Aq 0
+Set the expiry time, in seconds remaining, indicating how long
+.Em HTTP Strict Transport Security
+will remain active for this site.
+When the life-time expires, a user agent must check the headers again
+before making assumptions about STS.
+Setting this value to
+.Ql 0
+explicitly disables STS (the default).
+This option must be used in combination with
+.Sy UseSTS .
+.It Sy STSSubDomains Ar boolean Aq false
+When this option is set, the
+.Em HTTP Strict Transport Security
+policy will be used for all sub domains as well.
+This is merely an indication for the user agent:
+This does not change the configuration of other virtual hosts.
+You must still add
+.Em UseSTS
+to the configuration block for DNS sub domains, if they are defined
+seperately in the webserver configuration.
 .It Sy FcgiSocket Ar path Aq
 Set the path for communication with a FastCGI daemon. This path
 can either be the filename of a UNIX domain socket or a

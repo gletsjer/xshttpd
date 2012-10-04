@@ -6,6 +6,8 @@
 #include	"config.h"
 #include	<stdio.h>
 #include	<stdbool.h>
+#include	<sys/uio.h>
+#include	<limits.h>
 
 #include	<openssl/ssl.h>
 #include	<openssl/tls1.h>
@@ -14,6 +16,13 @@
 #  define	HANDLE_SSL_TLSEXT
 # endif		/* OPENSSL_NO_TLSEXT */
 #endif		/* TLSEXT_NAMETYPE_host_name */
+
+#ifndef		IOV_MAX
+# define	IOV_MAX	1024
+#endif		/* IOV_MAX */
+
+#define	IOVEC_SIZE	(IOV_MAX - 2)
+#define	DECLARE_IOVEC(var) struct iovec _##var[IOV_MAX], *var = &_##var[1]
 
 /* forward declaration, defined in htconfig.h */
 struct	mapping;
@@ -32,6 +41,7 @@ ssize_t	secread(int, void *, size_t) NONNULL;
 size_t	secfread(void *, size_t, size_t, FILE *) NONNULL;
 ssize_t	readheaders(int, struct maplist *) NONNULL;
 
+ssize_t	secwritev(struct iovec *, int);
 ssize_t	secwrite(const char * const , size_t);
 size_t	secfwrite(const char * const , size_t, size_t, FILE *);
 ssize_t	secputs(const char * const);

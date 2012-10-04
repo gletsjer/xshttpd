@@ -8,6 +8,7 @@
 #include	<string.h>
 #include	<unistd.h>
 #include	<sys/stat.h>
+#include	<sys/uio.h>
 #include	<errno.h>
 #include	<stdarg.h>
 #include	<ctype.h>
@@ -731,6 +732,64 @@ secwrite(const char * const buf, size_t count)
 	}
 
 	return (ssize_t)count;
+}
+
+/* NOTE: iov must have extra elements iov[-1] and iov[iovcnt] available
+ * these are used to store the chunk-info data for HTTP/1.1 transmits
+ */
+ssize_t
+secwritev(struct iovec *iov, int iovcnt)
+{
+	int	i;
+	ssize_t	sz;
+
+	if (!iovcnt)
+		return 0;
+
+	if (cursock->usessl)
+	{
+		for (i = 0; i < iovcnt; i++)
+			sz = secwrite(iov[i].iov_base, iov[i].iov_len);
+		return sz;
+	}
+
+	if (!session.chunked)
+		return writev(1, iov, iovcnt);
+
+	/* add additional meta-data using reserved elements */
+	struct iovec	*piov = iov;
+	char		head[20];
+
+	for (sz = i = 0; i < iovcnt; i++, piov++)
+		sz += piov->iov_len;
+
+	piov = &iov[-1];
+	piov->iov_base = head;
+	piov->iov_len = snprintf(head, sizeof(head), "%zx\r\n", sz);
+	iov[iovcnt].iov_base = "\r\n";
+	iov[iovcnt].iov_len = 2;
+
+	while (1)
+	{
+		sz = writev(1, piov, iovcnt + 2);
+		if (sz >= 0)
+			break;
+		else if (errno == EAGAIN || errno == EINTR)
+			usleep(200);
+		else if (errno == EPIPE)
+		{
+			/* remote host aborted connection */
+			session.persistent = false;
+			break;
+		}
+		else
+		{
+			warn("writev()");
+			session.persistent = false;
+			break;
+		}
+	}
+	return sz;
 }
 
 size_t
