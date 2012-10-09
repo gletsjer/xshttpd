@@ -1,0 +1,55 @@
+.Dd March 26, 1996
+.Dt CLEARXS 1
+.Os xs-httpd/3.5
+.Sh NAME
+.Nm clearxs
+.Nd Daily update for the xs\-httpd counter file
+.Sh SYNOPSIS
+.Nm clearxs
+.Op Fl d | Fl m | Fl T | Fl x Ar yyyymmdd
+.Sh DESCRIPTION
+.Sq clearxs
+is a program that you should install in a
+.Xr cron 1
+table.
+What it does is clear some of the fields in the WWW counter
+file every night. This is so that the counter can assume
+three values: a day counter, a month counter and a total
+counter. This program resets the day counter to 0 every day
+and the month counter to 0 every first of the month.
+.Pp
+The option controls which counters should be cleared:
+.Bl -tag -width Ds
+.It Fl d
+This makes the program clear all the day counters, but
+leaves the other counters as they were. This option should
+be used every night.
+.It Fl m
+This makes the program clear the day and the month counter.
+The total counter is left as it was. This should be run by
+cron every first of the month.
+.It Fl T
+Clears all the counters. Do
+.Em not
+use...
+.It Fl x Ar yyyymmdd
+Expunge counters that have not been used since the given day.
+This will remove historical data from disk - use with care.
+.El
+.Sh EXAMPLES
+The following can be used as a
+.Xr crontab 5
+entry:
+.Bd -literal -offset indent -compact
+0       0       2\-31    *       *       root    clearxs \-d
+0       0       1       *       *       root    clearxs \-m
+.Ed
+.Sh DIAGNOSTICS
+.Ex -std clearxs
+.Sh SEE ALSO
+.Xr httpd 1 ,
+.Xr readxs 1 ,
+.Xr httpd_ssi 7
+.Pp
+The project homepage:
+.Pa http://www.xs\-httpd.org/
