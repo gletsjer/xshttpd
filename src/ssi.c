@@ -430,6 +430,18 @@ parse_values(const char * const here, char **mapping, size_t maxsize)
 	{
 		switch (*p)
 		{
+		case ':':
+			if (mapsize == 2 &&
+				(!strncmp(word, "var:", 4) ||
+				 !strncmp(word, "envvar:", 7)))
+			{
+				/* special case - add index */
+				*p = 0;
+				STRDUP(mapping[mapsize++], word);
+				word = p + 1;
+				expect = T_VALUE;
+			}
+			break;
 		case '=':
 			*p = '\0';
 			if (*word)

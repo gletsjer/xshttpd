@@ -198,6 +198,14 @@ check_redirect(const char * const cffile, const char * const filename)
 				/* no match -> skip block */
 				guard = false;
 		}
+		else if (!strcasecmp(command, "ifnenv") && ret == 2)
+		{
+			if (getenv(argv[1]))
+				/* no match -> skip block */
+				guard = false;
+		}
+		else if (!strcasecmp(command, "pass") && ret == 1)
+			exitfalse = true;
 		else if (!strcasecmp(command, "pass") && ret >= 2)
 		{
 			if (pcre_match(request, argv[1]) > 0)

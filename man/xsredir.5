@@ -78,6 +78,16 @@ files are parsed line by line and the first matching
 directive will be executed. If the
 .Sy pass
 command matches, the rest of the redir file will be ignored.
+.Pp
+The
+.Sy pass
+directive may be used without argument, in which case it effectively
+aborts processing of the
+.Pa redir
+file and returns without any redirection.
+This could be useful within an
+.Sy ifenv
+block.
 .It Sy passexist
 This expression will match if the requested URL matches a file
 that exists on disk. In this case no further rules will be
@@ -85,6 +95,18 @@ processed and the file will be retrieved as normal.
 This is a shortcut notation to making a
 .Sy pass
 rule for every existing file in the directory.
+.It Sy passenv Ar envvar Ar value
+The
+.Sy passenv
+directive can be used to write conditional passes. In this expression
+.Ar envvar
+should be the name of a CGI environment variable (e.g.
+.Ev HTTPS )
+and
+.Ar value
+is a regular expression to be matched.
+If the environment variable is set and actually matches the given value,
+then no redirection action will be taken.
 .It Sy redir Ar oldurl Ar newurl
 The requested URL is matched against the
 .Ar oldurl
