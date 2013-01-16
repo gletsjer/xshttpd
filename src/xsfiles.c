@@ -595,6 +595,8 @@ check_xsconf(const char * const cffile, const char * const filename, const int d
 			STRDUP(cfvalues->p3pref, value);
 		else if (!strcasecmp(name, "p3pCompactPolicy"))
 			STRDUP(cfvalues->p3pcp, value);
+		else if (!strcasecmp(name, "ContentSecurityPolicy"))
+			STRDUP(cfvalues->csp, value);
 		else if (!strcasecmp(name, "DeleteScript"))
 			STRDUP(cfvalues->delscript, value);
 		else if (!strcasecmp(name, "PutScript"))
@@ -689,6 +691,8 @@ free_xsconf(cf_values * const cfvalues)
 		FREE(cfvalues->p3pref);
 	if (cfvalues->p3pcp)
 		FREE(cfvalues->p3pcp);
+	if (cfvalues->csp)
+		FREE(cfvalues->csp);
 	if (cfvalues->putscript)
 		FREE(cfvalues->putscript);
 }

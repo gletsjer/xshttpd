@@ -526,6 +526,9 @@ writeheaders(void)
 	else if (cfvalues.p3pcp)
 		maplist_append(rh, O, "P3P", "CP=\"%s\"", cfvalues.p3pcp);
 
+	if (cfvalues.csp)
+		maplist_append(rh, O, "Content-Security-Policy", "%s", cfvalues.csp);
+
 	/* Write headers to buffer */
 	char	*headers, *hp;
 	size_t	headlen = 4 + strlen(env.server_protocol);

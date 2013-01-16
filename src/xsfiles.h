@@ -11,6 +11,7 @@ typedef struct cf_values
 	char	*indexfile;
 	char	*p3pref;
 	char	*p3pcp;
+	char	*csp;
 	char	*putscript;
 	char	*delscript;
 	bool	noprivs;
