@@ -24,6 +24,8 @@ AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "${ppmtogif}",
 dnl Checks for libraries.
 CPPFLAGS="${CPPFLAGS} -I/usr/local/include -I/usr/include"
 LDFLAGS="${LDFLAGS} -L/usr/local/lib -Wl,-R/usr/local/lib"
+httpd_cppflags="${CPPFLAGS}"
+libxs_cppflags="${CPPFLAGS}"
 httpd_cflags="${CFLAGS}"
 libxs_cflags="${CFLAGS}"
 httpd_ldflags="${LDFLAGS}"
@@ -110,7 +112,7 @@ AS_IF([test "$ac_cv_search_SSL_version" = no],
 	AC_MSG_ERROR([Cannot find required OpenSSL library]))
 
 XS_FUNC_IN_LIB(OPENSSL_config, HAVE_OPENSSL_CONFIG, ssl, x, [${ssllib}])
-libxs_cflags="${libxs_cflags} ${sslinc}"
+libxs_cppflags="${libxs_cppflags} ${sslinc}"
 libxs_ldflags="${libxs_ldflags} ${ssllib}"
 httpd_ldflags="${httpd_ldflags} ${xssl_ldflags}"
 
@@ -194,6 +196,14 @@ XS_CHECK_WITH(python, Python interpreter, no, [
 	AC_MSG_WARN([Internal Python interpreter is still EXPERIMENTAL])
 	])
 
+#XS_CHECK_WITH(php, PHP interpreter, no, [
+#dnl	XS_TRY_CONFIG(php, php)
+#	modules="${modules} php"
+#	AC_SUBST(php_cflags, ["-I/usr/local/include/php -I/usr/local/include/php/Zend -I/usr/local/include/php/main -I/usr/local/include/php/TSRM"])
+#	AC_SUBST(php_ldflags, ["-L/usr/local/lib -lphp4"])
+#	AC_MSG_WARN([Internal PHP interpreter is still EXPERIMENTAL])
+#	])
+
 AC_MSG_CHECKING([if you want configuration preprocessing])
 withval=
 AC_ARG_WITH(preprocessor, [[
@@ -256,6 +266,7 @@ mod_name="{ ${mod_name# } NULL }"
 AM_CONDITIONAL(MOD_PERL,   [echo "${modules}" | grep -q perl])
 AM_CONDITIONAL(MOD_PYTHON, [echo "${modules}" | grep -q python])
 AM_CONDITIONAL(MOD_RUBY,   [echo "${modules}" | grep -q ruby])
+AM_CONDITIONAL(MOD_PHP,    [echo "${modules}" | grep -q php])
 AM_CONDITIONAL(MOD_LDAP,   [echo "${modules}" | grep -q ldap])
 AM_CONDITIONAL(MOD_GZIP,   [echo "${modules}" | grep -q gzip])
 AM_CONDITIONAL(MOD_BZIP2,   [echo "${modules}" | grep -q bzip2])
@@ -267,8 +278,10 @@ AC_DEFINE_UNQUOTED(MODULES, [${mod_name}], [Modules enabled during compilation])
 
 dnl Generate configure output.
 AC_SUBST(libxs_ldflags)
+AC_SUBST(libxs_cppflags)
 AC_SUBST(libxs_cflags)
 AC_SUBST(httpd_ldflags)
+AC_SUBST(httpd_cppflags)
 AC_SUBST(httpd_cflags)
 AC_SUBST(SERVER_IDENT)
 AC_SUBST(mod_decl)

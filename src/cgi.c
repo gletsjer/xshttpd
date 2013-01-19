@@ -662,10 +662,10 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 					append(&head, false, "Pragma: %s\r\n", val);
 				pragma = true;
 			}
-			else if (!strcasecmp(idx, "Server"))
+			else if (!strcasecmp(idx, "Server") && config.serverident)
 			{
 				/* Append value to SERVER_IDENT */
-				if (!strncasecmp(val, SERVER_IDENT, strlen(SERVER_IDENT)))
+				if (!strncasecmp(val, config.serverident, strlen(config.serverident)))
 					append(&head, false, "Server: %s\r\n", val);
 				else
 					append(&head, false, "Server: %s %s\r\n", config.serverident, val);
@@ -688,7 +688,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			if (!lastmod)
 				append(&head, false, "Last-modified: %s\r\n",
 					currenttime);
-			if (!server)
+			if (!server && config.serverident)
 				append(&head, false, "Server: %s\r\n", config.serverident);
 			if (session.httpversion >= 11)
 				append(&head, false, "Transfer-encoding: chunked\r\n");

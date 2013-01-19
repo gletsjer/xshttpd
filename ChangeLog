@@ -2,6 +2,10 @@ This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
 Changes since 3.7 beta 24
+- Add ContentSecurityPolicy option for .xsconf files
+- ServerIdent option takes a new value "none"
+
+Changes since 3.7 beta 24
 - Add UseSTS option for HTTP Strict Transport Security support
   To use this, STSMaxAge must be set as well
 

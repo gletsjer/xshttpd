@@ -536,8 +536,9 @@ xserror(int code, const char * const format, ...)
 			"Status", "%03d %s", code, message);
 		maplist_append(rh, append_replace,
 			"Date", "%s", currenttime);
-		maplist_append(rh, append_replace,
-			"Server", "%s", config.serverident);
+		if (config.serverident)
+			maplist_append(rh, append_replace,
+				"Server", "%s", config.serverident);
 
 		session.size = errmsg ? strlen(errmsg) : 0;
 		if ((header = getenv("HTTP_ALLOW")))
@@ -1239,7 +1240,9 @@ METHOD:
 	struct maplist	*rh = &session.response_headers;
 	maplist_append(rh, append_replace, "Status", "200 OK");
 	maplist_append(rh, append_replace, "Date", "%s", currenttime);
-	maplist_append(rh, append_replace, "Server", "%s", config.serverident);
+	if (config.serverident)
+		maplist_append(rh, append_replace, "Server", "%s",
+				config.serverident);
 
 	if (!strcasecmp("GET", line))
 		do_get(params);

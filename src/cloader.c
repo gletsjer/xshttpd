@@ -251,6 +251,8 @@ load_config()
 
 						if (!strcasecmp("full", value))
 							/* .. */;
+						else if (!strcasecmp("none", value))
+							FREE(config.serverident);
 						else if (!strcasecmp("branch", value))
 							p = strchr(config.serverident, ' ');
 						else if (!strcasecmp("name", value))

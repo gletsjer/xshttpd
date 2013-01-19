@@ -5,3 +5,4 @@
 - Make FastCGI usable
 - Implement mod_dav with full WebDAV commands (fs backend)
 - SCGI, http://python.ca/scgi/
+- CSP, http://www.html5rocks.com/en/tutorials/security/content-security-policy/

@@ -15,7 +15,7 @@ libxs_a_CFLAGS = $(CFLAGS) -fPIC
 httpdc_CPPFLAGS = -DBINDIR=\"$(bindir)\"
 
 # default for all *_PROGRAMS
-CFLAGS += $(libxs_cflags)
+CPPFLAGS += $(libxs_cppflags)
 LDADD = libxs.a ../libcompat/libcompat.a $(libxs_ldflags)
 DEFAULT_INCLUDES = -I$(top_builddir)
 
