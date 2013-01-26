@@ -11,7 +11,7 @@ if MOD_PERL
 lib_LIBRARIES += mod_perl.so
 mod_perl_so_SOURCES = mod_perl.c
 mod_perl_so_CFLAGS = $(mod_CFLAGS) @perl_cflags@
-mod_perl_so_LIBADD = libxs.a $(mod_LIBADD) @perl_ldflags@
+mod_perl_so_LIBADD = libxs.a $(mod_LIBADD) @perl_ldadd@
 mod_perl_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
 mod_perl_so_AR = $(CC) $(mod_perl_so_LDFLAGS) -o
 endif
@@ -20,7 +20,7 @@ if MOD_PYTHON
 lib_LIBRARIES += mod_python.so
 mod_python_so_SOURCES = mod_python.c
 mod_python_so_CFLAGS = $(mod_CFLAGS) @python_cflags@
-mod_python_so_LIBADD = $(mod_LIBADD) @python_ldflags@
+mod_python_so_LIBADD = $(mod_LIBADD) @python_ldadd@
 mod_python_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
 mod_python_so_AR = $(CC) $(mod_python_so_LDFLAGS) -o
 endif
@@ -29,7 +29,7 @@ if MOD_RUBY
 lib_LIBRARIES += mod_ruby.so
 mod_ruby_so_SOURCES = mod_ruby.c
 mod_ruby_so_CFLAGS = $(mod_CFLAGS) @ruby_cflags@
-mod_ruby_so_LIBADD = $(mod_LIBADD) @ruby_ldflags@
+mod_ruby_so_LIBADD = $(mod_LIBADD) @ruby_ldadd@
 mod_ruby_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
 mod_ruby_so_AR = $(CC) $(mod_ruby_so_LDFLAGS) -o
 endif
@@ -38,7 +38,7 @@ if MOD_PHP
 lib_LIBRARIES += mod_php.so
 mod_php_so_SOURCES = mod_php.c
 mod_php_so_CFLAGS = $(mod_CFLAGS) @php_cflags@
-mod_php_so_LIBADD = libxs.a $(mod_LIBADD) @php_ldflags@
+mod_php_so_LIBADD = libxs.a $(mod_LIBADD) @php_ldadd@
 mod_php_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
 mod_php_so_AR = $(CC) $(mod_php_so_LDFLAGS) -o
 endif
@@ -47,7 +47,7 @@ if MOD_LDAP
 lib_LIBRARIES += mod_ldap.so
 mod_ldap_so_SOURCES = mod_ldap.c
 mod_ldap_so_CFLAGS = $(mod_CFLAGS) @ldap_cflags@
-mod_ldap_so_LIBADD = libxs.a $(mod_LIBADD) @ldap_ldflags@
+mod_ldap_so_LIBADD = libxs.a $(mod_LIBADD) @ldap_ldadd@
 mod_ldap_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
 mod_ldap_so_AR = $(CC) $(mod_ldap_so_LDFLAGS) -o
 endif
@@ -56,12 +56,12 @@ if MOD_GZIP
 lib_LIBRARIES += mod_gzip.so mod_compress.so
 mod_gzip_so_SOURCES = mod_gzip.c
 mod_gzip_so_CFLAGS = $(mod_CFLAGS) @gzip_cflags@
-mod_gzip_so_LIBADD = libxs.a $(mod_LIBADD) @gzip_ldflags@
+mod_gzip_so_LIBADD = libxs.a $(mod_LIBADD) @gzip_ldadd@
 mod_gzip_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
 mod_gzip_so_AR = $(CC) $(mod_gzip_so_LDFLAGS) -o
 mod_compress_so_SOURCES = mod_compress.c
 mod_compress_so_CFLAGS = $(mod_CFLAGS) @gzip_cflags@
-mod_compress_so_LIBADD = $(mod_LIBADD) @gzip_ldflags@
+mod_compress_so_LIBADD = $(mod_LIBADD) @gzip_ldadd@
 mod_compress_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
 mod_compress_so_AR = $(CC) $(mod_compress_so_LDFLAGS) -o
 endif
@@ -70,7 +70,7 @@ if MOD_BZIP2
 lib_LIBRARIES += mod_bzip2.so
 mod_bzip2_so_SOURCES = mod_bzip2.c
 mod_bzip2_so_CFLAGS = $(mod_CFLAGS) @bzip2_cflags@
-mod_bzip2_so_LIBADD = $(mod_LIBADD) @bzip2_ldflags@
+mod_bzip2_so_LIBADD = $(mod_LIBADD) @bzip2_ldadd@
 mod_bzip2_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
 mod_bzip2_so_AR = $(CC) $(mod_bzip2_so_LDFLAGS) -o
 endif
@@ -79,7 +79,7 @@ if MOD_MAGIC
 lib_LIBRARIES += mod_magic.so
 mod_magic_so_SOURCES = mod_magic.c
 mod_magic_so_CFLAGS = $(mod_CFLAGS) @magic_cflags@
-mod_magic_so_LIBADD = $(mod_LIBADD) @magic_ldflags@
+mod_magic_so_LIBADD = $(mod_LIBADD) @magic_ldadd@
 mod_magic_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
 mod_magic_so_AR = $(CC) $(mod_magic_so_LDFLAGS) -o
 endif
@@ -88,7 +88,7 @@ if MOD_RPAF
 lib_LIBRARIES += mod_rpaf.so
 mod_rpaf_so_SOURCES = mod_rpaf.c
 mod_rpaf_so_CFLAGS = $(mod_CFLAGS) @rpaf_cflags@
-mod_rpaf_so_LIBADD = $(mod_LIBADD) @rpaf_ldflags@ ../libcompat/libcompat.a
+mod_rpaf_so_LIBADD = $(mod_LIBADD) @rpaf_ldadd@ ../libcompat/libcompat.a
 mod_rpaf_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
 mod_rpaf_so_AR = $(CC) $(mod_rpaf_so_LDFLAGS) -o
 endif
@@ -97,7 +97,7 @@ if MOD_HTCPCP
 lib_LIBRARIES += mod_htcpcp.so
 mod_htcpcp_so_SOURCES = mod_htcpcp.c
 mod_htcpcp_so_CFLAGS = $(mod_CFLAGS) @htcpcp_cflags@
-mod_htcpcp_so_LIBADD = $(mod_LIBADD) @htcpcp_ldflags@
+mod_htcpcp_so_LIBADD = $(mod_LIBADD) @htcpcp_ldadd@
 mod_htcpcp_so_LDFLAGS = -shared -rdynamic $(LDFLAGS) $(STRIP)
 mod_htcpcp_so_AR = $(CC) $(mod_htcpcp_so_LDFLAGS) -o
 endif

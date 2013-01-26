@@ -31,9 +31,10 @@ AC_DEFUN([XS_FUNC_IN_LIB], [
 	LIBS=
 	AH_TEMPLATE($2, [Define to 1 if you have the `$1' function])
 	AC_SEARCH_LIBS($1, $3, AC_DEFINE($2),, $5)
-	AS_IF([test -n "${LIBS}"], [
-		$4_ldflags="${$4_ldflags} ${LIBS} $5"
-		])
+	AS_IF([test -n "$4"],
+		[$4_ldadd="${$4_ldadd} ${LIBS}"],
+		[echo "Adding $LIBS}"]
+		[LDADD="${LDADD} ${LIBS}"])
 	AS_IF([test "x${ac_cv_search_$1}" != x -a "x${ac_cv_search_$1}" != xno],
 		[$6], [$7])
 	LIBS=
@@ -58,7 +59,7 @@ AC_DEFUN([XS_FATAL], [
 AC_DEFUN([XS_CHECK_PC], [
 	PKG_CHECK_MODULES(AS_TR_SH($1), [lib$1], [
 		$2_cflags="${$2_cflags} ${AS_TR_SH($1_CFLAGS)}"
-		$2_ldflags="${$2_ldflags} ${AS_TR_SH($1_LIBS)}"
+		$2_ldadd="${$2_ldadd} ${AS_TR_SH($1_LIBS)}"
 		AC_DEFINE_UNQUOTED(AS_TR_CPP(HAVE_$1), 1,
 			[Define this if you have the $1 libary])
 		$3
@@ -71,7 +72,7 @@ AC_DEFUN([XS_TRY_CONFIG], [
 	    AC_PATH_PROG(AS_TR_SH(xs_$1_path), $1-config)
 	    AS_IF([test -n "${AS_TR_SH(xs_$1_path)}"], [
 		$2_cflags="${$2_cflags} `${AS_TR_SH(xs_$1_path)} --cflags`"
-		$2_ldflags="${$2_ldflags} `${AS_TR_SH(xs_$1_path)} --libs`"
+		$2_ldadd="${$2_ldadd} `${AS_TR_SH(xs_$1_path)} --libs`"
 		AC_DEFINE_UNQUOTED(AS_TR_CPP(HAVE_$1), 1,
 			[Define this if you have the $1 libary])
 		$3

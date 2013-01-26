@@ -24,12 +24,9 @@ AC_DEFINE_UNQUOTED(PATH_PPMTOGIF, "${ppmtogif}",
 dnl Checks for libraries.
 CPPFLAGS="${CPPFLAGS} -I/usr/local/include -I/usr/include"
 LDFLAGS="${LDFLAGS} -L/usr/local/lib -Wl,-R/usr/local/lib"
-httpd_cppflags="${CPPFLAGS}"
-libxs_cppflags="${CPPFLAGS}"
-httpd_cflags="${CFLAGS}"
-libxs_cflags="${CFLAGS}"
-httpd_ldflags="${LDFLAGS}"
-libxs_ldflags="${LDFLAGS}"
+httpd_cppflags=
+httpd_cflags=
+httpd_ldadd=
 
 dnl Checks for header files.
 AC_SYS_LARGEFILE
@@ -69,7 +66,7 @@ XS_FUNC_IN_LIB(inet_pton, HAVE_INET_PTON, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(getaddrinfo, HAVE_GETADDRINFO, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(getnameinfo, HAVE_GETNAMEINFO, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(dlopen, HAVE_DLOPEN, dl, httpd)
-XS_FUNC_IN_LIB(fparseln, HAVE_FPARSELN, util, libxs)
+XS_FUNC_IN_LIB(fparseln, HAVE_FPARSELN, util)
 
 AS_IF([test "$ac_cv_search_inet_aton" = no], [AC_LIBOBJ(inet_aton)])
 AS_IF([test "$ac_cv_search_fparseln" = no], [AC_LIBOBJ(fparseln)])
@@ -103,18 +100,15 @@ AC_CHECK_DECLS([sys_errlist],,, [[#include <stdlib.h>
 dnl OpenSSL is mandatory
 XS_CHECK_WITH(ssl, SSL crypto support, yes)
 AS_IF([test x$with_ssl != x -a x$with_ssl != xyes],
-	[ssllib="-L${with_ssl}/lib -lcrypto"]
-	[sslinc="-I${with_ssl}/include"],
-	[ssllib="-lcrypto"])
+	[LDFLAGS="${LDFLAGS} -L${with_ssl}/lib"]
+	[CPPFLAGS="${CPPFLAGS} -I${with_ssl}/include"])
 
-XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, xssl, [${ssllib}])
+LDADD="${LDADD} -lcrypto"
+XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, httpd, [-lcrypto])
 AS_IF([test "$ac_cv_search_SSL_version" = no],
 	AC_MSG_ERROR([Cannot find required OpenSSL library]))
 
-XS_FUNC_IN_LIB(OPENSSL_config, HAVE_OPENSSL_CONFIG, ssl, x, [${ssllib}])
-libxs_cppflags="${libxs_cppflags} ${sslinc}"
-libxs_ldflags="${libxs_ldflags} ${ssllib}"
-httpd_ldflags="${httpd_ldflags} ${xssl_ldflags}"
+XS_FUNC_IN_LIB(OPENSSL_config, HAVE_OPENSSL_CONFIG, ssl, dummy, [-lcrypto])
 
 dnl User specified additional (non-system) libraries.
 XS_CHECK_WITH(pcre, PCRE support, yes, [XS_TRY_CONFIG(pcre, httpd)])
@@ -127,7 +121,7 @@ XS_CHECK_WITH(gzip, GZIP support, yes, [
 	XS_FUNC_IN_LIB(gzopen, HAVE_GZIP, z, gzip,, [
 		modules="${modules} gzip compress"
 		AC_SUBST(gzip_cflags)
-		AC_SUBST(gzip_ldflags)
+		AC_SUBST(gzip_ldadd)
 		], [XS_FATAL(gzip)])
 	])
 
@@ -135,7 +129,7 @@ XS_CHECK_WITH(bzip2, BZIP2 support, yes, [
 	XS_FUNC_IN_LIB(BZ2_bzopen, HAVE_BZIP2, bz2, bzip2,, [
 		modules="${modules} bzip2"
 		AC_SUBST(bzip2_cflags)
-		AC_SUBST(bzip2_ldflags)
+		AC_SUBST(bzip2_ldadd)
 		], [XS_FATAL(bzip2)])
 	])
 
@@ -143,7 +137,7 @@ XS_CHECK_WITH(ldap, LDAP authentication support, no, [
 	XS_FUNC_IN_LIB(ldap_initialize, HAVE_LDAP, ldap, ldap,, [
 		modules="${modules} ldap"
 		AC_SUBST(ldap_cflags)
-		AC_SUBST(ldap_ldflags)
+		AC_SUBST(ldap_ldadd)
 		], [XS_FATAL(ldap)])
 	])
 
@@ -151,20 +145,20 @@ XS_CHECK_WITH(magic, Magic MIME detection support, yes, [
 	XS_FUNC_IN_LIB(magic_open, HAVE_MAGIC, magic, magic,, [
 		modules="${modules} magic"
 		AC_SUBST(magic_cflags)
-		AC_SUBST(magic_ldflags)
+		AC_SUBST(magic_ldadd)
 		], [XS_FATAL(magic)])
 	])
 
 XS_CHECK_WITH(rpaf, Reverse Proxy Add Forward, yes, [
 		modules="${modules} rpaf"
 		AC_SUBST(rpaf_cflags)
-		AC_SUBST(rpaf_ldflags)
+		AC_SUBST(rpaf_ldadd)
 	])
 
 XS_CHECK_WITH(htcpcp, Hyper Text Coffee Pot Control Protocol, yes, [
 		modules="${modules} htcpcp"
 		AC_SUBST(htcpcp_cflags)
-		AC_SUBST(htcpcp_ldflags)
+		AC_SUBST(htcpcp_ldadd)
 	])
 
 XS_CHECK_WITH(perl, PERL persistent interpreter, no, [
@@ -172,7 +166,7 @@ XS_CHECK_WITH(perl, PERL persistent interpreter, no, [
 	AS_IF([test -n "${perlpath}"], [
 		modules="${modules} perl"
 		AC_SUBST(perl_cflags, ["`${perlpath} -MExtUtils::Embed -e ccopts`"])
-		AC_SUBST(perl_ldflags, ["`${perlpath} -MExtUtils::Embed -e ldopts`"])
+		AC_SUBST(perl_ldadd, ["`${perlpath} -MExtUtils::Embed -e ldopts`"])
 		], [XS_FATAL(perl)])
 	AC_MSG_WARN([Internal Perl interpreter is still EXPERIMENTAL])
 	])
@@ -183,7 +177,7 @@ XS_CHECK_WITH(ruby, Ruby interpreter, no, [
 		modules="${modules} ruby"
 		AC_SUBST(ruby_cflags)
 dnl		AC_SUBST(ruby_cflags, [-I"`${rubypath} -r mkmf -e 'print ($hdrdir)'`"])
-		AC_SUBST(ruby_ldflags, [`${rubypath} -r mkmf -e 'print %&-L#{Config.expand($libdir)} -l#{CONFIG["RUBY_SO_NAME"]}&'`])
+		AC_SUBST(ruby_ldadd, [`${rubypath} -r mkmf -e 'print %&-L#{Config.expand($libdir)} -l#{CONFIG["RUBY_SO_NAME"]}&'`])
 		], [XS_FATAL(ruby)])
 	AC_MSG_WARN([Internal Ruby interpreter is still EXPERIMENTAL])
 	])
@@ -192,7 +186,7 @@ XS_CHECK_WITH(python, Python interpreter, no, [
 	XS_TRY_CONFIG(python, python)
 	modules="${modules} python"
 	AC_SUBST(python_cflags)
-	AC_SUBST(python_ldflags)
+	AC_SUBST(python_ldadd)
 	AC_MSG_WARN([Internal Python interpreter is still EXPERIMENTAL])
 	])
 
@@ -200,7 +194,7 @@ XS_CHECK_WITH(python, Python interpreter, no, [
 #dnl	XS_TRY_CONFIG(php, php)
 #	modules="${modules} php"
 #	AC_SUBST(php_cflags, ["-I/usr/local/include/php -I/usr/local/include/php/Zend -I/usr/local/include/php/main -I/usr/local/include/php/TSRM"])
-#	AC_SUBST(php_ldflags, ["-L/usr/local/lib -lphp4"])
+#	AC_SUBST(php_ldadd, ["-L/usr/local/lib -lphp4"])
 #	AC_MSG_WARN([Internal PHP interpreter is still EXPERIMENTAL])
 #	])
 
@@ -277,12 +271,10 @@ AM_CONDITIONAL(MOD_HTCPCP,   [echo "${modules}" | grep -q htcpcp])
 AC_DEFINE_UNQUOTED(MODULES, [${mod_name}], [Modules enabled during compilation])
 
 dnl Generate configure output.
-AC_SUBST(libxs_ldflags)
-AC_SUBST(libxs_cppflags)
-AC_SUBST(libxs_cflags)
-AC_SUBST(httpd_ldflags)
+LIBS="${LDADD}"
 AC_SUBST(httpd_cppflags)
 AC_SUBST(httpd_cflags)
+AC_SUBST(httpd_ldadd)
 AC_SUBST(SERVER_IDENT)
 AC_SUBST(mod_decl)
 AC_SUBST(mod_list)
