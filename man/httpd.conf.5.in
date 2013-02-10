@@ -543,18 +543,6 @@ Restrict or extend the encryption ciphers that should be used
 for SSL connections. The possible values for this setting
 are described in
 .Xr ciphers 1 .
-.It Sy SSLVhosts Ar hostname Oo Ar hostname ... Oc Aq
-If your SSL library supports TLS extensions with
-.Ql server name indication
-(SNI), then this option can be used to list the hostnames of the
-virtual hosts that should be available for this socket as well.
-These virtual host definitions may include a
-.Sy SSLCertificate
-and
-.Sy SSLPrivateKey
-definition.
-However most versions of OpenSSL - and most browsers -
-do not support this feature (yet).
 .El
 .Ss Section Options
 The following options can be set in any of the
@@ -738,6 +726,16 @@ multiple sockets or
 .Sy Virtual
 sections with the same
 .Sy SocketName .
+.It Sy SSLCertificate Ar filename Aq
+Set an SSLCertificate for this virtual host.
+This option is only available when the SSL-library supports
+.Ql server name indication
+(SNI).
+.It Sy SSLPrivateKey Ar filename Aq
+Set an SSLPrivateKey for this virtual host.
+This option is only available when the SSL-library supports
+.Ql server name indication
+(SNI).
 .It Sy UseSTS Ar boolean Aq false
 Enable
 .Em HTTP Strict Transport Security 

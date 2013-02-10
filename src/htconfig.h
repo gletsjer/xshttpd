@@ -63,7 +63,6 @@ extern struct virtual
  */
 struct ssl_vhost
 {
-	char *			hostname;
 	struct virtual *	virtual;
 	SSL_CTX *		ssl_ctx;
 	struct ssl_vhost *	next;

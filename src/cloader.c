@@ -343,28 +343,6 @@ load_config()
 					}
 					else if (!strcasecmp("SSLCipherList", key))
 						STRDUP(lsock->sslcipherlist, value);
-					else if (!strcasecmp("SSLVhosts", key))
-					{
-#ifdef		HANDLE_SSL_TLSEXT
-						char			**vhosts = NULL;
-						const size_t	vsz = string_to_arraypn(value, &vhosts);
-						struct ssl_vhost	*vhost, *prev;
-
-						prev = NULL;
-						for (size_t i = 0; i < vsz; i++)
-						{
-							CALLOC(vhost, struct ssl_vhost, 1);
-							vhost->hostname = vhosts[i];
-							if (prev)
-								prev->next = vhost;
-							else
-								lsock->sslvhosts = vhost;
-							prev = vhost;
-						}
-#else		/* HANDLE_SSL_TLSEXT */
-						errx(1, "SSLVhosts not allowed: SSL library doesn't support TLSEXT");
-#endif		/* HANDLE_SSL_TLSEXT */
-					}
 					else
 						errx(1, "illegal socket directive: '%s'", key);
 				}
@@ -591,19 +569,34 @@ load_config()
 		if (lsock->usessl)
 		{
 			loadssl(lsock, NULL);
-			if (!lsock->sslvhosts)
-				continue;
 
-			for (struct ssl_vhost *sslvhost = lsock->sslvhosts;
-					sslvhost;
-					sslvhost = sslvhost->next)
-				for (struct virtual *vc = config.virtual; vc; vc = vc->next)
-					if (!strcasecmp(sslvhost->hostname, vc->hostname))
+#ifdef		HANDLE_SSL_TLSEXT
+			struct ssl_vhost	*vhost = NULL,
+								*lasthost = NULL;
+
+			for (struct virtual *vc = config.virtual; vc; vc = vc->next)
+			{
+				if ((vc->socketname || lsock->socketname) &&
+						(!lsock->socketname || !vc->socketname ||
+						 strcasecmp(vc->socketname, lsock->socketname)))
+					/* vhost not used on this socket */
+					continue;
+				if (vc->sslcertificate)
+				{
+					/* add lsock->sslvhost with sslvhost->virtual = vc */
+					CALLOC(vhost, struct ssl_vhost, 1);
+					vhost->virtual = vc;
+					if (lasthost)
 					{
-						sslvhost->virtual = vc;
-						loadssl(lsock, sslvhost);
-						break;
+						lasthost->next = vhost;
+						lasthost = vhost;
 					}
+					else
+						lsock->sslvhosts = lasthost = vhost;
+					loadssl(lsock, vhost);
+				}
+			}
+#endif		/* HANDLE_SSL_TLSEXT */
 		}
 	}
 	if (!config.pidfile)
