@@ -118,7 +118,6 @@ load_config()
 	config.usednslookup = true;
 	config.usessi = true;
 	config.useput = true;
-	config.usetrace = true;
 	config.uselocalscript = true;
 	config.execasuser = true;
 #ifdef		HAVE_SENDFILE

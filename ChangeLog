@@ -1,7 +1,7 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
-Changes since 3.7 beta 24
+Changes since 3.7 beta 25
 - Add ContentSecurityPolicy option for .xsconf files
 - ServerIdent option takes a new value "none"
 - Remove SSLVhosts option: use SNI by default for all virtual hosts
