@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996 by Sven Berkvens (sven@stack.nl) */
-/* Copyright (C) 1998-2010 by Johan van Selst (johans@stack.nl) */
+/* Copyright (C) 1998-2013 by Johan van Selst (johans@stack.nl) */
 
 #ifndef		ALTERNATIVE_H
 #define		ALTERNATIVE_H
