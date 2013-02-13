@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 26
+- Fix SSLCipherList option
+
 Changes since 3.7 beta 25
 - Add ContentSecurityPolicy option for .xsconf files
 - ServerIdent option takes a new value "none"
