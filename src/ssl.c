@@ -15,6 +15,7 @@
 #ifdef		HAVE_ERR_H
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
+#include	<fnmatch.h>
 
 #include	<openssl/rand.h>
 #include	<openssl/err.h>
@@ -319,8 +320,6 @@ ssl_servername_cb(SSL *ssl, int *al, struct socket_config *lsock)
 
 	for (vhost = lsock->sslvhosts; vhost; vhost = vhost->next)
 	{
-		char	*host;
-
 		vc = vhost->virtual;
 
 		if (!strcasecmp(servername, vc->hostname))
@@ -328,11 +327,7 @@ ssl_servername_cb(SSL *ssl, int *al, struct socket_config *lsock)
 		if (!vc->aliases)
 			continue;
 
-		for (int j = 0; (host = vc->aliases[j]); j++)
-			if (!strcasecmp(servername, host))
-				break;
-
-		if (host)
+		if (fnmatch_array(vc->aliases, servername, FNM_CASEFOLD))
 			break;
 	}
 	if (!vhost || !vhost->ssl_ctx)
