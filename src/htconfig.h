@@ -160,6 +160,7 @@ extern struct session
 	bool		chunked;
 	bool		persistent;
 	bool		trailers;
+	bool		via;
 	struct maplist	request_headers;
 	struct maplist	response_headers;
 } session;

@@ -149,6 +149,16 @@ hostname and path.
 Note that forwarding unencrypted requests to a https location or
 encrypted requests to a plain-text http location may lead to a false
 sense of security. Use forwards with care.
+.It Sy proxy Ar oldurl Ar newurl
+Proxy request by sending it on to another server and returning
+its response to the client. This is basically the same as
+.Sy forward
+and also only works if forwarding support is compiled in.
+At the moment the only real difference is that with the
+.Sy proxy
+directive, all responses will include a
+.Sy Via
+header identifying this webserver as the forwarding proxy.
 .It Sy error Ar statuscode Ar pattern Op Ar description
 If the request matches the regilar expression pattern, then the user
 will be presented with an HTTP error. The error codes in the 4xx and 5xx

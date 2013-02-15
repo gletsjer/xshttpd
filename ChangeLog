@@ -3,6 +3,8 @@ is not complete. Refer to cvs comments for more information.
 
 Changes since 3.7 beta 26
 - Fix SSLCipherList option
+- Add wildcard matching for SSL vhost names
+- Add proxy directive for xsredir; like forward with a Via-header
 
 Changes since 3.7 beta 25
 - Add ContentSecurityPolicy option for .xsconf files

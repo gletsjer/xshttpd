@@ -257,7 +257,9 @@ check_redirect(const char * const cffile, const char * const filename)
 				exittrue = true;
 			}
 		}
-		else if (!strcasecmp(command, "forward") && ret >= 3)
+		else if ((!strcasecmp(command, "forward") ||
+					!strcasecmp(command, "proxy"))
+				&& ret >= 3)
 		{
 			char	*subst = pcre_subst(request, argv[1], argv[2]);
 
@@ -265,6 +267,8 @@ check_redirect(const char * const cffile, const char * const filename)
 			{
 				const char * const newloc =
 					mknewurl(request, subst);
+
+				session.via = !strcasecmp(command, "proxy");
 				do_proxy(NULL, newloc);
 				FREE(subst);
 				exittrue = true;

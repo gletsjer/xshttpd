@@ -1799,6 +1799,23 @@ do_trace(const char * const params)
 	(void)params;
 }
 
+size_t
+proxyheader(char *ptr, size_t size, size_t nmemb, void *userdata)
+{
+	const char	*proto = "1.0";
+
+	if (!strncmp(env.server_protocol, "HTTP/", 4))
+		proto = env.server_protocol + 5;
+	if (session.via && size*nmemb > 1 &&
+			('\r' == ptr[0] || '\n' == ptr[0]))
+		secprintf("Via: %u.%u %s (%s)\r\n",
+				session.httpversion / 10,
+				session.httpversion % 10,
+				current->hostname,
+				config.serverident);
+	return secfwrite(ptr, size, nmemb, userdata);
+}
+
 void
 do_proxy(const char * const proxy, const char * const params)
 {
@@ -1852,9 +1869,10 @@ do_proxy(const char * const proxy, const char * const params)
 	}
 
 	curl_easy_setopt(handle, CURLOPT_HTTPHEADER, curl_headers);
-	curl_easy_setopt(handle, CURLOPT_HEADER, 1);
+//	curl_easy_setopt(handle, CURLOPT_HEADER, 1);
 	curl_easy_setopt(handle, CURLOPT_WRITEDATA, stdout);
 	curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, secfwrite);
+	curl_easy_setopt(handle, CURLOPT_HEADERFUNCTION, proxyheader);
 	curl_easy_setopt(handle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
 	session.persistent = false;
 	session.httpversion = 10; /* force HTTP/1.0 */
