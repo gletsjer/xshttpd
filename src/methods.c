@@ -1799,22 +1799,29 @@ do_trace(const char * const params)
 	(void)params;
 }
 
-size_t
-proxyheader(char *ptr, size_t size, size_t nmemb, void *userdata)
+#ifdef		HAVE_CURL
+static size_t
+proxyheader(const char * const ptr, size_t size, size_t nmemb, void *userdata)
 {
-	const char	*proto = "1.0";
-
-	if (!strncmp(env.server_protocol, "HTTP/", 4))
-		proto = env.server_protocol + 5;
-	if (session.via && size*nmemb > 1 &&
+	if (session.via && size && nmemb &&
 			('\r' == ptr[0] || '\n' == ptr[0]))
-		secprintf("Via: %u.%u %s (%s)\r\n",
-				session.httpversion / 10,
-				session.httpversion % 10,
-				current->hostname,
-				config.serverident);
+	{
+		/* Add Via: header after the last HTTP response header */
+		if (config.proxyident)
+			secprintf("Via: %u.%u %s (%s)\r\n",
+					session.httpversion / 10,
+					session.httpversion % 10,
+					current->hostname,
+					config.proxyident);
+		else
+			secprintf("Via: %u.%u %s\r\n",
+					session.httpversion / 10,
+					session.httpversion % 10,
+					current->hostname);
+	}
 	return secfwrite(ptr, size, nmemb, userdata);
 }
+#endif		/* HAVE_CURL */
 
 void
 do_proxy(const char * const proxy, const char * const params)

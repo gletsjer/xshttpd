@@ -282,6 +282,14 @@ the major version number will be show (up to the first space), with
 .Cm name
 only the software name will be revealed (up to the first slash).
 The default behaviour is to send the full release version details.
+.It Sy ProxyIdent Bro Cm full No \*(Ba Cm branch No \*(Ba Cm name No \*(Ba Cm none Brc Aq full
+Set how much of the webserver version details should be included
+in the
+.Sy Via
+header that is sent with every proxy response where data is obtained
+from another webserver. The options are the same as for the
+.Sy ServerIdent
+directive.
 .It Sy Modules Ar module Oo Ar module ... Oc Aq *
 A list with the names of all dynamic modules that should
 be loaded with the webserver (e.g.

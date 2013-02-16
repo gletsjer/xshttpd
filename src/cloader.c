@@ -130,6 +130,7 @@ load_config()
 	config.scriptpriority = PRIO_MAX;
 	config.virtualhostdir = NULL;
 	STRDUP(config.serverident, SERVER_IDENT);
+	STRDUP(config.proxyident, SERVER_IDENT);
 
 	if (config_preprocessor)
 	{
@@ -246,6 +247,7 @@ load_config()
 						config.scriptpriority = strtoul(value, NULL, 10);
 					else if (!strcasecmp("ServerInfo", key))
 					{
+						/* Note: copied in ProxyInfo */
 						char	*p = NULL;
 
 						if (!strcasecmp("full", value))
@@ -256,6 +258,22 @@ load_config()
 							p = strchr(config.serverident, ' ');
 						else if (!strcasecmp("name", value))
 							p = strchr(config.serverident, '/');
+						if (p)
+							*p = '\0';
+					}
+					else if (!strcasecmp("ProxyInfo", key))
+					{
+						/* Note: copy of ServerInfo */
+						char	*p = NULL;
+
+						if (!strcasecmp("full", value))
+							/* .. */;
+						else if (!strcasecmp("none", value))
+							FREE(config.proxyident);
+						else if (!strcasecmp("branch", value))
+							p = strchr(config.proxyident, ' ');
+						else if (!strcasecmp("name", value))
+							p = strchr(config.proxyident, '/');
 						if (p)
 							*p = '\0';
 					}

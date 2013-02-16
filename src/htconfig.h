@@ -132,6 +132,7 @@ extern struct configuration
 	char *		scriptpath;
 	char *		scriptumask;
 	char *		serverident;
+	char *		proxyident;
 	char **		modules;
 	struct virtual *	system;
 	struct virtual *	users;
