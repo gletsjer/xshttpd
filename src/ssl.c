@@ -536,9 +536,11 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 
 #ifdef		SSL_OP_NO_COMPRESSION
 	(void)SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2 |
+			SSL_OP_CIPHER_SERVER_PREFERENCE |
 			SSL_OP_NO_COMPRESSION);
 #else		/* SSL_OP_NO_COMPRESSION */
-	(void)SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2);
+	(void)SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2 |
+			SSL_OP_CIPHER_SERVER_PREFERENCE);
 #endif		/* SSL_OP_NO_COMPRESSION */
 
 	switch (lsock->sslauth)
