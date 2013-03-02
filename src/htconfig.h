@@ -90,6 +90,11 @@ struct socket_config
 	char *		sslmatchsdn;
 	char *		sslmatchidn;
 	char *		sslcipherlist;
+#define		USE_SESSIONS	1
+#ifdef		USE_SESSIONS
+	char *		session_file;
+	char *		session_lock;
+#endif		/* USE_SESSIONS */
 #ifdef		HAVE_PCRE
 	pcre *		sslpcresdn;
 	pcre *		sslpcreidn;
@@ -127,6 +132,7 @@ extern struct configuration
 	bool		usecontentmd5;
 	bool		useput;
 	bool		usetrace;
+	bool		usesslsessionstore;
 	char *		virtualhostdir;
 	char *		defaultcharset;
 	char *		scriptpath;

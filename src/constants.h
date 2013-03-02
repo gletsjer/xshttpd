@@ -35,6 +35,7 @@ but not able to overwrite your data - nor should it be able to write logfiles */
 
 #define BITBUCKETNAME	"/dev/null"
 #define PID_PATH	RUN_DIR "/httpd.pid"
+#define SESSION_PATH	RUN_DIR "/httpd.ssl"
 #define TEMPORARYPREFIX	"/tmp/xs-httpd.XXXX"
 
 #define INDEX_HTML	"index.html"

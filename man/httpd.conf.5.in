@@ -229,6 +229,13 @@ Allow handling of HTTP TRACE requests. This is a standard (mandatory)
 HTTP command, but it may be considered a security risk.
 Disabling this avoids exposing request information, such as client cookies,
 but it can be enabled in development environments.
+.It Sy UseSSLSessionStore Ar boolean Aq true
+Maintain a local store with SSL session history.
+This enables SSL session resumption, which may speed up
+the initialisation of HTTPS connections. 
+However, maintaining a consistent state between server processes
+increases local I/O and may actually be slower in some cases.
+This feature is still experimental.
 .It Sy Priority Ar level Aq 0
 The system priority that the daemon will be running at. A
 lower priority causes more favorable scheduling.

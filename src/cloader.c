@@ -225,6 +225,8 @@ load_config()
 						config.useput = !strcasecmp("true", value);
 					else if (!strcasecmp("UseTrace", key))
 						config.usetrace = !strcasecmp("true", value);
+					else if (!strcasecmp("UseSSLSessionStore", key))
+						config.usesslsessionstore = !strcasecmp("true", value);
 					else if (!strcasecmp("DnsTimeout", key))
 						config.dnstimeout = strtoul(value, NULL, 10);
 					else if (!strcasecmp("DnsAttempts", key))

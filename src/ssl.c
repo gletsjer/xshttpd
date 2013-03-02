@@ -12,6 +12,7 @@
 #include	<errno.h>
 #include	<stdarg.h>
 #include	<ctype.h>
+#include	<fcntl.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
 #endif		/* HAVE_ERR_H */
@@ -49,6 +50,19 @@ static int	pem_passwd_cb(char *, int, int, void *);
 static int	ssl_servername_cb(SSL *, int *, struct socket_config *);
 #endif		/* HANDLE_SSL_TLSEXT */
 static void	preloadssl(void);
+
+typedef struct simple_ssl_session_st
+{
+	uint32_t	idlen;
+	uint32_t	derlen;
+	unsigned char	*id;
+	unsigned char	*der;
+	time_t		mtime;
+	struct simple_ssl_session_st *next;
+} simple_ssl_session;
+
+static simple_ssl_session *first = NULL;
+
 
 void
 initreadmode(bool reset)
@@ -229,6 +243,209 @@ endssl(void)
 		SSL_free(cursock->ssl);
 		cursock->ssl = NULL;
 	}
+}
+
+static bool
+store_session(void)
+{
+	const unsigned int	SESSION_LIMIT = 10000;
+	simple_ssl_session	*sess;
+	struct stat		sb;
+	unsigned int		count = 0;
+	char	*lockfile;
+	int	fd, ret;
+	bool	wrok;
+
+	fd = open(SESSION_PATH, O_WRONLY | O_CREAT | O_TRUNC | O_EXLOCK,
+			S_IRUSR | S_IWUSR);
+	if (fd < 0)
+		return false;
+
+	for (sess = first; sess; sess = sess->next)
+	{
+		wrok = write(fd, &sess->idlen, sizeof(sess->idlen)) >= 0 &&
+			write(fd, &sess->derlen, sizeof(sess->derlen)) >= 0 &&
+			write(fd, sess->id, sess->idlen) >= 0 &&
+			write(fd, sess->der, sess->derlen) >= 0;
+		if (!wrok)
+			break;
+		if (count++ > SESSION_LIMIT)
+			/* Discard old entries */
+			break;
+	}
+
+	flock(fd, LOCK_UN);
+	ret = close(fd);
+	if (ret < 0 || !wrok)
+		return false;
+
+	ret = stat(SESSION_PATH, &sb);
+	if (ret < 0)
+		return false;
+	first->mtime = sb.st_mtime;
+
+	return true;
+}
+
+static bool
+load_session(void)
+{
+	simple_ssl_session	*sess, *prev;
+	struct stat		sb;
+	int	fd, ret;
+	bool	rdok;
+
+	if (first)
+	{
+		ret = stat(SESSION_PATH, &sb);
+		if (ret < 0)
+			return false;
+		if (sb.st_mtime <= first->mtime)
+			return true;
+	}
+
+	fd = open(SESSION_PATH, O_RDONLY | O_SHLOCK);
+	if (fd < 0)
+		return false;
+
+	rdok = true;
+	first = prev = NULL;
+	while (rdok)
+	{
+		MALLOC(sess, simple_ssl_session, 1);
+		rdok = read(fd, &sess->idlen, sizeof(sess->idlen)) >= 0 &&
+			read(fd, &sess->derlen, sizeof(sess->derlen)) >= 0;
+		if (!rdok || !sess->idlen || !sess->derlen)
+			break;
+		MALLOC(sess->id, unsigned char, sess->idlen);
+		MALLOC(sess->der, unsigned char, sess->derlen);
+
+		rdok = read(fd, sess->id, sess->idlen) >= 0 &&
+			read(fd, sess->der, sess->derlen) >= 0;
+		if (!rdok)
+			break;
+
+		sess->next = NULL;
+		if (!first)
+		{
+			first = sess;
+			first->mtime = sb.st_mtime;
+		}
+		else
+			prev->next = sess;
+		prev = sess;
+	}
+	if (!rdok)
+		FREE(sess);
+
+	flock(fd, LOCK_UN);
+	close(fd);
+	return first != NULL;
+}
+
+static int 
+add_session(struct ssl_st *ssl, SSL_SESSION *session)
+{
+	simple_ssl_session *sess;
+	unsigned char  *p;
+
+	load_session();
+	warnx("New session added to external cache");
+	sess = OPENSSL_malloc(sizeof(simple_ssl_session));
+
+	SSL_SESSION_get_id(session, &sess->idlen);
+	sess->derlen = i2d_SSL_SESSION(session, NULL);
+
+	sess->id = BUF_memdup(SSL_SESSION_get_id(session, NULL), sess->idlen);
+
+	sess->der = OPENSSL_malloc(sess->derlen);
+	p = sess->der;
+	i2d_SSL_SESSION(session, &p);
+warnx("Adding new  #%u %02x%02x%02x%02x%02x", sess->idlen, sess->id[0], sess->id[1], sess->id[2], sess->id[3], sess->id[4]);
+
+	sess->next = first;
+	first = sess;
+	store_session();
+	return 0;
+}
+
+static SSL_SESSION *
+get_session(struct ssl_st *ssl, unsigned char *id, int idlen, int *do_copy)
+{
+	simple_ssl_session *sess = NULL;
+	unsigned int	uidlen = idlen;
+
+	load_session();
+warnx("Looking for #%u %02x%02x%02x%02x%02x (in %p)", idlen, id[0], id[1], id[2], id[3], id[4], sess);
+	*do_copy = 0;
+	for (sess = first; sess; sess = sess->next)
+	{
+//warnx("Looking at  #%u %02x%02x%02x%02x%02x", sess->idlen, sess->id[0], sess->id[1], sess->id[2], sess->id[3], sess->id[4]);
+		if (uidlen == sess->idlen && !memcmp(sess->id, id, uidlen))
+		{
+			const unsigned char *p = sess->der;
+
+			warnx("Lookup session: cache hit");
+			return d2i_SSL_SESSION(NULL, &p, sess->derlen);
+		}
+	}
+	warnx("Lookup session: cache miss");
+	return NULL;
+}
+
+static void 
+del_session(struct ssl_ctx_st *ssl_ctx, SSL_SESSION * session)
+{
+	simple_ssl_session *sess,
+	               *prev = NULL;
+	const unsigned char *id;
+	unsigned int	idlen;
+
+	warnx("Deleting session");
+	id = SSL_SESSION_get_id(session, &idlen);
+	for (sess = first; sess; sess = sess->next)
+	{
+		if (idlen == sess->idlen && !memcmp(sess->id, id, idlen))
+		{
+			if (prev)
+				prev->next = sess->next;
+			else
+				first = sess->next;
+			OPENSSL_free(sess->id);
+			OPENSSL_free(sess->der);
+			OPENSSL_free(sess);
+			return;
+		}
+		prev = sess;
+	}
+}
+
+static void 
+init_session_cache_ctx(SSL_CTX * sctx)
+{
+	SSL_CTX_set_session_cache_mode(sctx,
+			SSL_SESS_CACHE_NO_INTERNAL | SSL_SESS_CACHE_SERVER);
+	SSL_CTX_sess_set_new_cb(sctx, add_session);
+	SSL_CTX_sess_set_get_cb(sctx, get_session);
+	SSL_CTX_sess_set_remove_cb(sctx, del_session);
+	warnx("SSL session init");
+}
+
+static void 
+free_sessions(void)
+{
+	simple_ssl_session *sess,
+	               *tsess;
+
+	for (sess = first; sess;)
+	{
+		OPENSSL_free(sess->id);
+		OPENSSL_free(sess->der);
+		tsess = sess;
+		sess = sess->next;
+		OPENSSL_free(tsess);
+	}
+	first = NULL;
 }
 
 static int
@@ -534,6 +751,8 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 	}
 #endif		/* OPENSSL_EC_NAMED_CURVE */
 
+	if (config.usesslsessionstore)
+		init_session_cache_ctx(ssl_ctx);
 #ifdef		SSL_OP_NO_COMPRESSION
 	(void)SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2 |
 			SSL_OP_CIPHER_SERVER_PREFERENCE |
