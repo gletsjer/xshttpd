@@ -567,6 +567,12 @@ and
 .Sy Users
 sections:
 .Bl -tag -width Ds
+.It Sy SSLTicketKey Ar string Aq
+This value (in combination with the SSL private key)
+is used to seed the key that protects SSL session tickets.
+When serving a domain load-balanced with overmultiple servers,
+all webservers should use the same value for the same domain.
+When not set, a fixed default value will be used.
 .It Sy HostName Ar hostname
 The hostname of the server. This is required for a
 .Sy Virtual

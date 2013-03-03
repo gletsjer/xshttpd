@@ -90,6 +90,7 @@ struct socket_config
 	char *		sslmatchsdn;
 	char *		sslmatchidn;
 	char *		sslcipherlist;
+	char *		sslticketkey;
 #define		USE_SESSIONS	1
 #ifdef		USE_SESSIONS
 	char *		session_file;

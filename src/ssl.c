@@ -256,6 +256,7 @@ store_session(void)
 	int	fd, ret;
 	bool	wrok;
 
+	/* Obtain exclusive lock - may block */
 	fd = open(SESSION_PATH, O_WRONLY | O_CREAT | O_TRUNC | O_EXLOCK,
 			S_IRUSR | S_IWUSR);
 	if (fd < 0)
@@ -279,6 +280,7 @@ store_session(void)
 	if (ret < 0 || !wrok)
 		return false;
 
+	/* Mark in-memory version with timestamp from disk */
 	ret = stat(SESSION_PATH, &sb);
 	if (ret < 0)
 		return false;
@@ -295,6 +297,7 @@ load_session(void)
 	int	fd, ret;
 	bool	rdok;
 
+	/* Check if in-memory version matches on-disk data */
 	if (first)
 	{
 		ret = stat(SESSION_PATH, &sb);
@@ -308,6 +311,14 @@ load_session(void)
 	if (fd < 0)
 		return false;
 
+	/* Clean old data */
+	for (sess = first; (prev = sess); )
+	{
+		sess = sess->next;
+		FREE(prev);
+	}
+
+	/* Load fresh info from disk */
 	rdok = true;
 	first = prev = NULL;
 	while (rdok)
@@ -349,8 +360,7 @@ add_session(struct ssl_st *ssl, SSL_SESSION *session)
 	simple_ssl_session *sess;
 	unsigned char  *p;
 
-	load_session();
-	warnx("New session added to external cache");
+	/* Update session information stored on disk */
 	sess = OPENSSL_malloc(sizeof(simple_ssl_session));
 
 	SSL_SESSION_get_id(session, &sess->idlen);
@@ -361,8 +371,10 @@ add_session(struct ssl_st *ssl, SSL_SESSION *session)
 	sess->der = OPENSSL_malloc(sess->derlen);
 	p = sess->der;
 	i2d_SSL_SESSION(session, &p);
-warnx("Adding new  #%u %02x%02x%02x%02x%02x", sess->idlen, sess->id[0], sess->id[1], sess->id[2], sess->id[3], sess->id[4]);
+//warnx("Adding  new  session (#%u) %02x%02x%02x%02x%02x", sess->idlen, sess->id[0], sess->id[1], sess->id[2], sess->id[3], sess->id[4]);
 
+	/* This routine is not locked, and updates may get lost */
+	load_session();
 	sess->next = first;
 	first = sess;
 	store_session();
@@ -376,20 +388,18 @@ get_session(struct ssl_st *ssl, unsigned char *id, int idlen, int *do_copy)
 	unsigned int	uidlen = idlen;
 
 	load_session();
-warnx("Looking for #%u %02x%02x%02x%02x%02x (in %p)", idlen, id[0], id[1], id[2], id[3], id[4], sess);
 	*do_copy = 0;
 	for (sess = first; sess; sess = sess->next)
 	{
-//warnx("Looking at  #%u %02x%02x%02x%02x%02x", sess->idlen, sess->id[0], sess->id[1], sess->id[2], sess->id[3], sess->id[4]);
 		if (uidlen == sess->idlen && !memcmp(sess->id, id, uidlen))
 		{
 			const unsigned char *p = sess->der;
 
-			warnx("Lookup session: cache hit");
+//warnx("Found cached session (#%u) %02x%02x%02x%02x%02x", idlen, id[0], id[1], id[2], id[3], id[4]);
 			return d2i_SSL_SESSION(NULL, &p, sess->derlen);
 		}
 	}
-	warnx("Lookup session: cache miss");
+//warnx("Couldnt find session (#%u) %02x%02x%02x%02x%02x", idlen, id[0], id[1], id[2], id[3], id[4]);
 	return NULL;
 }
 
@@ -414,6 +424,7 @@ del_session(struct ssl_ctx_st *ssl_ctx, SSL_SESSION * session)
 			OPENSSL_free(sess->id);
 			OPENSSL_free(sess->der);
 			OPENSSL_free(sess);
+			store_session();
 			return;
 		}
 		prev = sess;
@@ -428,7 +439,6 @@ init_session_cache_ctx(SSL_CTX * sctx)
 	SSL_CTX_sess_set_new_cb(sctx, add_session);
 	SSL_CTX_sess_set_get_cb(sctx, get_session);
 	SSL_CTX_sess_set_remove_cb(sctx, del_session);
-	warnx("SSL session init");
 }
 
 static void 
@@ -713,16 +723,17 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 		/* read dh parameters from public certificate file */
 		if (!dh)
 		{
-			BIO_free(bio);
-			bio = BIO_new_file(sslvhost ? vc->sslcertificate : lsock->sslcertificate, "r");
-			if (bio)
+			BIO	*pbio;
+			pbio = BIO_new_file(sslvhost ? vc->sslcertificate : lsock->sslcertificate, "r");
+			if (pbio)
 			{
-				dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
-				if (!dh && (dsa = PEM_read_bio_DSAparams(bio, NULL, NULL, NULL)))
+				dh = PEM_read_bio_DHparams(pbio, NULL, NULL, NULL);
+				if (!dh && (dsa = PEM_read_bio_DSAparams(pbio, NULL, NULL, NULL)))
 				{
 					dh = DSA_dup_DH(dsa);
 					DSA_free(dsa);
 				}
+				BIO_free(pbio);
 			}
 		}
 		if (dh)
@@ -734,10 +745,16 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 			SSL_CTX_set_options(ssl_ctx, SSL_OP_SINGLE_DH_USE);
 			DH_free(dh);
 		}
-		if (bio)
-			BIO_free(bio);
 	}
+
+
+	/* set up shared key for SSL tickets */
+	EVP_PKEY	*pkey = NULL;
+	if (bio)
+		PEM_read_bio_PrivateKey(bio, &pkey, NULL, NULL);
+
 #ifdef		OPENSSL_EC_NAMED_CURVE
+	if (pkey && pkey->type == EVP_PKEY_EC)
 	{
 		/* Using default temp ECDH parameters */
 		EC_KEY	*ecdh;
@@ -751,8 +768,39 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 	}
 #endif		/* OPENSSL_EC_NAMED_CURVE */
 
+#ifdef		SSL_CTRL_SET_TLSEXT_TICKET_KEYS
+	if (pkey)
+	{
+		/* To get our key, we sign the seed with the private key */
+		const char	ticketkey[] = "xshttpd-global-ticketkey";
+		unsigned char	keys[SSL_MAX_MASTER_KEY_LENGTH];
+		unsigned char	sign[EVP_PKEY_size(pkey)];
+		unsigned int	siglen = 0;
+
+		EVP_MD_CTX mdctx;
+		EVP_MD_CTX_init(&mdctx);
+		EVP_SignInit(&mdctx, EVP_sha384());
+		EVP_SignUpdate(&mdctx, ticketkey, strlen(ticketkey));
+		EVP_SignFinal(&mdctx, sign, &siglen, pkey);
+
+		/* And we keep only the first bytes. */
+		memcpy(keys, sign, sizeof(keys));
+
+		/* Tell OpenSSL to use those keys */
+		SSL_CTX_set_tlsext_ticket_keys(ssl_ctx, keys, sizeof(keys));
+//warnx("key set %02x%02x%02x%02x%02x", keys[0], keys[1], keys[2], keys[3], keys[4]);
+	}
+#endif		/* SSL_CTRL_SET_TLSEXT_TICKET_KEYS */
+
+	if (pkey)
+		EVP_PKEY_free(pkey);
+	if (bio)
+		BIO_free(bio);
+
+	/* set up store for SSL session resume */
 	if (config.usesslsessionstore)
 		init_session_cache_ctx(ssl_ctx);
+
 #ifdef		SSL_OP_NO_COMPRESSION
 	(void)SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2 |
 			SSL_OP_CIPHER_SERVER_PREFERENCE |

@@ -362,6 +362,8 @@ load_config()
 					}
 					else if (!strcasecmp("SSLCipherList", key))
 						STRDUP(lsock->sslcipherlist, value);
+					else if (!strcasecmp("SSLTicketKey", key))
+						STRDUP(lsock->sslticketkey, value);
 					else
 						errx(1, "illegal socket directive: '%s'", key);
 				}
