@@ -12,6 +12,7 @@
 #include	<errno.h>
 #include	<stdarg.h>
 #include	<ctype.h>
+#include	<sys/file.h>
 #include	<fcntl.h>
 #ifdef		HAVE_ERR_H
 #include	<err.h>
@@ -252,15 +253,22 @@ store_session(void)
 	simple_ssl_session	*sess;
 	struct stat		sb;
 	unsigned int		count = 0;
-	char	*lockfile;
 	int	fd, ret;
 	bool	wrok;
 
 	/* Obtain exclusive lock - may block */
+#ifdef		O_EXLOCK
 	fd = open(SESSION_PATH, O_WRONLY | O_CREAT | O_TRUNC | O_EXLOCK,
 			S_IRUSR | S_IWUSR);
 	if (fd < 0)
 		return false;
+#else		/* O_EXLOCK */
+	fd = open(SESSION_PATH, O_WRONLY | O_CREAT | O_TRUNC,
+			S_IRUSR | S_IWUSR);
+	if (fd < 0)
+		return false;
+	flock(fd, LOCK_EX);
+#endif		/* O_EXLOCK */
 
 	for (sess = first; sess; sess = sess->next)
 	{
@@ -307,9 +315,16 @@ load_session(void)
 			return true;
 	}
 
+#ifdef		O_SHLOCK
 	fd = open(SESSION_PATH, O_RDONLY | O_SHLOCK);
 	if (fd < 0)
 		return false;
+#else		/* O_SHLOCK */
+	fd = open(SESSION_PATH, O_RDONLY);
+	if (fd < 0)
+		return false;
+	flock(fd, LOCK_SH);
+#endif		/* O_SHLOCK */
 
 	/* Clean old data */
 	for (sess = first; (prev = sess); )
@@ -355,7 +370,7 @@ load_session(void)
 }
 
 static int 
-add_session(struct ssl_st *ssl, SSL_SESSION *session)
+add_session(struct ssl_st *ssl, SSL_SESSION *ssl_session)
 {
 	simple_ssl_session *sess;
 	unsigned char  *p;
@@ -363,14 +378,15 @@ add_session(struct ssl_st *ssl, SSL_SESSION *session)
 	/* Update session information stored on disk */
 	sess = OPENSSL_malloc(sizeof(simple_ssl_session));
 
-	SSL_SESSION_get_id(session, &sess->idlen);
-	sess->derlen = i2d_SSL_SESSION(session, NULL);
+	SSL_SESSION_get_id(ssl_session, &sess->idlen);
+	sess->derlen = i2d_SSL_SESSION(ssl_session, NULL);
 
-	sess->id = BUF_memdup(SSL_SESSION_get_id(session, NULL), sess->idlen);
+	sess->id = BUF_memdup(SSL_SESSION_get_id(ssl_session, NULL),
+			sess->idlen);
 
 	sess->der = OPENSSL_malloc(sess->derlen);
 	p = sess->der;
-	i2d_SSL_SESSION(session, &p);
+	i2d_SSL_SESSION(ssl_session, &p);
 //warnx("Adding  new  session (#%u) %02x%02x%02x%02x%02x", sess->idlen, sess->id[0], sess->id[1], sess->id[2], sess->id[3], sess->id[4]);
 
 	/* This routine is not locked, and updates may get lost */
@@ -378,6 +394,8 @@ add_session(struct ssl_st *ssl, SSL_SESSION *session)
 	sess->next = first;
 	first = sess;
 	store_session();
+
+	(void)ssl;
 	return 0;
 }
 
@@ -400,11 +418,12 @@ get_session(struct ssl_st *ssl, unsigned char *id, int idlen, int *do_copy)
 		}
 	}
 //warnx("Couldnt find session (#%u) %02x%02x%02x%02x%02x", idlen, id[0], id[1], id[2], id[3], id[4]);
+	(void)ssl;
 	return NULL;
 }
 
 static void 
-del_session(struct ssl_ctx_st *ssl_ctx, SSL_SESSION * session)
+del_session(struct ssl_ctx_st *ssl_ctx, SSL_SESSION *ssl_session)
 {
 	simple_ssl_session *sess,
 	               *prev = NULL;
@@ -412,7 +431,7 @@ del_session(struct ssl_ctx_st *ssl_ctx, SSL_SESSION * session)
 	unsigned int	idlen;
 
 	warnx("Deleting session");
-	id = SSL_SESSION_get_id(session, &idlen);
+	id = SSL_SESSION_get_id(ssl_session, &idlen);
 	for (sess = first; sess; sess = sess->next)
 	{
 		if (idlen == sess->idlen && !memcmp(sess->id, id, idlen))
@@ -429,6 +448,8 @@ del_session(struct ssl_ctx_st *ssl_ctx, SSL_SESSION * session)
 		}
 		prev = sess;
 	}
+
+	(void)ssl_ctx;
 }
 
 static void 
@@ -786,6 +807,8 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 		/* And we keep only the first bytes. */
 		memcpy(keys, sign, sizeof(keys));
 
+		/* Work-around for old version that mis-typed this call */
+#define		SSL_CTRL_SET_TLXEXT_TICKET_KEYS	SSL_CTRL_SET_TLSEXT_TICKET_KEYS
 		/* Tell OpenSSL to use those keys */
 		SSL_CTX_set_tlsext_ticket_keys(ssl_ctx, keys, sizeof(keys));
 //warnx("key set %02x%02x%02x%02x%02x", keys[0], keys[1], keys[2], keys[3], keys[4]);
