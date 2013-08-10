@@ -229,7 +229,11 @@ Allow handling of HTTP TRACE requests. This is a standard (mandatory)
 HTTP command, but it may be considered a security risk.
 Disabling this avoids exposing request information, such as client cookies,
 but it can be enabled in development environments.
-.It Sy UseSSLSessionStore Ar boolean Aq true
+.It Sy UseSSLSessionTickets Ar boolean Aq true
+Enable signed session tickets, which may be cached by clients.
+This enables SSL session resumption, which may speed up
+the initialisation of HTTPS connections. 
+.It Sy UseSSLSessionStore Ar boolean Aq false
 Maintain a local store with SSL session history.
 This enables SSL session resumption, which may speed up
 the initialisation of HTTPS connections. 

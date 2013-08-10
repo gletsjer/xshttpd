@@ -1865,6 +1865,11 @@ main(int argc, char **argv, char **envp)
 #else		/* HAVE_CURL */
 				"-CURL "
 #endif		/* HAVE_CURL */
+#ifdef	 	HAVE_DB_H
+				"+BDB "
+#else	 	/* HAVE_DB_H */
+				"-BDB "
+#endif	 	/* HAVE_DB_H */
 #ifdef		HAVE_SSP
 				"+SSP "
 #else		/* HAVE_SSP */

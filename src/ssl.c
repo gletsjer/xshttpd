@@ -15,9 +15,13 @@
 #include	<sys/file.h>
 #include	<fcntl.h>
 #ifdef		HAVE_ERR_H
-#include	<err.h>
+# include	<err.h>
 #endif		/* HAVE_ERR_H */
 #include	<fnmatch.h>
+
+#ifdef		HAVE_DB_H
+# include	<db.h>
+#endif		/* HAVE_DB_H */
 
 #include	<openssl/rand.h>
 #include	<openssl/err.h>
@@ -36,9 +40,16 @@
 #include	"malloc.h"
 
 #ifdef		HAVE_PCRE
-#include		"pcre.h"
-#include		<pcre.h>
+# include	"pcre.h"
+# include	<pcre.h>
 #endif		/* HAVE_PCRE */
+
+#ifdef		HAVE_DB_H
+#define		DBSESSION	"xs-session-cache.db"
+
+static DB	*db = NULL;
+static DB_ENV	*dbenv = NULL;
+#endif		/* HAVE_DB_H */
 
 static int	netbufind[2], netbufsiz[2];
 static char	netbuf[2][MYBUFSIZ];
@@ -96,9 +107,13 @@ initssl(void)
 	cursock->ssl = SSL_new(cursock->ssl_ctx);
 	SSL_set_rfd(cursock->ssl, 0);
 	SSL_set_wfd(cursock->ssl, 1);
-	/* enable reusable keys */
-	SSL_set_session_id_context(cursock->ssl,
-		(const unsigned char *)SERVER_IDENT, sizeof(SERVER_IDENT));
+	if (config.usesslsessionstore)
+	{
+		/* enable reusable keys */
+		SSL_set_session_id_context(cursock->ssl,
+			(const unsigned char *)SERVER_IDENT,
+			sizeof(SERVER_IDENT));
+	}
 	if (SSL_accept(cursock->ssl) < 0)
 	{
 		unsigned long	readerror;
@@ -246,6 +261,7 @@ endssl(void)
 	}
 }
 
+#ifdef		HAVE_DB_H
 static bool
 store_session(void)
 {
@@ -372,52 +388,59 @@ load_session(void)
 static int 
 add_session(struct ssl_st *ssl, SSL_SESSION *ssl_session)
 {
-	simple_ssl_session *sess;
 	unsigned char  *p;
+	int	ret;
+	DBT	id = { 0 },
+		sess = { 0 };
 
-	/* Update session information stored on disk */
-	sess = OPENSSL_malloc(sizeof(simple_ssl_session));
+	SSL_SESSION_get_id(ssl_session, &id.size);
+	id.data = BUF_memdup(SSL_SESSION_get_id(ssl_session, NULL), id.size);
 
-	SSL_SESSION_get_id(ssl_session, &sess->idlen);
-	sess->derlen = i2d_SSL_SESSION(ssl_session, NULL);
-
-	sess->id = BUF_memdup(SSL_SESSION_get_id(ssl_session, NULL),
-			sess->idlen);
-
-	sess->der = OPENSSL_malloc(sess->derlen);
-	p = sess->der;
+	sess.size = i2d_SSL_SESSION(ssl_session, NULL);
+	sess.data = OPENSSL_malloc(sess.size);
+	p = sess.data;
 	i2d_SSL_SESSION(ssl_session, &p);
-//warnx("Adding  new  session (#%u) %02x%02x%02x%02x%02x", sess->idlen, sess->id[0], sess->id[1], sess->id[2], sess->id[3], sess->id[4]);
 
-	/* This routine is not locked, and updates may get lost */
-	load_session();
-	sess->next = first;
-	first = sess;
-	store_session();
+p = id.data; warnx("Adding  new  session (#%u) %02x%02x%02x%02x%02x", id.size, p[0], p[1], p[2], p[3], p[4]);
+	ret = db->put(db, NULL, &id, &sess, 0);
+	if (ret)
+		warnx("put() failed with %d", ret);
 
+	OPENSSL_free(sess.data);
+	OPENSSL_free(id.data);
 	(void)ssl;
 	return 0;
 }
 
 static SSL_SESSION *
-get_session(struct ssl_st *ssl, unsigned char *id, int idlen, int *do_copy)
+get_session(struct ssl_st *ssl, unsigned char *sid, int idlen, int *do_copy)
 {
-	simple_ssl_session *sess = NULL;
-	unsigned int	uidlen = idlen;
+	int	ret;
+	DBT	id = { 0 },
+		sess = { 0 };
 
-	load_session();
-	*do_copy = 0;
-	for (sess = first; sess; sess = sess->next)
+	id.size = idlen;
+	id.data = sid;
+
+	ret = db->get(db, NULL, &id, &sess, 0);
+	if (DB_BUFFER_SMALL == ret)
 	{
-		if (uidlen == sess->idlen && !memcmp(sess->id, id, uidlen))
-		{
-			const unsigned char *p = sess->der;
-
-//warnx("Found cached session (#%u) %02x%02x%02x%02x%02x", idlen, id[0], id[1], id[2], id[3], id[4]);
-			return d2i_SSL_SESSION(NULL, &p, sess->derlen);
-		}
+warnx("Rescaling for get: %u", sess.size);
+		sess.data = malloc(sess.size);
+		ret = db->get(db, NULL, &id, &sess, 0);
 	}
-//warnx("Couldnt find session (#%u) %02x%02x%02x%02x%02x", idlen, id[0], id[1], id[2], id[3], id[4]);
+
+	if (!ret)
+	{
+char *p = id.data; warnx("Found cached session (#%u) %02x%02x%02x%02x%02x", id.size, p[0], p[1], p[2], p[3], p[4]);
+		return d2i_SSL_SESSION(NULL, (const unsigned char **)&sess.data, sess.size);
+	}
+	else if (DB_NOTFOUND == ret)
+		/* */ ;
+	else
+		warnx("get() failed with %d", ret);
+char *p = id.data; warnx("Couldnt find session (#%u) %02x%02x%02x%02x%02x", id.size, p[0], p[1], p[2], p[3], p[4]);
+
 	(void)ssl;
 	return NULL;
 }
@@ -425,41 +448,44 @@ get_session(struct ssl_st *ssl, unsigned char *id, int idlen, int *do_copy)
 static void 
 del_session(struct ssl_ctx_st *ssl_ctx, SSL_SESSION *ssl_session)
 {
-	simple_ssl_session *sess,
-	               *prev = NULL;
-	const unsigned char *id;
-	unsigned int	idlen;
+	DBT	id = { 0 };
 
 	warnx("Deleting session");
-	id = SSL_SESSION_get_id(ssl_session, &idlen);
-	for (sess = first; sess; sess = sess->next)
-	{
-		if (idlen == sess->idlen && !memcmp(sess->id, id, idlen))
-		{
-			if (prev)
-				prev->next = sess->next;
-			else
-				first = sess->next;
-			OPENSSL_free(sess->id);
-			OPENSSL_free(sess->der);
-			OPENSSL_free(sess);
-			store_session();
-			return;
-		}
-		prev = sess;
-	}
+	id.data = (void *)SSL_SESSION_get_id(ssl_session, &id.size);
+
+	db->del(db, NULL, &id, 0);
 
 	(void)ssl_ctx;
+}
+
+void
+init_database(void)
+{
+	int	ret;
+
+	db_env_create(&dbenv, 0);
+	ret = dbenv->open(dbenv,
+			CONFIG_DIR, DB_CREATE | DB_INIT_LOCK | DB_INIT_MPOOL,
+			0);
+	if (ret)
+		errx(1, "DBENV->open(): %s", db_strerror(ret));
 }
 
 static void 
 init_session_cache_ctx(SSL_CTX * sctx)
 {
+	int	ret;
+
 	SSL_CTX_set_session_cache_mode(sctx,
 			SSL_SESS_CACHE_NO_INTERNAL | SSL_SESS_CACHE_SERVER);
 	SSL_CTX_sess_set_new_cb(sctx, add_session);
 	SSL_CTX_sess_set_get_cb(sctx, get_session);
 	SSL_CTX_sess_set_remove_cb(sctx, del_session);
+
+	db_create(&db, dbenv, 0);
+	ret = db->open(db, NULL, NULL, DBSESSION, DB_BTREE, DB_CREATE, 0);
+	if (ret)
+		errx(1, "DB->open(): %s", db_strerror(ret));
 }
 
 static void 
@@ -478,6 +504,7 @@ free_sessions(void)
 	}
 	first = NULL;
 }
+#endif		/* HAVE_DB_H */
 
 static int
 sslverify_callback(int preverify_ok, X509_STORE_CTX *x509_ctx)
@@ -770,67 +797,73 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 
 
 	/* set up shared key for SSL tickets */
-	EVP_PKEY	*pkey = NULL;
-	if (bio)
-		PEM_read_bio_PrivateKey(bio, &pkey, NULL, NULL);
+	if (config.usesslsessiontickets)
+	{
+		EVP_PKEY	*pkey = NULL;
+		if (bio)
+			PEM_read_bio_PrivateKey(bio, &pkey, NULL, NULL);
 
 #ifdef		OPENSSL_EC_NAMED_CURVE
-	if (pkey && pkey->type == EVP_PKEY_EC)
-	{
-		/* Using default temp ECDH parameters */
-		EC_KEY	*ecdh;
+		if (pkey && pkey->type == EVP_PKEY_EC)
+		{
+			/* Using default temp ECDH parameters */
+			EC_KEY	*ecdh;
 
-		ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
-		if (!ecdh)
-			errx(1, "Cannot load temp curve: %s",
-				ERR_reason_error_string(ERR_get_error()));
-		SSL_CTX_set_tmp_ecdh(ssl_ctx, ecdh);
-		EC_KEY_free(ecdh);
-	}
+			ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
+			if (!ecdh)
+				errx(1, "Cannot load temp curve: %s",
+					ERR_reason_error_string(ERR_get_error()));
+			SSL_CTX_set_tmp_ecdh(ssl_ctx, ecdh);
+			EC_KEY_free(ecdh);
+		}
 #endif		/* OPENSSL_EC_NAMED_CURVE */
 
 #ifdef		SSL_CTRL_SET_TLSEXT_TICKET_KEYS
-	if (pkey)
-	{
-		/* To get our key, we sign the seed with the private key */
-		const char	ticketkey[] = "xshttpd-global-ticketkey";
-		unsigned char	keys[SSL_MAX_MASTER_KEY_LENGTH];
-		unsigned char	sign[EVP_PKEY_size(pkey)];
-		unsigned int	siglen = 0;
+		if (pkey)
+		{
+			/* To get our key, we sign the seed with the private key */
+			const char	ticketkey[] = "xshttpd-global-ticketkey";
+			unsigned char	keys[SSL_MAX_MASTER_KEY_LENGTH];
+			unsigned char	sign[EVP_PKEY_size(pkey)];
+			unsigned int	siglen = 0;
 
-		EVP_MD_CTX mdctx;
-		EVP_MD_CTX_init(&mdctx);
-		EVP_SignInit(&mdctx, EVP_sha384());
-		EVP_SignUpdate(&mdctx, ticketkey, strlen(ticketkey));
-		EVP_SignFinal(&mdctx, sign, &siglen, pkey);
+			EVP_MD_CTX mdctx;
+			EVP_MD_CTX_init(&mdctx);
+			EVP_SignInit(&mdctx, EVP_sha384());
+			EVP_SignUpdate(&mdctx, ticketkey, strlen(ticketkey));
+			EVP_SignFinal(&mdctx, sign, &siglen, pkey);
 
-		/* And we keep only the first bytes. */
-		memcpy(keys, sign, sizeof(keys));
+			/* And we keep only the first bytes. */
+			memcpy(keys, sign, sizeof(keys));
 
-		/* Work-around for old version that mis-typed this call */
+			/* Work-around for old version that mis-typed this call */
 #define		SSL_CTRL_SET_TLXEXT_TICKET_KEYS	SSL_CTRL_SET_TLSEXT_TICKET_KEYS
-		/* Tell OpenSSL to use those keys */
-		SSL_CTX_set_tlsext_ticket_keys(ssl_ctx, keys, sizeof(keys));
-//warnx("key set %02x%02x%02x%02x%02x", keys[0], keys[1], keys[2], keys[3], keys[4]);
-	}
+			/* Tell OpenSSL to use those keys */
+			SSL_CTX_set_tlsext_ticket_keys(ssl_ctx, keys, sizeof(keys));
+	//warnx("key set %02x%02x%02x%02x%02x", keys[0], keys[1], keys[2], keys[3], keys[4]);
+		}
 #endif		/* SSL_CTRL_SET_TLSEXT_TICKET_KEYS */
 
-	if (pkey)
-		EVP_PKEY_free(pkey);
-	if (bio)
-		BIO_free(bio);
+		if (pkey)
+			EVP_PKEY_free(pkey);
+		if (bio)
+			BIO_free(bio);
+	}
+#ifdef		SSL_OP_NO_TICKET
+	else
+		(void)SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_TICKET);
+#endif		/* SSL_OP_NO_TICKET */
 
+#ifdef		HAVE_DB_H
 	/* set up store for SSL session resume */
 	if (config.usesslsessionstore)
 		init_session_cache_ctx(ssl_ctx);
+#endif		/* HAVE_DB_H */
 
-#ifdef		SSL_OP_NO_COMPRESSION
-	(void)SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2 |
-			SSL_OP_CIPHER_SERVER_PREFERENCE |
-			SSL_OP_NO_COMPRESSION);
-#else		/* SSL_OP_NO_COMPRESSION */
 	(void)SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2 |
 			SSL_OP_CIPHER_SERVER_PREFERENCE);
+#ifdef		SSL_OP_NO_COMPRESSION
+	(void)SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_COMPRESSION);
 #endif		/* SSL_OP_NO_COMPRESSION */
 
 	switch (lsock->sslauth)

@@ -133,6 +133,7 @@ extern struct configuration
 	bool		usecontentmd5;
 	bool		useput;
 	bool		usetrace;
+	bool		usesslsessiontickets;
 	bool		usesslsessionstore;
 	char *		virtualhostdir;
 	char *		defaultcharset;

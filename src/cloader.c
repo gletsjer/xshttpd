@@ -119,6 +119,7 @@ load_config()
 	config.usessi = true;
 	config.useput = true;
 	config.uselocalscript = true;
+	config.usesslsessiontickets = true;
 	config.execasuser = true;
 #ifdef		HAVE_SENDFILE
 	config.usesendfile = true;
@@ -225,6 +226,8 @@ load_config()
 						config.useput = !strcasecmp("true", value);
 					else if (!strcasecmp("UseTrace", key))
 						config.usetrace = !strcasecmp("true", value);
+					else if (!strcasecmp("UseSSLSessionTickets", key))
+						config.usesslsessiontickets = !strcasecmp("true", value);
 					else if (!strcasecmp("UseSSLSessionStore", key))
 						config.usesslsessionstore = !strcasecmp("true", value);
 					else if (!strcasecmp("DnsTimeout", key))
@@ -624,6 +627,10 @@ load_config()
 		STRDUP(config.pidfile, PID_PATH);
 	if (!config.scriptpath)
 		STRDUP(config.scriptpath, SCRIPT_PATH);
+#ifndef		HAVE_DB_H
+	if (config.usesslsessionstore)
+		errx(1, "UseSSLSessionStore not available when compiled without Berkely DB support");
+#endif		/* Not HAVE_DB_H */
 
 	/* Set up system section */
 	if (!config.system)

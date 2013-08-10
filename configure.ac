@@ -66,7 +66,7 @@ XS_FUNC_IN_LIB(inet_pton, HAVE_INET_PTON, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(getaddrinfo, HAVE_GETADDRINFO, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(getnameinfo, HAVE_GETNAMEINFO, nsl, httpd, -lsocket)
 XS_FUNC_IN_LIB(dlopen, HAVE_DLOPEN, dl, httpd)
-XS_FUNC_IN_LIB(fparseln, HAVE_FPARSELN, util)
+XS_FUNC_IN_LIB(fparseln, HAVE_FPARSELN, util, httpd)
 
 AS_IF([test "$ac_cv_search_inet_aton" = no], [AC_LIBOBJ(inet_aton)])
 AS_IF([test "$ac_cv_search_fparseln" = no], [AC_LIBOBJ(fparseln)])
@@ -214,6 +214,31 @@ Extra options:
 			], [XS_FATAL(preprocessor)])
 		])
 	 ], AC_MSG_RESULT(${withval:-no}))
+
+dnl Berkely DB
+AC_MSG_CHECKING([if you want Berkeley DB support])
+AC_ARG_WITH([db], AS_HELP_STRING([--with-db], [Berkeley DB support (no)]), [
+		AC_MSG_RESULT(yes)
+		AS_IF([test x$withval = xyes], 
+			[db_ldadd="-ldb"],
+			[db_ldadd="-l${withval}"])
+		dnl Check for include and library path
+		AC_ARG_WITH([db-include-dir],,
+				[db_cflags="-I${withval}"],
+				[])
+		AC_ARG_WITH([db-libdir],,
+				[db_ldadd="-L${withval} ${db_ldadd}"],
+				[])
+		dnl Only check for db.h if we are linking with BDB
+		CFLAGS_BAK="${CFLAGS}"
+		CFLAGS="${CFLAGS} ${db_cflags}"
+		AC_CHECK_HEADERS([db.h], [], [], [])
+		CFLAGS="${CFLAGS_BAK}"
+		unset CFLAGS_BAK
+		AC_SUBST(db_cflags)
+		AC_SUBST(db_ldadd)
+		],
+		[AC_MSG_RESULT(no)])
 
 dnl Select directory layout 
 hier=xs

@@ -6,9 +6,9 @@ noinst_LIBRARIES = libxs.a
 httpd_SOURCES = httpd.c authenticate.c cgi.c cloader.c convert.c fcgi.c \
 	methods.c modules.c path.c pcre.c ssi.c ssl.c xsfiles.c
 httpd_CPPFLAGS = @httpd_cppflags@ -DBUILD_HTTPD
-httpd_CFLAGS = @httpd_cflags@
+httpd_CFLAGS = @httpd_cflags@ @db_cflags@
 httpd_LDFLAGS = -Wl,--rpath -Wl,/usr/local/lib/httpd/module
-httpd_LDADD = $(LDADD) @httpd_ldadd@
+httpd_LDADD = $(LDADD) @httpd_ldadd@ @db_ldadd@
 
 libxs_a_SOURCES = decode.c hash.c extra.c path.c xscrypt.c
 libxs_a_CFLAGS = -fPIC

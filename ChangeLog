@@ -5,6 +5,7 @@ Changes since 3.7 beta 27
 - Add UseSSLSessionStore to allow SSL session resumption
 - Add shared master key for session tickets, making tickets useful
   with different child processes and even load-balanced servers
+- Add UseSSLSessionTickets to optionally disable session tickets
 
 Changes since 3.7 beta 26
 - Fix SSLCipherList option
