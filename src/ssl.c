@@ -696,7 +696,7 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 			errx(1, "No suitable SSL cipher: %s", lsock->sslcipherlist);
 	}
 	else
-		SSL_CTX_set_cipher_list(ssl_ctx, "HIGH:MEDIUM:!aNULL");
+		SSL_CTX_set_cipher_list(ssl_ctx, "HIGH:!aNULL");
 
 #ifdef		SSL_MODE_AUTO_RETRY
 	SSL_CTX_set_mode(ssl_ctx,
