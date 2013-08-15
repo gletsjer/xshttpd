@@ -198,6 +198,28 @@ XS_CHECK_WITH(python, Python interpreter, no, [
 #	AC_MSG_WARN([Internal PHP interpreter is still EXPERIMENTAL])
 #	])
 
+dnl Berkely DB
+XS_CHECK_WITH(db, Berkely DB support, no, [
+	AS_IF([test x$withval = xyes], 
+		[db_ldadd="-ldb"],
+		[db_ldadd="-l${withval}"])
+	dnl Check for include and library path
+	AC_ARG_WITH([db-include-dir],,
+			[db_cflags="-I${withval}"],
+			[])
+	AC_ARG_WITH([db-libdir],,
+			[db_ldadd="-L${withval} ${db_ldadd}"],
+			[])
+	dnl Only check for db.h if we are linking with BDB
+	CFLAGS_BAK="${CFLAGS}"
+	CFLAGS="${CFLAGS} ${db_cflags}"
+	AC_CHECK_HEADERS([db.h], [], [], [])
+	CFLAGS="${CFLAGS_BAK}"
+	unset CFLAGS_BAK
+	AC_SUBST(db_cflags)
+	AC_SUBST(db_ldadd)
+	])
+
 AC_MSG_CHECKING([if you want configuration preprocessing])
 withval=
 AC_ARG_WITH(preprocessor, [[
@@ -214,31 +236,6 @@ Extra options:
 			], [XS_FATAL(preprocessor)])
 		])
 	 ], AC_MSG_RESULT(${withval:-no}))
-
-dnl Berkely DB
-AC_MSG_CHECKING([if you want Berkeley DB support])
-AC_ARG_WITH([db], AS_HELP_STRING([--with-db], [Berkeley DB support (no)]), [
-		AC_MSG_RESULT(yes)
-		AS_IF([test x$withval = xyes], 
-			[db_ldadd="-ldb"],
-			[db_ldadd="-l${withval}"])
-		dnl Check for include and library path
-		AC_ARG_WITH([db-include-dir],,
-				[db_cflags="-I${withval}"],
-				[])
-		AC_ARG_WITH([db-libdir],,
-				[db_ldadd="-L${withval} ${db_ldadd}"],
-				[])
-		dnl Only check for db.h if we are linking with BDB
-		CFLAGS_BAK="${CFLAGS}"
-		CFLAGS="${CFLAGS} ${db_cflags}"
-		AC_CHECK_HEADERS([db.h], [], [], [])
-		CFLAGS="${CFLAGS_BAK}"
-		unset CFLAGS_BAK
-		AC_SUBST(db_cflags)
-		AC_SUBST(db_ldadd)
-		],
-		[AC_MSG_RESULT(no)])
 
 dnl Select directory layout 
 hier=xs
