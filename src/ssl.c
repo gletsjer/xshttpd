@@ -393,21 +393,19 @@ add_session(struct ssl_st *ssl, SSL_SESSION *ssl_session)
 	DBT	id = { 0 },
 		sess = { 0 };
 
-	SSL_SESSION_get_id(ssl_session, &id.size);
-	id.data = BUF_memdup(SSL_SESSION_get_id(ssl_session, NULL), id.size);
+	id.data = SSL_SESSION_get_id(ssl_session, &id.size);
 
 	sess.size = i2d_SSL_SESSION(ssl_session, NULL);
 	sess.data = OPENSSL_malloc(sess.size);
 	p = sess.data;
 	i2d_SSL_SESSION(ssl_session, &p);
 
-p = id.data; warnx("Adding  new  session (#%u) %02x%02x%02x%02x%02x", id.size, p[0], p[1], p[2], p[3], p[4]);
+p = id.data; warnx("Adding  new  session (#%u) %02hhx%02hhx%02hhx%02hhx%02hhx", id.size, p[0], p[1], p[2], p[3], p[4]);
 	ret = db->put(db, NULL, &id, &sess, 0);
 	if (ret)
 		warnx("put() failed with %d", ret);
 
 	OPENSSL_free(sess.data);
-	OPENSSL_free(id.data);
 	(void)ssl;
 	return 0;
 }
@@ -432,14 +430,14 @@ warnx("Rescaling for get: %u", sess.size);
 
 	if (!ret)
 	{
-char *p = id.data; warnx("Found cached session (#%u) %02x%02x%02x%02x%02x", id.size, p[0], p[1], p[2], p[3], p[4]);
+unsigned char *p = id.data; warnx("Found cached session (#%u) %02hhx%02hhx%02hhx%02hhx%02hhx", id.size, p[0], p[1], p[2], p[3], p[4]);
 		return d2i_SSL_SESSION(NULL, (const unsigned char **)&sess.data, sess.size);
 	}
 	else if (DB_NOTFOUND == ret)
 		/* */ ;
 	else
 		warnx("get() failed with %d", ret);
-char *p = id.data; warnx("Couldnt find session (#%u) %02x%02x%02x%02x%02x", id.size, p[0], p[1], p[2], p[3], p[4]);
+unsigned char *p = id.data; warnx("Couldnt find session (#%u) %02hhx%02hhx%02hhx%02hhx%02hhx", id.size, p[0], p[1], p[2], p[3], p[4]);
 
 	(void)ssl;
 	return NULL;
@@ -458,14 +456,19 @@ del_session(struct ssl_ctx_st *ssl_ctx, SSL_SESSION *ssl_session)
 	(void)ssl_ctx;
 }
 
-void
+static void
 init_database(void)
 {
 	int	ret;
 
+	mkdir(SESSION_PATH, S_IRWXU);
 	db_env_create(&dbenv, 0);
+	if (!dbenv)
+		errx(1, "db_env_create()");
+	dbenv->set_shm_key(dbenv, 25);
 	ret = dbenv->open(dbenv,
-			CONFIG_DIR, DB_CREATE | DB_INIT_LOCK | DB_INIT_MPOOL,
+			SESSION_PATH,
+			DB_CREATE | DB_SYSTEM_MEM | DB_INIT_LOCK | DB_INIT_MPOOL,
 			0);
 	if (ret)
 		errx(1, "DBENV->open(): %s", db_strerror(ret));
@@ -476,6 +479,10 @@ init_session_cache_ctx(SSL_CTX * sctx)
 {
 	int	ret;
 
+	if (db)
+		return;
+
+	init_database();
 	SSL_CTX_set_session_cache_mode(sctx,
 			SSL_SESS_CACHE_NO_INTERNAL | SSL_SESS_CACHE_SERVER);
 	SSL_CTX_sess_set_new_cb(sctx, add_session);
