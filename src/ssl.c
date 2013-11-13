@@ -868,10 +868,11 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 #endif		/* HAVE_DB_H */
 
 	(void)SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2 |
-			SSL_OP_CIPHER_SERVER_PREFERENCE);
+			SSL_OP_NO_SSLv3 |
 #ifdef		SSL_OP_NO_COMPRESSION
-	(void)SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_COMPRESSION);
+			SSL_OP_NO_COMPRESSION |
 #endif		/* SSL_OP_NO_COMPRESSION */
+			SSL_OP_CIPHER_SERVER_PREFERENCE);
 
 	switch (lsock->sslauth)
 	{
