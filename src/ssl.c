@@ -393,14 +393,14 @@ add_session(struct ssl_st *ssl, SSL_SESSION *ssl_session)
 	DBT	id = { 0 },
 		sess = { 0 };
 
-	id.data = SSL_SESSION_get_id(ssl_session, &id.size);
+	id.data = (unsigned char *)SSL_SESSION_get_id(ssl_session, &id.size);
 
 	sess.size = i2d_SSL_SESSION(ssl_session, NULL);
 	sess.data = OPENSSL_malloc(sess.size);
 	p = sess.data;
 	i2d_SSL_SESSION(ssl_session, &p);
 
-p = id.data; warnx("Adding  new  session (#%u) %02hhx%02hhx%02hhx%02hhx%02hhx", id.size, p[0], p[1], p[2], p[3], p[4]);
+//p = id.data; warnx("Adding  new  session (#%u) %02hhx%02hhx%02hhx%02hhx%02hhx", id.size, p[0], p[1], p[2], p[3], p[4]);
 	ret = db->put(db, NULL, &id, &sess, 0);
 	if (ret)
 		warnx("put() failed with %d", ret);
@@ -423,21 +423,22 @@ get_session(struct ssl_st *ssl, unsigned char *sid, int idlen, int *do_copy)
 	ret = db->get(db, NULL, &id, &sess, 0);
 	if (DB_BUFFER_SMALL == ret)
 	{
-warnx("Rescaling for get: %u", sess.size);
+//warnx("Rescaling for get: %u", sess.size);
 		sess.data = malloc(sess.size);
 		ret = db->get(db, NULL, &id, &sess, 0);
 	}
 
 	if (!ret)
 	{
-unsigned char *p = id.data; warnx("Found cached session (#%u) %02hhx%02hhx%02hhx%02hhx%02hhx", id.size, p[0], p[1], p[2], p[3], p[4]);
+		warnx("Resuming old SSL session");
+//unsigned char *p = id.data; warnx("Found cached session (#%u) %02hhx%02hhx%02hhx%02hhx%02hhx", id.size, p[0], p[1], p[2], p[3], p[4]);
 		return d2i_SSL_SESSION(NULL, (const unsigned char **)&sess.data, sess.size);
 	}
 	else if (DB_NOTFOUND == ret)
 		/* */ ;
 	else
 		warnx("get() failed with %d", ret);
-unsigned char *p = id.data; warnx("Couldnt find session (#%u) %02hhx%02hhx%02hhx%02hhx%02hhx", id.size, p[0], p[1], p[2], p[3], p[4]);
+//unsigned char *p = id.data; warnx("Couldnt find session (#%u) %02hhx%02hhx%02hhx%02hhx%02hhx", id.size, p[0], p[1], p[2], p[3], p[4]);
 
 	(void)ssl;
 	return NULL;
@@ -448,7 +449,7 @@ del_session(struct ssl_ctx_st *ssl_ctx, SSL_SESSION *ssl_session)
 {
 	DBT	id = { 0 };
 
-	warnx("Deleting session");
+//warnx("Deleting session");
 	id.data = (void *)SSL_SESSION_get_id(ssl_session, &id.size);
 
 	db->del(db, NULL, &id, 0);
@@ -847,7 +848,7 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 #define		SSL_CTRL_SET_TLXEXT_TICKET_KEYS	SSL_CTRL_SET_TLSEXT_TICKET_KEYS
 			/* Tell OpenSSL to use those keys */
 			SSL_CTX_set_tlsext_ticket_keys(ssl_ctx, keys, sizeof(keys));
-	//warnx("key set %02x%02x%02x%02x%02x", keys[0], keys[1], keys[2], keys[3], keys[4]);
+//warnx("key set %02x%02x%02x%02x%02x", keys[0], keys[1], keys[2], keys[3], keys[4]);
 		}
 #endif		/* SSL_CTRL_SET_TLSEXT_TICKET_KEYS */
 
