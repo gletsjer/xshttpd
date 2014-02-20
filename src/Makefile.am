@@ -26,5 +26,7 @@ EXTRA_DIST = alternative.h authenticate.h cgi.h cloader.h config.h \
 
 include $(srcdir)/Modules.am
 
+$(PROGRAMS): $(LIBS)
+
 cscope:
 	@cscope -bqv
