@@ -9,7 +9,7 @@
 struct tm *	localtimenow	(void) WARNUNUSED;
 char *	gmtimestamp		(void) WARNUNUSED;
 bool	mysleep			(int);
-bool	match			(const char const *, const char * const) NONNULL WARNUNUSED;
+bool	match			(const char * const, const char * const) NONNULL WARNUNUSED;
 bool	match_list		(const char * const, const char * const) NONNULL WARNUNUSED;
 bool	fnmatch_array		(char * const * const array, const char * const pattern, int flags) NONNULL WARNUNUSED;
 size_t	string_to_array		(const char * const, char **) NONNULL1;	/* prealloced */
