@@ -237,6 +237,27 @@ Extra options:
 		])
 	 ], AC_MSG_RESULT(${withval:-no}))
 
+
+dnl The default group and user ID of the WWW server. It assumes this group
+dnl and user ID when a page or cgi-binary is requested that is not in a
+dnl user's home directory. Typically this would be 'nobody' and 'nogroup',
+dnl but you can also make a separate user and group id, for example 'http'
+dnl and 'www'. Note that this user should be able to read the webserver data,
+dnl but not able to overwrite your data - nor should it be able to write
+dnl logfiles
+
+AC_MSG_CHECKING([if you want custom running privileges])
+withval=
+AC_ARG_WITH(userid,
+	AS_HELP_STRING([--with-userid],
+		[optional effective user ID (nobody:nogroup)]),
+	[AC_MSG_RESULT([${withval:-nobody:nogroup}])
+	 uid="${withval%%:*}"
+	 test "${uid}" = "${withval}" || gid="${withval#*:}"],
+	AC_MSG_RESULT([default (nobody:nogroup)]))
+AC_DEFINE_UNQUOTED(HTTPD_USERID, "${uid:-nobody}", [Effective user ID])
+AC_DEFINE_UNQUOTED(HTTPD_GROUPID, "${gid:-nogroup}", [Effective group ID])
+
 dnl Select directory layout 
 hier=xs
 AC_MSG_CHECKING([for --enable-hier])

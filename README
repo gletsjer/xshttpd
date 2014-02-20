@@ -17,6 +17,7 @@ Requirements:
 Optional dependencies for base server:
 - PCRE, http://www.pcre.org/
 - cURL, http://curl.haxx.se/
+- Berkeley DB, http://www.oracle.com/us/products/database/berkeley-db/
 
 Optional dependencies for modules:
 - GZIP, http://www.gzip.org/

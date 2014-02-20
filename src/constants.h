@@ -6,16 +6,6 @@
 /* This is where all the user preferences are defined. You may probably
 want to edit something in this file. At least have a good look at it. */
 
-/* The default group and user ID of the WWW server. It assumes this group
-and user ID when a page or cgi-binary is requested that is not in a
-user's home directory. Typically this would be 'nobody' and 'nogroup',
-but you can also make a separate user and group id, for example 'http'
-and 'www'. Note that this user should be able to read the webserver data,
-but not able to overwrite your data - nor should it be able to write logfiles */
-
-#define HTTPD_USERID	"nobody"
-#define HTTPD_GROUPID	"nogroup"
-
 /* Configuration default file locations */
 
 #define	HTTPD_CONF	CONFIG_DIR "/httpd.conf"
