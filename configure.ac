@@ -278,7 +278,7 @@ XS_ARG_DIRS(www bin man config shdata contrib font html log module phexec phicon
 dnl User may tweak compilation behaviour.
 XS_ARG_DEFAULT(warnings, HAVE_GDB, no, [enable extra compiler warnings])
 AS_IF([test x${enable_warnings} != xno], [
-	CFLAGS="${CFLAGS} -g -ggdb -O2 -fsigned-char -fshort-enums -funroll-loops -pedantic -trigraphs -pipe -Wall -W -Wpointer-arith -Wshadow -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wformat -Wformat-security -Wcomment -Wchar-subscripts -Wcast-align -Waggregate-return -Wnested-externs -Winline -Wundef -Wmissing-noreturn -Wmissing-format-attribute -Wpacked -Wunreachable-code -Wno-format-zero-length"
+	CFLAGS="${CFLAGS} -g -ggdb -O2 -fsigned-char -fshort-enums -funroll-loops -pedantic -pipe -Wall -W -Wpointer-arith -Wshadow -Wbad-function-cast -Wcast-qual -Wmissing-prototypes -Wstrict-prototypes -Wmissing-declarations -Wwrite-strings -Wformat -Wformat-security -Wcomment -Wchar-subscripts -Wcast-align -Waggregate-return -Wnested-externs -Winline -Wundef -Wmissing-noreturn -Wmissing-format-attribute -Wpacked -Wunreachable-code -Wno-format-zero-length"
 	AS_IF([test x${enable_warnings} = xextra],
 		[CFLAGS="${CFLAGS} -Wconversion -Wpadded"])
 	])

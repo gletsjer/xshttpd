@@ -155,7 +155,7 @@ cmd_restart(const char * const args)
 
 	while (!killpg(httpdpid, 0) && (timeout > 0))
 	{
-		printf("%c\b", (char)*("/-\\|" + (timeout & 3)));
+		printf("%c\b", "/-\\|"[timeout & 3]);
 		fflush(stdout);
 		sleep(1);
 		timeout--;

@@ -100,7 +100,7 @@
 #define		ASPRINTF(str,fmt,...)					\
 		do							\
 		{							\
-			if (asprintf(str, fmt, ##__VA_ARGS__) < 0)	\
+			if (asprintf(str, fmt, __VA_ARGS__) < 0)	\
 			{						\
 				err(1, "asprintf for %s failed", #str);	\
 				/* NOTREACHED */			\
@@ -110,7 +110,7 @@
 #define		ASPRINTFVAL(num,str,fmt,...)				\
 		do							\
 		{							\
-			int _num = asprintf(str, fmt, ##__VA_ARGS__);	\
+			int _num = asprintf(str, fmt, __VA_ARGS__);	\
 			if (_num < 0)					\
 			{						\
 				err(1, "asprintf for %s failed", #str);	\

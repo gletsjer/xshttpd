@@ -390,8 +390,11 @@ add_session(struct ssl_st *ssl, SSL_SESSION *ssl_session)
 {
 	unsigned char  *p;
 	int	ret;
-	DBT	id = { 0 },
-		sess = { 0 };
+	DBT	id,
+		sess;
+
+	memset(&id, 0, sizeof(id));
+	memset(&sess, 0, sizeof(id));
 
 	id.data = (unsigned char *)SSL_SESSION_get_id(ssl_session, &id.size);
 
@@ -414,8 +417,11 @@ static SSL_SESSION *
 get_session(struct ssl_st *ssl, unsigned char *sid, int idlen, int *do_copy)
 {
 	int	ret;
-	DBT	id = { 0 },
-		sess = { 0 };
+	DBT	id,
+		sess;
+
+	memset(&id, 0, sizeof(id));
+	memset(&sess, 0, sizeof(id));
 
 	id.size = idlen;
 	id.data = sid;
@@ -441,15 +447,17 @@ get_session(struct ssl_st *ssl, unsigned char *sid, int idlen, int *do_copy)
 //unsigned char *p = id.data; warnx("Couldnt find session (#%u) %02hhx%02hhx%02hhx%02hhx%02hhx", id.size, p[0], p[1], p[2], p[3], p[4]);
 
 	(void)ssl;
+	(void)do_copy;
 	return NULL;
 }
 
 static void 
 del_session(struct ssl_ctx_st *ssl_ctx, SSL_SESSION *ssl_session)
 {
-	DBT	id = { 0 };
+	DBT	id;
 
 //warnx("Deleting session");
+	memset(&id, 0, sizeof(id));
 	id.data = (void *)SSL_SESSION_get_id(ssl_session, &id.size);
 
 	db->del(db, NULL, &id, 0);
@@ -868,12 +876,16 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 		init_session_cache_ctx(ssl_ctx);
 #endif		/* HAVE_DB_H */
 
+#ifdef		SSL_OP_NO_COMPRESSION
 	(void)SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2 |
 			SSL_OP_NO_SSLv3 |
-#ifdef		SSL_OP_NO_COMPRESSION
 			SSL_OP_NO_COMPRESSION |
-#endif		/* SSL_OP_NO_COMPRESSION */
 			SSL_OP_CIPHER_SERVER_PREFERENCE);
+#else		/* SSL_OP_NO_COMPRESSION */
+	(void)SSL_CTX_set_options(ssl_ctx, SSL_OP_NO_SSLv2 |
+			SSL_OP_NO_SSLv3 |
+			SSL_OP_CIPHER_SERVER_PREFERENCE);
+#endif		/* SSL_OP_NO_COMPRESSION */
 
 	switch (lsock->sslauth)
 	{
@@ -1090,7 +1102,8 @@ secwritev(struct iovec *iov, int iovcnt)
 
 	/* add additional meta-data using reserved elements */
 	struct iovec	*piov = iov;
-	char		head[20];
+	char		head[20],
+			sep[3] = "\r\n";
 
 	for (sz = i = 0; i < iovcnt; i++, piov++)
 		sz += piov->iov_len;
@@ -1098,7 +1111,7 @@ secwritev(struct iovec *iov, int iovcnt)
 	piov = &iov[-1];
 	piov->iov_base = head;
 	piov->iov_len = snprintf(head, sizeof(head), "%zx\r\n", sz);
-	iov[iovcnt].iov_base = "\r\n";
+	iov[iovcnt].iov_base = sep;
 	iov[iovcnt].iov_len = 2;
 
 	while (1)
