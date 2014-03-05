@@ -276,7 +276,7 @@ getpidfilename(char **pidfilename)
 	}
 
 	if (!*pidfilename)
-		STRDUP(*pidfilename, PID_PATH);
+		STRDUP(*pidfilename, PID_FILE);
 }
 
 static	void

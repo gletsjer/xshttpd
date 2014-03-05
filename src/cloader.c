@@ -624,7 +624,7 @@ load_config()
 		}
 	}
 	if (!config.pidfile)
-		STRDUP(config.pidfile, PID_PATH);
+		STRDUP(config.pidfile, PID_FILE);
 	if (!config.scriptpath)
 		STRDUP(config.scriptpath, SCRIPT_PATH);
 #ifndef		HAVE_DB_H

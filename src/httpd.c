@@ -1900,6 +1900,7 @@ main(int argc, char **argv, char **envp)
 	"\t[-m service-message] [-N] [-v]");
 		}
 	}
+	mkdir(STATE_DIR, S_IRWXU);
 	load_config();
 
 #ifdef		HAVE_SETPRIORITY

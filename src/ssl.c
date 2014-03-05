@@ -261,7 +261,7 @@ endssl(void)
 	}
 }
 
-#ifdef		HAVE_DB_H
+#if 0
 static bool
 store_session(void)
 {
@@ -385,6 +385,25 @@ load_session(void)
 	return first != NULL;
 }
 
+static void 
+free_sessions(void)
+{
+	simple_ssl_session *sess,
+	               *tsess;
+
+	for (sess = first; sess;)
+	{
+		OPENSSL_free(sess->id);
+		OPENSSL_free(sess->der);
+		tsess = sess;
+		sess = sess->next;
+		OPENSSL_free(tsess);
+	}
+	first = NULL;
+}
+#endif		/* 0 */
+
+#ifdef		HAVE_DB_H
 static int 
 add_session(struct ssl_st *ssl, SSL_SESSION *ssl_session)
 {
@@ -470,13 +489,13 @@ init_database(void)
 {
 	int	ret;
 
-	mkdir(SESSION_PATH, S_IRWXU);
+	mkdir(SESSION_DIR, S_IRWXU);
 	db_env_create(&dbenv, 0);
 	if (!dbenv)
 		errx(1, "db_env_create()");
 	dbenv->set_shm_key(dbenv, 25);
 	ret = dbenv->open(dbenv,
-			SESSION_PATH,
+			SESSION_DIR,
 			DB_CREATE | DB_SYSTEM_MEM | DB_INIT_LOCK | DB_INIT_MPOOL,
 			0);
 	if (ret)
@@ -502,23 +521,6 @@ init_session_cache_ctx(SSL_CTX * sctx)
 	ret = db->open(db, NULL, NULL, DBSESSION, DB_BTREE, DB_CREATE, 0);
 	if (ret)
 		errx(1, "DB->open(): %s", db_strerror(ret));
-}
-
-static void 
-free_sessions(void)
-{
-	simple_ssl_session *sess,
-	               *tsess;
-
-	for (sess = first; sess;)
-	{
-		OPENSSL_free(sess->id);
-		OPENSSL_free(sess->der);
-		tsess = sess;
-		sess = sess->next;
-		OPENSSL_free(tsess);
-	}
-	first = NULL;
 }
 #endif		/* HAVE_DB_H */
 
@@ -776,6 +778,7 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 	{
 		DSA		*dsa;
 		DH		*dh;
+		BIO		*pbio;
 
 		dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
 
@@ -785,20 +788,28 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 			DSA_free(dsa);
 		}
 		/* read dh parameters from public certificate file */
-		if (!dh)
+		if (!dh && (pbio = BIO_new_file(sslvhost ? vc->sslcertificate : lsock->sslcertificate, "r")))
 		{
-			BIO	*pbio;
-			pbio = BIO_new_file(sslvhost ? vc->sslcertificate : lsock->sslcertificate, "r");
-			if (pbio)
+			dh = PEM_read_bio_DHparams(pbio, NULL, NULL, NULL);
+			if (!dh && (dsa = PEM_read_bio_DSAparams(pbio, NULL, NULL, NULL)))
 			{
-				dh = PEM_read_bio_DHparams(pbio, NULL, NULL, NULL);
-				if (!dh && (dsa = PEM_read_bio_DSAparams(pbio, NULL, NULL, NULL)))
-				{
-					dh = DSA_dup_DH(dsa);
-					DSA_free(dsa);
-				}
-				BIO_free(pbio);
+				dh = DSA_dup_DH(dsa);
+				DSA_free(dsa);
 			}
+			BIO_free(pbio);
+		}
+		/* read dh parameters from DHparam file */
+		if (!dh && (pbio = BIO_new_file(DHPARAM_FILE, "r")))
+		{
+			dh = PEM_read_bio_DHparams(pbio, NULL, NULL, NULL);
+			BIO_free(pbio);
+		}
+		/* Generate DHparam file with random value */
+		if (!dh && (pbio = BIO_new_file(DHPARAM_FILE, "w")))
+		{
+			dh = DH_generate_parameters(1024, 2, NULL, NULL);
+			PEM_write_bio_DHparams(pbio, dh);
+			BIO_free(pbio);
 		}
 		if (dh)
 		{
@@ -811,6 +822,18 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 		}
 	}
 
+	/* Enable support for ECDHE with hard-coded curve name */
+	/* This is a must for EC keys, but optional for others */
+#ifdef		OPENSSL_EC_NAMED_CURVE
+	EC_KEY	*ecdh;
+
+	ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
+	if (!ecdh)
+		errx(1, "Cannot load temp curve: %s",
+			ERR_reason_error_string(ERR_get_error()));
+	SSL_CTX_set_tmp_ecdh(ssl_ctx, ecdh);
+	EC_KEY_free(ecdh);
+#endif		/* OPENSSL_EC_NAMED_CURVE */
 
 	/* set up shared key for SSL tickets */
 	if (config.usesslsessiontickets)
@@ -818,21 +841,6 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 		EVP_PKEY	*pkey = NULL;
 		if (bio)
 			PEM_read_bio_PrivateKey(bio, &pkey, NULL, NULL);
-
-#ifdef		OPENSSL_EC_NAMED_CURVE
-		if (pkey && pkey->type == EVP_PKEY_EC)
-		{
-			/* Using default temp ECDH parameters */
-			EC_KEY	*ecdh;
-
-			ecdh = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
-			if (!ecdh)
-				errx(1, "Cannot load temp curve: %s",
-					ERR_reason_error_string(ERR_get_error()));
-			SSL_CTX_set_tmp_ecdh(ssl_ctx, ecdh);
-			EC_KEY_free(ecdh);
-		}
-#endif		/* OPENSSL_EC_NAMED_CURVE */
 
 #ifdef		SSL_CTRL_SET_TLSEXT_TICKET_KEYS
 		if (pkey)
