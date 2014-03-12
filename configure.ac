@@ -273,7 +273,7 @@ htmldir='$(wwwdir)/htdocs'
 phexecdir='$(wwwdir)/cgi-bin'
 phicondir='$(shdatadir)/icons'
 fontdir='$(shdatadir)/gfxcount'
-XS_ARG_DIRS(www bin man config shdata contrib font html log module phexec phicon run)
+XS_ARG_DIRS(www bin man config shdata contrib font html log module phexec phicon run db)
 
 dnl User may tweak compilation behaviour.
 XS_ARG_DEFAULT(warnings, HAVE_GDB, no, [enable extra compiler warnings])

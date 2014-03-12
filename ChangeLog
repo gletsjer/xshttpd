@@ -3,6 +3,8 @@ is not complete. Refer to cvs comments for more information.
 
 Changes since 3.7 beta 28
 - Always generate DH and ECDH parameters: enables DH, ECDH key exchange
+- Rename directories for database files -
+  Counter data is no longer kept in the logs directory
 
 Changes since 3.7 beta 27
 - Add configure option --with-userid=user:group to set effective ID

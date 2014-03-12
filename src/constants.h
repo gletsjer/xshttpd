@@ -19,16 +19,15 @@ want to edit something in this file. At least have a good look at it. */
 #define	CERT_FILE	CONFIG_DIR "/cert.pem"
 #define KEY_FILE	CONFIG_DIR "/key.pem"
 
-#define CNT_DATA	LOG_DIR "/xs-counter.data"
-#define CNT_LOCK	LOG_DIR "/xs-counter.lock"
-#define CNT_CLEAR	LOG_DIR "/xs-clear.lock"
+#define CNT_DATA	DB_DIR "/counter.data"
+#define CNT_LOCK	DB_DIR "/counter.lock"
+#define CNT_CLEAR	DB_DIR "/clear.lock"
 
 #define BITBUCKETNAME	"/dev/null"
 #define PID_FILE	RUN_DIR "/xshttpd.pid"
-#define STATE_DIR	RUN_DIR "/xshttpd"
-#define SESSION_DIR	STATE_DIR "/sessions"
-#define SESSION_PATH	STATE_DIR "/oldsess.db"
-#define DHPARAM_FILE	STATE_DIR "/dhparam.pem"
+#define SESSION_DIR	DB_DIR "/sessions"
+#define SESSION_PATH	DB_DIR "/oldsess.db"
+#define DHPARAM_FILE	DB_DIR "/dhparam.pem"
 #define TEMPORARYPREFIX	"/tmp/xshttpd.XXXX"
 
 #define INDEX_HTML	"index.html"
