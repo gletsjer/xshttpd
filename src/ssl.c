@@ -604,7 +604,9 @@ ssl_servername_cb(SSL *ssl, int *al, struct socket_config *lsock)
 
 	if (!(servername = SSL_get_servername(ssl, TLSEXT_NAMETYPE_host_name)))
 	{
+		/* Common issue for some clients: don't complain
 		warnx("Failed to get TLS hostname");
+		 */
 		return SSL_TLSEXT_ERR_NOACK;
 	}
 

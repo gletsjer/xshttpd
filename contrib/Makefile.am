@@ -6,4 +6,4 @@ contrib_SCRIPTS = agentstats.pl persistent.pl logrotate.sh wwwstats.pl
 EXTRA_DIST = $(contrib_DATA) $(contrib_SCRIPTS)
 
 install-data-hook:
-	$(mkinstalldirs) $(htmldir)
+	$(mkinstalldirs) $(DESTDIR)$(htmldir)
