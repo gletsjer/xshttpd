@@ -25,8 +25,7 @@ typedef enum {
 
 typedef enum {
 	redir_dflt = 0,
-	redir_perm = 1,
-	redir_env = 2,
+	redir_env = 1,
 } xs_redirflags_t;
 
 typedef enum {

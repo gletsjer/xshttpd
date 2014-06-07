@@ -610,8 +610,9 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				else if (!strcasecmp(idx, "Location"))
 				{
 					status = true;
-					session.rstatus = 302;
-					append(&head, true, "%s 302 Moved\r\n",
+					session.rstatus = 307;
+					append(&head, true,
+						"%s 307 Redirect\r\n",
 						env.server_protocol);
 				}
 			}

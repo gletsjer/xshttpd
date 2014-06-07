@@ -119,7 +119,7 @@ check_file_redirect(const char * const base, const char * const filename)
 	int		fd;
 	ssize_t		size;
 	char		total[XS_PATH_MAX];
-	xs_redirflags_t	flags = 0;
+	unsigned int	status = 302;
 
 	if (!filename || !*filename)
 		return false;
@@ -131,7 +131,7 @@ check_file_redirect(const char * const base, const char * const filename)
 		snprintf(total, XS_PATH_MAX, "%s%s.Redir", base, filename);
 		if ((fd = open(total, O_RDONLY, 0)) < 0)
 			return false;
-		flags &= redir_perm;
+		status = 301;
 	}
 	if ((size = read(fd, total, XS_PATH_MAX)) <= 0)
 	{
@@ -147,7 +147,7 @@ check_file_redirect(const char * const base, const char * const filename)
 	total[size] = '\0';
 	p = total;
 	subst = strsep(&p, " \t\r\n");
-	redirect(subst, flags & redir_env);
+	redirect(subst, status, redir_env);
 	return true;
 }
 
@@ -219,15 +219,22 @@ check_redirect(const char * const cffile, const char * const filename)
 			if (orig && !stat(orig, &statbuf))
 				exitfalse = true;
 		}
-		else if (!strcasecmp(command, "redir") && ret >= 3)
+		else if (!strncasecmp(command, "redir", 5) && ret >= 3)
 		{
 			const char	*newloc;
 			char	*subst = pcre_subst(request, argv[1], argv[2]);
+			unsigned int	status = 302;
 
+			if (strlen(command) == 9 &&
+					command[5] == '-' && command[6] == '3')
+				status = 300 + 10 * (command[7] - '0') +
+					command[8] - '0';
+			else if (command[0] == 'R')
+				status = 301;
 			if (subst && *subst)
 			{
 				newloc = mknewurl(request, subst);
-				redirect(newloc, 'R' == command[0] ? redir_perm : 0);
+				redirect(newloc, status, redir_dflt);
 				FREE(subst);
 				exittrue = true;
 			}
@@ -314,11 +321,11 @@ check_redirect(const char * const cffile, const char * const filename)
 			}
 		}
 		else if (1 == ret)
-			/* no command: redir to url */
+			/* no command: 302 redir to url */
 		{
 			const char * const newloc = mknewurl(request, command);
 
-			redirect(newloc, redir_env);
+			redirect(newloc, 302, redir_env);
 			exittrue = true;
 		}
 

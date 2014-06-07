@@ -1063,7 +1063,8 @@ do_get(char *params)
 		snprintf(total, XS_PATH_MAX, "https://%s%s",
 			http_host ? http_host : current->hostname,
 			params);
-		redirect(total, redir_perm);
+		/* Should probably 308, but still lacking support */
+		redirect(total, 307, redir_dflt);
 		return;
 	}
 
@@ -1444,7 +1445,8 @@ do_get(char *params)
 				question ? "?" : "",
 				question ? question : "");
 
-			redirect(total, redir_perm);
+			/* Should probably 308, but still lacking support */
+			redirect(total, 307, redir_dflt);
 			free_xsconf(&cfvalues);
 			return;
 		}

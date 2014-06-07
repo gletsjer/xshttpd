@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 29
+- Support HTTP redirection via 307 and 308 status codes
+
 Changes since 3.7 beta 28
 - Always generate DH and ECDH parameters: enables DH, ECDH key exchange
 - Rename directories for database files -

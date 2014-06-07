@@ -16,7 +16,7 @@ extern	uid_t	origeuid;
 void	stdheaders		(bool, bool, bool);
 void	alarm_handler		(int);
 void	xserror			(int, const char * const, ...) PRINTF_LIKE(2, 3);
-void	redirect		(const char * const, xs_redirflags_t) NONNULL;
+void	redirect		(const char * const, const unsigned int, const xs_redirflags_t) NONNULL;
 xs_error_t	readline	(int, char *, size_t) NONNULL WARNUNUSED;
 void	server_error		(int, const char * const, const char * const) NONNULL;
 void	logrequest		(const char * const, off_t) NONNULL;

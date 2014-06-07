@@ -565,7 +565,7 @@ xserror(int code, const char * const format, ...)
 }
 
 void
-redirect(const char * const redir, xs_redirflags_t flags)
+redirect(const char * const redir, const unsigned int status, const xs_redirflags_t flags)
 {
 	const char	*qs = NULL;
 	char		*errmsg = NULL;
@@ -583,7 +583,7 @@ redirect(const char * const redir, xs_redirflags_t flags)
 			"<body><h1>Document has moved</h1>\n"
 			"<p>This document has %s moved to "
 			"<a href=\"%s%s%s\">%s</a>.</p></body></html>\n",
-			flags & redir_perm ?  "permanently" : "",
+			status == 301 || status == 308 ? "permanently" : "",
 			redir, qs ? "?" : "", qs ? qs : "", redir);
 	}
 	if (session.headers)
@@ -591,8 +591,14 @@ redirect(const char * const redir, xs_redirflags_t flags)
 		struct maplist	*rh = &session.response_headers;
 
 		maplist_append(rh, append_prepend | append_replace,
-			"Status", "%s moved",
-			flags & redir_perm ? "301 Permanently" : "302 Temporarily");
+			"Status",
+			status == 301 ? "%d Moved Permanently" :
+			status == 302 ? "%d Found" :
+			status == 303 ? "%d See Other" :
+			status == 307 ? "%d Temporary Redirect" :
+			status == 308 ? "%d Permanent Redirect" :
+			"%d Redirect",
+			status);
 		if (qs)
 			maplist_append(rh, append_default,
 				"Location", "%s?%s", redir, qs);
@@ -602,7 +608,7 @@ redirect(const char * const redir, xs_redirflags_t flags)
 		session.size = errmsg ? strlen(errmsg) : 0;
 		writeheaders();
 	}
-	session.rstatus = flags & redir_perm ? 301 : 302;
+	session.rstatus = status;
 	if (!session.headonly)
 	{
 		secputs(errmsg);

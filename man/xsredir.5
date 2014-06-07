@@ -117,11 +117,41 @@ location. This location may contain string substitutions. If
 the .redir file contains multiple matching URLs, the first
 match will be used for redirection. The resulting URL should
 be an absolute URL including protocol, hostname and path.
-.It Sy Redir Ar oldurl Ar newurl
+.It Sy redir-301 Ar oldurl Ar newurl
 This directive is similar to the
 .Sy redir
-command. But rather than a temporary redirect, a permanent
-redirect (301) will be generated.
+command, but performs redirection using the HTTP status
+.Sy 301
+(Moved Permanently).
+.It Sy redir-302 Ar oldurl Ar newurl
+This directive is similar to the
+.Sy redir
+command, but performs redirection using the HTTP status
+.Sy 302
+(Found).
+.It Sy redir-303 Ar oldurl Ar newurl
+This directive is similar to the
+.Sy redir
+command, but performs redirection using the HTTP status
+.Sy 303
+(See Other).
+.It Sy redir-307 Ar oldurl Ar newurl
+This directive is similar to the
+.Sy redir
+command, but performs redirection using the HTTP status
+.Sy 307
+(Temporary Redirect).
+.It Sy redir-308 Ar oldurl Ar newurl
+This directive is similar to the
+.Sy redir
+command, but performs redirection using the HTTP status
+.Sy 308
+(Permanent Redirect).
+.It Sy Redir Ar oldurl Ar newurl
+This directive is deprecated and will be removed in future versions.
+It is identical to the
+.Sy redir-301
+command.
 .It Sy rewrite Ar oldurl Ar newurl
 In this case the same matching sceme as for redirects will
 be used, but rather than generating a redirect, the
