@@ -809,7 +809,7 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 		/* Generate DHparam file with random value */
 		if (!dh && (pbio = BIO_new_file(DHPARAM_FILE, "w")))
 		{
-			dh = DH_generate_parameters(1024, 2, NULL, NULL);
+			dh = DH_generate_parameters(2048, 2, NULL, NULL);
 			PEM_write_bio_DHparams(pbio, dh);
 			BIO_free(pbio);
 		}
