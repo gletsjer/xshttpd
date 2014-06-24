@@ -2137,7 +2137,7 @@ getfiletype(void)
 			return false;
 		}
 		else
-			return !strcasecmp(cfvalues.mimetype, "text/html");
+			return !strncasecmp(cfvalues.mimetype, "text/", 5);
 	}
 
 	/* no mimetype - set type based on file extension */
@@ -2163,7 +2163,7 @@ getfiletype(void)
 					? config.defaultcharset
 					: "us-ascii");
 			}
-			return !strcasecmp(search->name, "text/html");
+			return !strncasecmp(search->name, "text/",5 );
 		}
 	}
 
