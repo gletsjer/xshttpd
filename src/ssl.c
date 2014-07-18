@@ -496,7 +496,7 @@ init_database(void)
 	dbenv->set_shm_key(dbenv, 25);
 	ret = dbenv->open(dbenv,
 			SESSION_DIR,
-			DB_CREATE | DB_SYSTEM_MEM | DB_INIT_LOCK | DB_INIT_MPOOL | DB_RECOVER_FATAL,
+			DB_CREATE | DB_SYSTEM_MEM | DB_INIT_LOCK | DB_INIT_MPOOL | DB_INIT_TXN | DB_RECOVER_FATAL,
 			0);
 	if (ret)
 		errx(1, "DBENV->open(): %s", db_strerror(ret));
