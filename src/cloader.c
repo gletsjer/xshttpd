@@ -349,6 +349,8 @@ load_config()
 						lsock->sslcrlfile = checkpath("SSLCRLfile", CONFIG_DIR, value);
 					else if (!strcasecmp("SSLCRLpath", key))
 						lsock->sslcrlpath = checkpath("SSLCRLpath", CONFIG_DIR, value);
+					else if (!strcasecmp("SSLOCSPfile", key))
+						lsock->sslocspfile = checkpath("OCSPfile", DB_DIR, value);
 					else if (!strcasecmp("SSLCAlist", key))
 						STRDUP(lsock->sslcalist, value);
 					else if (!strcasecmp("SSLMatchSDN", key))
@@ -475,6 +477,8 @@ load_config()
 #endif		/* HANDLE_SSL_TLSEXT */
 				else if (!strcasecmp("SSLPrivateKey", key))
 					current->sslprivatekey = checkpath("SSLPrivateKey", CONFIG_DIR, value);
+				else if (!strcasecmp("SSLOCSPfile", key))
+					current->sslocspfile = checkpath("SSLOCSPfile", DB_DIR, value);
 				else if (!strcasecmp("UseSTS", key))
 					current->usests = !strcasecmp("true", value);
 				else if (!strcasecmp("STSMaxAge", key))

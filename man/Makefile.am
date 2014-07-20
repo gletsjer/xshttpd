@@ -13,6 +13,7 @@ EXTRA_DIST = $(build_MANS)
 do_subst = sed -e 's,[@]wwwdir[@],$(wwwdir),g' \
 	-e 's,[@]configdir[@],$(configdir),g' \
 	-e 's,[@]htmldir[@],$(htmldir),g' \
+	-e 's,[@]dbdir[@],$(dbdir),g' \
 	-e 's,[@]SERVER_IDENT[@],$(SERVER_IDENT),g'
 
 $(PREBUILD): $(build_MANS)

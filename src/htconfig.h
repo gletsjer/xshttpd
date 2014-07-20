@@ -52,6 +52,7 @@ extern struct virtual
 	bool		allowusers;
 	char *		sslcertificate;
 	char *		sslprivatekey;
+	char *		sslocspfile;
 	bool		usests;
 	bool		stssubdomains;
 	unsigned int	stsmaxage;
@@ -86,6 +87,7 @@ struct socket_config
 	char *		sslcapath;
 	char *		sslcrlfile;
 	char *		sslcrlpath;
+	char *		sslocspfile;
 	char *		sslcalist;
 	char *		sslmatchsdn;
 	char *		sslmatchidn;

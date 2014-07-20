@@ -28,6 +28,7 @@
 #include	<openssl/conf.h>
 #include	<openssl/ssl.h>
 #include	<openssl/tls1.h>
+#include	<openssl/ocsp.h>
 
 #include	"htconfig.h"
 #include	"httpd.h"
@@ -638,6 +639,45 @@ ssl_servername_cb(SSL *ssl, int *al, struct socket_config *lsock)
 	(void)al;
 	return SSL_TLSEXT_ERR_OK;
 }
+
+static int
+ssl_status_cb(SSL *ssl, const char *filename)
+{
+	BIO		*bio;
+	struct stat	sb;
+	OCSP_RESPONSE	*ostruct = NULL;
+	unsigned char	*ocsp = NULL;
+	size_t		ocsplen;
+	int		len;
+
+warnx("checking %s", filename);
+	if (!filename)
+		return SSL_TLSEXT_ERR_NOACK;
+
+warnx("loading %s", filename);
+	bio = BIO_new_file(filename, "r");
+	if (!bio)
+		return SSL_TLSEXT_ERR_NOACK;
+
+warnx("parsing %s", filename);
+	if (!d2i_OCSP_RESPONSE_bio(bio, &ostruct))
+		return SSL_TLSEXT_ERR_NOACK;
+
+#if 0
+	warnx("OCSP read: %s\n", ERR_reason_error_string(ERR_get_error()));
+	BIO *berr = BIO_new_fp(stderr, BIO_NOCLOSE);
+	OCSP_RESPONSE_print(berr, ostruct, 2);
+#endif
+
+	/* TODO: Do some sanity checking here,
+	 * discard invalid / expired information
+	 */
+
+warnx("sending %s", filename);
+	ocsplen = i2d_OCSP_RESPONSE(ostruct, &ocsp);
+	SSL_set_tlsext_status_ocsp_resp(ssl, ocsp, ocsplen);
+	return SSL_TLSEXT_ERR_OK;
+}
 #endif	 	/* HANDLE_SSL_TLSEXT */
 
 static void
@@ -916,6 +956,12 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 	if (!SSL_CTX_set_tlsext_servername_callback(ssl_ctx, ssl_servername_cb)
 			|| !SSL_CTX_set_tlsext_servername_arg(ssl_ctx, lsock))
 		errx(1, "Cannot load TLS servername callback");
+
+	const char *ocspfile = vc && vc->sslocspfile
+		? vc->sslocspfile : lsock->sslocspfile;
+	if (!SSL_CTX_set_tlsext_status_cb(ssl_ctx, ssl_status_cb) ||
+			!SSL_CTX_set_tlsext_status_arg(ssl_ctx, ocspfile))
+		errx(1, "Cannot load TLS status callback");
 #endif		/* HANDLE_SSL_TLSEXT */
 }
 

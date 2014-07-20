@@ -524,6 +524,23 @@ and
 .Sy SSLCRLpath
 may be set, in which case both locations will be checked for
 certificate revocation lists.
+.It Sy SSLOCSPfile Ar filename Aq
+The location of the up-to-date OCSP file to be used for
+validation of the server certificate via
+.Ql OCSP Stapling .
+When
+.Ql OCSP Stapling
+is used, the signed OCSP information will be presented to
+the client with the server certificate.
+Clients do not need to contact the OCSP information from
+a server themselves.
+In this configuration, an external process must assure that the
+.Sy SSLOCSPfile
+is frequently refreshed, as these tend to have short expiry times
+(typically between a day and a week).
+This may be an absolute path or a path relative to
+the database directory
+.Pa ( @dbdir@ ) .
 .It Sy SSLCAlist
 Sets the list of acceptable certificate authorities sent to
 the client when requesting a client certificate.
@@ -775,6 +792,12 @@ further requests to this site.
 Note that the
 .Sy STSMaxAge
 option must be set as well; without it STS will be explicitly disabled.
+.It Sy SSLOCSPfile Ar filename Aq
+The location of the up-to-date OCSP file to be used for validation of
+the server certificate via OCSP Stapling.
+See the description in the
+.Sx Section Options
+overview.
 .It Sy STSMaxAge Ar seconds Aq 0
 Set the expiry time, in seconds remaining, indicating how long
 .Em HTTP Strict Transport Security
