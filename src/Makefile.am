@@ -16,7 +16,7 @@ libxs_a_CFLAGS = -fPIC
 httpdc_CPPFLAGS = -DBINDIR=\"$(bindir)\"
 
 # default for all *_PROGRAMS
-LIBS += libxs.a ../libcompat/libcompat.a
+LDADD = libxs.a ../libcompat/libcompat.a
 DEFAULT_INCLUDES = -I$(top_builddir)
 
 EXTRA_DIST = alternative.h authenticate.h cgi.h cloader.h config.h \

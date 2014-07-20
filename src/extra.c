@@ -22,6 +22,9 @@
 # endif		/* HAVE_UTIL_H */
 #endif		/* HAVE_LIBUTIL_H */
 
+#include	<openssl/evp.h>
+#include	<openssl/rand.h>
+
 #include	"htconfig.h"
 #include	"extra.h"
 #include	"httpd.h"
@@ -568,5 +571,43 @@ maplist_free(struct maplist *list)
 	FREE(list->elements);
 	list->size = 0;
 	list->elements = NULL;
+}
+
+char *
+do_crypt(const char * const key, const char * const iv)
+{
+	const unsigned int	IVLEN = 16;
+	int		outlen,
+			tmplen;
+	EVP_CIPHER_CTX	ctx;
+	char		plain[16] = { 0 };
+	char		outbuf[1024];
+	char		*encrypted;
+
+	/* prepend unencrypted iv in generated string */
+	if (iv) {
+		outlen = IVLEN;
+		memcpy(outbuf, iv, IVLEN);
+	} else {
+		RAND_bytes(outbuf, IVLEN);
+	}
+
+	/* init aes-128-cbc */
+	EVP_CIPHER_CTX_init(&ctx);
+	EVP_EncryptInit_ex(&ctx, EVP_aes_128_cbc(), NULL, key, outbuf /* iv */);
+
+	if (!EVP_EncryptUpdate(&ctx, outbuf + IVLEN, &tmplen,
+				plain, sizeof(plain)))
+		return false;
+	outlen += tmplen;
+	if (!EVP_EncryptFinal_ex(&ctx, outbuf + outlen, &tmplen))
+		return false;
+	outlen += tmplen;
+	EVP_CIPHER_CTX_cleanup(&ctx);
+
+	MALLOC(encrypted, char, outlen);
+	memcpy(encrypted, outbuf, outlen);
+
+	return encrypted;
 }
 

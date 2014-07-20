@@ -108,7 +108,29 @@ XS_FUNC_IN_LIB(SSL_version, HAVE_SSL, ssl, httpd, [-lcrypto])
 AS_IF([test "$ac_cv_search_SSL_version" = no],
 	AC_MSG_ERROR([Cannot find required OpenSSL library]))
 
-XS_FUNC_IN_LIB(OPENSSL_config, HAVE_OPENSSL_CONFIG, ssl, dummy, [-lcrypto])
+XS_FUNC_IN_LIB(OPENSSL_config, HAVE_OPENSSL_CONFIG, ssl, httpd, [-lcrypto])
+
+dnl Using crypt from crypt?
+XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, dummy,, [
+	AC_MSG_CHECKING([whether crypt(3) supports SHA-512])
+	AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <crypt.h>],
+		[char *x=crypt("foo", "\$6\$0123456789012345"), *y=crypt("foo", x);
+		if (*(x+3+16) != '\$') return 1;
+		while (*x) if (*x++ != *y++) return 2;
+		return 0;])], [
+		AC_MSG_RESULT([yes])
+		LDADD="${LDADD} -lcrypt"
+		AC_DEFINE([USE_CRYPT], 1, [Prefer crypt(3) over DES_crypt(3)])
+		AC_DEFINE([HAVE_CRYPT_SHA512], 1, [crypt(3) supports SHA-512])
+		AC_DEFINE([CRYPT_ID], 6, [Chosen crypt(3) algorithm])
+		AC_DEFINE([CRYPT_SALT_LEN], 16, [Length of salt for crypt(3)]),
+		AC_MSG_RESULT([no])
+		], [
+		AC_DEFINE([CRYPT_SALT_LEN], 2, [Length of salt for crypt(3)])
+		])
+	], [
+	AC_DEFINE([CRYPT_SALT_LEN], 2, [Length of salt for crypt(3)])
+	])
 
 dnl User specified additional (non-system) libraries.
 XS_CHECK_WITH(pcre, PCRE support, yes, [XS_TRY_CONFIG(pcre, httpd)])

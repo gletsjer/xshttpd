@@ -119,8 +119,8 @@ AC_DEFUN([XS_PRINT_TYPE], [
 		[sz=0],
 		[sz=$?],
 		[sz=4])
-	AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>],
-		[$1 x = ($1)-1; return x < ($1)0;]])],
+	AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>]],
+		[[$1 x = ($1)-1; return x < ($1)0;]])],
 		[val=PRIu$sz],
 		[val=PRId$sz],
 		[val=d])

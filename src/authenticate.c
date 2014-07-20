@@ -18,6 +18,7 @@
 #endif		/* HAVE_LIBUTIL_H */
 
 #include	<openssl/des.h>
+#include	<openssl/evp.h>
 
 #include	"htconfig.h"
 #include	"httpd.h"
@@ -128,7 +129,11 @@ check_basic_auth(const char * const authfile)
 		return false;
 	}
 
+#ifdef		USE_CRYPT
+	allow = !strcmp(passwd, crypt(find, passwd));
+#else		/* USE_CRYPT */
 	allow = !strcmp(passwd, DES_crypt(find, passwd));
+#endif		/* USE_CRYPT */
 	FREE(passwd);
 	FREE(line);
 	return allow;

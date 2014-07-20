@@ -109,7 +109,11 @@ main(int argc, char **argv)
 			errx(1, "Password input failed");
 		if (strcmp(password, passone))
 			errx(1, "Password did not match previous entry!");
+#ifdef		USE_CRYPT
+		pwd = crypt(password, mksalt());
+#else		/* USE_CRYPT */
 		pwd = DES_crypt(password, mksalt());
+#endif		/* USE_CRYPT */
 
 		if (digest)
 		{

@@ -13,13 +13,13 @@ const	char	alnum[] = "./0123456789"
 			"abcdefghijklmnopqrstuvwxyz";
 
 char *
-mksalt()
+mksalt(void)
 {
-	static	char	salt[3];
+	static	char	salt[CRYPT_SALT_LEN + 1];
 
 	srandomdev();
-	salt[0] = alnum[random() % strlen(alnum)];
-	salt[1] = alnum[random() % strlen(alnum)];
-	salt[2] = '\0';
+	for (int i = 0; i < CRYPT_SALT_LEN; i++)
+		salt[i] = alnum[random() % strlen(alnum)];
+	salt[CRYPT_SALT_LEN] = '\0';
 	return salt;
 }

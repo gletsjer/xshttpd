@@ -1,6 +1,9 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 30
+- Use system crypt(3) to allow stronger passwords than just DES
+
 Changes since 3.7 beta 29
 - Support HTTP redirection via 307 and 308 status codes
 - Use 2048 bit keys size for temporary Diffie-Hellman keys

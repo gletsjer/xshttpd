@@ -119,7 +119,11 @@ changepasswd(const char *param, int  cl)
 	for (search = new1; *search; search++)
 		if (*search < ' ')
 			xserror(403, "Your password contains an invalid character!");
+#ifdef		USE_CRYPT
+	STRDUP(cryptnew, crypt(new1, mksalt()));
+#else		/* USE_CRYPT */
 	STRDUP(cryptnew, DES_crypt(new1, mksalt()));
+#endif		/* USE_CRYPT */
 
 	if (stat(filename, &statbuf1))
 		xserror(403, "Could not stat directory '%s': %s",
@@ -167,7 +171,11 @@ changepasswd(const char *param, int  cl)
 				continue;
 			*eol = '\0';
 			opwent = buffer + 1 + strlen(new2);
+#ifdef		USE_CRYPT
+			STRDUP(cryptold, crypt(old, opwent));
+#else		/* USE_CRYPT */
 			STRDUP(cryptold, DES_crypt(old, opwent));
+#endif		/* USE_CRYPT */
 			if (strcmp(cryptold, opwent))
 			{
 				fclose(input); fclose(output);

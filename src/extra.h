@@ -26,5 +26,6 @@ ssize_t	fgetmfields		(FILE *, char ***);
 int	get_temp_fd		(void);
 int	maplist_append		(struct maplist *, xs_appendflags_t, const char *, const char *, ...) PRINTF_LIKE(4, 5);
 void	maplist_free		(struct maplist *);
+char	*do_crypt		(const char * const key, const char * const iv);
 
 #endif		/* EXTRA_H */
