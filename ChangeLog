@@ -5,6 +5,9 @@ Changes since 3.7 beta 30
 - Use system crypt(3) to allow stronger passwords than just DES
 - Add SSLOCSPfile to support OCSP Stapling;
   External process (crontab with openssl ocsp) must keep content fresh
+- Add SSLinfofile to support server certificate extension data;
+  such as Signed Certificate Timestamps for Certificate Transparency.
+  Only works on systems with SSL_CTX_use_serverinfo_file() function.
 
 Changes since 3.7 beta 29
 - Support HTTP redirection via 307 and 308 status codes

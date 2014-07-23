@@ -109,6 +109,7 @@ AS_IF([test "$ac_cv_search_SSL_version" = no],
 	AC_MSG_ERROR([Cannot find required OpenSSL library]))
 
 XS_FUNC_IN_LIB(OPENSSL_config, HAVE_OPENSSL_CONFIG, ssl, httpd, [-lcrypto])
+XS_FUNC_IN_LIB(SSL_CTX_use_serverinfo_file, HAVE_OPENSSL_SERVERINFO, ssl, httpd, [-lcrypto])
 
 dnl Using crypt from crypt?
 XS_FUNC_IN_LIB(crypt, HAVE_CRYPT, crypt, dummy,, [

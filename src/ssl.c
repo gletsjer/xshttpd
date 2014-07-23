@@ -962,6 +962,15 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 	if (!SSL_CTX_set_tlsext_status_cb(ssl_ctx, ssl_status_cb) ||
 			!SSL_CTX_set_tlsext_status_arg(ssl_ctx, ocspfile))
 		errx(1, "Cannot load TLS status callback");
+
+	const char *infofile = vc && vc->sslinfofile
+		? vc->sslinfofile : lsock->sslinfofile;
+# ifdef		HAVE_OPENSSL_SERVERINFO
+	if (!SSL_CTX_use_serverinfo_file(ssl_ctx, lsock->sslinfofile))
+		errx(1, "Cannot load TLS serverinfo file");
+# else		/* HAVE_OPENSSL_SERVERINFO */
+		errx(1, "Disable SSLinfofile: not supported by library");
+# endif		/* HAVE_OPENSSL_SERVERINFO */
 #endif		/* HANDLE_SSL_TLSEXT */
 }
 

@@ -541,6 +541,17 @@ is frequently refreshed, as these tend to have short expiry times
 This may be an absolute path or a path relative to
 the database directory
 .Pa ( @dbdir@ ) .
+.It Sy SSLinfofile Ar filename Aq
+The location of the server certificate information file.
+Certificate info may contain data such as Certificate Transparancy
+extensions or OCSP status information.
+This option is only available when linked with a modern OpenSSL
+library. See
+.Xr SSL_CTX_use_serverinfo_file 3
+for details.
+This may be an absolute path or a path relative to
+the database directory
+.Pa ( @dbdir@ ) .
 .It Sy SSLCAlist
 Sets the list of acceptable certificate authorities sent to
 the client when requesting a client certificate.
@@ -795,7 +806,13 @@ option must be set as well; without it STS will be explicitly disabled.
 .It Sy SSLOCSPfile Ar filename Aq
 The location of the up-to-date OCSP file to be used for validation of
 the server certificate via OCSP Stapling.
-See the description in the
+See the description of this directive in the
+.Sx Section Options
+overview.
+.It Sy SSLinfofile Ar filename Aq
+The location of the up-to-date server certificate information file
+to be used for additional server certificate information.
+See the description of this directive in the
 .Sx Section Options
 overview.
 .It Sy STSMaxAge Ar seconds Aq 0
