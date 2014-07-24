@@ -679,7 +679,7 @@ load_config()
 	if (!config.system->groupid &&
 		!(config.system->groupid = strtoul(HTTPD_GROUPID, NULL, 10)))
 	{
-		struct group	*grp = getgrnam(HTTPD_GROUPID);
+		const struct group	*grp = getgrnam(HTTPD_GROUPID);
 
 		if (!grp)
 			errx(1, "Invalid groupname: %s", HTTPD_GROUPID);

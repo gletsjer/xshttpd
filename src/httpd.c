@@ -219,6 +219,9 @@ write_pidfile(pid_t pid)
 static	void
 open_logs(int sig)
 {
+	uid_t		savedeuid;
+	gid_t		savedegid;
+
 	if (sig)
 	{
 		remove_config(); load_config();
