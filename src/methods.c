@@ -551,6 +551,7 @@ writeheaders(void)
 
 	maplist_free(&session.response_headers);
 	hp += sprintf(hp, "\r\n");
+	(void)hp;
 
 	/* Insert module headers */
 	for (struct module *mod, **mods = modules; (mod = *mods); mods++)

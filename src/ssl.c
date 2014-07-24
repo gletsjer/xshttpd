@@ -965,12 +965,14 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 
 	const char *infofile = vc && vc->sslinfofile
 		? vc->sslinfofile : lsock->sslinfofile;
+	if (infofile) {
 # ifdef		HAVE_OPENSSL_SERVERINFO
-	if (!SSL_CTX_use_serverinfo_file(ssl_ctx, lsock->sslinfofile))
-		errx(1, "Cannot load TLS serverinfo file");
+		if (!SSL_CTX_use_serverinfo_file(ssl_ctx, lsock->sslinfofile))
+			errx(1, "Cannot load TLS serverinfo file");
 # else		/* HAVE_OPENSSL_SERVERINFO */
 		errx(1, "Disable SSLinfofile: not supported by library");
 # endif		/* HAVE_OPENSSL_SERVERINFO */
+	}
 #endif		/* HANDLE_SSL_TLSEXT */
 }
 
@@ -1150,15 +1152,15 @@ ssize_t
 secwritev(struct iovec *iov, int iovcnt)
 {
 	int	i;
-	ssize_t	sz;
+	ssize_t	sz = 0;
 
 	if (!iovcnt)
-		return 0;
+		return sz;
 
 	if (cursock->usessl)
 	{
 		for (i = 0; i < iovcnt; i++)
-			sz = secwrite(iov[i].iov_base, iov[i].iov_len);
+			sz += secwrite(iov[i].iov_base, iov[i].iov_len);
 		return sz;
 	}
 

@@ -59,6 +59,8 @@ main(int argc, char **argv)
 
 	if (!(t = strchr(query, ',')))
 		servererr("Your client does not support image mapping");
+
+	def[0] = '\0';
 	*t++ = 0;
 	i = atoi(query);
 	testpoint[X] = (double)i;

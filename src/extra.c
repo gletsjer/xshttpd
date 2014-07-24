@@ -233,6 +233,9 @@ internal_xstring_to_arrayp(const char * const value, char ***array, size_t (*xst
 	size_t	sz;
 
 	sz = xstring_to_array(value, NULL);
+	if (!sz)
+		return sz;
+
 	REALLOC(*array, char *, sz);
 	sz = xstring_to_array(value, *array);
 	return sz;
@@ -574,19 +577,20 @@ maplist_free(struct maplist *list)
 }
 
 char *
-do_crypt(const char * const key, const char * const iv)
+do_crypt(const char * const skey, const char * const iv)
 {
+	const unsigned char * const key = (const unsigned char * const)skey;
 	const unsigned int	IVLEN = 16;
 	int		outlen,
 			tmplen;
 	EVP_CIPHER_CTX	ctx;
-	char		plain[16] = { 0 };
-	char		outbuf[1024];
+	unsigned char	plain[16] = { 0 };
+	unsigned char	outbuf[1024];
 	char		*encrypted;
 
 	/* prepend unencrypted iv in generated string */
+	outlen = IVLEN;
 	if (iv) {
-		outlen = IVLEN;
 		memcpy(outbuf, iv, IVLEN);
 	} else {
 		RAND_bytes(outbuf, IVLEN);
@@ -596,7 +600,7 @@ do_crypt(const char * const key, const char * const iv)
 	EVP_CIPHER_CTX_init(&ctx);
 	EVP_EncryptInit_ex(&ctx, EVP_aes_128_cbc(), NULL, key, outbuf /* iv */);
 
-	if (!EVP_EncryptUpdate(&ctx, outbuf + IVLEN, &tmplen,
+	if (!EVP_EncryptUpdate(&ctx, outbuf + outlen, &tmplen,
 				plain, sizeof(plain)))
 		return false;
 	outlen += tmplen;

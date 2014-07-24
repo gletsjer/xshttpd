@@ -47,7 +47,7 @@ static	bool	xsc_initdummy		(off_t *);
 static	bool	xsc_initcounter		(const char *, off_t *);
 static	bool	xsc_counter		(countermode, const char *, off_t *);
 static	int	call_counter		(countermode, int, char * const * const, off_t *);
-static	int	parse_values		(const char * const, char **, size_t);
+static	int	parse_values		(const char * const, char **, size_t) NONNULL;
 static	int	dir_count_total		(int, char **, off_t *);
 static	int	dir_count_total_gfx	(int, char **, off_t *);
 static	int	dir_count_today		(int, char **, off_t *);

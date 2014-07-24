@@ -84,14 +84,14 @@ main(int argc, char **argv)
 		STRDUP(filename, AUTH_FILE);
 	printf("The information will be stored in %s\n\n", filename);
 
-	if (argc)
+	if (argc && *argv[0])
 		STRDUP(username, argv[0]);
 	else
 	{
 		char	*u;
 
 		printf("Please enter a username: "); fflush(stdout);
-		if (!fgets(line, sizeof(line), stdin))
+		if (!fgets(line, sizeof(line), stdin) || !*line)
 			errx(1, "Username input failed");
 		for (u = line; *u; u++)
 			if (isspace(*u))

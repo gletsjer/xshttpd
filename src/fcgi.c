@@ -521,13 +521,10 @@ send_stream(fcgi_server * server, off_t length, unsigned char stream_id, int fd)
 
 	n = MIN(FCGI_MAX_BUFFER, length);
 
-	MALLOC(buffer, char, n);
-
 	if (n <= 0)
-	{
-		FREE(buffer);
 		return -1;
-	}
+
+	MALLOC(buffer, char, n);
 
 	memset(&record_header, 0, sizeof(record_header));
 
