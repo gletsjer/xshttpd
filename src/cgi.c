@@ -314,9 +314,19 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		/* euid should be set, now fix uid */
 		if (runasroot)
 		{
+			uid_t	uid = geteuid();
+			gid_t	gid = getegid();
+
 			/* euid is not set on very early error cgi: fallback */
-			setgid(getegid() ? getegid() : config.system->groupid);
-			setuid(geteuid() ? geteuid() : config.system->userid);
+			if (!uid)
+				uid = config.system->userid;
+			if (!gid)
+				gid = config.system->groupid;
+
+			if (setgid(gid) < 0)
+				err(1, "do_get: setgid()");
+			if (setuid(uid) < 0)
+				err(1, "do_get: setuid()");
 		}
 		/* refuse to run CGI as root */
 		if (!geteuid())

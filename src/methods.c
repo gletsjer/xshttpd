@@ -976,14 +976,11 @@ set_path_info(char *params, char *base, char *file, bool wasdir)
 				if (strcmp(params, current->uidscripts[i]))
 					continue;
 
-				/* set uid */
+				/* runasroot == true: set uid */
 				userinfo = getpwnam(&temp[2]);
 				if (!userinfo || !userinfo->pw_uid)
 					break;
-				seteuid(0);
-				setegid(userinfo->pw_gid);
-				setgroups(1, (const gid_t *)&userinfo->pw_gid);
-				seteuid(userinfo->pw_uid);
+				seteugid(userinfo->pw_uid, userinfo->pw_gid);
 				break;
 			}
 			*slash = '/';
@@ -1084,12 +1081,7 @@ do_get(char *params)
 			return;
 		}
 		if (runasroot)
-		{
-			seteuid(0);
-			setegid(userinfo->pw_gid);
-			setgroups(1, (const gid_t *)&userinfo->pw_gid);
-			seteuid(userinfo->pw_uid);
-		}
+			seteugid(userinfo->pw_uid, userinfo->pw_gid);
 		if (!geteuid())
 		{
 			xserror(500, "Effective UID is not valid");
@@ -1122,12 +1114,7 @@ do_get(char *params)
 			{
 				/* We got a virtual host, now set euid */
 				if (runasroot)
-				{
-					seteuid(0);
-					setegid(statbuf.st_gid);
-					setgroups(1, (const gid_t *)&statbuf.st_gid);
-					seteuid(statbuf.st_uid);
-				}
+					seteugid(statbuf.st_uid, statbuf.st_gid);
 				if (!geteuid())
 				{
 					xserror(500, "Effective UID is not valid");
@@ -1160,12 +1147,7 @@ do_get(char *params)
 
 		/* set euid if it wasn't set yet */
 		if (runasroot)
-		{
-			seteuid(0);
-			setegid(current->groupid);
-			setgroups(1, (const gid_t *)&current->groupid);
-			seteuid(current->userid);
-		}
+			seteugid(current->userid, current->groupid);
 		if (!geteuid())
 		{
 			xserror(500, "Effective UID is not valid");
@@ -1261,10 +1243,7 @@ do_get(char *params)
 	{
 		if (runasroot)
 		{
-			seteuid(0);
-			setegid(config.system->groupid);
-			setgroups(1, &config.system->groupid);
-			seteuid(config.system->userid);
+			seteugid(config.system->userid, config.system->groupid);
 			switcheduid = true;
 		}
 		if (!geteuid())

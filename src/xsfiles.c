@@ -163,7 +163,8 @@ check_redirect(const char * const cffile, const char * const filename)
 	bool	exitfalse= false;
 	ssize_t	ret;
 
-	if (!(fp = fopen(cffile, "r")))
+	if (!cffile || !filename || !*cffile || !*filename ||
+			!(fp = fopen(cffile, "r")))
 		/* no redir */
 		return false;
 
@@ -341,6 +342,7 @@ check_redirect(const char * const cffile, const char * const filename)
 			return exittrue;
 		}
 	}
+	FREE(request);
 	fclose(fp);
 	return false;
 }
@@ -513,18 +515,17 @@ check_xsconf(const char * const cffile, const char * const filename, const int d
 				if (name[0] == '.' && !name[1])
 				{
 					if (depth)
-					{
-						FREE(line);
-						continue;
-					}
+						break;
 				}
 				else if (!env.request_method ||
 					strcasecmp(name, env.request_method))
-				{
-					FREE(line);
-					continue;
-				}
+					break;
 				name = p;
+			}
+			if (p)
+			{
+				FREE(line);
+				continue;
 			}
 			/* try simple matching */
 			state = !strcmp(name, "*") ||

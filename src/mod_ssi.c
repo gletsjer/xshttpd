@@ -402,21 +402,15 @@ call_counter(countermode mode, int argc, char **argv, off_t *size)
 	const	char	*path;
 
 	path = argc ? argv[0] : NULL;
-	if (!origeuid)
+	if (runasroot)
 	{
-		savedeuid = geteuid(); seteuid(origeuid);
-		savedegid = getegid(); setegid(origegid);
-	}
-	else
-	{
-		savedeuid = config.system->userid;
-		savedegid = config.system->groupid;
+		savedeuid = geteuid();
+		savedegid = getegid();
+		seteugid(0, 0);
 	}
 	ret = xsc_counter(mode, path, size) ? ERR_NONE : ERR_CONT;
-	if (!origeuid)
-	{
-		setegid(savedegid); seteuid(savedeuid);
-	}
+	if (runasroot)
+		seteugid(savedeuid, savedegid);
 	return(ret);
 }
 

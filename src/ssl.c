@@ -74,7 +74,9 @@ typedef struct simple_ssl_session_st
 	struct simple_ssl_session_st *next;
 } simple_ssl_session;
 
+#if 0
 static simple_ssl_session *first = NULL;
+#endif
 
 
 void
@@ -644,22 +646,17 @@ static int
 ssl_status_cb(SSL *ssl, const char *filename)
 {
 	BIO		*bio;
-	struct stat	sb;
 	OCSP_RESPONSE	*ostruct = NULL;
 	unsigned char	*ocsp = NULL;
 	size_t		ocsplen;
-	int		len;
 
-warnx("checking %s", filename);
 	if (!filename)
 		return SSL_TLSEXT_ERR_NOACK;
 
-warnx("loading %s", filename);
 	bio = BIO_new_file(filename, "r");
 	if (!bio)
 		return SSL_TLSEXT_ERR_NOACK;
 
-warnx("parsing %s", filename);
 	if (!d2i_OCSP_RESPONSE_bio(bio, &ostruct))
 		return SSL_TLSEXT_ERR_NOACK;
 
@@ -673,7 +670,6 @@ warnx("parsing %s", filename);
 	 * discard invalid / expired information
 	 */
 
-warnx("sending %s", filename);
 	ocsplen = i2d_OCSP_RESPONSE(ostruct, &ocsp);
 	SSL_set_tlsext_status_ocsp_resp(ssl, ocsp, ocsplen);
 	return SSL_TLSEXT_ERR_OK;
@@ -1353,7 +1349,7 @@ readheaders(int rd, struct maplist *headlist)
 				STRDUP(headlist->elements[0].value, "200 OK");
 
 		}
-		if (isspace(input[0]))
+		if (headlist->size && isspace(input[0]))
 		{
 			size_t	len;
 			char	*val;

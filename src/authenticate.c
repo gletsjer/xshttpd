@@ -360,7 +360,10 @@ check_auth_modules(void)
 			/* DO NOTHING */ ;
 		uudecode(user);
 		if (!(pass = strchr(user, ':')))
+		{
+			FREE(line);
 			return denied_basic();
+		}
 
 		*pass++ = 0;
 		for (struct module *mod, **mods = modules;
@@ -369,6 +372,7 @@ check_auth_modules(void)
 				/* Every module needs to grant access */
 				allowed &= mod->auth_basic(user, pass);
 		/* At least one module needs to deny access */
+		FREE(line);
 		return allowed ? true : denied_basic();
 	}
 

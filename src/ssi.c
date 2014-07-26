@@ -393,15 +393,13 @@ call_counter(countermode mode, int argc, char * const * const argv, off_t *size)
 
 	if (runasroot)
 	{
-		savedeuid = geteuid(); seteuid(0);
-		savedegid = getegid(); setegid(0);
+		savedeuid = geteuid();
+		savedegid = getegid();
+		seteugid(0, 0);
 	}
 	ret = xsc_counter(mode, path, size) ? ERR_NONE : ERR_CONT;
 	if (runasroot)
-	{
-		setegid(savedegid);
-		seteuid(savedeuid);
-	}
+		seteugid(savedeuid, savedegid);
 	return(ret);
 }
 
@@ -409,16 +407,18 @@ static	int
 parse_values(const char * const here, char **mapping, size_t maxsize)
 {
 	char		*p, *e, *word, *args;
-	char * const	end = strstr(here, "-->");
 	enum		{ T_INDEX, T_EQUAL, T_VALUE }	expect;
 	size_t		mapsize;
 	bool		guard;
 
+	if (!here)
+		return 0;
+
+	const char * const	end = strstr(here, "-->");
 	if (!end)
 		return 0;
-	*end = '\0';
 
-	STRDUP(args, here);
+	STRNDUP(args, here, end - here);
 	mapsize = 0;
 	expect = T_INDEX;
 	guard = true;
@@ -496,7 +496,6 @@ parse_values(const char * const here, char **mapping, size_t maxsize)
 		}
 	}
 
-	*end = '-';
 	FREE(args);
 	return (int)mapsize;
 }
@@ -779,7 +778,7 @@ dir_run_cgi(int argc, char **argv, off_t *size)
 	if (querystring)
 	{
 		setenv("QUERY_STRING", querystring, 1);
-		env.query_string = getenv("QUERY_STRING");
+		env.query_string = querystring;
 	}
 	if ((env.path_info = getenv("ORIG_PATH_INFO")))
 	{

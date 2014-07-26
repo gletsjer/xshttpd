@@ -218,18 +218,16 @@ write_pidfile(pid_t pid)
 static	void
 open_logs(int sig)
 {
-	uid_t		savedeuid;
-	gid_t		savedegid;
+	const uid_t		savedeuid = geteuid();
+	const gid_t		savedegid = getegid();
 
 	if (sig)
 	{
-		remove_config(); load_config();
+		remove_config();
+		load_config();
 	}
 	if (runasroot)
-	{
-		savedeuid = geteuid(); seteuid(0);
-		savedegid = getegid(); setegid(0);
-	}
+		seteugid(0, 0);
 	if (mainhttpd)
 	{
 		/* the master reloads, the children die */
@@ -358,18 +356,18 @@ open_logs(int sig)
 	fflush(stderr);
 	close(STDERR_FILENO);
 
-	/* local block */
+	if (config.system->openerror)
 	{
 		const int	tempfile = fileno(config.system->openerror);
 
-		if (tempfile != 2)
+		if (tempfile != STDERR_FILENO)
 		{
 			if (dup2(tempfile, STDERR_FILENO) == -1)
 				err(1, "dup2() failed");
 		}
-		else
-			config.system->openerror = stderr;
 	}
+	else
+		config.system->openerror = stderr;
 
 	if (mainhttpd)
 	{
@@ -385,12 +383,7 @@ open_logs(int sig)
 #endif		/* HAVE_CURL */
 	set_signals();
 	if (runasroot)
-	{
-		if (setegid(savedegid) == -1)
-			err(1, "setegid()");
-		if (seteuid(savedeuid) == -1)
-			err(1, "seteuid()");
-	}
+		seteugid(savedeuid, savedegid);
 }
 
 void
@@ -800,6 +793,7 @@ logrequest(const char * const request, off_t size)
 
 	FREE(dynrequest);
 	FREE(dynagent);
+	FREE(dynuser);
 }
 
 ssize_t read_callback(char *, size_t);
@@ -1202,6 +1196,7 @@ process_request(void)
 		if (!aliasp || !*aliasp)
 		{
 			xserror(400, "Unknown Host");
+			FREE(headstr);
 			return;
 		}
 	}
@@ -1210,6 +1205,7 @@ process_request(void)
 		if (current && !current->allowusers)
 		{
 			xserror(404, "User is unknown");
+			FREE(headstr);
 			return;
 		}
 		current = config.users;
@@ -1260,6 +1256,8 @@ METHOD:
 		do_delete(params);
 	else
 		xserror(400, "Unknown method");
+
+	FREE(headstr);
 }
 
 static	void
@@ -1512,6 +1510,7 @@ standalone_socket(int id)
 	}
 
 	CHILD:
+	FREE(childs);
 	setvbuf(stdout, NULL, _IOFBF, 0);
 	while (true)
 	{
@@ -1533,13 +1532,8 @@ standalone_socket(int id)
 		setproctitle("xs(%c%d): [Reqs: %06d] Setting up myself to accept a connection",
 			id, count + 1, reqs);
 		if (runasroot && geteuid())
-		{
 			/* restore root privs */
-			if (seteuid(0) < 0)
-				err(1, "seteuid failed");
-			if (setegid(0) < 0)
-				err(1, "setegid failed");
-		}
+			seteugid(0, 0);
 		filedescrs();
 		setproctitle("xs(%c%d): [Reqs: %06d] Waiting for a connection...",
 			id, count + 1, reqs);

@@ -14,6 +14,8 @@
 #include	<ctype.h>
 #include	<stdarg.h>
 #include	<fnmatch.h>
+#include	<err.h>
+#include	<errno.h>
 #ifdef		HAVE_LIBUTIL_H
 #include	<libutil.h>
 #else		/* HAVE_LIBUTIL_H */
@@ -613,5 +615,34 @@ do_crypt(const char * const skey, const char * const iv)
 	memcpy(encrypted, outbuf, outlen);
 
 	return encrypted;
+}
+
+bool
+seteugid(const uid_t uid, const gid_t gid)
+{
+	/* reset to root */
+	if ((uid == 0 || getuid() > 0) && seteuid(0) < 0)
+	{
+		/* 599: don't display error */
+		xserror(599, "seteuid(): %s", strerror(errno));
+		err(1, "seteuid()");
+	}
+
+	if (setegid(gid) < 0)
+	{
+		xserror(599, "setegid(): %s", strerror(errno));
+		err(1, "setegid()");
+	}
+	if (setgroups(1, &gid) < 0)
+	{
+		xserror(599, "setgroups(): %s", strerror(errno));
+		err(1, "setgroups()");
+	}
+	if (uid && seteuid(uid) < 0)
+	{
+		xserror(599, "seteuid(): %s", strerror(errno));
+		err(1, "seteuid()");
+	}
+	return true;
 }
 

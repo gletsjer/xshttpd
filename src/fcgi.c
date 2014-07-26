@@ -134,10 +134,10 @@ fcgi_child_init(void)
 	char		*sep, *str, **ap;
 	fcgi_server	*fsrv;
 
-	MALLOC(fsrv, fcgi_server, 1);
 	if (!current->fcgisocket)
 		return -1;
 
+	MALLOC(fsrv, fcgi_server, 1);
 	current->fcgiserver = fsrv;
 	if ((sep = strchr(current->fcgisocket, ':')))
 	{
@@ -153,6 +153,7 @@ fcgi_child_init(void)
 		STRDUP(fsrv->unixsocket, current->fcgisocket);
 	}
 
+	FREE(fsrv);
 	if (!current->fcgipath)
 		return 0;
 
@@ -174,10 +175,11 @@ fcgi_child_init(void)
 	case -1:
 		return -1;
 	case 0:
-		setegid(current->groupid);
-		setgid(current->groupid);
-		seteuid(current->userid);
-		setuid(current->userid);
+		if (setegid(current->groupid) < 0 ||
+				setgid(current->groupid) < 0 ||
+				seteuid(current->userid) < 0 ||
+				setuid(current->userid) < 0)
+			err(1, "setuid()");
 		setenv("FCGI_WEB_SERVER_ADDRS", "127.0.0.1", 1);
 		if (current->phpfcgichildren)
 		{

@@ -27,5 +27,6 @@ int	get_temp_fd		(void);
 int	maplist_append		(struct maplist *, xs_appendflags_t, const char *, const char *, ...) PRINTF_LIKE(4, 5);
 void	maplist_free		(struct maplist *);
 char	*do_crypt		(const char * const key, const char * const iv);
+bool	seteugid		(const uid_t uid, const gid_t gid);
 
 #endif		/* EXTRA_H */
