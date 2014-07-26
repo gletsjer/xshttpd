@@ -622,7 +622,7 @@ bool
 seteugid(const uid_t uid, const gid_t gid)
 {
 	/* reset to root */
-	if ((uid == 0 || getuid() > 0) && seteuid(0) < 0)
+	if ((uid == 0 || geteuid() > 0) && seteuid(0) < 0)
 	{
 		/* 599: don't display error */
 		xserror(599, "seteuid(): %s", strerror(errno));
