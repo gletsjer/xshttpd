@@ -371,8 +371,8 @@ check_allow_host(const char * const hostname, char * const pattern)
 		*slash = '\0';
 		if ((subnet = strtoul(slash + 1, NULL, 10)) > 32)
 			subnet = 32;
-		inet_aton(hostname, &remote);
-		inet_aton(pattern, &allow);
+		inet_pton(AF_INET, hostname, &remote);
+		inet_pton(AF_INET, pattern, &allow);
 
 #define	IPMASK(addr, sub) (addr.s_addr & htonl(~((1 << (32 - (sub))) - 1)))
 		if (IPMASK(remote, subnet) == IPMASK(allow, subnet))

@@ -54,9 +54,11 @@ run_fcgi(int fdin, int fdout, int fderr)
 	if (!server)
 		return -1;
 
+	if (write(fdout, "X-FastCGI: 1\r\n", 14) < 0)
+		return -1;
+
 	init_env(&fenv);
 	build_env(&fenv);
-	write(fdout, "X-FastCGI: 1\r\n", 14);
 
 	fcgi_connect(server);
 	begin_request(server);
@@ -313,8 +315,9 @@ begin_request(fcgi_server * server)
 	begin_header.role_0 = FCGI_RESPONDER;
 	begin_header.flags = 0;
 
-	write(server->socket, &record_header, sizeof(record_header));
-	write(server->socket, &begin_header, sizeof(begin_header));
+	if (write(server->socket, &record_header, sizeof(record_header)) < 0 ||
+		write(server->socket, &begin_header, sizeof(begin_header)) < 0)
+		return;
 }
 
 int 
