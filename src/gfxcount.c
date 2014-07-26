@@ -213,8 +213,10 @@ buildpicture()
 	default:
 		close(p[0]);
 		snprintf(header, BUFSIZ, "P6\n%d %d\n255\n", max_x, max_y);
-		write(p[1], header, strlen(header));
-		write(p[1], data, max_x * max_y * 3);
+		if (write(p[1], header, strlen(header)) < 0 ||
+				write(p[1], data, max_x * max_y * 3) < 0)
+			xserror("500 Could not write PPM data",
+				"Could not write PPM data");
 	}
 	exit(0);
 }

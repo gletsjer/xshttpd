@@ -17,7 +17,6 @@
 #include	<stdlib.h>
 #include	<signal.h>
 #include	<pwd.h>
-#include	<grp.h>
 #include	<unistd.h>
 #include	<string.h>
 #ifdef		HAVE_ERR_H

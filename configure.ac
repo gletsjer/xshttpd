@@ -47,7 +47,6 @@ AC_CHECK_TYPES([socklen_t, sa_family_t, in_addr_t, in_port_t, struct sockaddr_st
 dnl XS_PRINT_TYPE(uid_t, PRIuid)
 XS_PRINT_TYPE(pid_t, PRIpid)
 XS_PRINT_TYPE(off_t, PRIoff)
-XS_PRINT_TYPE(time_t, PRItime)
 
 XS_DEF_MAX(int, INT_MAX)
 XS_DEF_MAX(size_t, SIZE_T_MAX)

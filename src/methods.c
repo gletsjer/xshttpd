@@ -25,7 +25,6 @@
 #include	<string.h>
 #include	<signal.h>
 #include	<pwd.h>
-#include	<grp.h>
 #include	<unistd.h>
 #include	<fnmatch.h>
 #ifdef		HAVE_ERR_H

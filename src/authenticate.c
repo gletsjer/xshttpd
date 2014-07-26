@@ -461,16 +461,15 @@ fresh_nonce(void)
 {
 	static char	nonce[MAX_NONCE_LENGTH];
 	char		bufhex[MD5_DIGEST_STRING_LENGTH];
-	const time_t	ts = time(NULL);
 	char		*buf;
 	size_t		len;
+	const unsigned long	ts = (unsigned long)time(NULL);
 
-	ASPRINTFVAL(len, &buf, "%" PRItimex ":%lu:%s",
-		ts, secret, env.remote_addr);
+	ASPRINTFVAL(len, &buf, "%lx:%lu:%s", ts, secret, env.remote_addr);
 	md5data(buf, len, bufhex);
 	FREE(buf);
 
-	snprintf(nonce, MAX_NONCE_LENGTH, "%" PRItimex ":%s", ts, bufhex);
+	snprintf(nonce, MAX_NONCE_LENGTH, "%lx:%s", ts, bufhex);
 	return nonce;
 }
 
@@ -480,7 +479,7 @@ valid_nonce(const char *nonce)
 	char		bufhex[MD5_DIGEST_STRING_LENGTH];
 	const char	*ptr;
 	char		*buf;
-	time_t		ts;
+	unsigned long	ts;
 	size_t		len;
 
 	if (!nonce)
@@ -490,7 +489,7 @@ valid_nonce(const char *nonce)
 	ptr++;
 	ts = strtol(nonce, NULL, 16);
 
-	ASPRINTFVAL(len, &buf, "%" PRItimex ":%lu:%s",
+	ASPRINTFVAL(len, &buf, "%lx:%lu:%s",
 		ts, secret, env.remote_addr);
 	md5data(buf, len, bufhex);
 	FREE(buf);
@@ -499,5 +498,5 @@ valid_nonce(const char *nonce)
 		return false;
 
 	/* fresh for 1 hour */
-	return ts + 3600 > time(NULL);
+	return ts + 3600 > (unsigned long)time(NULL);
 }

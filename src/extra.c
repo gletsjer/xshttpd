@@ -14,6 +14,7 @@
 #include	<ctype.h>
 #include	<stdarg.h>
 #include	<fnmatch.h>
+#include	<grp.h>
 #include	<err.h>
 #include	<errno.h>
 #ifdef		HAVE_LIBUTIL_H
