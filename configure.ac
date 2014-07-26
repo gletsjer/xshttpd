@@ -44,7 +44,7 @@ AC_TYPE_SSIZE_T
 AC_CHECK_TYPES([socklen_t, sa_family_t, in_addr_t, in_port_t, struct sockaddr_storage],,,
 	[#include <sys/types.h>
 #include <sys/socket.h>])
-XS_PRINT_TYPE(uid_t, PRIuid)
+dnl XS_PRINT_TYPE(uid_t, PRIuid)
 XS_PRINT_TYPE(pid_t, PRIpid)
 XS_PRINT_TYPE(off_t, PRIoff)
 XS_PRINT_TYPE(time_t, PRItime)

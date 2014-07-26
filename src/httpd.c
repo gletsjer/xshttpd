@@ -77,8 +77,7 @@ static char copyright[] = "Copyright 1995-2009 Sven Berkvens, Johan van Selst";
 
 static	int	sd, reqs, reqsc;
 static	bool	mainhttpd = true, in_progress = false;
-gid_t		origegid;
-uid_t		origeuid;
+bool		runasroot = false;
 char		currenttime[80];
 static	char	remoteaddr[NI_MAXHOST], remotehost[NI_MAXHOST];
 static	char	referer[MYBUFSIZ], orig[MYBUFSIZ];
@@ -226,15 +225,10 @@ open_logs(int sig)
 	{
 		remove_config(); load_config();
 	}
-	if (!origeuid)
+	if (runasroot)
 	{
-		savedeuid = geteuid(); seteuid(origeuid);
-		savedegid = getegid(); setegid(origegid);
-	}
-	else
-	{
-		savedeuid = config.system->userid;
-		savedegid = config.system->groupid;
+		savedeuid = geteuid(); seteuid(0);
+		savedegid = getegid(); setegid(0);
 	}
 	if (mainhttpd)
 	{
@@ -390,12 +384,12 @@ open_logs(int sig)
 	curl_global_init(CURL_GLOBAL_ALL);
 #endif		/* HAVE_CURL */
 	set_signals();
-	if (!origeuid)
+	if (runasroot)
 	{
-		if (seteuid(savedeuid) == -1)
-			err(1, "seteuid()");
 		if (setegid(savedegid) == -1)
 			err(1, "setegid()");
+		if (seteuid(savedeuid) == -1)
+			err(1, "seteuid()");
 	}
 }
 
@@ -1538,10 +1532,14 @@ standalone_socket(int id)
 
 		setproctitle("xs(%c%d): [Reqs: %06d] Setting up myself to accept a connection",
 			id, count + 1, reqs);
-		if (!origeuid && (seteuid(origeuid) == -1))
-			err(1, "seteuid(%" PRIuid ") failed", origeuid);
-		if (!origeuid && (setegid(origegid) == -1))
-			err(1, "setegid(%" PRIuid ") failed", origegid);
+		if (runasroot && geteuid())
+		{
+			/* restore root privs */
+			if (seteuid(0) < 0)
+				err(1, "seteuid failed");
+			if (setegid(0) < 0)
+				err(1, "setegid failed");
+		}
 		filedescrs();
 		setproctitle("xs(%c%d): [Reqs: %06d] Waiting for a connection...",
 			id, count + 1, reqs);
@@ -1760,7 +1758,8 @@ main(int argc, char **argv, char **envp)
 	(void)envp;
 	(void)copyright;
 
-	origeuid = geteuid(); origegid = getegid();
+	if (!geteuid())
+		runasroot = true;
 	memset(&config, 0, sizeof config);
 
 	num = 0;

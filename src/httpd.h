@@ -10,8 +10,7 @@
 #include	<stdbool.h>
 
 extern	char	currenttime[];
-extern	gid_t	origegid;
-extern	uid_t	origeuid;
+extern	bool	runasroot;
 
 void	stdheaders		(bool, bool, bool);
 void	alarm_handler		(int);

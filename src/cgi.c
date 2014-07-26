@@ -312,12 +312,13 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 
 		closefrom(3);
 		/* euid should be set, now fix uid */
-		if (!origeuid)
+		if (runasroot)
 		{
 			/* euid is not set on very early error cgi: fallback */
-			setuid(geteuid() ? geteuid() : config.system->userid);
 			setgid(getegid() ? getegid() : config.system->groupid);
+			setuid(geteuid() ? geteuid() : config.system->userid);
 		}
+		/* refuse to run CGI as root */
 		if (!geteuid())
 		{
 			secprintf("Content-type: text/plain\r\n\r\n");

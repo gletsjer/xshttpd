@@ -966,7 +966,7 @@ set_path_info(char *params, char *base, char *file, bool wasdir)
 			if (!current->uidscripts ||
 					temp[1] != '~' ||
 					!(slash = strchr(&temp[2], '/')) ||
-					origeuid)
+					!runasroot)
 				break;
 			
 			*slash = '\0';
@@ -980,7 +980,7 @@ set_path_info(char *params, char *base, char *file, bool wasdir)
 				userinfo = getpwnam(&temp[2]);
 				if (!userinfo || !userinfo->pw_uid)
 					break;
-				seteuid(origeuid);
+				seteuid(0);
 				setegid(userinfo->pw_gid);
 				setgroups(1, (const gid_t *)&userinfo->pw_gid);
 				seteuid(userinfo->pw_uid);
@@ -1043,9 +1043,6 @@ do_get(char *params)
 		session.postonly ? "POST" : "GET", real_path, env.remote_host);
 	userinfo = NULL;
 
-	if (!origeuid)
-		seteuid(origeuid);
-
 	/* eheck for redirect only host */
 	if (current->redirfile)
 	{
@@ -1086,9 +1083,9 @@ do_get(char *params)
 			server_error(404, "User is unknown", "USER_UNKNOWN");
 			return;
 		}
-		if (!origeuid)
+		if (runasroot)
 		{
-			seteuid(origeuid);
+			seteuid(0);
 			setegid(userinfo->pw_gid);
 			setgroups(1, (const gid_t *)&userinfo->pw_gid);
 			seteuid(userinfo->pw_uid);
@@ -1124,14 +1121,14 @@ do_get(char *params)
 			else if (config.usevirtualuid)
 			{
 				/* We got a virtual host, now set euid */
-				if (!origeuid)
+				if (runasroot)
 				{
-					seteuid(origeuid);
+					seteuid(0);
 					setegid(statbuf.st_gid);
 					setgroups(1, (const gid_t *)&statbuf.st_gid);
 					seteuid(statbuf.st_uid);
 				}
-				if (!(geteuid()))
+				if (!geteuid())
 				{
 					xserror(500, "Effective UID is not valid");
 					return;
@@ -1162,9 +1159,9 @@ do_get(char *params)
 		strlcat(base, "/", XS_PATH_MAX);
 
 		/* set euid if it wasn't set yet */
-		if (!origeuid)
+		if (runasroot)
 		{
-			seteuid(origeuid);
+			seteuid(0);
 			setegid(current->groupid);
 			setgroups(1, (const gid_t *)&current->groupid);
 			seteuid(current->userid);
@@ -1262,9 +1259,9 @@ do_get(char *params)
 	snprintf(total, XS_PATH_MAX, "%s/.xsuid", base);
 	if (cfvalues.noprivs || !stat(total, &statbuf))
 	{
-		if (!origeuid)
+		if (runasroot)
 		{
-			seteuid(origeuid);
+			seteuid(0);
 			setegid(config.system->groupid);
 			setgroups(1, &config.system->groupid);
 			seteuid(config.system->userid);
@@ -1323,7 +1320,7 @@ do_get(char *params)
 			check_xsconf(xsfile, filename, depth, &cfvalues))
 		return;
 
-	if (cfvalues.noprivs && !origeuid && !switcheduid)
+	if (cfvalues.noprivs && runasroot && !switcheduid)
 		/* Privileges should be dropped: retry reading files */
 		goto RETRY;
 
