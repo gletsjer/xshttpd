@@ -76,7 +76,7 @@ match_s(const char * const total, const char * const pattern, size_t sz)
 		if (pattern[y] == '*')
 		{
 			while (pattern[++y] == '*')
-				/* NOTHING HERE */;
+				/* DO NOTHING */;
 			if (!pattern[y])
 				return true;
 			while (total[x])

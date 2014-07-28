@@ -930,7 +930,9 @@ process_request(void)
 
 			headlen += strlen(idx) + 2 + strlen(val) + 2;
 
-			if (!strcasecmp("Content-length", idx))
+			if (!sz)
+				/* DO NOTHING */;
+			else if (!strcasecmp("Content-length", idx))
 			{
 				env.content_length =
 					(off_t)strtoull(val, NULL, 10);
@@ -1034,7 +1036,8 @@ process_request(void)
 				FREE(browser);
 			return;
 		}
-		setenv("CONTENT_LENGTH", "0", 1);
+		if (!strcasecmp("POST", line) || !strcasecmp("PUT", line))
+			setenv("CONTENT_LENGTH", "0", 1);
 	}
 	if (!browser)
 	{

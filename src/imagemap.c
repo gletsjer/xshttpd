@@ -217,7 +217,7 @@ pointinpoly()
 	double		*p, *stop, tx, ty, y;
 
 	for (i = 0; (pointarray[i][X] != -1) && (i < MAXVERTS); i++)
-		/* NOTHING HERE */;
+		/* DO NOTHING */;
 	numverts = i; crossings = 0;
 	tx = testpoint[X]; ty = testpoint[Y];
 	y = pointarray[numverts - 1][Y];

@@ -77,7 +77,7 @@ uudecode(char * const buffer)
 		pr2six[(int)six2pr[j]] = (unsigned char)j;
 	bufin = buffer;
 	while (pr2six[(int)*(bufin++)] <= 63)
-		/* NOTHING HERE */;
+		/* DO NOTHING */;
 	nprbytes = (bufin - buffer) - 1;
 	nbytesdecoded = ((nprbytes + 3) / 4) * 3;
 	bufin = buffer;
