@@ -877,8 +877,12 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 	if (config.usesslsessiontickets)
 	{
 		EVP_PKEY	*pkey = NULL;
+
 		if (bio)
+		{
+			BIO_reset(bio);
 			PEM_read_bio_PrivateKey(bio, &pkey, NULL, NULL);
+		}
 
 #ifdef		SSL_CTRL_SET_TLSEXT_TICKET_KEYS
 		if (pkey)
@@ -895,7 +899,11 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 			EVP_SignUpdate(&mdctx, ticketkey, strlen(ticketkey));
 			EVP_SignFinal(&mdctx, sign, &siglen, pkey);
 
-			/* And we keep only the first bytes. */
+			/* The first 48 bytes are used:
+			 * - 16 bytes ticket key name
+			 * - 16 bytes hmac key
+			 * - 16 bytes aes key
+			 */
 			memcpy(keys, sign, sizeof(keys));
 
 			/* Work-around for old version that mis-typed this call */
