@@ -879,10 +879,12 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 		EVP_PKEY	*pkey = NULL;
 
 		if (bio)
-		{
 			BIO_reset(bio);
+		else
+			bio = BIO_new_file(sslvhost ?
+				vc->sslprivatekey : lsock->sslprivatekey, "r");
+		if (bio)
 			PEM_read_bio_PrivateKey(bio, &pkey, NULL, NULL);
-		}
 
 #ifdef		SSL_CTRL_SET_TLSEXT_TICKET_KEYS
 		if (pkey)
