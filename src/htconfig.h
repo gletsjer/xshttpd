@@ -81,6 +81,7 @@ struct socket_config
 	sa_family_t	family;
 	xs_sslauth_t	sslauth;
 	bool		usessl;
+	bool		sslnocert;
 	unsigned int	instances;
 	char *		sslcertificate;
 	char *		sslprivatekey;
@@ -135,6 +136,7 @@ extern struct configuration
 	bool		usesendfile;
 	bool		useetag;
 	bool		usecontentmd5;
+	bool		usetimestamp;
 	bool		useput;
 	bool		usetrace;
 	bool		usesslsessiontickets;

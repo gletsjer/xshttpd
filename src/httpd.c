@@ -521,8 +521,9 @@ xserror(int code, const char * const format, ...)
 		maplist_free(rh);
 		maplist_append(rh, append_prepend,
 			"Status", "%03d %s", code, message);
-		maplist_append(rh, append_replace,
-			"Date", "%s", currenttime);
+		if (config.usetimestamp)
+			maplist_append(rh, append_replace,
+				"Date", "%s", currenttime);
 		if (config.serverident)
 			maplist_append(rh, append_replace,
 				"Server", "%s", config.serverident);
@@ -1238,7 +1239,8 @@ METHOD:
 
 	struct maplist	*rh = &session.response_headers;
 	maplist_append(rh, append_replace, "Status", "200 OK");
-	maplist_append(rh, append_replace, "Date", "%s", currenttime);
+	if (config.usetimestamp)
+		maplist_append(rh, append_replace, "Date", "%s", currenttime);
 	if (config.serverident)
 		maplist_append(rh, append_replace, "Server", "%s",
 				config.serverident);

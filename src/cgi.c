@@ -660,7 +660,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				ctype = true;
 				append(&head, false, "Content-type: %s\r\n", val);
 			}
-			else if (!strcasecmp(idx, "Last-modified"))
+			else if (!strcasecmp(idx, "Last-modified") && config.usetimestamp)
 			{
 				append(&head, false, "Last-modified: %s\r\n", val);
 				lastmod = true;

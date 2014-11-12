@@ -721,9 +721,9 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 
 	preloadssl();
 
-	if (!lsock->sslcertificate)
+	if (!lsock->sslcertificate && !lsock->sslnocert)
 		STRDUP(lsock->sslcertificate, CERT_FILE);
-	if (!lsock->sslprivatekey)
+	if (!lsock->sslprivatekey && !lsock->sslnocert)
 		STRDUP(lsock->sslprivatekey, KEY_FILE);
 
 	if (sslvhost)
@@ -761,21 +761,16 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 	SSL_CTX_set_default_passwd_cb(ssl_ctx, pem_passwd_cb);
 	SSL_CTX_set_default_passwd_cb_userdata(ssl_ctx, lsock->sslprivatekey);
 
-	if (!SSL_CTX_use_certificate_chain_file(ssl_ctx,
-			sslvhost ? vc->sslcertificate : lsock->sslcertificate))
-		errx(1, "Cannot load SSL cert %s: %s", 
-			sslvhost ? vc->sslcertificate : lsock->sslcertificate,
+	const char	*cert = sslvhost ? vc->sslcertificate : lsock->sslcertificate,
+			*pkey = sslvhost ? vc->sslprivatekey : lsock->sslprivatekey;
+	if (cert && !SSL_CTX_use_certificate_chain_file(ssl_ctx, cert))
+		errx(1, "Cannot load SSL cert %s: %s",  cert,
 			ERR_reason_error_string(ERR_get_error()));
-	if (!SSL_CTX_use_PrivateKey_file(ssl_ctx,
-			sslvhost ? vc->sslprivatekey : lsock->sslprivatekey,
-			SSL_FILETYPE_PEM))
-		errx(1, "Cannot load SSL key %s: %s", 
-			sslvhost ? vc->sslprivatekey : lsock->sslprivatekey,
+	if (pkey && !SSL_CTX_use_PrivateKey_file(ssl_ctx, pkey, SSL_FILETYPE_PEM))
+		errx(1, "Cannot load SSL key %s: %s", pkey,
 			ERR_reason_error_string(ERR_get_error()));
-	if (!SSL_CTX_check_private_key(ssl_ctx))
-		errx(1, "Cannot check private SSL %s %s: %s",
-			sslvhost ? vc->sslprivatekey : lsock->sslcertificate,
-			sslvhost ? vc->sslprivatekey : lsock->sslprivatekey,
+	if (cert && pkey && !SSL_CTX_check_private_key(ssl_ctx))
+		errx(1, "Cannot check private SSL %s %s: %s", cert, pkey,
 			ERR_reason_error_string(ERR_get_error()));
 
 	if (!lsock->sslcafile && !lsock->sslcapath)
@@ -958,6 +953,7 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 			&sslverify_callback);
 	}
 
+#undef		HANDLE_SSL_TLSEXT
 #ifdef		HANDLE_SSL_TLSEXT
 	if (!SSL_CTX_set_tlsext_servername_callback(ssl_ctx, ssl_servername_cb)
 			|| !SSL_CTX_set_tlsext_servername_arg(ssl_ctx, lsock))

@@ -243,7 +243,7 @@ fileheaders(int fd)
 
 	modtime = session.modtime = 0;
 	session.etag = NULL;
-	if (!dynamic)
+	if (!dynamic && config.usetimestamp)
 	{
 		struct stat	statbuf;
 
@@ -290,7 +290,7 @@ fileheaders(int fd)
 			}
 		}
 	}
-	if ((qenv = getenv("HTTP_IF_MODIFIED_SINCE")))
+	if (config.usetimestamp && (qenv = getenv("HTTP_IF_MODIFIED_SINCE")))
 	{
 		strptime(qenv, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
 		if (!dynamic && (mktime(&reqtime) >= modtime))
@@ -302,7 +302,7 @@ fileheaders(int fd)
 				"Status", "304 Not modified");
 		}
 	}
-	else if ((qenv = getenv("HTTP_IF_UNMODIFIED_SINCE")))
+	else if (config.usetimestamp && (qenv = getenv("HTTP_IF_UNMODIFIED_SINCE")))
 	{
 		strptime(qenv, "%a, %d %b %Y %H:%M:%S %Z", &reqtime);
 		if (dynamic || (mktime(&reqtime) >= modtime))
@@ -464,8 +464,11 @@ writeheaders(void)
 		else
 			maplist_append(rh, O, "Pragma", "no-cache");
 
-		maplist_append(rh, O, "Last-modified", "%s", currenttime);
-		maplist_append(rh, O, "Expires", "%s", currenttime);
+		if (config.usetimestamp)
+		{
+			maplist_append(rh, O, "Last-modified", "%s", currenttime);
+			maplist_append(rh, O, "Expires", "%s", currenttime);
+		}
 	}
 	else
 	{
@@ -1054,9 +1057,17 @@ do_get(char *params)
 	if (current->usests && !cursock->usessl)
 	{
 		http_host = getenv("HTTP_HOST");
-		snprintf(total, XS_PATH_MAX, "https://%s%s",
-			http_host ? http_host : current->hostname,
-			params);
+		const char
+			*host = http_host ? http_host : current->hostname,
+			*port = strchr(host, ':');
+		const int	len = port ? port - host : 0;
+
+		if (port)
+			snprintf(total, XS_PATH_MAX, "https://%*.*s%s",
+				len, len, host, params);
+		else
+			snprintf(total, XS_PATH_MAX, "https://%s%s",
+				host, params);
 		/* Should probably 308, but still lacking support */
 		redirect(total, 307, redir_dflt);
 		return;

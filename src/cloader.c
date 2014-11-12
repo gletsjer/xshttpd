@@ -119,6 +119,7 @@ load_config()
 	config.usessi = true;
 	config.useput = true;
 	config.uselocalscript = true;
+	config.usetimestamp = true;
 	config.usesslsessiontickets = true;
 	config.execasuser = true;
 #ifdef		HAVE_SENDFILE
@@ -222,6 +223,8 @@ load_config()
 						config.useetag = !strcasecmp("true", value);
 					else if (!strcasecmp("UseContentMD5", key))
 						config.usecontentmd5 = !strcasecmp("true", value);
+					else if (!strcasecmp("UseTimestamp", key))
+						config.usetimestamp = !strcasecmp("true", value);
 					else if (!strcasecmp("UsePut", key))
 						config.useput = !strcasecmp("true", value);
 					else if (!strcasecmp("UseTrace", key))
@@ -250,9 +253,9 @@ load_config()
 						config.priority = strtoul(value, NULL, 10);
 					else if (!strcasecmp("ScriptPriority", key))
 						config.scriptpriority = strtoul(value, NULL, 10);
-					else if (!strcasecmp("ServerInfo", key))
+					else if (!strcasecmp("ServerIdent", key))
 					{
-						/* Note: copied in ProxyInfo */
+						/* Note: copied in ProxyIdent */
 						char	*p = NULL;
 
 						if (!strcasecmp("full", value))
@@ -266,9 +269,9 @@ load_config()
 						if (p)
 							*p = '\0';
 					}
-					else if (!strcasecmp("ProxyInfo", key))
+					else if (!strcasecmp("ProxyIdent", key))
 					{
-						/* Note: copy of ServerInfo */
+						/* Note: copy of ServerIdent */
 						char	*p = NULL;
 
 						if (!strcasecmp("full", value))
@@ -341,6 +344,8 @@ load_config()
 						lsock->usessl = true;
 						lsock->sslprivatekey = checkpath("SSLCertificate", CONFIG_DIR, value);
 					}
+					else if (!strcasecmp("SSLNoCert", key))
+						lsock->sslnocert = !strcasecmp("true", value);
 					else if (!strcasecmp("SSLCAfile", key))
 						lsock->sslcafile = checkpath("SSLCAfile", CONFIG_DIR, value);
 					else if (!strcasecmp("SSLCApath", key))

@@ -215,6 +215,15 @@ For dynamically generated data (CGI of SSI chunked transfers)
 the md5 checksum will be added to the trailers
 (headers following content).
 This option is only available on systems with libmd.
+.It Sy UseTimestamp Ar boolean Aq true
+This setting will disable timestamp-related functionality, such as
+.Sy Date
+and
+.Sy Last-modified
+HTTP headers.
+This option is mandatory to comply with RFC 2616.
+However, for (embedded) systems without a reliable system clock,
+it make be useful to turn this off anyway.
 .It Sy UsePut Ar boolean Aq true
 Allow users to handle HTTP PUT and DELETE requests with local
 CGI scripts.
@@ -448,6 +457,18 @@ file. Note that this key may be protected with a secret passphrase.
 In that case the server will prompt for this passphrase when started.
 Do not use passphrase protection when you expect the server to start
 up automatically.
+.It Sy SSLNoCert Ar boolean Aq false
+Enable SSL without using a server certificate.
+This will offer encryption, but no authentication (aNULL, ADH).
+Setting this option generally makes no sense for public websites
+and makes the service vulnerable to man-in-the-middle attacks.
+This setting is not compatible with
+.Sy SSLCertificate and
+.Sy SSLPrivateKey
+or SSL virtual hosts.
+This option is only available within a
+.Sy Socket
+block.
 .It Sy SSLAuthentication Xo
 .Bro Cm none Ns No | Ns Cm optional Ns No | Ns Cm strict Brc Aq none
 .Xc
