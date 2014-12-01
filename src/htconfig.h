@@ -52,6 +52,8 @@ extern struct virtual
 	bool		allowusers;
 	char *		sslcertificate;
 	char *		sslprivatekey;
+	char *		sslcertificate2;
+	char *		sslprivatekey2;
 	char *		sslocspfile;
 	char *		sslinfofile;
 	bool		usests;
@@ -85,6 +87,8 @@ struct socket_config
 	unsigned int	instances;
 	char *		sslcertificate;
 	char *		sslprivatekey;
+	char *		sslcertificate2;
+	char *		sslprivatekey2;
 	char *		sslcafile;
 	char *		sslcapath;
 	char *		sslcrlfile;

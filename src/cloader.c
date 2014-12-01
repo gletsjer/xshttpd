@@ -342,8 +342,12 @@ load_config()
 					else if (!strcasecmp("SSLPrivateKey", key))
 					{
 						lsock->usessl = true;
-						lsock->sslprivatekey = checkpath("SSLCertificate", CONFIG_DIR, value);
+						lsock->sslprivatekey = checkpath("SSLPrivateKey", CONFIG_DIR, value);
 					}
+					else if (!strcasecmp("SSLCertificate2", key))
+						lsock->sslcertificate2 = checkpath("SSLCertificate2", CONFIG_DIR, value);
+					else if (!strcasecmp("SSLPrivateKey2", key))
+						lsock->sslprivatekey2 = checkpath("SSLPrivateKey2", CONFIG_DIR, value);
 					else if (!strcasecmp("SSLNoCert", key))
 						lsock->sslnocert = !strcasecmp("true", value);
 					else if (!strcasecmp("SSLCAfile", key))
@@ -484,6 +488,10 @@ load_config()
 #endif		/* HANDLE_SSL_TLSEXT */
 				else if (!strcasecmp("SSLPrivateKey", key))
 					current->sslprivatekey = checkpath("SSLPrivateKey", CONFIG_DIR, value);
+				else if (!strcasecmp("SSLCertificate2", key))
+					current->sslcertificate2 = checkpath("SSLCertificate2", CONFIG_DIR, value);
+				else if (!strcasecmp("SSLPrivateKey2", key))
+					current->sslprivatekey2 = checkpath("SSLPrivateKey2", CONFIG_DIR, value);
 				else if (!strcasecmp("SSLOCSPfile", key))
 					current->sslocspfile = checkpath("SSLOCSPfile", DB_DIR, value);
 				else if (!strcasecmp("SSLinfofile", key))
