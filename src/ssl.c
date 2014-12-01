@@ -772,7 +772,6 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 	if (cert && pkey && !SSL_CTX_check_private_key(ssl_ctx))
 		errx(1, "Cannot check private SSL %s %s: %s", cert, pkey,
 			ERR_reason_error_string(ERR_get_error()));
-if (cert && vc) warnx("loaded %s for %s", cert, vc->hostname);
 
 	/* Optional second key - code duplication */
 	cert = sslvhost ? vc->sslcertificate2 : lsock->sslcertificate2,
@@ -786,7 +785,6 @@ if (cert && vc) warnx("loaded %s for %s", cert, vc->hostname);
 	if (cert && pkey && !SSL_CTX_check_private_key(ssl_ctx))
 		errx(1, "Cannot check private SSL %s %s: %s", cert, pkey,
 			ERR_reason_error_string(ERR_get_error()));
-if (cert && vc) warnx("loaded %s for %s", cert, vc->hostname);
 
 	if (!lsock->sslcafile && !lsock->sslcapath)
 		/* TODO: warn */;
