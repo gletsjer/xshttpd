@@ -50,10 +50,8 @@ extern struct virtual
 	FILE *		openscript;
 	xs_logstyle_t	logstyle;
 	bool		allowusers;
-	char *		sslcertificate;
-	char *		sslprivatekey;
-	char *		sslcertificate2;
-	char *		sslprivatekey2;
+	char **		sslcertificate;
+	char **		sslprivatekey;
 	char *		sslocspfile;
 	char *		sslinfofile;
 	bool		usests;
@@ -85,10 +83,8 @@ struct socket_config
 	bool		usessl;
 	bool		sslnocert;
 	unsigned int	instances;
-	char *		sslcertificate;
-	char *		sslprivatekey;
-	char *		sslcertificate2;
-	char *		sslprivatekey2;
+	char **		sslcertificate;
+	char **		sslprivatekey;
 	char *		sslcafile;
 	char *		sslcapath;
 	char *		sslcrlfile;

@@ -715,6 +715,10 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 	SSL_CTX			*ssl_ctx;
 	const SSL_METHOD	*method = NULL;
 	struct virtual		*vc = NULL;
+	char			**lcert,
+				**lpkey,
+				*cert,
+				*pkey;
 
 	if (!lsock->usessl)
 		return;
@@ -722,17 +726,26 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 	preloadssl();
 
 	if (!lsock->sslcertificate && !lsock->sslnocert)
-		STRDUP(lsock->sslcertificate, CERT_FILE);
-	if (!lsock->sslprivatekey && !lsock->sslnocert)
-		STRDUP(lsock->sslprivatekey, KEY_FILE);
+	{
+		MALLOC(lsock->sslcertificate, char *, 2);
+		MALLOC(lsock->sslprivatekey, char *, 2);
+		STRDUP(lsock->sslcertificate[0], CERT_FILE);
+		STRDUP(lsock->sslprivatekey[0], KEY_FILE);
+		lsock->sslcertificate[1] = lsock->sslprivatekey[1] = NULL;
+	}
 
 	if (sslvhost)
 	{
 		vc = sslvhost->virtual;
-		if (!vc->sslcertificate)
+		lcert = vc->sslcertificate;
+		lpkey = vc->sslprivatekey;
+		if (!lcert || !lpkey)
 			return;
-		if (!vc->sslprivatekey)
-			STRDUP(vc->sslprivatekey, vc->sslcertificate);
+	}
+	else
+	{
+		lcert = lsock->sslcertificate;
+		lpkey = lsock->sslprivatekey;
 	}
 
 	if (!(method = SSLv23_server_method()))
@@ -759,32 +772,22 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 		SSL_CTX_get_mode(ssl_ctx) | SSL_MODE_AUTO_RETRY);
 #endif		/* SSL_MODE_AUTO_RETRY */
 	SSL_CTX_set_default_passwd_cb(ssl_ctx, pem_passwd_cb);
-	SSL_CTX_set_default_passwd_cb_userdata(ssl_ctx, lsock->sslprivatekey);
 
-	char	*cert = sslvhost ? vc->sslcertificate : lsock->sslcertificate,
-		*pkey = sslvhost ? vc->sslprivatekey : lsock->sslprivatekey;
-	if (cert && !SSL_CTX_use_certificate_chain_file(ssl_ctx, cert))
-		errx(1, "Cannot load SSL cert %s: %s",  cert,
-			ERR_reason_error_string(ERR_get_error()));
-	if (pkey && !SSL_CTX_use_PrivateKey_file(ssl_ctx, pkey, SSL_FILETYPE_PEM))
-		errx(1, "Cannot load SSL key %s: %s", pkey,
-			ERR_reason_error_string(ERR_get_error()));
-	if (cert && pkey && !SSL_CTX_check_private_key(ssl_ctx))
-		errx(1, "Cannot check private SSL %s %s: %s", cert, pkey,
-			ERR_reason_error_string(ERR_get_error()));
+	/* load private keys and certificates (chains) */
+	for (size_t i = 0; (cert = lcert[i]) && (pkey = lpkey[i]); i++)
+	{
+		SSL_CTX_set_default_passwd_cb_userdata(ssl_ctx, pkey);
 
-	/* Optional second key - code duplication */
-	cert = sslvhost ? vc->sslcertificate2 : lsock->sslcertificate2,
-	pkey = sslvhost ? vc->sslprivatekey2 : lsock->sslprivatekey2;
-	if (cert && !SSL_CTX_use_certificate_chain_file(ssl_ctx, cert))
-		errx(1, "Cannot load SSL cert %s: %s",  cert,
-			ERR_reason_error_string(ERR_get_error()));
-	if (pkey && !SSL_CTX_use_PrivateKey_file(ssl_ctx, pkey, SSL_FILETYPE_PEM))
-		errx(1, "Cannot load SSL key %s: %s", pkey,
-			ERR_reason_error_string(ERR_get_error()));
-	if (cert && pkey && !SSL_CTX_check_private_key(ssl_ctx))
-		errx(1, "Cannot check private SSL %s %s: %s", cert, pkey,
-			ERR_reason_error_string(ERR_get_error()));
+		if (cert && !SSL_CTX_use_certificate_chain_file(ssl_ctx, cert))
+			errx(1, "Cannot load SSL cert %s: %s",  cert,
+				ERR_reason_error_string(ERR_get_error()));
+		if (pkey && !SSL_CTX_use_PrivateKey_file(ssl_ctx, pkey, SSL_FILETYPE_PEM))
+			errx(1, "Cannot load SSL key %s: %s", pkey,
+				ERR_reason_error_string(ERR_get_error()));
+		if (cert && pkey && !SSL_CTX_check_private_key(ssl_ctx))
+			errx(1, "Cannot check private SSL(%zu) %s %s: %s", i, cert, pkey,
+				ERR_reason_error_string(ERR_get_error()));
+	}
 
 	if (!lsock->sslcafile && !lsock->sslcapath)
 		/* TODO: warn */;
@@ -818,8 +821,8 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 		SSL_CTX_set_client_CA_list(ssl_ctx, list);
 	}
 
-	/* read dh parameters from private keyfile */
-	BIO	*bio = BIO_new_file(sslvhost ? vc->sslprivatekey : lsock->sslprivatekey, "r");
+	/* read dh parameters from first private keyfile */
+	BIO	*bio = BIO_new_file(sslvhost ? vc->sslprivatekey[0] : lsock->sslprivatekey[0], "r");
 	if (bio)
 	{
 		DSA		*dsa;
@@ -833,8 +836,8 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 			dh = DSA_dup_DH(dsa);
 			DSA_free(dsa);
 		}
-		/* read dh parameters from public certificate file */
-		if (!dh && (pbio = BIO_new_file(sslvhost ? vc->sslcertificate : lsock->sslcertificate, "r")))
+		/* read dh parameters from first public certificate file */
+		if (!dh && (pbio = BIO_new_file(*lcert, "r")))
 		{
 			dh = PEM_read_bio_DHparams(pbio, NULL, NULL, NULL);
 			if (!dh && (dsa = PEM_read_bio_DSAparams(pbio, NULL, NULL, NULL)))
@@ -889,15 +892,14 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 		if (bio)
 			BIO_reset(bio);
 		else
-			bio = BIO_new_file(sslvhost ?
-				vc->sslprivatekey : lsock->sslprivatekey, "r");
+			bio = BIO_new_file(*lpkey, "r");
 		if (bio)
 			PEM_read_bio_PrivateKey(bio, &pkey, NULL, NULL);
 
 #ifdef		SSL_CTRL_SET_TLSEXT_TICKET_KEYS
 		if (pkey)
 		{
-			/* To get our key, we sign the seed with the private key */
+			/* To get our key, we sign the seed with the first private key */
 			const char	ticketkey[] = "xshttpd-global-ticketkey";
 			unsigned char	keys[SSL_MAX_MASTER_KEY_LENGTH];
 			unsigned char	sign[EVP_PKEY_size(pkey)];

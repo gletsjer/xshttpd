@@ -457,6 +457,17 @@ file. Note that this key may be protected with a secret passphrase.
 In that case the server will prompt for this passphrase when started.
 Do not use passphrase protection when you expect the server to start
 up automatically.
+.Pp
+It is possible to list multiple certificates and private keys
+for the same (virtual) host, but for different authentication ciphers.
+These pairs must be listed with
+.Sy SSLCertificate
+and
+.Sy SSLPrivateKey
+in matching order.
+Support for this is limited by OpenSSL and does not work with certificate
+chains or OCSP.
+Avoid using multiple keys whenever possible.
 .It Sy SSLNoCert Ar boolean Aq false
 Enable SSL without using a server certificate.
 This will offer encryption, but no authentication (aNULL, ADH).

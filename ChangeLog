@@ -1,13 +1,20 @@
 This file contains an overview of version differences. The list
 is not complete. Refer to cvs comments for more information.
 
+Changes since 3.7 beta 31
+- Rename ServerInfo to ServerIdent
+- Rename ProxyInfo to ProxyIdent
+- Add SSLNoCert for TLS without certificate (aNULL, ADH)
+- Add UseTimeStamp to disable Date, Last-Modified headers
+- Allow multiple certs and keys in SSLCertificate, SSLPrivateKey
+
 Changes since 3.7 beta 30
 - Use system crypt(3) to allow stronger passwords than just DES
 - Add SSLOCSPfile to support OCSP Stapling;
   External process (crontab with openssl ocsp) must keep content fresh
 - Add SSLinfofile to support server certificate extension data;
-  such as Signed Certificate Timestamps for Certificate Transparency.
-  Only works on systems with SSL_CTX_use_serverinfo_file() function.
+  such as Signed Certificate Timestamps for Certificate Transparency
+  Only works on systems with SSL_CTX_use_serverinfo_file() function
 
 Changes since 3.7 beta 29
 - Support HTTP redirection via 307 and 308 status codes

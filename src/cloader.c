@@ -60,6 +60,8 @@
 #define		PRIO_MAX	20
 #endif
 
+#define		PKEYS_MAX	16
+
 char			*config_path;
 char			*config_preprocessor;
 
@@ -156,7 +158,7 @@ load_config()
 		/* parse config file */
 		while ((line = fparseln(confd, NULL, NULL, NULL, FPARSEARG)))
 		{
-			char	*key, *value, *end;
+			char	*key, *value, *end, *tmp;
 
 			end = strchr(line, '\0');
 			while (end > line && *(end - 1) <= ' ')
@@ -337,17 +339,25 @@ load_config()
 					else if (!strcasecmp("SSLCertificate", key))
 					{
 						lsock->usessl = true;
-						lsock->sslcertificate = checkpath("SSLCertificate", CONFIG_DIR, value);
+						if (string_to_arraypn(value, &lsock->sslcertificate))
+							for (int i = 0; (tmp = lsock->sslcertificate[i]); i++)
+							{
+								lsock->sslcertificate[i] =
+									checkpath("SSLCertificate", CONFIG_DIR, tmp);
+								FREE(tmp);
+							}
 					}
 					else if (!strcasecmp("SSLPrivateKey", key))
 					{
 						lsock->usessl = true;
-						lsock->sslprivatekey = checkpath("SSLPrivateKey", CONFIG_DIR, value);
+						if (string_to_arraypn(value, &lsock->sslprivatekey))
+							for (int i = 0; (tmp = lsock->sslprivatekey[i]); i++)
+							{
+								lsock->sslprivatekey[i] =
+									checkpath("SSLPrivateKey", CONFIG_DIR, tmp);
+								FREE(tmp);
+							}
 					}
-					else if (!strcasecmp("SSLCertificate2", key))
-						lsock->sslcertificate2 = checkpath("SSLCertificate2", CONFIG_DIR, value);
-					else if (!strcasecmp("SSLPrivateKey2", key))
-						lsock->sslprivatekey2 = checkpath("SSLPrivateKey2", CONFIG_DIR, value);
 					else if (!strcasecmp("SSLNoCert", key))
 						lsock->sslnocert = !strcasecmp("true", value);
 					else if (!strcasecmp("SSLCAfile", key))
@@ -482,16 +492,28 @@ load_config()
 						key);
 				else if (!strcasecmp("SSLCertificate", key))
 #ifdef		HANDLE_SSL_TLSEXT
-					current->sslcertificate = checkpath("SSLCertificate", CONFIG_DIR, value);
+				{
+					if (string_to_arraypn(value, &current->sslcertificate))
+						for (int i = 0; (tmp = current->sslcertificate[i]); i++)
+						{
+							current->sslcertificate[i] =
+								checkpath("SSLCertificate", CONFIG_DIR, tmp);
+							FREE(tmp);
+						}
+				}
 #else		/* HANDLE_SSL_TLSEXT */
 					errx(1, "Vhost SSLCertificate not allowed: SSL library doesn't support TLSEXT");
 #endif		/* HANDLE_SSL_TLSEXT */
 				else if (!strcasecmp("SSLPrivateKey", key))
-					current->sslprivatekey = checkpath("SSLPrivateKey", CONFIG_DIR, value);
-				else if (!strcasecmp("SSLCertificate2", key))
-					current->sslcertificate2 = checkpath("SSLCertificate2", CONFIG_DIR, value);
-				else if (!strcasecmp("SSLPrivateKey2", key))
-					current->sslprivatekey2 = checkpath("SSLPrivateKey2", CONFIG_DIR, value);
+				{
+					if (string_to_arraypn(value, &current->sslprivatekey))
+						for (int i = 0; (tmp = current->sslprivatekey[i]); i++)
+						{
+							current->sslprivatekey[i] =
+								checkpath("SSLPrivateKey", CONFIG_DIR, tmp);
+							FREE(tmp);
+						}
+				}
 				else if (!strcasecmp("SSLOCSPfile", key))
 					current->sslocspfile = checkpath("SSLOCSPfile", DB_DIR, value);
 				else if (!strcasecmp("SSLinfofile", key))
