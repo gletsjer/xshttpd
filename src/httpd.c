@@ -1272,6 +1272,8 @@ standalone_main()
 
 	detach();
 	open_logs(0);
+	if (runasroot)
+		seteugid(config.system->userid, config.system->groupid);
 
 	/* initialise modules */
 	init_modules();
@@ -1392,6 +1394,10 @@ standalone_socket(int id)
 
 	if ((setsockopt(sd, SOL_SOCKET, SO_KEEPALIVE, (int[]){1}, sizeof(int))) == -1)
 		err(1, "setsockopt(KEEPALIVE)");
+
+	if (runasroot && geteuid())
+		/* restore root privs */
+		seteugid(0, 0);
 
 #ifdef		HAVE_GETADDRINFO
 	if (bind(sd, res->ai_addr, res->ai_addrlen) == -1)
@@ -1516,6 +1522,8 @@ standalone_socket(int id)
 
 	CHILD:
 	FREE(childs);
+	if (runasroot)
+		seteugid(config.system->userid, config.system->groupid);
 	setvbuf(stdout, NULL, _IOFBF, 0);
 	while (true)
 	{
@@ -1536,9 +1544,6 @@ standalone_socket(int id)
 
 		setproctitle("xs(%c%d): [Reqs: %06d] Setting up myself to accept a connection",
 			id, count + 1, reqs);
-		if (runasroot && geteuid())
-			/* restore root privs */
-			seteugid(0, 0);
 		filedescrs();
 		setproctitle("xs(%c%d): [Reqs: %06d] Waiting for a connection...",
 			id, count + 1, reqs);

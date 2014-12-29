@@ -28,5 +28,6 @@ int	maplist_append		(struct maplist *, xs_appendflags_t, const char *, const cha
 void	maplist_free		(struct maplist *);
 char	*do_crypt		(const char * const key, const char * const iv);
 bool	seteugid		(const uid_t uid, const gid_t gid);
+bool	setugid			(const uid_t uid, const gid_t gid);
 
 #endif		/* EXTRA_H */

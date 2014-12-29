@@ -322,16 +322,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 			if (!gid)
 				gid = config.system->groupid;
 
-			/* Linux does not allow setting uid to current euid
-			 * so switch back to root first, then set uid + euid
-			 */
-			seteugid(0, 0);
-			if (setgid(gid) < 0)
-				err(1, "do_get: setgid()");
-			if (setgroups(1, (gid_t *)&gid) < 0)
-				err(1, "do_get: setgroups()");
-			if (setuid(uid) < 0)
-				err(1, "do_get: setuid()");
+			setugid(uid, gid);
 		}
 		/* refuse to run CGI as root */
 		if (!geteuid())

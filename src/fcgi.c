@@ -17,6 +17,7 @@
 #include <limits.h>
 
 #include "ssl.h"
+#include "extra.h"
 #include "fcgi_api.h"
 #include "fcgi.h"
 #include "htconfig.h"
@@ -177,11 +178,8 @@ fcgi_child_init(void)
 	case -1:
 		return -1;
 	case 0:
-		if (setegid(current->groupid) < 0 ||
-				setgid(current->groupid) < 0 ||
-				seteuid(current->userid) < 0 ||
-				setuid(current->userid) < 0)
-			err(1, "setuid()");
+		if (!setugid(current->userid, current->groupid))
+			err(1, "setugid()");
 		setenv("FCGI_WEB_SERVER_ADDRS", "127.0.0.1", 1);
 		if (current->phpfcgichildren)
 		{

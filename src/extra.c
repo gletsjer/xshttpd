@@ -647,3 +647,32 @@ seteugid(const uid_t uid, const gid_t gid)
 	return true;
 }
 
+/* Permanently drop permissions */
+bool
+setugid(const uid_t uid, const gid_t gid)
+{
+	/* reset to root */
+	if ((uid == 0 || geteuid() > 0) && seteuid(0) < 0)
+	{
+		/* 599: don't display error */
+		xserror(599, "seteuid(): %s", strerror(errno));
+		err(1, "seteuid()");
+	}
+
+	if (setgid(gid) < 0)
+	{
+		xserror(599, "setgid(): %s", strerror(errno));
+		err(1, "setgid()");
+	}
+	if (setgroups(1, &gid) < 0)
+	{
+		xserror(599, "setgroups(): %s", strerror(errno));
+		err(1, "setgroups()");
+	}
+	if (uid && setuid(uid) < 0)
+	{
+		xserror(599, "setuid(): %s", strerror(errno));
+		err(1, "setuid()");
+	}
+	return true;
+}
