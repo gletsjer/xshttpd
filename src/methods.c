@@ -438,6 +438,10 @@ writeheaders(void)
 	/* All preconditions satisfied - do headers */
 	/* Status, Date and Server headers are pre-initialised */
 
+	if (!current)
+		/* may not be initialised upon early error */
+		current = config.system;
+
 	if (cfvalues.mimetype && cfvalues.charset &&
 			!strncasecmp(cfvalues.mimetype, "text/", 5))
 		/* charset only applies to text/.. documents */

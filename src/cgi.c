@@ -253,7 +253,6 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 		close(r[1]);
 		q[0] = p[1] = r[1] = -1;
 	}
-	else
 
 	sigaction(SIGCHLD, &ignore, &action);
 	switch (child = fork())
@@ -431,8 +430,8 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 	const char * const te = getenv("HTTP_TRANSFER_ENCODING");
 	if (ssl_post && te && !strcasecmp(te, "chunked"))
 	{
-		char		buffer[20];
-		const size_t	buflen = sizeof buffer;
+		const size_t	buflen = 20;
+		char		buffer[buflen];
 		char		*cbuf = NULL;
 		size_t		chunksz;
 
@@ -455,6 +454,7 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				secread(0, buffer, 2);
 				break;
 			}
+			/* TODO: read/write data in 4k blocks */
 			/* two bytes extra for trailing \r\n */
 			REALLOC(cbuf, char, chunksz + 2);
 			if (!cbuf || (secread(0, cbuf, chunksz + 2) < 0))
