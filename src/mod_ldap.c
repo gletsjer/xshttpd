@@ -1,5 +1,5 @@
 /* Copyright (C) 2005 by Rink Springer (rink@stack.nl) */
-/* Copyright (C) 2005-2013 by Johan van Selst (johans@stack.nl) */
+/* Copyright (C) 2005-2015 by Johan van Selst (johans@stack.nl) */
 
 #include	"config.h"
 

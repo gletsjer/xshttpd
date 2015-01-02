@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2013 by Johan van Selst (johans@stack.nl) */
+/* Copyright (C) 2003-2015 by Johan van Selst (johans@stack.nl) */
 
 #include	"config.h"
 
