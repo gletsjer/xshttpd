@@ -215,11 +215,40 @@ write_pidfile(pid_t pid)
 	return true;
 }
 
+static inline void
+reopen_log(FILE **fp, const char * const filename)
+{
+	FILE	*openlog = *fp;
+
+	if (!filename)
+		return;
+
+	/* Open new log first, then close old one
+	 * When rotating logs the file should be moved before sending HUP
+	 */
+	if ('|' != filename[0])
+	{
+		if (!(*fp = fopen(filename, "a")))
+			err(1, "fopen(`%s' [append])", current->logaccess);
+		if (openlog)
+			fclose(openlog);
+	}
+	else /* use_pipe */
+	{
+		if (!(*fp = popen(filename + 1, "w")))
+			err(1, "popen(`%s' [write])", filename);
+		if (openlog)
+			pclose(openlog);
+	}
+	setvbuf(*fp, NULL, _IOLBF, 0);
+}
+
 static	void
 open_logs(int sig)
 {
 	const uid_t		savedeuid = geteuid();
 	const gid_t		savedegid = getegid();
+	FILE			*oldfile;
 
 	if (sig)
 	{
@@ -237,120 +266,12 @@ open_logs(int sig)
 
 	for (current = config.system; current; current = current->next)
 	{
-		/* access */
-		if (current->logaccess)
-		{
-			if ('|' != current->logaccess[0])
-			{
-				if (current->openaccess)
-					fclose(current->openaccess);
-				if (!(current->openaccess =
-					fopen(current->logaccess, "a")))
-				{
-					err(1, "fopen(`%s' [append])",
-						current->logaccess);
-				}
-			}
-			else /* use_pipe */
-			{
-				if (current->openaccess)
-					pclose(current->openaccess);
-				if (!(current->openaccess =
-					popen(current->logaccess + 1, "w")))
-				{
-					err(1, "popen(`%s' [write])",
-						current->logaccess);
-				}
-			}
-			setvbuf(current->openaccess, NULL, _IOLBF, 0);
-		}
-
-		/* XXX: evil code duplication */
-		if (current->logstyle == log_traditional && current->logreferer)
-		{
-			/* referer */
-			if ('|' != current->logreferer[0])
-			{
-				if (current->openreferer)
-					fclose(current->openreferer);
-				if (!(current->openreferer =
-					fopen(current->logreferer, "a")))
-				{
-					err(1, "fopen(`%s' [append])",
-						current->logreferer);
-				}
-			}
-			else /* use pipe */
-			{
-				if (current->openreferer)
-					pclose(current->openreferer);
-				if (!(current->openreferer =
-					popen(current->logreferer + 1, "w")))
-				{
-					err(1, "popen(`%s' [write])",
-						current->logreferer);
-				}
-			}
-			setvbuf(current->openreferer, NULL, _IOLBF, 0);
-		}
-
-		/* XXX: evil code duplication */
-		if (current->logerror)
-		{
-			/* error */
-			if ('|' != current->logerror[0])
-			{
-				if (current->openerror)
-					fclose(current->openerror);
-				if (!(current->openerror =
-					fopen(current->logerror, "a")))
-				{
-					err(1, "fopen(`%s' [append])",
-						current->logerror);
-				}
-			}
-			else /* use pipe */
-			{
-				if (current->openerror)
-					pclose(current->openerror);
-				if (!(current->openerror =
-					popen(current->logerror + 1, "w")))
-				{
-					err(1, "popen(`%s' [write])",
-						current->logerror);
-				}
-			}
-			setvbuf(current->openerror, NULL, _IOLBF, 0);
-		}
-
-		/* XXX: evil code duplication */
-		if (current->logscript)
-		{
-			/* error */
-			if ('|' != current->logscript[0])
-			{
-				if (current->openscript)
-					fclose(current->openscript);
-				if (!(current->openscript =
-					fopen(current->logscript, "a")))
-				{
-					err(1, "fopen(`%s' [append])",
-						current->logscript);
-				}
-			}
-			else /* use pipe */
-			{
-				if (current->openscript)
-					pclose(current->openscript);
-				if (!(current->openscript =
-					popen(current->logscript + 1, "w")))
-				{
-					err(1, "popen(`%s' [write])",
-						current->logscript);
-				}
-			}
-			setvbuf(current->openscript, NULL, _IOLBF, 0);
-		}
+		/* max. four logfiles per vhost */
+		reopen_log(&current->openaccess, current->logaccess);
+		if (current->logstyle == log_traditional)
+			reopen_log(&current->openreferer, current->logreferer);
+		reopen_log(&current->openerror, current->logerror);
+		reopen_log(&current->openscript, current->logscript);
 	}
 
 	fflush(stderr);
