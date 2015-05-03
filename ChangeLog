@@ -4,6 +4,8 @@ is not complete. Refer to cvs comments for more information.
 Changes since 3.7 beta 32
 - Drop privileges earlier; initialisation is still done as root
 - Open new logfiles before closing old
+- Add HTTP Public Key Pinning
+- Disable client initiated TLS reconnects
 
 Changes since 3.7 beta 31
 - Rename ServerInfo to ServerIdent
