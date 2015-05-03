@@ -176,6 +176,7 @@ extern struct session
 	bool		persistent;
 	bool		trailers;
 	bool		via;
+	bool		disable_reneg;
 	struct maplist	request_headers;
 	struct maplist	response_headers;
 } session;

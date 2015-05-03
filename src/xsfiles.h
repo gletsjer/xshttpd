@@ -12,6 +12,7 @@ typedef struct cf_values
 	char	*p3pref;
 	char	*p3pcp;
 	char	*csp;
+	char	*hpkp;
 	char	*putscript;
 	char	*delscript;
 	bool	noprivs;

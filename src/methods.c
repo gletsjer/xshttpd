@@ -534,6 +534,8 @@ writeheaders(void)
 
 	if (cfvalues.csp)
 		maplist_append(rh, O, "Content-Security-Policy", "%s", cfvalues.csp);
+	if (cfvalues.hpkp)
+		maplist_append(rh, O, "Public-Key-Pins", "%s", cfvalues.hpkp);
 
 	/* Write headers to buffer */
 	char	*headers, *hp;

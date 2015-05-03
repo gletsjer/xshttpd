@@ -609,6 +609,8 @@ check_xsconf(const char * const cffile, const char * const filename, const int d
 			STRDUP(cfvalues->p3pcp, value);
 		else if (!strcasecmp(name, "ContentSecurityPolicy"))
 			STRDUP(cfvalues->csp, value);
+		else if (!strcasecmp(name, "PublicKeyPins"))
+			STRDUP(cfvalues->hpkp, value);
 		else if (!strcasecmp(name, "DeleteScript"))
 			STRDUP(cfvalues->delscript, value);
 		else if (!strcasecmp(name, "PutScript"))
