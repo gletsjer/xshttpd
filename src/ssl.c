@@ -674,6 +674,23 @@ ssl_status_cb(SSL *ssl, const char *filename)
 	SSL_set_tlsext_status_ocsp_resp(ssl, ocsp, ocsplen);
 	return SSL_TLSEXT_ERR_OK;
 }
+
+static void
+ssl_info_cb(const SSL *ssl, int where, int ret)
+{
+	if ((where & SSL_CB_HANDSHAKE_DONE)) {
+//warnx("State: %s\nAlert: %s", SSL_state_string_long(ssl), SSL_alert_type_string_long(ret));
+		/* This is the better solution, but it does not work:
+		 * will keep the connection lingering in an unusable state
+		 *
+		ssl->s3->flags |= SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS;
+		 */
+		ssl->s3->fatal_alert = 1;
+		ssl->s3->alert_dispatch = 1;
+		ssl->s3->send_alert[0] = SSL3_AL_FATAL;
+		ssl->s3->send_alert[1] = SSL_AD_HANDSHAKE_FAILURE;
+	}
+}
 #endif	 	/* HANDLE_SSL_TLSEXT */
 
 static void
@@ -978,6 +995,8 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 	if (!SSL_CTX_set_tlsext_status_cb(ssl_ctx, ssl_status_cb) ||
 			!SSL_CTX_set_tlsext_status_arg(ssl_ctx, ocspfile))
 		errx(1, "Cannot load TLS status callback");
+
+	SSL_CTX_set_info_callback(ssl_ctx, ssl_info_cb);
 
 	const char *infofile = vc && vc->sslinfofile
 		? vc->sslinfofile : lsock->sslinfofile;
