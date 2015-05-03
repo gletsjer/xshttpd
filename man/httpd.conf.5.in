@@ -824,7 +824,7 @@ This option is only available when the SSL-library supports
 (SNI).
 .It Sy UseSTS Ar boolean Aq false
 Enable
-.Em HTTP Strict Transport Security 
+.Em HTTP Strict Transport Security
 for this virtual host.
 STS sites should only be visited via SSL/TLS (https).
 Setting this option will generate an HTTP redirect for visitors using

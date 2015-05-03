@@ -185,6 +185,21 @@ document.
 Set the content security policy for the selected resource.
 If set, this policy will be added to the headers of the
 requested document(s).
+.It PublicKeyPins
+Set the HTTP public key pinning header for the selected resource.
+The value will be used unchanged in the
+.Em Public-Key-Pins
+header.
+It should contain the hash values of the public keys that are used
+for the website. It is recommended to always include an additional
+key hash, for a key which is stored offline.
+Note that this value is independent of a certificate: a certificate
+may be renewed without changing the private key, in which case the
+header does not need to be updated.
+A max-age value of 5184000 (60 days) is recommended for default use.
+See
+.Sy RFC 7469
+for more details.
 .El
 .Pp
 Extra authentication options are available when SSL and PCRE
