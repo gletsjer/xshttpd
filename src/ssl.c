@@ -155,6 +155,7 @@ initssl(void)
 		}
 	}
 #endif		/* HAVE_PCRE */
+	session.disable_reneg = false;
 	return true;
 }
 
@@ -248,6 +249,7 @@ ssl_environment(void)
 		unsetenv("SSL_CLIENT_I_DN_Email");
 		setenv("SSL_CLIENT_VERIFY", "NONE", 1);
 	}
+
 	/* we are now doing SSL-only */
 	setenv("HTTPS", "on", 1);
 }
@@ -678,18 +680,29 @@ ssl_status_cb(SSL *ssl, const char *filename)
 static void
 ssl_info_cb(const SSL *ssl, int where, int ret)
 {
-	if ((where & SSL_CB_HANDSHAKE_DONE)) {
-//warnx("State: %s\nAlert: %s", SSL_state_string_long(ssl), SSL_alert_type_string_long(ret));
-		/* This is the better solution, but it does not work:
-		 * will keep the connection lingering in an unusable state
-		 *
-		ssl->s3->flags |= SSL3_FLAGS_NO_RENEGOTIATE_CIPHERS;
-		 */
-		ssl->s3->fatal_alert = 1;
-		ssl->s3->alert_dispatch = 1;
-		ssl->s3->send_alert[0] = SSL3_AL_FATAL;
-		ssl->s3->send_alert[1] = SSL_AD_HANDSHAKE_FAILURE;
+	/* If the reneg state is to reject renegotiations, check the SSL
+	 * state machine and move to ABORT if a Client Hello is being read.
+	 */
+	if ((where & SSL_CB_ACCEPT_LOOP) && session.disable_reneg)
+	{
+		const int state = SSL_get_state(ssl);
+
+		if (state == SSL3_ST_SR_CLNT_HELLO_A ||
+				state == SSL3_ST_SR_CLNT_HELLO_B ||
+				state == SSL23_ST_SR_CLNT_HELLO_A ||
+				state == SSL23_ST_SR_CLNT_HELLO_B)
+		{
+			ssl->s3->fatal_alert = 1;
+			ssl->s3->alert_dispatch = 1;
+			ssl->s3->send_alert[0] = SSL3_AL_FATAL;
+			ssl->s3->send_alert[1] = SSL_AD_HANDSHAKE_FAILURE;
+		 }
 	}
+	/* If the first handshake is complete, change state to reject any
+	 * subsequent client-initated renegotiation.
+	 */
+	if (where & SSL_CB_HANDSHAKE_DONE)
+		session.disable_reneg = true;
 }
 #endif	 	/* HANDLE_SSL_TLSEXT */
 
@@ -996,7 +1009,7 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 			!SSL_CTX_set_tlsext_status_arg(ssl_ctx, ocspfile))
 		errx(1, "Cannot load TLS status callback");
 
-	SSL_CTX_set_info_callback(ssl_ctx, ssl_info_cb);
+//	SSL_CTX_set_info_callback(ssl_ctx, ssl_info_cb);
 
 	const char *infofile = vc && vc->sslinfofile
 		? vc->sslinfofile : lsock->sslinfofile;

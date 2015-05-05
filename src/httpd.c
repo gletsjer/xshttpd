@@ -477,10 +477,19 @@ void
 redirect(const char * const redir, const unsigned int status, const xs_redirflags_t flags)
 {
 	const char	*qs = NULL;
+	char		*qsurl = NULL,
+			*redirdec,
+			*redirhtml,
+			*redirurl;
 	char		*errmsg = NULL;
 
-	if (flags & redir_env)
+	redirdec = urldecode(redir);
+	redirurl = urlencode(redirdec, false);
+	redirhtml = escape(redir);
+	if (flags & redir_env) {
 		qs = env.query_string;
+		qsurl = urlencode(qs, false);
+	}
 	if (!session.headonly)
 	{
 		ASPRINTF(&errmsg,
@@ -490,10 +499,10 @@ redirect(const char * const redir, const unsigned int status, const xs_redirflag
 			"<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"
 			"<head><title>Document has moved</title></head>\n"
 			"<body><h1>Document has moved</h1>\n"
-			"<p>This document has %s moved to "
+			"<p>This document has %smoved to "
 			"<a href=\"%s%s%s\">%s</a>.</p></body></html>\n",
-			status == 301 || status == 308 ? "permanently" : "",
-			redir, qs ? "?" : "", qs ? qs : "", redir);
+			status == 301 || status == 308 ? "permanently " : "",
+			redirurl, qs ? "?" : "", qs ? qsurl : "", redirhtml);
 	}
 	if (session.headers)
 	{
@@ -510,19 +519,21 @@ redirect(const char * const redir, const unsigned int status, const xs_redirflag
 			status);
 		if (qs)
 			maplist_append(rh, append_default,
-				"Location", "%s?%s", redir, qs);
+				"Location", "%s?%s", redirurl, qsurl);
 		else
 			maplist_append(rh, append_default,
-				"Location", "%s", redir);
+				"Location", "%s", redirurl);
 		session.size = errmsg ? strlen(errmsg) : 0;
 		writeheaders();
 	}
 	session.rstatus = status;
 	if (!session.headonly)
-	{
 		secputs(errmsg);
-		FREE(errmsg);
-	}
+	FREE(errmsg);
+	FREE(redirhtml);
+	FREE(redirdec);
+	FREE(redirurl);
+	FREE(qsurl);
 	fflush(stdout);
 }
 

@@ -21,7 +21,6 @@
 #include	"malloc.h"
 
 static	void	xserror			(int, const char * const, ...)	PRINTF_LIKE(2,3) NORETURN;
-static	void	urldecode		(char *);
 static	void	changepasswd		(const char * const, int);
 static	void	generateform		(void);
 
@@ -48,34 +47,6 @@ xserror(int code, const char * const format, ...)
 }
 
 static	void
-urldecode(char *what)
-{
-	static	const	char	hexdigits[] = "0123456789ABCDEF";
-	const	char		*d1, *d2;
-
-	while (*what)
-	{
-		if (*what == '+')
-			*what = ' ';
-		if (*what == '&')
-			*what = 0;
-		if (*what == '%')
-		{
-			if ((d1 = strchr(hexdigits,
-					islower(what[1]) ? toupper(what[1]) : what[1])) &&
-			    (d2 = strchr(hexdigits,
-					islower(what[2]) ? toupper(what[2]) : what[2])))
-			{
-				*what = (d1-hexdigits) << 4 | (d2-hexdigits);
-				memmove(what + 1, what + 3, strlen(what) - 2);
-			}
-		}
-		what++;
-	}
-	*(++what) = 0;
-}
-
-static	void
 changepasswd(const char *param, int  cl)
 {
 	char		filename[XS_PATH_MAX], username[BUFSIZ], old[BUFSIZ],
@@ -92,7 +63,9 @@ changepasswd(const char *param, int  cl)
 	if (read(0, buffer, cl) != cl)
 		xserror(400, "Invalid content length");
 	buffer[cl] = 0;
-	urldecode(buffer);
+	char *temp = urldecode(buffer);
+	strlcpy(buffer, temp, BUFSIZ);
+	FREE(temp);
 	username[0] = old[0] = new1[0] = new2[0] = 0;
 	search = buffer;
 	while (*search)

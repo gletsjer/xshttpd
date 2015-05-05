@@ -201,6 +201,48 @@ urlencode(const char * const what, bool delimenc)
 }
 
 char	*
+urldecode(const char * const what)
+{
+	static	const	char	hexupper[] = "0123456789ABCDEF",
+				hexlower[] = "0123456789abcdef";
+	const char	*p;
+	char		*q, *d, *buffer;
+
+	if (!what)
+		return NULL;
+
+	MALLOC(buffer, char, strlen(what));
+	for (p = what, q = buffer; (*q = *p); p++, q++)
+	{
+		if (*p == '+')
+			*q = ' ';
+		else if (*p == '%' && p[1] && p[2])
+		{
+			p++;
+			if ((d = strchr(hexupper, *p)))
+				*q = d - hexupper;
+			else if ((d = strchr(hexlower, *p)))
+				*q = d - hexlower;
+			else
+			{
+				*q = *p;
+				continue;
+			}
+			*q <<= 4;
+			p++;
+			if ((d = strchr(hexupper, *p)))
+				*q |= d - hexupper;
+			else if ((d = strchr(hexlower, *p)))
+				*q |= d - hexlower;
+			else
+				*q = *p;
+		}
+	}
+
+	return buffer;
+}
+
+char	*
 shellencode(const char * const what)
 {
 	char		*q, *buffer;
