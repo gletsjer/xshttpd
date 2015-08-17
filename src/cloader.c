@@ -324,6 +324,15 @@ load_config()
 							!strcasecmp("IPv6", value) ? PF_INET6 :
 #endif		/* PF_INET6 */
 							PF_UNSPEC;
+					else if (!strcasecmp("ListenProtocol", key))
+					{
+						if (!strcasecmp("SCTP", value))
+							lsock->protocol = IPPROTO_SCTP;
+						else if (!strcasecmp("TCP", value))
+							lsock->protocol = IPPROTO_TCP;
+						else
+							errx(1, "Invalid value for ListenProtocol");
+					}
 					else if (!strcasecmp("SocketName", key))
 						STRDUP(lsock->socketname, value);
 					else if (!strcasecmp("Instances", key))

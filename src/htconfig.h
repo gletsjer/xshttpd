@@ -79,6 +79,7 @@ struct socket_config
 	char *		address;
 	char *		port;
 	sa_family_t	family;
+	int		protocol;
 	xs_sslauth_t	sslauth;
 	bool		usessl;
 	bool		sslnocert;

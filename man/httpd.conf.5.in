@@ -421,6 +421,12 @@ systems don't allow binding to multi-family sockets, in
 which case you will need separate
 .Sy Socket
 blocks for IPv4 and IPv6.
+.It Sy ListenProtocol Bro Cm TCP No \*(Ba Cm SCTP Brc Aq
+The IP protocol to use.
+The default is to use
+.Sy TCP .
+.Sy SCTP
+may not be available on all systems.
 .It Sy SocketName Ar key Aq
 A socket name is optional and should usually not be
 specified. If such a

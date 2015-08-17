@@ -1302,6 +1302,7 @@ standalone_socket(int id)
 # endif		/* __linux__ */
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
+	hints.ai_protocol = cursock->protocol;
 	if ((getaddrinfo(cursock->address ? cursock->address : NULL,
 			cursock->port, &hints, &res)))
 		err(1, "getaddrinfo()");
