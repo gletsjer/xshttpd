@@ -74,7 +74,7 @@ are good candidates.
 The groupname or numeric gid that will be used to process
 all requests.
 .It Sy ExecAsUser Ar boolean Aq true
-If enabled, filenames and CGI's in a user directory will
+If enabled, filenames and CGIs in a user directory will
 be read and executed with the permissions of that user.
 .It Sy DefaultCharset Ar charset Aq us-ascii
 The character set in which text documents will be displayed by
@@ -185,7 +185,7 @@ server-side include directives). Browsers and web-proxies can
 use this tag to determine if their cached entries are still
 up-to-date. Entity tag information is based on the file
 properties (such as size and modification time) rather than
-the file contents. Therefor it's fast to determine, but not
+the file contents. Therefore it's fast to determine, but not
 perfect.
 .It Sy UseCoreDump Ar boolean Aq false
 This option is used for debugging only and disabled by default.
@@ -342,7 +342,7 @@ a fatal error.
 .Bl -tag -width Ds
 .It Sy PerlPersistentScript Aq contrib/persistent.pl
 Location of the script that is used for internal handling of
-Perl CGI's.
+Perl CGIs.
 .El
 .It Sy mod_bzip
 .Bl -tag -width Ds
@@ -448,7 +448,7 @@ default, instead of http (80). Note that you may include
 both blocks with and without
 .Sy UseSSL .
 .It Sy SSLCertificate Ar filename Aq cert.pem
-The location of the x509 certificate to be used for SSL
+The location of the X.509 certificate to be used for SSL
 connections. This may be an absolute path or relative to
 the configuration directory
 .Pa ( @configdir@ ) .
@@ -456,7 +456,7 @@ This file may include a full certificate chain up to a trusted root.
 When intermedicate certificates are used by the CA, they must be
 listed in this file as well.
 .It Sy SSLPrivateKey Ar filename Aq key.pem
-The location of the x509 certificate's key to be used for SSL connections.
+The location of the X.509 certificate's key to be used for SSL connections.
 This may be contained in the same file as the
 .Sy SSLCertificate
 file. Note that this key may be protected with a secret passphrase.
@@ -521,7 +521,7 @@ CGI environment to offer details about the client
 certificate subject and issuing organisation; see
 .Xr httpd_cgi 7 .
 .It Sy SSLCAfile Ar filename Aq
-The location of the list of x509 root certificates to be
+The location of the list of X.509 root certificates to be
 used for validation of client certificates. This is unset by
 default; although an example
 .Pa caroot.pem
@@ -530,7 +530,7 @@ This may be an absolute path or a path relative to
 the configuration directory
 .Pa ( @configdir@ ) .
 .It Sy SSLCApath Ar directory Aq
-The location of the list of files containing x509 root
+The location of the list of files containing X.509 root
 certificates to be used for validation of client certs. This
 is unset by default.
 This may be an absolute path or a path relative to
@@ -640,7 +640,7 @@ sections:
 .It Sy SSLTicketKey Ar string Aq
 This value (in combination with the SSL private key)
 is used to seed the key that protects SSL session tickets.
-When serving a domain load-balanced with overmultiple servers,
+When serving a domain load-balanced over multiple servers,
 all webservers should use the same value for the same domain.
 When not set, a fixed default value will be used.
 .It Sy HostName Ar hostname
@@ -695,7 +695,7 @@ it is easy to get confused.
 Location where the icons used by
 .Xr xsindex 1
 are to be found. When encountered in an URL path
-prefix, files will be retreived from the
+prefix, files will be retrieved from the
 .Sy PhIconDir
 directory rather than the normal path.
 Beware that changing this setting only affects the
@@ -796,10 +796,10 @@ section, it will default to the definition in the
 block, or the previously mentioned default if this is also
 unspecified.
 .It Sy UseUsers Ar boolean Aq false
-This flag controles if personal user directories (as defined in the
+This flag controls if personal user directories (as defined in the
 .Sy Users
 section) will be made available through this virtual host.
-If access to personal webdirectories is enabled, then these will
+If access to personal web directories is enabled, then these will
 always be made available through the default
 .Sy System
 host.
@@ -836,7 +836,7 @@ STS sites should only be visited via SSL/TLS (https).
 Setting this option will generate an HTTP redirect for visitors using
 the insecure HTTP port and adds an extra
 .Ql Strict-Transport-Security
-header for HTTPS pages. This instructs browers to use HTTPS for all
+header for HTTPS pages. This instructs browsers to use HTTPS for all
 further requests to this site.
 Note that the
 .Sy STSMaxAge
@@ -873,7 +873,7 @@ This does not change the configuration of other virtual hosts.
 You must still add
 .Em UseSTS
 to the configuration block for DNS sub domains, if they are defined
-seperately in the webserver configuration.
+separately in the webserver configuration.
 .It Sy FcgiSocket Ar path Aq
 Set the path for communication with a FastCGI daemon. This path
 can either be the filename of a UNIX domain socket or a

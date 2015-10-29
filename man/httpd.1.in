@@ -136,7 +136,7 @@ language or choose local interpreters and mime-types for any document is
 an important aspect of this.
 .Pp
 But users can also limit access to (part of) their webspace to certain
-visitors using (built-in) HTTP authentication with freely choosen
+visitors using (built-in) HTTP authentication with freely chosen
 usernames and passwords. Users can choose for Basic or Digest
 authentication, or even configure access using SSL client-certificates,
 or blocking/allowing certain IP ranges.
@@ -228,7 +228,7 @@ one with
 .Fl s )
 set and one without.
 .Pp
-To use SSL you will need an x509 certificate
+To use SSL you will need an X.509 certificate
 .Pa ( cert.pem )
 and the corresponding private key
 .Pa ( key.pem ) .
@@ -238,7 +238,7 @@ these to you- then you can create the required files yourself using
 .Pp
 The two
 .Pa *.pem
-files are usually stored in the httpd config directory. You can use
+files are usually stored in the httpd configuration directory. You can use
 other filenames for the certificate and private key by setting the
 parameters
 .Sy SSLCertificate
@@ -271,7 +271,7 @@ common user. Examples are:
 .Bl -bullet -compact
 .It
 Page counters served using server-side includes: daily or total
-pageviews can be included in text or in graphical fonts.
+page views can be included in text or in graphical fonts.
 .It
 Easy configuration of headers that describe the content: the
 mime-type, character set and language of documents can be set per file,
