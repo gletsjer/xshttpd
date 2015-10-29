@@ -54,7 +54,10 @@ default to
 sets the URL to which the client should be redirected. When
 setting a location header, the HTTP status code will default
 to
-.Sq 302\ Moved .
+.Sq 307\ Moved .
+.It Li X-Sendfile:
+discard all output and send the file that is specified as argument
+of this header instead. An absolute path must be specified.
 .El
 .Pp
 Note that a CGI script may omit all headers and let the

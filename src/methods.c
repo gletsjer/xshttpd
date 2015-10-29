@@ -2122,6 +2122,7 @@ getfiletype(void)
 	const	int	flen = sizeof(flist) / sizeof(ftypes *);
 	const	char	*ext;
 
+	FREE(cfvalues.mimetype);
 	if (cfvalues.mimetype || !(ext = strrchr(orig_filename, '.')) || !(*(++ext)))
 	{
 		if (!cfvalues.mimetype)
@@ -2163,5 +2164,21 @@ getfiletype(void)
 	/* set fallback default mimetype */
 	STRDUP(cfvalues.mimetype, OCTET_STREAM);
 	return false;
+}
+
+bool
+sendlocalfile(const char *filename)
+{
+	if (!filename || filename[0] != '/')
+		return false;
+
+	int	fd = open(filename, O_RDONLY);
+	if (fd < 0)
+		return false;
+
+	strlcpy(orig_filename, filename, XS_PATH_MAX);
+	senduncompressed(fd, NULL);
+	close(fd);
+	return true;
 }
 

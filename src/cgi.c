@@ -38,6 +38,7 @@
 #include	"hash.h"
 #include	"extra.h"
 #include	"malloc.h"
+#include	"methods.h"
 #include	"modules.h"
 #include	"convert.h"
 
@@ -645,6 +646,12 @@ do_script(const char *path, const char *base, const char *file, const char *engi
 				}
 				else
 					append(&head, false, "Location: %s\r\n", val);
+			}
+			if (!strcasecmp(idx, "X-Sendfile"))
+			{
+				if (!sendlocalfile(val))
+					server_error(404, "Requested URL not found", "NOT_FOUND");
+				goto END;
 			}
 			else if (!strcasecmp(idx, "Content-type"))
 			{

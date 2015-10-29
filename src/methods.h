@@ -19,5 +19,6 @@ void	do_trace		(const char * const);
 void	do_proxy		(const char * const, const char * const);
 
 bool	writeheaders		(void);
+bool	sendlocalfile		(const char *);
 
 #endif		/* METHODS_H */
