@@ -662,11 +662,11 @@ ssl_status_cb(SSL *ssl, const char *filename)
 	if (!d2i_OCSP_RESPONSE_bio(bio, &ostruct))
 		return SSL_TLSEXT_ERR_NOACK;
 
-#if 0
+# if 0
 	warnx("OCSP read: %s\n", ERR_reason_error_string(ERR_get_error()));
 	BIO *berr = BIO_new_fp(stderr, BIO_NOCLOSE);
 	OCSP_RESPONSE_print(berr, ostruct, 2);
-#endif
+# endif
 
 	/* TODO: Do some sanity checking here,
 	 * discard invalid / expired information
@@ -677,6 +677,7 @@ ssl_status_cb(SSL *ssl, const char *filename)
 	return SSL_TLSEXT_ERR_OK;
 }
 
+# if 0
 static void
 ssl_info_cb(const SSL *ssl, int where, int ret)
 {
@@ -704,6 +705,7 @@ ssl_info_cb(const SSL *ssl, int where, int ret)
 	if (where & SSL_CB_HANDSHAKE_DONE)
 		session.disable_reneg = true;
 }
+# endif
 #endif	 	/* HANDLE_SSL_TLSEXT */
 
 static void
@@ -917,29 +919,29 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 	/* set up shared key for SSL tickets */
 	if (config.usesslsessiontickets)
 	{
-		EVP_PKEY	*pkey = NULL;
+		EVP_PKEY	*evpkey = NULL;
 
 		if (bio)
 			BIO_reset(bio);
 		else
 			bio = BIO_new_file(*lpkey, "r");
 		if (bio)
-			PEM_read_bio_PrivateKey(bio, &pkey, NULL, NULL);
+			PEM_read_bio_PrivateKey(bio, &evpkey, NULL, NULL);
 
 #ifdef		SSL_CTRL_SET_TLSEXT_TICKET_KEYS
-		if (pkey)
+		if (evpkey)
 		{
 			/* To get our key, we sign the seed with the first private key */
 			const char	ticketkey[] = "xshttpd-global-ticketkey";
 			unsigned char	keys[SSL_MAX_MASTER_KEY_LENGTH];
-			unsigned char	sign[EVP_PKEY_size(pkey)];
+			unsigned char	sign[EVP_PKEY_size(evpkey)];
 			unsigned int	siglen = 0;
 
 			EVP_MD_CTX mdctx;
 			EVP_MD_CTX_init(&mdctx);
 			EVP_SignInit(&mdctx, EVP_sha384());
 			EVP_SignUpdate(&mdctx, ticketkey, strlen(ticketkey));
-			EVP_SignFinal(&mdctx, sign, &siglen, pkey);
+			EVP_SignFinal(&mdctx, sign, &siglen, evpkey);
 
 			/* The first 48 bytes are used:
 			 * - 16 bytes ticket key name
@@ -956,8 +958,8 @@ loadssl(struct socket_config * const lsock, struct ssl_vhost * const sslvhost)
 		}
 #endif		/* SSL_CTRL_SET_TLSEXT_TICKET_KEYS */
 
-		if (pkey)
-			EVP_PKEY_free(pkey);
+		if (evpkey)
+			EVP_PKEY_free(evpkey);
 		if (bio)
 			BIO_free(bio);
 	}

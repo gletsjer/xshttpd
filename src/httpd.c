@@ -215,7 +215,7 @@ write_pidfile(pid_t pid)
 	return true;
 }
 
-static inline void
+static void
 reopen_log(FILE **fp, const char * const filename)
 {
 	FILE	*openlog = *fp;
@@ -248,7 +248,6 @@ open_logs(int sig)
 {
 	const uid_t		savedeuid = geteuid();
 	const gid_t		savedegid = getegid();
-	FILE			*oldfile;
 
 	if (sig)
 	{
