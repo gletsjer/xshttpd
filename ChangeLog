@@ -5,6 +5,7 @@ Changes since 3.7 beta 34
 - Add SCTP support via ListenProtocol option (only TCP compat mode)
 - Add X-Sendfile CGI header parsing: send the file specified instead
   of the output of the CGI script. Allows e.g. authorisation by CGI
+- Add AccessControlAllowOrigin option for (limited) CORS support
 
 Changes since 3.7 beta 33
 - Undo TLS reconnect change in 3.7b32 due to errors

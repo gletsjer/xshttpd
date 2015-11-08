@@ -611,6 +611,8 @@ check_xsconf(const char * const cffile, const char * const filename, const int d
 			STRDUP(cfvalues->csp, value);
 		else if (!strcasecmp(name, "PublicKeyPins"))
 			STRDUP(cfvalues->hpkp, value);
+		else if (!strcasecmp(name, "AccessControlAllowOrigin"))
+			STRDUP(cfvalues->acao, value);
 		else if (!strcasecmp(name, "DeleteScript"))
 			STRDUP(cfvalues->delscript, value);
 		else if (!strcasecmp(name, "PutScript"))
@@ -707,6 +709,10 @@ free_xsconf(cf_values * const cfvalues)
 		FREE(cfvalues->p3pcp);
 	if (cfvalues->csp)
 		FREE(cfvalues->csp);
+	if (cfvalues->hpkp)
+		FREE(cfvalues->hpkp);
+	if (cfvalues->acao)
+		FREE(cfvalues->acao);
 	if (cfvalues->putscript)
 		FREE(cfvalues->putscript);
 }

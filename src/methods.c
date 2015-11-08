@@ -536,6 +536,8 @@ writeheaders(void)
 		maplist_append(rh, O, "Content-Security-Policy", "%s", cfvalues.csp);
 	if (cfvalues.hpkp)
 		maplist_append(rh, O, "Public-Key-Pins", "%s", cfvalues.hpkp);
+	if (cfvalues.acao)
+		maplist_append(rh, O, "Access-Control-Allow-Origin", "%s", cfvalues.acao);
 
 	/* Write headers to buffer */
 	char	*headers, *hp;

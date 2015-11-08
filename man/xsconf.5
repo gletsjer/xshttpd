@@ -185,7 +185,7 @@ document.
 Set the content security policy for the selected resource.
 If set, this policy will be added to the headers of the
 requested document(s).
-.It PublicKeyPins
+.It Sy PublicKeyPins
 Set the HTTP public key pinning header for the selected resource.
 The value will be used unchanged in the
 .Em Public-Key-Pins
@@ -200,6 +200,12 @@ A max-age value of 5184000 (60 days) is recommended for default use.
 See
 .Sy RFC 7469
 for more details.
+.It Sy AccessControlAllowOrigin
+Sets the value of the
+.Em Access-Control-Allow-Origin
+HTTP header. The value should either be a URI or the special value
+.Pa * ,
+indicating that all cross-origin requests are allowed.
 .El
 .Pp
 Extra authentication options are available when SSL and PCRE
