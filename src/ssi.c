@@ -386,21 +386,22 @@ xsc_counter(countermode mode, const char * const args, off_t *size)
 static	int
 call_counter(countermode mode, int argc, char * const * const argv, off_t *size)
 {
-	xs_error_t		ret;
-	uid_t			savedeuid;
-	gid_t			savedegid;
 	const char * const	path = argc ? argv[0] : NULL;
 
 	if (runasroot)
 	{
-		savedeuid = geteuid();
-		savedegid = getegid();
+		const uid_t	savedeuid = geteuid();
+		const gid_t	savedegid = getegid();
+
 		seteugid(0, 0);
-	}
-	ret = xsc_counter(mode, path, size) ? ERR_NONE : ERR_CONT;
-	if (runasroot)
+		const xs_error_t	ret =
+			xsc_counter(mode, path, size) ? ERR_NONE : ERR_CONT;
 		seteugid(savedeuid, savedegid);
-	return(ret);
+
+		return ret;
+	}
+	else
+		return xsc_counter(mode, path, size) ? ERR_NONE : ERR_CONT;
 }
 
 static	int
