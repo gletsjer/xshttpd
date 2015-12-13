@@ -205,6 +205,7 @@ check_auth_ldap_full(const char *user, const char *pass)
 	/* copy filter, filling in $user */
 	if (ldap.filter)
 	{
+		/* This code is seriously broken. Compare with man page. */
 		STRDUP(filter, ldap.filter);
 		if (!filter && !ldap.attr)
 		{
@@ -223,8 +224,10 @@ check_auth_ldap_full(const char *user, const char *pass)
 			filter = newfilter;
 		}
 	}
-	else
+	else if (ldap.attr)
 		ASPRINTF (&filter, "(%s=%s)", ldap.attr, user);
+	else
+		ASPRINTF (&filter, "(uid=%s)", user);
 
 	/*
 	 * This search may look confusing. Basically, we do a search for the
@@ -294,44 +297,48 @@ leave:
 bool
 ldap_config_local(const char *name, const char *value)
 {
-	if (!name && !value)
-		memset(&ldap, 0, sizeof(ldap));
+	/* Erase local configuration. */
+	if (!name && !value) {
+		FREE(ldap.uri);
+		FREE(ldap.attr);
+		FREE(ldap.dn);
+		FREE(ldap.groups);
+		FREE(ldap.filter);
+		ldap.version = 0;
+	}
+	/* Parse local configuration. */
 	else if (!strcasecmp(name, "LdapHost"))
 	{
-		if (ldap.uri)
-			FREE(ldap.uri);
+		FREE(ldap.uri);
 		ASPRINTF(&ldap.uri, "ldap://%s", value);
 	}
 	else if (!strcasecmp(name, "LdapURI"))
 	{
-		if (ldap.uri)
-			FREE(ldap.uri);
+		FREE(ldap.uri);
 		STRDUP(ldap.uri, value);
 	}
 	else if (!strcasecmp(name, "LdapAttr"))
 	{
-		if (ldap.attr)
-			FREE(ldap.attr);
+		FREE(ldap.attr);
 		STRDUP(ldap.attr, value);
 	}
 	else if (!strcasecmp(name, "LdapDN"))
 	{
-		if (ldap.dn)
-			FREE(ldap.dn);
+		FREE(ldap.dn);
 		STRDUP(ldap.dn, value);
 	}
 	else if (!strcasecmp(name, "LdapVersion"))
+	{
 		ldap.version = strtoul(value, NULL, 10);
+	}
 	else if (!strcasecmp(name, "LdapGroups"))
 	{
-		if (ldap.groups)
-			FREE(ldap.groups);
+		FREE(ldap.groups);
 		STRDUP(ldap.groups, value);
 	}
 	else if (!strcasecmp(name, "LdapFilter"))
 	{
-		if (ldap.filter)
-			FREE(ldap.filter);
+		FREE(ldap.filter);
 		STRDUP(ldap.filter, value);
 	}
 	else

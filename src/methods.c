@@ -1297,7 +1297,7 @@ do_get(char *params)
 			mod->config_local(NULL, NULL);
 
 	/* Check user directives */
-	/* These should all send there own error messages when appropriate */
+	/* These should all send their own error messages when appropriate */
 	if ((xsfile = find_file(orgbase, base, NOXS_FILE, NULL)) && check_noxs(xsfile))
 		return;
 	if ((xsfile = find_file(orgbase, base, AUTH_FILE, NULL)) &&
